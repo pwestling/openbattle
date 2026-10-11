@@ -1,0 +1,45 @@
+import { lazy } from "react";
+import { holdTheField } from "../../missions/holdTheField";
+import type { GameModule } from "../../sdk";
+import type { SystemModule } from "../app";
+import { characterActions } from "./characters";
+import { chargeFunctions, chargeHooks } from "./charge";
+import { conquestFunctions, conquestProcedures } from "./command";
+import { conquestLayout, CONQUEST_CATEGORIES } from "./layout";
+import { moraleProcedures } from "./morale";
+import { leavingCommand } from "./leaving";
+import { marchWarnings } from "./march";
+import { reinforceProcedures } from "./reinforce";
+import { importConquestList } from "./roster";
+import { specialFunctions, specialHooks } from "./special";
+import { seizeTheField, standWarnings } from "./stands";
+import { conquestSample } from "./sample";
+import { conquest } from "./system";
+
+/** Conquest: roll-under regiments, a command stack and alternating activations (system.ts). */
+export const conquestModule: GameModule<SystemModule> = {
+  id: conquest.id,
+  version: conquest.version,
+  api: 1,
+  system: conquest,
+  procedures: { ...conquestProcedures, ...moraleProcedures, ...reinforceProcedures },
+  functions: { ...conquestFunctions, ...chargeFunctions, ...specialFunctions },
+  hooks: { ...chargeHooks, ...specialHooks },
+  checks: (view) => [...marchWarnings(view), ...standWarnings(view)],
+  actions: characterActions,
+  // Measured over 128 mirrored games: Sharp beats Steady more often here without fearing reach.
+  bot: { threat: 0, faceMoves: true, sharp: { projectLater: 0.7 }, reviewPasses: 6 },
+  app: {
+    sample: conquestSample,
+    // Lists shared as text, characteristics filled in on import (roster.ts).
+    importRoster: importConquestList,
+    layout: (t) => conquestLayout(t.width, t.depth),
+    templateCategory: CONQUEST_CATEGORIES,
+    rankRules: () => ({ width: 2, maxBonus: 0 }),
+    chargeRoll: { count: 1, sides: 6, keep: "sum" },
+    // The panel (and the lesson code it reaches) loads with the game screen, not the front door.
+    panel: lazy(() => import("./CommandPanel").then((m) => ({ default: m.CommandPanel }))),
+    missions: [holdTheField(), seizeTheField()],
+    leaving: leavingCommand,
+  },
+};

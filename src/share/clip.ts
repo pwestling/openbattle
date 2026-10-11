@@ -1,0 +1,295 @@
+import { onScreen, shot } from "../render/focus";
+import { sideName, sidePlayers, sides, stateAt, systemOf, type GameState } from "../core";
+import { t } from "../i18n";
+import { displayName } from "../i18n/names";
+import { useStore } from "../store";
+import { audioOut } from "../ui/sound";
+import { voiceStreams } from "../voice/voice";
+import { runningVp } from "../ui/highlights";
+import { everyFrame, tableCanvas } from "./capture";
+import { paintOverlays } from "./paint";
+import { withDuration } from "./webmDuration";
+
+/**
+ * Clips (#46): the table, with what's over it (the dice tray and its
+ * banners, moment cards, name plates), recorded to WebM. Each frame the table
+ * is copied into a canvas of our own right after it renders and the page's
+ * overlays are painted on top (paint.ts); that canvas's captureStream feeds a
+ * MediaRecorder. Game sounds and table talk can go in the clip's sound.
+ */
+
+interface ClipSound {
+  /** Dice, bells and the room. */
+  sounds: boolean;
+  /** Table talk: this device's mic and each player's voice. */
+  voice: boolean;
+}
+
+/** A clip's frame: 16:9 for video sites, square for feeds, 9:16 for phone stories (UX 337, PX share 6). */
+export type ClipShape = "wide" | "square" | "tall";
+const SIZES: Record<ClipShape, { width: number; height: number }> = {
+  wide: { width: 1920, height: 1080 },
+  square: { width: 1080, height: 1080 },
+  tall: { width: 1080, height: 1920 },
+};
+const FPS = 30;
+/** The end frame (the result and where to play) stays this long (PX share 5). */
+const END_MS = 1500;
+/** What a recording adds to the table's own play time: the end frame plus starting and finishing the encoder (UX 67: estimates ran 3–4 s short). */
+export const CLIP_OVERHEAD_MS = END_MS + 1500;
+
+/** What the clip ends on. */
+interface ClipEnding {
+  title: string;
+  line?: string;
+  url: string;
+}
+
+/** The shape that suits this screen: tall on a phone held upright, else wide. */
+export function defaultShape(): ClipShape {
+  return innerHeight > innerWidth * 1.2 ? "tall" : "wide";
+}
+
+/** Whether this browser can record clips. */
+export function canRecord(): boolean {
+  return (
+    typeof MediaRecorder !== "undefined" &&
+    typeof HTMLCanvasElement.prototype.captureStream === "function" &&
+    !!mimeType()
+  );
+}
+
+function mimeType(): string | undefined {
+  if (typeof MediaRecorder === "undefined") return undefined;
+  return ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find((m) =>
+    MediaRecorder.isTypeSupported(m),
+  );
+}
+
+export interface Recording {
+  /** Stop and get the clip. */
+  stop(): Promise<Blob>;
+  /** Stop and throw it away. */
+  cancel(): void;
+}
+
+export function startClip(sound: ClipSound, shape: ClipShape, ending: () => ClipEnding): Recording | null {
+  const table = tableCanvas();
+  const type = mimeType();
+  if (!table || !type) return null;
+  const { width, height } = SIZES[shape];
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  const stopFrames = everyFrame((src) => {
+    // The page may have scrolled or resized since: measure each frame.
+    const r = src.getBoundingClientRect();
+    // Until the canvas's pixels match its box (it is being resized), its frame is drawn small in a corner: skip it.
+    if (!src.width || !r.width || Math.abs(src.width / src.height - r.width / r.height) > 0.02) return;
+    // Cover the clip's frame with the table, keeping its middle; the overlays line up the same way.
+    // A square or tall clip of a wide screen would crop the table's ends away (UX 356): it goes
+    // part way between covering and fitting, with dark bands for the caption and dice.
+    const cover = Math.max(width / r.width, height / r.height);
+    const fit = Math.min(width / r.width, height / r.height);
+    const narrow = Math.abs(width / height - r.width / r.height) > 0.2;
+    // A tall clip of a wide screen fits the whole table across (UX 367: edge units were cut) and
+    // uses the bands above and below: the score and dice on top, the caption underneath.
+    const tall = narrow && height / width > 1.3 && r.width >= r.height;
+    // Tall, it crops in to the table itself, which then fills the frame's width (UX 367: it filled 13% of the
+    // height), leaving at least a fifth of the frame above and below it for the score, dice and caption.
+    const c = tall ? tallCrop(r, width, height) : { x: 0, y: 0, w: r.width, h: r.height };
+    const k = tall ? width / c.w : narrow ? fit + (cover - fit) * 0.45 : cover;
+    const dx = (width - c.w * k) / 2;
+    const dy = (height - c.h * k) / 2;
+    ctx.fillStyle = "#111318";
+    ctx.fillRect(0, 0, width, height);
+    const px = src.width / r.width;
+    ctx.drawImage(src, c.x * px, c.y * px, c.w * px, c.h * px, dx, dy, c.w * k, c.h * k);
+    if (tall) drawScore(ctx, width, dy);
+    paintOverlays(
+      ctx,
+      { left: r.left + c.x - dx / k, top: r.top + c.y - dy / k, scale: k },
+      document,
+      // Cropped from a screen of another shape, the tray would sit squeezed in a corner (UX 55).
+      narrow ? { width, height, below: dy + c.h * k, ...(tall ? { above: dy } : {}) } : undefined,
+    );
+  });
+
+  const video = canvas.captureStream(FPS);
+  const tracks = [...video.getVideoTracks()];
+  // The sound: the app's own bus, and voices, mixed into one track.
+  const out = sound.sounds || sound.voice ? audioOut() : null;
+  let mixed: MediaStreamAudioDestinationNode | null = null;
+  const sources: AudioNode[] = [];
+  if (out) {
+    mixed = out.ac.createMediaStreamDestination();
+    if (sound.sounds) out.master.connect(mixed);
+    if (sound.voice)
+      for (const s of voiceStreams())
+        if (s.getAudioTracks().length) {
+          const src = out.ac.createMediaStreamSource(s);
+          src.connect(mixed);
+          sources.push(src);
+        }
+    tracks.push(...mixed.stream.getAudioTracks());
+  }
+  const recorder = new MediaRecorder(new MediaStream(tracks), {
+    mimeType: type,
+    videoBitsPerSecond: 6_000_000,
+  });
+  const chunks: Blob[] = [];
+  recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  recorder.start(1000);
+  const began = performance.now();
+
+  // A tall clip stacks the caption (UX 356): its two columns would wrap word by word.
+  const narrowShape = width / height < 1.2;
+  if (narrowShape) document.body.classList.add("clip-narrow");
+  shot.capturing++;
+  const finish = () => {
+    shot.capturing = Math.max(0, shot.capturing - 1);
+    if (!shot.capturing) onScreen.table = null;
+    document.body.classList.remove("clip-narrow");
+    stopFrames();
+    for (const t of tracks) t.stop();
+    for (const s of sources) s.disconnect();
+    if (out && mixed && sound.sounds) out.master.disconnect(mixed);
+  };
+  return {
+    stop: () =>
+      new Promise<Blob>((resolve) => {
+        // The table stops; the end frame holds over its last picture, then the clip ends.
+        stopFrames();
+        const end = ending();
+        const last = document.createElement("canvas");
+        last.width = width;
+        last.height = height;
+        last.getContext("2d")!.drawImage(canvas, 0, 0);
+        const shown = performance.now();
+        const track = video.getVideoTracks()[0] as
+          (MediaStreamTrack & { requestFrame?: () => void }) | undefined;
+        const timer = setInterval(() => {
+          drawEnding(ctx, last, end, Math.min(1, (performance.now() - shown) / 300));
+          // Each end frame is sent on, not left for the stream to notice.
+          track?.requestFrame?.();
+          if (performance.now() - shown < END_MS) return;
+          clearInterval(timer);
+          // A beat for the encoder to catch up, so the end frame isn't dropped at the stop.
+          recorder.requestData();
+          setTimeout(() => recorder.stop(), 400);
+        }, 1000 / FPS);
+        recorder.onstop = () => {
+          finish();
+          void withDuration(new Blob(chunks, { type: "video/webm" }), performance.now() - began).then(
+            resolve,
+          );
+        };
+      }),
+    cancel: () => {
+      recorder.onstop = finish;
+      recorder.stop();
+    },
+  };
+}
+
+/**
+ * The part of the table canvas a tall clip shows (CSS pixels from its corner): the table with a margin, as
+ * wide as the frame allows while the picture stays within the middle three fifths of its height, and the
+ * whole canvas when the camera is close in (the table runs off the screen) or the table isn't measured.
+ */
+function tallCrop(r: DOMRect, width: number, height: number) {
+  const whole = { x: 0, y: 0, w: r.width, h: r.height };
+  const t = onScreen.table;
+  if (!t || t.x1 - t.x0 < 50) return whole;
+  const margin = (t.x1 - t.x0) * 0.04;
+  // Wide enough that the crop, scaled to the frame's width, is at most 3/5 of its height.
+  const w = Math.min(
+    r.width,
+    Math.max(t.x1 - t.x0 + margin * 2, (t.y1 - t.y0 + margin * 2) * (width / (height * 0.6))),
+  );
+  const h = Math.min(r.height, (w * height * 0.6) / width, Math.max(t.y1 - t.y0 + margin * 2, w * 0.3));
+  const cx = (t.x0 + t.x1) / 2;
+  const cy = (t.y0 + t.y1) / 2;
+  const x = Math.max(0, Math.min(r.width - w, cx - w / 2));
+  const y = Math.max(0, Math.min(r.height - h, cy - h / 2));
+  return { x, y, w, h };
+}
+
+let shown: { scrub: number; game: GameState } | null = null;
+
+/** The table the clip is showing: at the scrubber while the reel plays, not the game's end. */
+function shownGame(): GameState {
+  const { game, record, scrub } = useStore.getState();
+  if (scrub === null) return game;
+  if (shown?.scrub !== scrub) shown = { scrub, game: stateAt(record, scrub) };
+  return shown.game;
+}
+
+/**
+ * A tall clip's top band (UX 367): each side's name, colour and VP, and the
+ * round, so a phone-sized story says the score without the top bar.
+ */
+function drawScore(ctx: CanvasRenderingContext2D, width: number, band: number) {
+  const game = shownGame();
+  const rows = sides(game).map((seat) => ({
+    name: displayName(sideName(game, seat)),
+    color: sidePlayers(game, seat)[0]?.color ?? "#999",
+    vp: runningVp(useStore.getState().record, game, seat),
+  }));
+  if (rows.length < 2 || band < 160) return;
+  const unit = width / 1080;
+  const h = Math.min(band * 0.3, 150 * unit);
+  const y = h * 0.62;
+  const font = (size: number, weight: number) =>
+    (ctx.font = `${weight} ${size * unit}px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`);
+  ctx.textBaseline = "alphabetic";
+  rows.slice(0, 2).forEach((row, i) => {
+    const left = i === 0;
+    const x = left ? 48 * unit : width - 48 * unit;
+    ctx.fillStyle = row.color;
+    ctx.fillRect(left ? x : x - 10 * unit, y - 44 * unit, 10 * unit, 60 * unit);
+    ctx.textAlign = left ? "left" : "right";
+    font(28, 700);
+    ctx.fillStyle = "#f4f1ea";
+    ctx.fillText(row.name, left ? x + 24 * unit : x - 24 * unit, y - 20 * unit, width * 0.3);
+    font(40, 800);
+    ctx.fillText(`${row.vp} VP`, left ? x + 24 * unit : x - 24 * unit, y + 20 * unit);
+  });
+  if (game.turn.round > 0) {
+    ctx.textAlign = "center";
+    font(26, 600);
+    ctx.fillStyle = "#b9b4a8";
+    // Past the last round is the game's end, not "Round 6" of 5 (dogfood).
+    const rounds = systemOf(game).turn.rounds;
+    const over = typeof rounds === "number" && game.turn.round > rounds;
+    ctx.fillText(over ? t("Battle over") : t("Round {n}", { n: game.turn.round }), width / 2, y);
+  }
+  ctx.textAlign = "left";
+}
+
+/** The clip's last frame: its last picture dimmed, the result, and where to play. */
+function drawEnding(ctx: CanvasRenderingContext2D, last: HTMLCanvasElement, end: ClipEnding, fade: number) {
+  const { width, height } = ctx.canvas;
+  ctx.drawImage(last, 0, 0);
+  ctx.fillStyle = `rgba(10, 11, 15, ${0.8 * fade})`;
+  ctx.fillRect(0, 0, width, height);
+  ctx.globalAlpha = fade;
+  ctx.textAlign = "center";
+  const unit = Math.min(width, height) / 1080;
+  const font = (size: number, weight: number) =>
+    (ctx.font = `${weight} ${size * unit}px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`);
+  font(86, 800);
+  ctx.fillStyle = "#f4f1ea";
+  ctx.fillText(end.title, width / 2, height / 2 - 20 * unit, width * 0.9);
+  if (end.line) {
+    font(40, 500);
+    ctx.fillStyle = "#b9b4a8";
+    ctx.fillText(end.line, width / 2, height / 2 + 50 * unit, width * 0.9);
+  }
+  font(44, 700);
+  ctx.fillStyle = "#f5b942";
+  ctx.fillText(end.url, width / 2, height / 2 + 150 * unit, width * 0.9);
+  ctx.globalAlpha = 1;
+  ctx.textAlign = "left";
+}

@@ -1,0 +1,88 @@
+import { useEffect } from "react";
+import { DEFAULT_SYSTEM, type GamePackages, type GameState, type PackageRef } from "../core";
+import { useLibrary, type StoredPackage } from "../packages/library";
+import { hostPowers, useHostPowers, useStore } from "../store";
+import { refOf } from "../ui/Packages";
+import { APP_BUILD } from "../version";
+import type { CampaignBook } from "./book";
+import { t } from "../i18n";
+
+/**
+ * A book's campaign rules (UX 237): the packages its games play with, which
+ * the book remembers once their hooks have run in one of its games. Playing
+ * for the book turns them on, or offers to.
+ */
+
+/** The book's rules this game doesn't have on, with this device's copy of each (if it has one). */
+export function rulesOff(
+  book: CampaignBook,
+  game: GameState,
+  library: Record<string, StoredPackage>,
+): { ref: PackageRef; stored?: StoredPackage }[] {
+  const on = game.packages?.packages ?? [];
+  const all = Object.values(library);
+  return (book.rules ?? [])
+    .filter((r) => !on.some((p) => p.id === r.id))
+    .map((ref) => ({
+      ref,
+      stored: all.find((p) => p.hash === ref.hash) ?? all.find((p) => p.manifest.id === ref.id),
+    }));
+}
+
+/**
+ * Turn packages on for this game: straight away before the battle (or in
+ * hotseat), else as a proposal for the other players to agree to.
+ */
+export function turnOnRules(game: GameState, packages: StoredPackage[]): void {
+  const { dispatch, mode } = useStore.getState();
+  if (!packages.length || !hostPowers(useStore.getState())) return;
+  const on = game.packages?.packages ?? [];
+  const next = [...on.filter((p) => !packages.some((x) => x.manifest.id === p.id)), ...packages.map(refOf)];
+  if (game.turn.round > 0 && mode !== "hotseat") {
+    dispatch({ type: "packages/propose", packages: next });
+    return;
+  }
+  const event: GamePackages = {
+    app: APP_BUILD,
+    system: { id: game.system ?? DEFAULT_SYSTEM, builtIn: !next.some((p) => p.kind === "system") },
+    packages: next,
+  };
+  if (game.turn.round > 0)
+    event.agreed = Object.values(game.players)
+      .filter((p) => p.seat !== undefined)
+      .map((p) => p.id);
+  dispatch({ type: "game/packages", ...event });
+}
+
+/** "Scar Test plays with Battle Scars", and a way to turn them on here. */
+export function CampaignRulesLine({ book, game }: { book: CampaignBook; game: GameState }) {
+  const library = useLibrary((s) => s.packages);
+  const choose = useHostPowers();
+  useEffect(() => void useLibrary.getState().load(), []);
+  const rules = book.rules ?? [];
+  if (!rules.length) return null;
+  const off = rulesOff(book, game, library);
+  const have = off.flatMap((o) => (o.stored ? [o.stored] : []));
+  const missing = off.filter((o) => !o.stored);
+  return (
+    <p className="muted small">
+      {t("{book} plays with {rules}.", { book: book.name, rules: rules.map((r) => r.name).join(", ") })}
+      {have.length > 0 &&
+        (choose ? (
+          <>
+            {" "}
+            <button className="small" onClick={() => turnOnRules(game, have)}>
+              {t("Turn on {rules}", { rules: have.map((p) => p.manifest.name).join(", ") })}
+            </button>
+          </>
+        ) : (
+          " " + t("The host can turn on {rules}.", { rules: have.map((p) => p.manifest.name).join(", ") })
+        ))}
+      {missing.length > 0 &&
+        " " +
+          t("This device doesn't have {rules}: load it in Game settings.", {
+            rules: missing.map((o) => o.ref.name).join(", "),
+          })}
+    </p>
+  );
+}

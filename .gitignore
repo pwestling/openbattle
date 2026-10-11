@@ -1,0 +1,15 @@
+node_modules
+dist
+*.local
+.DS_Store
+.claude/worktrees/
+
+# Self-host settings (docker-compose); see .env.example
+.env
+mailbox-data/
+
+# Real rosters built from public BSData catalogues (scripts/bsdata.mjs); never committed
+.bsdata/
+.wrangler/
+dist-host
+host-data/
