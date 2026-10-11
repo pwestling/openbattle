@@ -487,7 +487,13 @@ export function* freeMoves(state: GameState, ctx: BotContext): Generator<BotMove
   yield* end;
   if (!anyAction || ctx.idle > patience) {
     yield* next;
-    for (const p of side) yield { intent: { type: "turn/pass" }, as: p.id, kind: "pass" };
+    // In a simultaneous phase a tidy bot moves the phase on (▶) rather than pass: a pass would skip
+    // the rest of its turn (#81; the bots' own version of 9b69327). Its own turn only: it doesn't
+    // wait on a newcomer who may not know the phase is theirs too.
+    if (together && ctx.tidy) {
+      for (const p of sidePlayers(state, state.turn.activeSeat))
+        yield { intent: { type: "turn/next" }, as: p.id, kind: "next" };
+    } else for (const p of side) yield { intent: { type: "turn/pass" }, as: p.id, kind: "pass" };
   }
   yield* next;
 }
