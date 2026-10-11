@@ -1508,7 +1508,7 @@ msgid "Send them this link to open on their phone:"
 msgstr ""
 
 #: src/companion/CompanionScreen.tsx:138
-#: src/ui/Room.tsx:127
+#: src/ui/Room.tsx:129
 msgid "Copied ✓"
 msgstr ""
 
@@ -1516,7 +1516,7 @@ msgstr ""
 #: src/mail/MailBar.tsx:236
 #: src/ui/Hud.tsx:320
 #: src/ui/NetBanner.tsx:75
-#: src/ui/Room.tsx:127
+#: src/ui/Room.tsx:129
 msgid "Copy invite link"
 msgstr ""
 
@@ -3611,7 +3611,7 @@ msgid "round {n}"
 msgstr ""
 
 #: src/opentables/OpenTables.tsx:406
-#: src/ui/Room.tsx:200
+#: src/ui/Room.tsx:210
 #: src/ui/TopBar.tsx:706
 msgid "{n} watching"
 msgid_plural "{n} watching"
@@ -9014,7 +9014,7 @@ msgid "a room code or invite link"
 msgstr ""
 
 #: src/ui/Lobby.tsx:723
-#: src/ui/Room.tsx:115
+#: src/ui/Room.tsx:117
 msgid "Room"
 msgstr ""
 
@@ -10362,152 +10362,156 @@ msgstr ""
 msgid "{name}?"
 msgstr ""
 
-#: src/ui/Room.tsx:105
+#: src/ui/Room.tsx:107
 msgid "you"
 msgstr ""
 
-#: src/ui/Room.tsx:107
+#: src/ui/Room.tsx:109
 msgid "connected"
 msgstr ""
 
-#: src/ui/Room.tsx:109
+#: src/ui/Room.tsx:111
 msgid "waiting for someone to take this seat"
 msgstr ""
 
-#: src/ui/Room.tsx:110
+#: src/ui/Room.tsx:112
 msgid "reconnecting…"
 msgstr ""
 
-#: src/ui/Room.tsx:116
+#: src/ui/Room.tsx:118
 msgid "(this browser)"
 msgstr ""
 
-#: src/ui/Room.tsx:117
+#: src/ui/Room.tsx:119
 msgid "hosted by this site's server"
 msgstr ""
 
-#: src/ui/Room.tsx:139
+#: src/ui/Room.tsx:137
+msgid "This site's game relay is busy right now, so players on some networks can't connect. Try again in a few minutes, or from another network such as a phone hotspot."
+msgstr ""
+
+#: src/ui/Room.tsx:149
 msgid "A replay, watched together. {names} played it."
 msgstr ""
 
-#: src/ui/Room.tsx:151
+#: src/ui/Room.tsx:161
 msgid "host"
 msgstr ""
 
-#: src/ui/Room.tsx:152
+#: src/ui/Room.tsx:162
 msgid "ready"
 msgstr ""
 
-#: src/ui/Room.tsx:153
+#: src/ui/Room.tsx:163
 msgid "getting rules…"
 msgstr ""
 
-#: src/ui/Room.tsx:158
+#: src/ui/Room.tsx:168
 msgid "Playing without {rules}: their table may disagree"
 msgstr ""
 
-#: src/ui/Room.tsx:163
+#: src/ui/Room.tsx:173
 msgid "some of the game's rules"
 msgstr ""
 
-#: src/ui/Room.tsx:167
+#: src/ui/Room.tsx:177
 msgid "⚠ different rules"
 msgstr ""
 
-#: src/ui/Room.tsx:176
+#: src/ui/Room.tsx:186
 msgid "Joining {name}'s game…"
 msgstr ""
 
-#: src/ui/Room.tsx:177
+#: src/ui/Room.tsx:187
 msgid "Joining the host's game…"
 msgstr ""
 
-#: src/ui/Room.tsx:178
+#: src/ui/Room.tsx:188
 msgid "Looking for the game's host…"
 msgstr ""
 
-#: src/ui/Room.tsx:180
+#: src/ui/Room.tsx:190
 msgid "Back to the lobby"
 msgstr ""
 
-#: src/ui/Room.tsx:185
+#: src/ui/Room.tsx:195
 msgid "Waiting for an opponent to join…"
 msgstr ""
 
-#: src/ui/Room.tsx:189
+#: src/ui/Room.tsx:199
 msgid "Someone joining is getting the rules…"
 msgid_plural "{n} people joining are getting the rules…"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:199
+#: src/ui/Room.tsx:209
 msgid "{n} watching (you included)"
 msgid_plural "{n} watching (you included)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:233
+#: src/ui/Room.tsx:243
 msgid "{name}: {n} to place"
 msgid_plural "{name}: {n} to place"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:236
+#: src/ui/Room.tsx:246
 msgid "{name}: All placed"
 msgstr ""
 
-#: src/ui/Room.tsx:238
+#: src/ui/Room.tsx:248
 msgid "{n} to place"
 msgid_plural "{n} to place"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:239
+#: src/ui/Room.tsx:249
 msgid "All placed"
 msgstr ""
 
-#: src/ui/Room.tsx:241
+#: src/ui/Room.tsx:251
 msgid "Tell the other player you've finished deploying"
 msgstr ""
 
-#: src/ui/Room.tsx:249
+#: src/ui/Room.tsx:259
 #: src/ui/TopBar.tsx:563
 msgid "Ready"
 msgstr ""
 
-#: src/ui/Room.tsx:260
+#: src/ui/Room.tsx:270
 msgid "outside your zone"
 msgstr ""
 
-#: src/ui/Room.tsx:260
+#: src/ui/Room.tsx:270
 msgid "not placed yet"
 msgstr ""
 
-#: src/ui/Room.tsx:267
+#: src/ui/Room.tsx:277
 msgid "{n} unit in reserve"
 msgid_plural "{n} units in reserve"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:310
+#: src/ui/Room.tsx:320
 msgid "{leader} stands with {unit}"
 msgstr ""
 
-#: src/ui/Room.tsx:312
+#: src/ui/Room.tsx:322
 msgid "Lead it"
 msgstr ""
 
-#: src/ui/Room.tsx:318
+#: src/ui/Room.tsx:328
 msgid "{leader} can lead: drag it onto a squad"
 msgstr ""
 
-#: src/ui/Room.tsx:324
+#: src/ui/Room.tsx:334
 msgid "Lead all {n}"
 msgid_plural "Lead all {n}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/Room.tsx:46
+#: src/ui/Room.tsx:47
 msgid "Still looking. The host may have closed their page, or the link is from an old game. If the host is there, your connection may be the problem:"
 msgstr ""
 

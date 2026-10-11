@@ -13,6 +13,11 @@ run as NixOS services with nginx in place of Caddy:
 | `/host/`                                 | `openbattle-host` (server/host.mjs)         | 4403                                    |
 | TURN                                     | `coturn`                                    | 3478 UDP/TCP, relays on UDP 49160–49359 |
 
+TURN is capped to protect the server: at most 180 relays at once (about 90 players who need
+TURN), 1 Mbit/s per relay and 50 Mbit/s in all. Past that, coturn turns new connections away and
+the app tells players the site's relay is busy. Widen the DigitalOcean port range and `total-quota`
+together if that starts happening.
+
 State lives in `/var/lib/openbattle/{mailbox,seed,host}`. Releases live in
 `/srv/openbattle/releases/<time>-<rev>`, with `/srv/openbattle/current` pointing at one.
 

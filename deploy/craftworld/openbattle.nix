@@ -219,6 +219,14 @@ in
     no-dtls = true;
     extraConfig = ''
       fingerprint
+      # Keep TURN inside the relay port range and the box's bandwidth. Each player who needs TURN
+      # holds one or two allocations, each one relay port; past the cap coturn answers 486 and the
+      # app tells players the site's relay is busy. Game traffic and voice fit well inside max-bps.
+      total-quota=180
+      max-bps=125000
+      bps-capacity=6250000
+      no-tcp-relay
+      stale-nonce=600
       no-multicast-peers
       no-rfc5780
       external-ip=164.90.155.4

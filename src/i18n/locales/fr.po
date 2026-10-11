@@ -1835,7 +1835,7 @@ msgid "Send them this link to open on their phone:"
 msgstr "Envoie-leur ce lien à ouvrir sur leur téléphone :"
 
 #: src/companion/CompanionScreen.tsx:138
-#: src/ui/Room.tsx:127
+#: src/ui/Room.tsx:129
 #, fuzzy
 msgid "Copied ✓"
 msgstr "Copié ✓"
@@ -1844,7 +1844,7 @@ msgstr "Copié ✓"
 #: src/mail/MailBar.tsx:236
 #: src/ui/Hud.tsx:320
 #: src/ui/NetBanner.tsx:75
-#: src/ui/Room.tsx:127
+#: src/ui/Room.tsx:129
 #, fuzzy
 msgid "Copy invite link"
 msgstr "Copier le lien d’invitation"
@@ -4397,7 +4397,7 @@ msgid "round {n}"
 msgstr "tour {n}"
 
 #: src/opentables/OpenTables.tsx:406
-#: src/ui/Room.tsx:200
+#: src/ui/Room.tsx:210
 #: src/ui/TopBar.tsx:706
 #, fuzzy
 msgid "{n} watching"
@@ -11047,7 +11047,7 @@ msgid "a room code or invite link"
 msgstr "un code de salle ou un lien d'invitation"
 
 #: src/ui/Lobby.tsx:723
-#: src/ui/Room.tsx:115
+#: src/ui/Room.tsx:117
 #, fuzzy
 msgid "Room"
 msgstr "Salon"
@@ -12714,184 +12714,189 @@ msgstr "Fermer le replay"
 msgid "{name}?"
 msgstr "{name} ?"
 
-#: src/ui/Room.tsx:105
+#: src/ui/Room.tsx:107
 #, fuzzy
 msgid "you"
 msgstr "toi"
 
-#: src/ui/Room.tsx:107
+#: src/ui/Room.tsx:109
 #, fuzzy
 msgid "connected"
 msgstr "connecté"
 
-#: src/ui/Room.tsx:109
+#: src/ui/Room.tsx:111
 #, fuzzy
 msgid "waiting for someone to take this seat"
 msgstr "en attente de quelqu'un pour prendre cette place"
 
-#: src/ui/Room.tsx:110
+#: src/ui/Room.tsx:112
 #, fuzzy
 msgid "reconnecting…"
 msgstr "reconnexion…"
 
-#: src/ui/Room.tsx:116
+#: src/ui/Room.tsx:118
 #, fuzzy
 msgid "(this browser)"
 msgstr "(ce navigateur)"
 
-#: src/ui/Room.tsx:117
+#: src/ui/Room.tsx:119
 #, fuzzy
 msgid "hosted by this site's server"
 msgstr "hébergé par le serveur de ce site"
 
-#: src/ui/Room.tsx:139
+#: src/ui/Room.tsx:137
+#, fuzzy
+msgid "This site's game relay is busy right now, so players on some networks can't connect. Try again in a few minutes, or from another network such as a phone hotspot."
+msgstr "Le relais de jeu de ce site est saturé pour le moment : les joueurs de certains réseaux ne peuvent pas se connecter. Réessayez dans quelques minutes, ou depuis un autre réseau, comme un partage de connexion sur téléphone."
+
+#: src/ui/Room.tsx:149
 #, fuzzy
 msgid "A replay, watched together. {names} played it."
 msgstr "Une rediffusion, regardée ensemble. Jouée par {names}."
 
-#: src/ui/Room.tsx:151
+#: src/ui/Room.tsx:161
 #, fuzzy
 msgid "host"
 msgstr "hôte"
 
-#: src/ui/Room.tsx:152
+#: src/ui/Room.tsx:162
 #, fuzzy
 msgid "ready"
 msgstr "prêt"
 
-#: src/ui/Room.tsx:153
+#: src/ui/Room.tsx:163
 #, fuzzy
 msgid "getting rules…"
 msgstr "chargement des règles…"
 
-#: src/ui/Room.tsx:158
+#: src/ui/Room.tsx:168
 #, fuzzy
 msgid "Playing without {rules}: their table may disagree"
 msgstr "Partie sans {rules} : leur table peut différer"
 
-#: src/ui/Room.tsx:163
+#: src/ui/Room.tsx:173
 #, fuzzy
 msgid "some of the game's rules"
 msgstr "certaines règles de la partie"
 
-#: src/ui/Room.tsx:167
+#: src/ui/Room.tsx:177
 #, fuzzy
 msgid "⚠ different rules"
 msgstr "⚠ règles différentes"
 
-#: src/ui/Room.tsx:176
+#: src/ui/Room.tsx:186
 #, fuzzy
 msgid "Joining {name}'s game…"
 msgstr "Connexion à la partie de {name}…"
 
-#: src/ui/Room.tsx:177
+#: src/ui/Room.tsx:187
 #, fuzzy
 msgid "Joining the host's game…"
 msgstr "Connexion à la partie de l'hôte…"
 
-#: src/ui/Room.tsx:178
+#: src/ui/Room.tsx:188
 #, fuzzy
 msgid "Looking for the game's host…"
 msgstr "Recherche de l'hôte de la partie…"
 
-#: src/ui/Room.tsx:180
+#: src/ui/Room.tsx:190
 #, fuzzy
 msgid "Back to the lobby"
 msgstr "Retour au salon d'accueil"
 
-#: src/ui/Room.tsx:185
+#: src/ui/Room.tsx:195
 #, fuzzy
 msgid "Waiting for an opponent to join…"
 msgstr "En attente d'un adversaire…"
 
-#: src/ui/Room.tsx:189
+#: src/ui/Room.tsx:199
 #, fuzzy
 msgid "Someone joining is getting the rules…"
 msgid_plural "{n} people joining are getting the rules…"
 msgstr[0] "Quelqu'un qui rejoint reçoit les règles…"
 msgstr[1] "{n} personnes qui rejoignent reçoivent les règles…"
 
-#: src/ui/Room.tsx:199
+#: src/ui/Room.tsx:209
 #, fuzzy
 msgid "{n} watching (you included)"
 msgid_plural "{n} watching (you included)"
 msgstr[0] "{n} spectateur (toi compris)"
 msgstr[1] "{n} spectateurs (toi compris)"
 
-#: src/ui/Room.tsx:233
+#: src/ui/Room.tsx:243
 #, fuzzy
 msgid "{name}: {n} to place"
 msgid_plural "{name}: {n} to place"
 msgstr[0] "{name} : {n} à placer"
 msgstr[1] "{name} : {n} à placer"
 
-#: src/ui/Room.tsx:236
+#: src/ui/Room.tsx:246
 #, fuzzy
 msgid "{name}: All placed"
 msgstr "{name} : tout placé"
 
-#: src/ui/Room.tsx:238
+#: src/ui/Room.tsx:248
 #, fuzzy
 msgid "{n} to place"
 msgid_plural "{n} to place"
 msgstr[0] "{n} à placer"
 msgstr[1] "{n} à placer"
 
-#: src/ui/Room.tsx:239
+#: src/ui/Room.tsx:249
 #, fuzzy
 msgid "All placed"
 msgstr "Tout placé"
 
-#: src/ui/Room.tsx:241
+#: src/ui/Room.tsx:251
 #, fuzzy
 msgid "Tell the other player you've finished deploying"
 msgstr "Dis à l'autre joueur que tu as fini de te déployer"
 
-#: src/ui/Room.tsx:249
+#: src/ui/Room.tsx:259
 #: src/ui/TopBar.tsx:563
 #, fuzzy
 msgid "Ready"
 msgstr "Prêt"
 
-#: src/ui/Room.tsx:260
+#: src/ui/Room.tsx:270
 #, fuzzy
 msgid "outside your zone"
 msgstr "hors de ta zone"
 
-#: src/ui/Room.tsx:260
+#: src/ui/Room.tsx:270
 #, fuzzy
 msgid "not placed yet"
 msgstr "pas encore placée"
 
-#: src/ui/Room.tsx:267
+#: src/ui/Room.tsx:277
 #, fuzzy
 msgid "{n} unit in reserve"
 msgid_plural "{n} units in reserve"
 msgstr[0] "{n} unité en réserve"
 msgstr[1] "{n} unités en réserve"
 
-#: src/ui/Room.tsx:310
+#: src/ui/Room.tsx:320
 #, fuzzy
 msgid "{leader} stands with {unit}"
 msgstr "{leader} est avec {unit}"
 
-#: src/ui/Room.tsx:312
+#: src/ui/Room.tsx:322
 #, fuzzy
 msgid "Lead it"
 msgstr "La mener"
 
-#: src/ui/Room.tsx:318
+#: src/ui/Room.tsx:328
 #, fuzzy
 msgid "{leader} can lead: drag it onto a squad"
 msgstr "{leader} peut mener une unité : fais-le glisser sur une escouade"
 
-#: src/ui/Room.tsx:324
+#: src/ui/Room.tsx:334
 msgid "Lead all {n}"
 msgid_plural "Lead all {n}"
 msgstr[0] "Mener les {n}"
 msgstr[1] "Mener les {n}"
 
-#: src/ui/Room.tsx:46
+#: src/ui/Room.tsx:47
 #, fuzzy
 msgid "Still looking. The host may have closed their page, or the link is from an old game. If the host is there, your connection may be the problem:"
 msgstr "Toujours en recherche. L'hôte a peut-être fermé sa page, ou le lien vient d'une ancienne partie. Si l'hôte est là, le problème vient peut-être de ta connexion :"

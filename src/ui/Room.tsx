@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { untakenSeat } from "./Branch";
 import type { Player } from "../core";
 import { formatList, t, tn } from "../i18n";
+import { useRelayBusy } from "../net/relayBusy";
 import { serverHost, useCanControl, useHostPowers, useJoining, useStore } from "../store";
 import { isLeader, standingWith } from "./CoreAbilities";
 import { deployChecks } from "./deployment";
@@ -78,6 +79,7 @@ export function RoomCard() {
   const joining = useJoining();
   const posted = useOpenTables((s) => s.mine?.post.join === roomId);
   const peerMissing = useTransfers((s) => s.peerMissing);
+  const relayBusy = useRelayBusy((s) => s.at !== null);
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 2000);
@@ -129,6 +131,14 @@ export function RoomCard() {
         )}
       </div>
       <RulesLine />
+      {/* The site's TURN server turned a connection away because it is full. */}
+      {relayBusy && (peers.length === 0 || seated.some((p) => untaken(p) || reconnecting(p))) && (
+        <p className="warn small" role="status">
+          {t(
+            "This site's game relay is busy right now, so players on some networks can't connect. Try again in a few minutes, or from another network such as a phone hotspot.",
+          )}
+        </p>
+      )}
       {/* Open tables (#50): the host may put a waiting table on the public board. */}
       {mode === "online" && chair && !review && game.turn.round === 0 && (waiting || posted) && (
         <PostTable kind="live" join={roomId} seats={openSeats(game, record)} />
