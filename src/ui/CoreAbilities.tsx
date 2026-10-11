@@ -90,7 +90,7 @@ export function CoreAbilities({ unit }: { unit: Unit }) {
           )}
           {mine && !deploying && (!anyReserve || status.acting) && (
             <button
-              className="small"
+              className="primary"
               title={
                 game.settings.companion
                   ? t("Then drag the unit onto the table, more than {distance} from every enemy model", {

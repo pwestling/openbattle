@@ -2179,7 +2179,7 @@ msgstr "Angriff ansagen"
 #: src/ui/AttackPanel.tsx:329
 #: src/ui/TouchLayer.tsx:216
 #: src/ui/UnitCard.tsx:284
-#: src/ui/UnitCard.tsx:680
+#: src/ui/UnitCard.tsx:682
 #: src/ui/tableVerbs.ts:122
 #, fuzzy
 msgid "Fight"
@@ -5359,57 +5359,57 @@ msgid_plural "signs {signed} of {n} results"
 msgstr[0] "unterschreibt {signed} von {n} Ergebnis"
 msgstr[1] "unterschreibt {signed} von {n} Ergebnissen"
 
-#: src/render/Board.tsx:1400
+#: src/render/Board.tsx:1419
 #, fuzzy
 msgid "{label}: held by {player}"
 msgstr "{label}: gehalten von {player}"
 
-#: src/render/Board.tsx:1402
+#: src/render/Board.tsx:1421
 #, fuzzy
 msgid "{label}: contested"
 msgstr "{label}: umkämpft"
 
-#: src/render/Board.tsx:1403
+#: src/render/Board.tsx:1422
 #, fuzzy
 msgid "{label}: nobody holds it"
 msgstr "{label}: von niemandem gehalten"
 
-#: src/render/Board.tsx:1464
+#: src/render/Board.tsx:1483
 #, fuzzy
 msgid "Not visible"
 msgstr "Nicht sichtbar"
 
-#: src/render/Board.tsx:1466
+#: src/render/Board.tsx:1485
 #, fuzzy
 msgid "{visible}/{n} visible · {cover} in cover"
 msgstr "{visible}/{n} sichtbar · {cover} in Deckung"
 
-#: src/render/Board.tsx:1471
+#: src/render/Board.tsx:1490
 #, fuzzy
 msgid "{visible}/{n} visible"
 msgstr "{visible}/{n} sichtbar"
 
-#: src/render/Board.tsx:1991
+#: src/render/Board.tsx:2010
 #, fuzzy
 msgid "Move {inches}\""
 msgstr "Bewegung {inches}\""
 
-#: src/render/Board.tsx:2158
+#: src/render/Board.tsx:2177
 #, fuzzy
 msgid "{player} controls it: OC {oc}"
 msgstr "{player} kontrolliert es: OC {oc}"
 
-#: src/render/Board.tsx:2159
+#: src/render/Board.tsx:2178
 #, fuzzy
 msgid "Contested: OC {oc}"
 msgstr "Umkämpft: OC {oc}"
 
-#: src/render/Board.tsx:2160
+#: src/render/Board.tsx:2179
 #, fuzzy
 msgid "Nobody controls it: OC {oc}"
 msgstr "Niemand kontrolliert es: OC {oc}"
 
-#: src/render/Board.tsx:2161
+#: src/render/Board.tsx:2180
 #, fuzzy
 msgid "Nobody controls it: no models in range"
 msgstr "Niemand kontrolliert es: keine Modelle in Reichweite"
@@ -10069,7 +10069,7 @@ msgstr "+1 auf Schutzwurf"
 
 #: src/ui/GameSettings.tsx:41
 #: src/ui/SystemPanels.tsx:352
-#: src/ui/UnitCard.tsx:486
+#: src/ui/UnitCard.tsx:488
 #, fuzzy
 msgid "Line of sight"
 msgstr "Sichtlinie"
@@ -13431,7 +13431,7 @@ msgid "Charged {distance}"
 msgstr "Angriffsbewegung {distance}"
 
 #: src/ui/SystemPanels.tsx:176
-#: src/ui/UnitCard.tsx:329
+#: src/ui/UnitCard.tsx:331
 #, fuzzy
 msgid "Selected unit"
 msgstr "Gewählte Einheit"
@@ -13489,19 +13489,19 @@ msgid "Moved {distance} of {allowance} this round."
 msgstr "{distance} von {allowance} in dieser Runde bewegt."
 
 #: src/ui/SystemPanels.tsx:354
-#: src/ui/UnitCard.tsx:488
+#: src/ui/UnitCard.tsx:490
 #, fuzzy
 msgid "Model's eye view"
 msgstr "Modellperspektive"
 
 #: src/ui/SystemPanels.tsx:357
-#: src/ui/UnitCard.tsx:402
+#: src/ui/UnitCard.tsx:404
 #, fuzzy
 msgid "Rotate left (Q)"
 msgstr "Nach links drehen (Q)"
 
 #: src/ui/SystemPanels.tsx:360
-#: src/ui/UnitCard.tsx:405
+#: src/ui/UnitCard.tsx:407
 #, fuzzy
 msgid "Rotate right (E)"
 msgstr "Nach rechts drehen (E)"
@@ -13675,22 +13675,39 @@ msgstr "angreifen"
 msgid "fight"
 msgstr "kämpfen"
 
+#: src/ui/TableTag.tsx:72
+#, fuzzy
+msgid "Into reserves"
+msgstr "In die Reserve"
+
 #: src/ui/TableTag.tsx:73
+#, fuzzy
+msgid "Remove {n} model as a casualty"
+msgid_plural "Remove {n} models as casualties"
+msgstr[0] "{n} Modell als Verlust entfernen"
+msgstr[1] "{n} Modelle als Verluste entfernen"
+
+#: src/ui/TableTag.tsx:75
+#, fuzzy
+msgid "Let go off the table"
+msgstr "Neben dem Tisch loslassen"
+
+#: src/ui/TableTag.tsx:89
 #, fuzzy
 msgid "Let go to attach it"
 msgstr "Loslassen, um ihn anzuschließen"
 
-#: src/ui/TableTag.tsx:74
+#: src/ui/TableTag.tsx:90
 #, fuzzy
 msgid "Let go to attach it anyway"
 msgstr "Loslassen, um ihn trotzdem anzuschließen"
 
-#: src/ui/TableTag.tsx:76
+#: src/ui/TableTag.tsx:92
 #, fuzzy
 msgid "Let go to declare the charge"
 msgstr "Loslassen, um den Angriff anzusagen"
 
-#: src/ui/TableTag.tsx:77
+#: src/ui/TableTag.tsx:93
 #, fuzzy
 msgid "Let go to charge anyway"
 msgstr "Loslassen, um trotzdem anzugreifen"
@@ -14825,7 +14842,7 @@ msgstr "Trotzdem {verb} ({why})"
 
 #: src/ui/TouchLayer.tsx:216
 #: src/ui/UnitCard.tsx:284
-#: src/ui/UnitCard.tsx:680
+#: src/ui/UnitCard.tsx:682
 #: src/ui/tableVerbs.ts:90
 #, fuzzy
 msgid "Shoot"
@@ -14956,113 +14973,113 @@ msgstr "Diesen Zug stehen geblieben: Schwer +1 zum Treffen"
 msgid "Shoot everything at…"
 msgstr "Mit allem schießen auf …"
 
-#: src/ui/UnitCard.tsx:342
+#: src/ui/UnitCard.tsx:344
 #, fuzzy
 msgid "{title}, round {round}: {line}. Click to replay it."
 msgstr "{title}, Runde {round}: {line}. Klicken zum Wiederholen."
 
-#: src/ui/UnitCard.tsx:347
+#: src/ui/UnitCard.tsx:349
 #, fuzzy
 msgid "Replay: {title}, round {round}"
 msgstr "Wiederholung: {title}, Runde {round}"
 
-#: src/ui/UnitCard.tsx:357
+#: src/ui/UnitCard.tsx:359
 #, fuzzy
 msgid "{player} · {alive}/{all} models"
 msgstr "{player} · {alive}/{all} Modelle"
 
-#: src/ui/UnitCard.tsx:374
+#: src/ui/UnitCard.tsx:376
 #, fuzzy
 msgid "Up a floor (R)"
 msgstr "Ein Stockwerk hoch (R)"
 
-#: src/ui/UnitCard.tsx:375
-#: src/ui/UnitCard.tsx:378
+#: src/ui/UnitCard.tsx:377
+#: src/ui/UnitCard.tsx:380
 #, fuzzy
 msgid "Floor"
 msgstr "Stockwerk"
 
-#: src/ui/UnitCard.tsx:377
+#: src/ui/UnitCard.tsx:379
 #, fuzzy
 msgid "Down a floor (F)"
 msgstr "Ein Stockwerk runter (F)"
 
-#: src/ui/UnitCard.tsx:386
+#: src/ui/UnitCard.tsx:388
 #, fuzzy
 msgid "Clear advance"
 msgstr "Vorrücken zurücksetzen"
 
-#: src/ui/UnitCard.tsx:390
+#: src/ui/UnitCard.tsx:392
 #, fuzzy
 msgid "Fewer actions"
 msgstr "Weniger Aktionen"
 
-#: src/ui/UnitCard.tsx:390
+#: src/ui/UnitCard.tsx:392
 #, fuzzy
 msgid "⋯ Other actions"
 msgstr "⋯ Andere Aktionen"
 
-#: src/ui/UnitCard.tsx:396
+#: src/ui/UnitCard.tsx:398
 #, fuzzy
 msgid "Out of phase:"
 msgstr "Außerhalb der Phase:"
 
-#: src/ui/UnitCard.tsx:408
+#: src/ui/UnitCard.tsx:410
 #, fuzzy
 msgid "Q / E turn it"
 msgstr "Q / E drehen sie"
 
-#: src/ui/UnitCard.tsx:423
+#: src/ui/UnitCard.tsx:425
 #, fuzzy
 msgid "Advanced +{n}\""
 msgstr "Vorgerückt +{n}\""
 
-#: src/ui/UnitCard.tsx:426
+#: src/ui/UnitCard.tsx:428
 #, fuzzy
 msgid "Charge roll {n}\""
 msgstr "Angriffswurf {n}\""
 
-#: src/ui/UnitCard.tsx:430
+#: src/ui/UnitCard.tsx:432
 #, fuzzy
 msgid "Charged {distance}\""
 msgstr "Angriffsbewegung {distance}\""
 
-#: src/ui/UnitCard.tsx:449
+#: src/ui/UnitCard.tsx:451
 #, fuzzy
 msgid "Moved {moved}\" of {allowed}\" this phase."
 msgstr "{moved}\" von {allowed}\" in dieser Phase bewegt."
 
-#: src/ui/UnitCard.tsx:457
+#: src/ui/UnitCard.tsx:459
 #, fuzzy
 msgid "Snap back to {allowed}\""
 msgstr "Auf {allowed}\" zurücksetzen"
 
-#: src/ui/UnitCard.tsx:462
+#: src/ui/UnitCard.tsx:464
 #, fuzzy
 msgid "Moved through {terrain}."
 msgstr "Durch {terrain} bewegt."
 
-#: src/ui/UnitCard.tsx:469
+#: src/ui/UnitCard.tsx:471
 #, fuzzy
 msgid "Engaged with {units}."
 msgstr "Im Nahkampf mit {units}."
 
-#: src/ui/UnitCard.tsx:491
+#: src/ui/UnitCard.tsx:493
 #, fuzzy
 msgid "Move (blue) and longest weapon range (yellow) around each model"
 msgstr "Bewegung (blau) und längste Waffenreichweite (gelb) um jedes Modell"
 
-#: src/ui/UnitCard.tsx:494
+#: src/ui/UnitCard.tsx:496
 #, fuzzy
 msgid "Ranges"
 msgstr "Reichweiten"
 
-#: src/ui/UnitCard.tsx:501
+#: src/ui/UnitCard.tsx:503
 #, fuzzy
 msgid "Longest range"
 msgstr "Längste Reichweite"
 
-#: src/ui/UnitCard.tsx:514
+#: src/ui/UnitCard.tsx:516
 #, fuzzy
 msgid "On a floor {height}\" up"
 msgstr "Auf einem Stockwerk {height}\" hoch"
@@ -15085,13 +15102,13 @@ msgstr "Zurückgefallen"
 msgid "Shot"
 msgstr "Geschossen"
 
-#: src/ui/UnitCard.tsx:551
+#: src/ui/UnitCard.tsx:553
 #, fuzzy
 msgid "Ranged"
 msgstr "Fernkampf"
 
-#: src/ui/UnitCard.tsx:551
-#: src/ui/UnitCard.tsx:664
+#: src/ui/UnitCard.tsx:553
+#: src/ui/UnitCard.tsx:666
 #, fuzzy
 msgid "Melee"
 msgstr "Nahkampf"
@@ -15108,12 +15125,12 @@ msgstr "Angriffsbewegung durchgeführt"
 msgid "Fought"
 msgstr "Hat gekämpft"
 
-#: src/ui/UnitCard.tsx:576
+#: src/ui/UnitCard.tsx:578
 #, fuzzy
 msgid "Not the Shooting phase (it still works)"
 msgstr "Nicht die Fernkampfphase (geht trotzdem)"
 
-#: src/ui/UnitCard.tsx:577
+#: src/ui/UnitCard.tsx:579
 #, fuzzy
 msgid "Not the Fight phase (it still works)"
 msgstr "Nicht die Nahkampfphase (geht trotzdem)"
@@ -15123,42 +15140,42 @@ msgstr "Nicht die Nahkampfphase (geht trotzdem)"
 msgid "Battle-shocked"
 msgstr "Kampfschock"
 
-#: src/ui/UnitCard.tsx:590
+#: src/ui/UnitCard.tsx:592
 #, fuzzy
 msgid "Abilities ({n})"
 msgstr "Fähigkeiten ({n})"
 
-#: src/ui/UnitCard.tsx:603
+#: src/ui/UnitCard.tsx:605
 #, fuzzy
 msgid "Models and wounds"
 msgstr "Modelle und Lebenspunkte"
 
-#: src/ui/UnitCard.tsx:611
+#: src/ui/UnitCard.tsx:613
 #, fuzzy
 msgid "Model height for line of sight"
 msgstr "Modellhöhe für die Sichtlinie"
 
-#: src/ui/UnitCard.tsx:632
+#: src/ui/UnitCard.tsx:634
 #, fuzzy
 msgid "Remove {unit} from the game?"
 msgstr "{unit} aus dem Spiel entfernen?"
 
-#: src/ui/UnitCard.tsx:636
+#: src/ui/UnitCard.tsx:638
 #, fuzzy
 msgid "Remove unit"
 msgstr "Einheit entfernen"
 
-#: src/ui/UnitCard.tsx:703
+#: src/ui/UnitCard.tsx:705
 #, fuzzy
 msgid "{left}/{max} W"
 msgstr "{left}/{max} W"
 
-#: src/ui/UnitCard.tsx:713
+#: src/ui/UnitCard.tsx:715
 #, fuzzy
 msgid "Revive"
 msgstr "Wiederbeleben"
 
-#: src/ui/UnitCard.tsx:713
+#: src/ui/UnitCard.tsx:715
 #, fuzzy
 msgid "Slay"
 msgstr "Ausschalten"
@@ -17281,12 +17298,12 @@ msgstr "schon in Reichweite"
 msgid "Not in engagement range: {distance}"
 msgstr "Nicht in Nahkampfreichweite: {distance}"
 
-#: src/ui/tableVerbs.ts:164
+#: src/ui/tableVerbs.ts:166
 #, fuzzy
 msgid "Lead {unit}"
 msgstr "{unit} anführen"
 
-#: src/ui/tableVerbs.ts:165
+#: src/ui/tableVerbs.ts:167
 #, fuzzy
 msgid "Its Leader ability doesn't name {unit}"
 msgstr "Seine Fähigkeit Leader nennt {unit} nicht"

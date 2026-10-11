@@ -135,7 +135,9 @@ export function tableVerb(game: GameState, attackerId: UnitId, targetId: UnitId)
  */
 export const useDragVerb = create<{
   drag: { verb: DragVerb; unitId: UnitId; targetId: UnitId; x: number; y: number } | null;
-}>(() => ({ drag: null }));
+  /** Models dragged off the table (UX 511): letting go puts the unit in reserves, or removes them as casualties. */
+  off: { reserve: boolean; n: number; x: number; y: number } | null;
+}>(() => ({ drag: null, off: null }));
 
 /** A drop's verb: a table verb, or a leader dropped on a unit before the battle. */
 type DragVerb = Omit<TableVerb, "verb"> & { verb: TableVerb["verb"] | "attach" };

@@ -566,6 +566,24 @@ function Scene() {
               break;
             }
           }
+        // Over the table's edge: what letting go there does (UX 511), as land() below decides it.
+        const { width, depth } = game.table;
+        const off =
+          moved &&
+          !(unit && isBlock(unit)) &&
+          !usePlan.getState().on &&
+          d.ids.some((id) => {
+            const p = d.starts[id]!;
+            return (
+              Math.abs(p.x + to.x - d.grab.x) > width / 2 || Math.abs(p.y + to.y - d.grab.y) > depth / 2
+            );
+          });
+        const wasOff = useDragVerb.getState().off;
+        if (off)
+          useDragVerb.setState({
+            off: { reserve: !!unit && whole && canReserve(game, unit), n: d.ids.length, x: e.clientX, y: e.clientY },
+          });
+        else if (wasOff) useDragVerb.setState({ off: null });
         const was = useDragVerb.getState().drag;
         if (verb && unit && under?.unitId)
           useDragVerb.setState({
@@ -611,6 +629,7 @@ function Scene() {
       setDrag(null);
       const charge = useDragVerb.getState().drag;
       if (charge) useDragVerb.setState({ drag: null });
+      if (useDragVerb.getState().off) useDragVerb.setState({ off: null });
       // Planning the next turn (#81): the models go back, and ghosts stay where they were let go.
       if (d?.kind === "models" && d.moved && !d.place && d.unitId && usePlan.getState().on) {
         const dx = d.to.x - d.grab.x;

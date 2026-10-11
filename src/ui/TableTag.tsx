@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { t } from "../i18n";
+import { t, tn } from "../i18n";
 import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
 import { tableVerb, useDragVerb } from "./tableVerbs";
@@ -59,6 +59,22 @@ export function TableTag() {
 /** Dragging a unit onto an enemy in the Charge phase: what letting go there does (UX 84, #2). */
 export function DragTag() {
   const drag = useDragVerb((s) => s.drag);
+  const off = useDragVerb((s) => s.off);
+  if (!drag && off)
+    return (
+      <div
+        className="table-tag off"
+        style={{ left: Math.min(off.x + 22, innerWidth - 300), top: Math.min(off.y + 22, innerHeight - 90) }}
+        role="status"
+      >
+        <strong>
+          {off.reserve
+            ? t("Into reserves")
+            : tn(off.n, "Remove {n} model as a casualty", "Remove {n} models as casualties")}
+        </strong>
+        <span className="muted small">{t("Let go off the table")}</span>
+      </div>
+    );
   if (!drag) return null;
   const { verb } = drag;
   const left = Math.min(drag.x + 22, innerWidth - 300);

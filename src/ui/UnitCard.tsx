@@ -314,8 +314,10 @@ export function UnitCard() {
     </RollButton>,
   ]);
   // A charge already rolled stays on the card to finish, whatever the phase.
+  // A unit in reserves has nothing to do on the table yet: Arrive is its button (UX 512), the rest under ⋯.
   const now = (a: (typeof actions)[number]) =>
-    !known || a[1] === phase || (a[0] === "charge" && typeof status.charge === "number");
+    !status.reserves &&
+    (!known || a[1] === phase || (a[0] === "charge" && typeof status.charge === "number"));
   const primary = actions.filter(now).map(([key, , button]) => [key, button] as const);
   const others = actions.filter((a) => !now(a)).map(([key, , button]) => [key, button] as const);
   // Line of sight, eye view and ranges: where they matter, else under ⋯ (or while one is on).
