@@ -26,7 +26,7 @@ import {
 } from "../core/content/play";
 import { playerActions } from "../core/content/player";
 import { playableReactions } from "../core/content/reactions";
-import { currentSlot, plainActivations, systemOf } from "../core/content/turn";
+import { currentSlot, plainActivations, roundEndsItself, systemOf } from "../core/content/turn";
 import { simultaneousNow, waitingFor } from "../core/content/simultaneous";
 import { gameView } from "../core/script";
 import { pendingScores } from "../missions/scoring";
@@ -362,7 +362,13 @@ export function* freeMoves(state: GameState, ctx: BotContext): Generator<BotMove
       ]
     : together
       ? readyMoves(state, ctx)
-      : side.map((p) => ({ intent: { type: "turn/next" } as Intent, as: p.id, kind: "next" }));
+      : [
+          // A round that ends once every unit has gone (#82): a side passes its go rather than end it.
+          ...(round > 0 && !plainActivations(state) && roundEndsItself(state)
+            ? side.map((p) => ({ intent: { type: "turn/pass" } as Intent, as: p.id, kind: "pass" }))
+            : []),
+          ...side.map((p) => ({ intent: { type: "turn/next" } as Intent, as: p.id, kind: "next" })),
+        ];
 
   // Before the battle: a few moves around the deployment zone, then start.
   if (round === 0) {

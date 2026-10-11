@@ -1,0 +1,10 @@
+++ Mossback Raiders [Sample 395pts] ++
+
+Old Grumm [1] Q3+ D4+ | 80pts | Hero, Tough(3), Glimmerhide
+Root Maul (A3, AP(1))
+
+Mossback Slingers [6] Q4+ D5+ | 90pts | Scout
+6x Pebble Sling (18", A1, Blast(2)), 2x Bolas (9", A2)
+
+Mossback Riders [3] Q4+ D4+ | 225pts | Fast, Impact(1)
+3x Hook Spear (A2, AP(1))

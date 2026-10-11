@@ -677,7 +677,16 @@ export function applyAction(state: GameState, ev: ActionTaken): GameState {
   if (def.activates !== undefined) {
     const budget = safeNum(def.activates, ctx, 1);
     const start = { acting: true, activated: true, actionsTaken: 0, actionBudget: budget };
-    next = setStatus(next, unit.id, { ...start, ...(def.reactTo ? { reacting: true } : {}) });
+    // The activating action can be the go's move and set flags too (#82: Advance, Rush, Charge).
+    const own: Record<string, number | boolean> = {};
+    if (def.move) {
+      own.allowance =
+        Number(unit.status?.allowance ?? 0) + safeNum(def.move.distance, ctx) * inchesPerUnit(system);
+      own.moves = 1;
+    }
+    for (const f of def.sets ?? []) own[f] = true;
+    if (def.limit) own[limitKey(def, ev)] = Number(unit.status?.[limitKey(def, ev)] ?? 0) + 1;
+    next = setStatus(next, unit.id, { ...start, ...own, ...(def.reactTo ? { reacting: true } : {}) });
     for (const id of ev.with ?? []) next = setStatus(next, id, { ...start, commanded: true });
     if (def.reactTo && next.pending) next = { ...next, pending: { ...next.pending, reactor: unit.id } };
   } else {

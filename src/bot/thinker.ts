@@ -16,7 +16,7 @@ import { armyStratagem, playerActions } from "../core/content/player";
 import { playableReactions } from "../core/content/reactions";
 import { fightOrder } from "../systems/wh40k/fight";
 import { fightPick } from "./fightPick";
-import { currentSlot, plainActivations, schedule, systemOf } from "../core/content/turn";
+import { currentSlot, plainActivations, roundEndsItself, schedule, systemOf } from "../core/content/turn";
 import { gameView, pointsShort } from "../core/script";
 import { seededRng } from "../sandbox/protocol";
 import { gameModule } from "../systems";
@@ -507,7 +507,7 @@ export class Thinker implements Policy, Analyst {
       ...[...mine].map((p) => ({ intent: { type: "turn/pass" } as Intent, as: p, kind: "pass" })),
     ];
     // Taking turns at activating units, ▶ would end the whole round: pass the go instead.
-    if (plainActivations(state)) moves.sort((a, b) => Number(a.kind === "next") - Number(b.kind === "next"));
+    if (roundEndsItself(state)) moves.sort((a, b) => Number(a.kind === "next") - Number(b.kind === "next"));
     return moves.find((m) => legal(record, state, m)) ?? null;
   }
 

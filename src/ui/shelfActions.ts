@@ -17,6 +17,8 @@ import { t } from "../i18n";
 import { useStore } from "../store";
 import { isYellowscribe, toYellowscribe } from "../systems/wh40k/yellowscribe";
 import { parseRosterFile, type ImportedRoster } from "../systems/wh40k/roster";
+import { builderArmyList, isQualityList } from "../systems/qd6/roster";
+import { armyListRoster, isArmyList } from "../share/armyList";
 import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
 
 /** What each player deployed in this game, so it can go on the shelf (and from which shelf entry). */
@@ -163,6 +165,25 @@ export async function importArmyFile(file: File): Promise<SavedArmy | string> {
       id: crypto.randomUUID(),
       name: roster.name,
       system: DEFAULT_SYSTEM,
+      savedAt: Date.now(),
+      roster,
+      figures: {},
+    };
+    useShelf.getState().put(army);
+    return army;
+  }
+  // An Army list v1 file (docs/protocols/army-list.md), or a unit builder's export mapped into one.
+  if (isArmyList(data) || isQualityList(data)) {
+    const list = isArmyList(data) ? data : builderArmyList(data, file.name.replace(/\..*$/, ""));
+    const { gameModule } = await import("../systems");
+    const system = list.system && gameModule(list.system) ? list.system : DEFAULT_SYSTEM;
+    const roster = gameModule(system)?.app?.readArmyList?.(list) ?? armyListRoster(list);
+    if (!roster.units.length) return t("No units found in that list.");
+    const army: SavedArmy = {
+      format: ARMY_FORMAT,
+      id: crypto.randomUUID(),
+      name: roster.name,
+      system,
       savedAt: Date.now(),
       roster,
       figures: {},

@@ -7,6 +7,7 @@ import type { GameModule } from "../sdk";
 import type { SystemModule } from "./app";
 import { conquestModule } from "./conquest/module";
 import { fsdModule } from "./fsd/module";
+import { qd6Module } from "./qd6/module";
 import { towModule } from "./tow/module";
 import { wh40kModule } from "./wh40k/module";
 
@@ -17,7 +18,7 @@ export type { SpecialDie, SystemModule, TemplateKind } from "./app";
  * pairs a system's rules data with the app glue in `app` and its code
  * procedures (core/script.ts).
  */
-const BUILT_IN: GameModule<SystemModule>[] = [wh40kModule, fsdModule, towModule, conquestModule];
+const BUILT_IN: GameModule<SystemModule>[] = [wh40kModule, fsdModule, towModule, conquestModule, qd6Module];
 
 const MODULES = new Map<string, GameModule<SystemModule>>();
 

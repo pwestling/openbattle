@@ -34,6 +34,19 @@ const LISTS: Record<string, () => string[]> = {
     t("Export it as JSON or .rosz, then press Import a list in the left panel."),
     t("Each regiment comes in as a block of stands. Fill in any stats the summary marks as missing."),
   ],
+  "qd6-1": () => [
+    t("Start from a sample army, or bring your own list file (JSON or text). It stays on your device."),
+    t(
+      "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment.",
+    ),
+    t(
+      "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1)).",
+    ),
+    t(
+      "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file.",
+    ),
+    t("Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."),
+  ],
 };
 
 /**

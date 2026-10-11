@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pwestling/openbattle/blob/main/schemas/army-list.v1.schema.json",
+  "title": "Army list v1 (DRAFT)",
+  "description": "A builder-neutral army list Open Battle reads. See docs/protocols/army-list.md. Readers ignore properties they don't know; a minor revision only adds optional properties.",
+  "type": "object",
+  "required": ["format", "name", "units"],
+  "properties": {
+    "format": { "const": "open-battle/army-list@1", "description": "The format and its major version." },
+    "name": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "system": {
+      "type": "string",
+      "description": "The Open Battle game system the list is for, by id (a built-in system or a package's)."
+    },
+    "points": { "type": "number", "minimum": 0 },
+    "builder": {
+      "type": "object",
+      "description": "The tool that wrote the file.",
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "url": { "type": "string", "pattern": "^https://" }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "description": "Rules packages the list is written for.",
+      "items": {
+        "type": "object",
+        "required": ["url"],
+        "properties": {
+          "url": { "type": "string", "pattern": "^https://" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "units": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": { "$ref": "#/$defs/unit" }
+    }
+  },
+  "$defs": {
+    "value": { "type": ["string", "number"] },
+    "characteristics": {
+      "type": "object",
+      "description": "Characteristics by the game's ids or names, e.g. {\"Q\": \"4+\", \"Move\": 6}.",
+      "additionalProperties": { "$ref": "#/$defs/value" }
+    },
+    "rule": {
+      "oneOf": [
+        { "type": "string", "minLength": 1, "description": "A rule as written: \"Tough(3)\"." },
+        {
+          "type": "object",
+          "required": ["name"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "rating": { "$ref": "#/$defs/value" },
+            "text": {
+              "type": "string",
+              "description": "The rule's wording, if the player's file carries it."
+            }
+          }
+        }
+      ]
+    },
+    "base": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["shape", "diameterMm"],
+          "properties": {
+            "shape": { "const": "round" },
+            "diameterMm": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["shape", "widthMm", "depthMm"],
+          "properties": {
+            "shape": { "enum": ["oval", "rect"] },
+            "widthMm": { "type": "number", "exclusiveMinimum": 0 },
+            "depthMm": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      ]
+    },
+    "weapon": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many the unit carries; one a model when missing."
+        },
+        "range": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Inches; 0 or missing is a melee weapon unless kind says otherwise."
+        },
+        "kind": { "enum": ["ranged", "melee"] },
+        "characteristics": { "$ref": "#/$defs/characteristics" },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } }
+      }
+    },
+    "unit": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "description": "Models in the unit; 1 when missing."
+        },
+        "points": { "type": "number", "minimum": 0 },
+        "characteristics": { "$ref": "#/$defs/characteristics" },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" } },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "base": { "$ref": "#/$defs/base" },
+        "weapons": { "type": "array", "items": { "$ref": "#/$defs/weapon" } }
+      }
+    }
+  }
+}
