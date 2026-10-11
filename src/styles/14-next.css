@@ -330,10 +330,19 @@
   padding: 10px 22px;
   font-size: 1.1rem;
 }
-.obn-yourarmy {
+.obn .obn-file {
+  align-self: flex-start;
+  cursor: pointer;
+}
+.obn .obn-warn {
+  color: var(--obn-warn);
+  margin: 0;
+}
+.obn .obn-tick {
   display: flex;
-  flex-direction: column;
   gap: 8px;
+  align-items: center;
+  color: var(--obn-muted);
 }
 .obn-sheet.obn-more {
   position: fixed;
@@ -805,4 +814,32 @@
   .obn-setup {
     max-height: 45vh;
   }
+}
+
+/* The table tag says what a click does; gold stays for the one step to press (UX N8). */
+body:has(.obn-game) .table-tag.ok {
+  border-color: #ece7dc;
+}
+
+/* A TTS save's card at the door (UX N2): a picked card, not a button. */
+.obn .obn-save {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-text);
+}
+.obn .obn-save strong {
+  font: 700 1.35rem/1.1 var(--obn-display);
+}
+.obn .obn-save span {
+  color: var(--obn-muted);
+  font-size: 0.85rem;
+}
+/* An empty name is the step to take when the lit button waits on it. */
+.obn .obn-field input.obn-lit-field {
+  border-color: var(--obn-lit);
+  box-shadow: 0 0 0 3px rgb(233 185 73 / 22%);
 }

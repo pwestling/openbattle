@@ -121,8 +121,15 @@ function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
       can = false;
     }
     // A unit that did this phase's thing shows as done; one that never could isn't listed.
-    const did = !!(u.status?.shot || u.status?.charged || u.status?.fought);
-    if (can || did) out.push({ id: u.id, name: u.name, done: !can });
+    // (The rules are advisory, so a unit that shot may still be allowed to again: it counts as done.)
+    const did = !!(/shoot/i.test(phase)
+      ? u.status?.shot
+      : /charge/i.test(phase)
+        ? u.status?.charged
+        : /fight/i.test(phase)
+          ? u.status?.fought
+          : false);
+    if (can || did) out.push({ id: u.id, name: u.name, done: did || !can });
   }
   return out;
 }
@@ -352,23 +359,26 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
       buttons: [],
     };
 
-  const units = phaseUnits(game, seat, phase);
+  // A fight phase with no fight order has nobody engaged: nothing to do.
+  const fighting = /fight/i.test(phase);
+  const units = fighting && !order ? [] : phaseUnits(game, seat, phase);
   const left = units.filter((u) => !u.done);
   const moving = /move/i.test(phase);
   const done: StepButton = {
     label: doneLabel(phase, last),
     as: actor,
     intent: { type: "turn/next" },
-    // Movement may end with units standing still; elsewhere work left means a word first.
-    lit: moving || !left.length,
-    confirm:
-      !moving && left.length
-        ? tn(
+    // Work left means the next unit is lit and Done asks first (standing still is a fine answer).
+    lit: !left.length,
+    confirm: left.length
+      ? moving
+        ? tn(left.length, "{n} unit hasn't moved. Done anyway?", "{n} units haven't moved. Done anyway?")
+        : tn(
             left.length,
             "{n} unit can still act. Move on anyway?",
             "{n} units can still act. Move on anyway?",
           )
-        : undefined,
+      : undefined,
   };
   const say = moving
     ? left.length
@@ -382,9 +392,11 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
         ? left.length
           ? t("Pick a unit to charge with, then drag it onto its target")
           : t("No unit can charge now")
-        : left.length
-          ? t("{phase}: pick a unit to act", { phase: gameText(phase) })
-          : t("{phase}: nothing left to do", { phase: gameText(phase) });
+        : fighting && !units.length
+          ? t("No fights this turn")
+          : left.length
+            ? t("{phase}: pick a unit to act", { phase: gameText(phase) })
+            : t("{phase}: nothing left to do", { phase: gameText(phase) });
   return {
     tone: "job",
     seat,
@@ -396,7 +408,7 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
         : tn(left.length, "{n} unit can still act", "{n} units can still act")
       : hint,
     units: units.length ? units : undefined,
-    next: moving ? undefined : left[0]?.id,
+    next: left[0]?.id,
     buttons: [done],
   };
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTtsNote } from "../tts/TtsNote";
 import { sideName, sides, type GameRecord, type Player } from "../core";
 import { formatList, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
@@ -95,6 +96,10 @@ export function Setup() {
   const unitsOf = (id: string) => Object.values(game.units).filter((u) => u.owner === id);
   const armyless = mine.filter((p) => !unitsOf(p.id).length);
   const mission = missionOf(game);
+  // A game opened from a TTS save is on the save's table already (UX N3).
+  const savedTable = useTtsNote((s) => s.table);
+  const fromSave =
+    !!savedTable && game.tableSource?.key === `table:${savedTable}` && !game.tableSource.changed;
   const checks = mine.flatMap((p) => deployChecks(record, game, p.id));
   const toPlace = checks.filter((c) => c.untouched || c.outside);
   const readyNeeded = online;
@@ -151,9 +156,12 @@ export function Setup() {
   lines.push({
     id: "table",
     title: t("Table and mission"),
-    done: guest || kept,
+    done: guest || kept || fromSave,
     waits: guest && host ? displayName(host.name) : undefined,
-    note: mission ? mission.name : t("No mission: you'll score by hand"),
+    note: [
+      ...(fromSave ? [t("From your save")] : []),
+      mission ? mission.name : t("No mission: you'll score by hand"),
+    ].join(" · "),
   });
   lines.push({
     id: "deploy",

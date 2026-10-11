@@ -1,7 +1,6 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { characterName, levelName, savedLevel } from "../bot/solo";
 import type { Level } from "../bot/player";
-import { YourArmy } from "../bot/YourArmy";
 import { DEFAULT_SYSTEM } from "../core";
 import { listSystems } from "../core/content";
 import { isPlaceholder } from "../core/content/systems";
@@ -29,6 +28,8 @@ import { FRONT, gameTitle, systemLabel } from "../ui/systemLabels";
 import { TextSizePicker } from "../ui/TextSizePicker";
 import { APP_BUILD } from "../version";
 import { openWorkshop } from "../workshop/open";
+import { ComputerArmy } from "./ComputerArmy";
+import { SaveDoor } from "./SaveDoor";
 import { switchUi } from "./flag";
 import {
   atTable,
@@ -98,6 +99,8 @@ export function Door() {
   const [level, setLevel] = useState<Level | null>(null);
   const [phones, setPhones] = useState<"one" | "each">("one");
   const [more, setMore] = useState(false);
+  // A TTS save opened here goes to its own door (UX N2).
+  const [save, setSave] = useState<File | null>(null);
   const [tables, setTables] = useRouteFlag("/tables");
 
   const library = useLibrary((s) => s.packages);
@@ -348,161 +351,175 @@ export function Door() {
           </strong>
         </button>
       )}
-      <div className="obn-cols">
-        <section id="obn-game" className="obn-col" aria-labelledby="obn-game-h">
-          <h2 id="obn-game-h">
-            <span className="obn-no">1</span> {t("What are you playing?")}
-          </h2>
-          <div role="radiogroup" aria-labelledby="obn-game-h" className="obn-stack" onKeyDown={arrows}>
-            {shown.map(card)}
-          </div>
-          {others.length > 0 && (
-            <>
-              <button className="obn-link" aria-expanded={moreGames} onClick={() => setMoreGames(!moreGames)}>
-                {moreGames
-                  ? t("Fewer games ▴")
-                  : t("More games: {names} ▸", { names: formatList(others.slice(0, 3).map((g) => g.title)) })}
-              </button>
-              {moreGames && (
-                <div role="radiogroup" aria-label={t("More games")} className="obn-stack" onKeyDown={arrows}>
-                  {others.filter((g) => g.id !== system).map(card)}
-                </div>
-              )}
-            </>
-          )}
-        </section>
-        {system && (
-          <section id="obn-who" key={system} className="obn-col obn-drawer" aria-labelledby="obn-who-h">
-            <h2 id="obn-who-h">
-              <span className="obn-no">2</span> {t("Who against?")}
+      {save ? (
+        <SaveDoor file={save} onClose={() => setSave(null)} />
+      ) : (
+        <div className="obn-cols">
+          <section id="obn-game" className="obn-col" aria-labelledby="obn-game-h">
+            <h2 id="obn-game-h">
+              <span className="obn-no">1</span> {t("What are you playing?")}
             </h2>
-            <div role="radiogroup" aria-labelledby="obn-who-h" className="obn-stack" onKeyDown={arrows}>
-              {whoChoices.map(([id, title, line, can]) => (
-                <button
-                  key={id}
-                  role="radio"
-                  aria-checked={who === id}
-                  data-last={!who && lastWho === id ? "" : undefined}
-                  disabled={!can}
-                  title={can ? undefined : t("Not for this game yet")}
-                  className={`obn-pick${who === id ? " on" : who ? " dim" : ""}`}
-                  onClick={() => choose(id)}
-                >
-                  <strong>{title}</strong>
-                  <span>{line}</span>
-                </button>
-              ))}
+            <div role="radiogroup" aria-labelledby="obn-game-h" className="obn-stack" onKeyDown={arrows}>
+              {shown.map(card)}
             </div>
-            {who === "computer" && (
-              <div
-                className="obn-levels obn-stack"
-                role="radiogroup"
-                aria-label={t("How hard?")}
-                onKeyDown={arrows}
-              >
-                <span className="obn-label">{t("How hard?")}</span>
-                {(
-                  [
-                    ["random", t("Plays loosely. Good for a first game.")],
-                    ["steady", t("Plays to win.")],
-                    ["sharp", t("Thinks harder about every move.")],
-                  ] as const
-                ).map(([l, line]) => (
-                  <button
-                    key={l}
-                    role="radio"
-                    aria-checked={level === l}
-                    data-last={!level && savedLevel() === l ? "" : undefined}
-                    className={`obn-pick small${level === l ? " on" : level ? " dim" : ""}`}
-                    onClick={() => {
-                      setLevel(l);
-                      focusInto("obn-ready");
-                    }}
+            {others.length > 0 && (
+              <>
+                <button
+                  className="obn-link"
+                  aria-expanded={moreGames}
+                  onClick={() => setMoreGames(!moreGames)}
+                >
+                  {moreGames
+                    ? t("Fewer games ▴")
+                    : t("More games: {names} ▸", {
+                        names: formatList(others.slice(0, 3).map((g) => g.title)),
+                      })}
+                </button>
+                {moreGames && (
+                  <div
+                    role="radiogroup"
+                    aria-label={t("More games")}
+                    className="obn-stack"
+                    onKeyDown={arrows}
                   >
-                    <strong>
-                      {levelName(l)} <em>{characterName(l)}</em>
-                    </strong>
+                    {others.filter((g) => g.id !== system).map(card)}
+                  </div>
+                )}
+              </>
+            )}
+          </section>
+          {system && (
+            <section id="obn-who" key={system} className="obn-col obn-drawer" aria-labelledby="obn-who-h">
+              <h2 id="obn-who-h">
+                <span className="obn-no">2</span> {t("Who against?")}
+              </h2>
+              <div role="radiogroup" aria-labelledby="obn-who-h" className="obn-stack" onKeyDown={arrows}>
+                {whoChoices.map(([id, title, line, can]) => (
+                  <button
+                    key={id}
+                    role="radio"
+                    aria-checked={who === id}
+                    data-last={!who && lastWho === id ? "" : undefined}
+                    disabled={!can}
+                    title={can ? undefined : t("Not for this game yet")}
+                    className={`obn-pick${who === id ? " on" : who ? " dim" : ""}`}
+                    onClick={() => choose(id)}
+                  >
+                    <strong>{title}</strong>
                     <span>{line}</span>
                   </button>
                 ))}
               </div>
-            )}
-            {lesson && (
-              <button
-                className="obn-link"
-                onClick={() => void import("../teach/store").then((m) => m.startLesson(lesson))}
-              >
-                {t("New to it? Learn with a coach ▸")}
-              </button>
-            )}
-          </section>
-        )}
-        {system && who && (who !== "computer" || level) && (
-          <section
-            id="obn-ready"
-            key={`${system}/${who}`}
-            className="obn-col obn-drawer"
-            aria-labelledby="obn-ready-h"
-          >
-            <h2 id="obn-ready-h">
-              <span className="obn-no">3</span> {t("Get ready")}
-            </h2>
-            {who === "computer" && level ? (
-              <div className="obn-yourarmy">
-                <YourArmy system={system} level={level} onBack={() => setLevel(null)} />
-              </div>
-            ) : (
-              <>
-                {who === "table" && !ownGame(system) && (
-                  <div className="obn-stack" role="radiogroup" aria-label={t("Phones")} onKeyDown={arrows}>
-                    {(
-                      [
-                        ["one", t("One phone or screen for both of us")],
-                        ["each", t("A phone each: you get a link for the other phone")],
-                      ] as const
-                    ).map(([id, label]) => (
-                      <button
-                        key={id}
-                        role="radio"
-                        aria-checked={phones === id}
-                        className={`obn-pick small${phones === id ? " on" : ""}`}
-                        onClick={() => setPhones(id)}
-                      >
-                        <strong>{label}</strong>
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {needsName && (
-                  <label className="obn-field">
-                    <span className="obn-label">{t("Your name")}</span>
-                    <input
-                      value={name}
-                      maxLength={32}
-                      placeholder={t("What should the others call you?")}
-                      onChange={(e) => keepName(e.target.value)}
-                    />
-                  </label>
-                )}
-                <p className="obn-muted">
-                  {who === "friend"
-                    ? t("Next: the table opens with a link to send. Your army goes on it there.")
-                    : who === "both"
-                      ? FRONT[system] || ownGame(system)
-                        ? t("Both armies go on the table and the battle starts. Pass the screen each turn.")
-                        : t("An empty table: put both armies on it, then start.")
-                      : t("No 3D table: your phone keeps count while you play with your models.")}
-                </p>
-                <button className="obn-lit" disabled={needsName && !name.trim()} onClick={go}>
-                  {goLabel} ▸
+              {who === "computer" && (
+                <div
+                  className="obn-levels obn-stack"
+                  role="radiogroup"
+                  aria-label={t("How hard?")}
+                  onKeyDown={arrows}
+                >
+                  <span className="obn-label">{t("How hard?")}</span>
+                  {(
+                    [
+                      ["random", t("Plays loosely. Good for a first game.")],
+                      ["steady", t("Plays to win.")],
+                      ["sharp", t("Thinks harder about every move.")],
+                    ] as const
+                  ).map(([l, line]) => (
+                    <button
+                      key={l}
+                      role="radio"
+                      aria-checked={level === l}
+                      data-last={!level && savedLevel() === l ? "" : undefined}
+                      className={`obn-pick small${level === l ? " on" : level ? " dim" : ""}`}
+                      onClick={() => {
+                        setLevel(l);
+                        focusInto("obn-ready");
+                      }}
+                    >
+                      <strong>
+                        {levelName(l)} <em>{characterName(l)}</em>
+                      </strong>
+                      <span>{line}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {lesson && (
+                <button
+                  className="obn-link"
+                  onClick={() => void import("../teach/store").then((m) => m.startLesson(lesson))}
+                >
+                  {t("New to it? Learn with a coach ▸")}
                 </button>
-              </>
-            )}
-          </section>
-        )}
-      </div>
+              )}
+            </section>
+          )}
+          {system && who && (who !== "computer" || level) && (
+            <section
+              id="obn-ready"
+              key={`${system}/${who}`}
+              className="obn-col obn-drawer"
+              aria-labelledby="obn-ready-h"
+            >
+              <h2 id="obn-ready-h">
+                <span className="obn-no">3</span> {t("Get ready")}
+              </h2>
+              {who === "computer" && level ? (
+                <ComputerArmy key={level} system={system} level={level} />
+              ) : (
+                <>
+                  {who === "table" && !ownGame(system) && (
+                    <div className="obn-stack" role="radiogroup" aria-label={t("Phones")} onKeyDown={arrows}>
+                      {(
+                        [
+                          ["one", t("One phone or screen for both of us")],
+                          ["each", t("A phone each: you get a link for the other phone")],
+                        ] as const
+                      ).map(([id, label]) => (
+                        <button
+                          key={id}
+                          role="radio"
+                          aria-checked={phones === id}
+                          className={`obn-pick small${phones === id ? " on" : ""}`}
+                          onClick={() => setPhones(id)}
+                        >
+                          <strong>{label}</strong>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {needsName && (
+                    <label className="obn-field">
+                      <span className="obn-label">{t("Your name")}</span>
+                      <input
+                        value={name}
+                        className={name.trim() ? undefined : "obn-lit-field"}
+                        maxLength={32}
+                        placeholder={t("What should the others call you?")}
+                        onChange={(e) => keepName(e.target.value)}
+                      />
+                    </label>
+                  )}
+                  <p className="obn-muted">
+                    {who === "friend"
+                      ? t("Next: the table opens with a link to send. Your army goes on it there.")
+                      : who === "both"
+                        ? FRONT[system] || ownGame(system)
+                          ? t("Both armies go on the table and the battle starts. Pass the screen each turn.")
+                          : t("An empty table: put both armies on it, then start.")
+                        : t("No 3D table: your phone keeps count while you play with your models.")}
+                  </p>
+                  <button className="obn-lit" disabled={needsName && !name.trim()} onClick={go}>
+                    {goLabel} ▸
+                  </button>
+                </>
+              )}
+            </section>
+          )}
+        </div>
+      )}
       <footer className="obn-foot">
-        <OpenFile />
+        <OpenFile onTts={setSave} />
         {boardOn() && (
           <button className="obn-link" onClick={() => setTables(true)}>
             {t("Find an opponent")}

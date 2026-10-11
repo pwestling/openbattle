@@ -25,6 +25,33 @@ export function pickUnit(id: string): void {
     );
 }
 
+/**
+ * The sheet's own next button (the unit card's or the attack panel's
+ * primary), watched so the bar can offer the same press where the gold
+ * always is. Interim, until the attack flow lives in the bar.
+ */
+function useSheetPrimary(): { el: HTMLButtonElement; label: string } | null {
+  const [seen, setSeen] = useState<{ el: HTMLButtonElement; label: string } | null>(null);
+  useEffect(() => {
+    const find = () => {
+      const b = document.querySelector<HTMLButtonElement>(".obn-sheet-wrap button.primary:not(:disabled)");
+      const label = b?.textContent?.trim() ?? "";
+      setSeen((old) => (old?.el === b && old?.label === label ? old : b ? { el: b, label } : null));
+    };
+    find();
+    const watch = new MutationObserver(find);
+    watch.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+      attributes: true,
+      attributeFilter: ["disabled"],
+    });
+    return () => watch.disconnect();
+  }, []);
+  return seen;
+}
+
 /** The players this screen plays: both sides on one screen (less the computer's), else this browser's own. */
 function useMine(): string[] {
   const game = useStore((s) => s.game);
@@ -76,6 +103,7 @@ export function StepBar() {
     }
   }, [pending, game, dispatch]);
   const step = stepFor({ game, mine, pending });
+  const mirror = useSheetPrimary();
   const [asking, setAsking] = useState<StepButton | null>(null);
   // A question asked about one moment doesn't carry over to the next.
   const key = `${game.turn.round}/${game.turn.phase}/${game.turn.activeSeat}`;
@@ -91,8 +119,10 @@ export function StepBar() {
     setAsking(null);
     if (b.intent) dispatch(b.intent, b.as);
   };
-  // With the next unit picked, its card holds the lit step.
-  const lit = step.next ? step.next !== selected : step.buttons.some((b) => b.lit);
+  // With the next unit picked, its card holds the lit step: the bar repeats it, so the gold stays here (UX N7).
+  const own = step.next ? step.next !== selected : step.buttons.some((b) => b.lit);
+  const echo = !own && step.tone === "job" && mirror ? mirror : null;
+  const lit = own || !!echo;
   return (
     <section
       className={`obn-bar ${step.tone}`}
@@ -150,6 +180,11 @@ export function StepBar() {
         ) : (
           <div className="obn-buttons">
             {step.tone === "job" && <UndoButton />}
+            {echo && (
+              <button className="obn-lit" onClick={() => echo.el.click()}>
+                {echo.label} ▸
+              </button>
+            )}
             {step.buttons.map((b) => (
               <button
                 key={b.label}
