@@ -15,7 +15,7 @@ import { t } from "./i18n";
 import { useStore } from "./store";
 import { useTalk } from "./talk/talk";
 import { AttackPanel } from "./ui/AttackPanel";
-import { DiceTray } from "./ui/DiceTray";
+import { DiceTray, landDice } from "./ui/DiceTray";
 import { useHold } from "./ui/hold";
 import { useHelp } from "./ui/help";
 import { Hud } from "./ui/Hud";
@@ -297,8 +297,18 @@ export function GameScreen({ started }: { started: boolean }) {
           )}
           {!editing && <PackagePanel />}
           {!editing && <ScorePanel />}
-          {/* While the dice tray rolls, the panels show the table before the roll: no clicking ahead. */}
-          <div className={holding ? "panels holding" : "panels"} style={{ display: "contents" }}>
+          {/* While the dice tray rolls, the panels show the table before the roll. A press there lands the dice at
+              once, so the next step is never held back by them (PX T1). */}
+          <div
+            className={holding ? "panels holding" : "panels"}
+            style={{ display: "contents" }}
+            onClickCapture={(e) => {
+              if (!holding || !(e.target as Element).closest?.("button, select")) return;
+              e.preventDefault();
+              e.stopPropagation();
+              landDice();
+            }}
+          >
             {editing ? <TerrainPanel /> : attacking ? <AttackPanel /> : <UnitCard />}
           </div>
           <ReplayBar />

@@ -9,14 +9,12 @@ import { PlaneGeometry, Vector3 } from "three";
 import {
   modelHeight,
   type AttackState,
-  stateAt,
   type GameEvent,
   type GameState,
   type Model,
   type Vec2,
 } from "../core";
 import { useHold } from "../ui/hold";
-import { jolt, pickUp, setDown } from "./feel";
 import { markCharge } from "./charges";
 import { chargeFor } from "../core/charge";
 import { delaying, followed } from "../broadcast/broadcast";
@@ -24,24 +22,21 @@ import { CasualtyPiles, Topple, TOPPLE_MS } from "./Casualties";
 import { useReel } from "../broadcast/reel";
 import { showcasing } from "./showcase";
 import { openingDistance } from "./openingView";
-import { clash, topple } from "../ui/sound";
+import { clash, thunk, topple } from "../ui/sound";
 import { useStore } from "../store";
-import { GLIDE_MS, soloPlays, useSolo } from "../bot/solo";
+import { soloPlays, useSolo } from "../bot/solo";
 import { useGame } from "../ui/hooks";
 import { opposed } from "../core/teams";
 
 /**
  * Watch mode: what makes a game readable to someone who didn't make the
- * move. Models glide to new positions and leave a fading trail, shots draw
+ * move. Models snap to new positions and leave a fading trail (Porter: no
+ * movement animation, the trail is the information), shots draw
  * tracers, dice results pop up over the target, casualties fade out, and an
  * optional director camera follows the action. Everything is driven by the
  * event log, so it works the same live, for spectators and in replays.
  */
 
-const TWEEN_MS = 350;
-/** A charge move is quicker and speeds up into contact, then holds a moment before the blow lands (PX-3c). */
-const CHARGE_TWEEN_MS = 250;
-const HIT_STOP_MS = 60;
 /** How long a trail takes to fade once another unit moves. */
 const TRAIL_FADE_MS = 700;
 const EFFECT_MS = 1600;
@@ -58,9 +53,9 @@ interface Trail {
 }
 
 /**
- * Positions to draw models at: they ease from where they were drawn to where
- * the game says they are. Moves made by dragging land with no tween (the
- * player already saw them), and long jumps (scrubbing a replay) snap.
+ * Positions to draw models at, with a trail behind each move. Every move snaps to where the game says
+ * (Porter: no movement animation); a drop is held where it was let go while the host confirms it, and a
+ * long jump (scrubbing a replay) clears the old trails.
  */
 export function useTween(
   positions: Record<string, Vec2>,
@@ -82,27 +77,16 @@ export function useTween(
   }, [positions, heights, dragging]);
   const seen = useRef<Input>(initial);
   const drawn = useRef<Frame>({ p: positions, z: heights });
-  const anim = useRef<{
-    from: Frame;
-    start: number;
-    moved: string[];
-    charge: boolean;
-    glide: boolean;
-  } | null>(null);
   const settleUntil = useRef(0);
   const [frame, setFrame] = useState<Frame>({ p: positions, z: heights });
   const [trails, setTrails] = useState<Trail[]>([]);
 
   const show = (f: Frame) => {
     drawn.current = f;
-    // A tween cut short puts its models straight down, quietly.
-    if (anim.current) setDown(anim.current.moved, () => null, { sound: false });
-    anim.current = null;
     setFrame(f);
   };
 
-  // Changes are picked up here rather than in an effect so a new position is
-  // first drawn where the model was, then eased.
+  // Changes are picked up here rather than in an effect, alongside the other per-frame watch work.
   useFrame(() => {
     const cur = input.current;
     const now = performance.now();
@@ -134,14 +118,13 @@ export function useTween(
           // A jump (scrubbing, a replay opening): no tween, and old trails go.
           show(cur);
           setTrails([]);
-          // A unit set up from reserves, live (PX B1): it still lands, with the thunk and its dust.
+          // A unit set up from reserves, live (PX B1): it still lands with the thunk.
           const landed = moved.filter((id) => color.current(id) === null);
           if (landed.length && landed.length <= 40 && useStore.getState().scrub === null)
-            setDown(landed, (id) => ({ ...cur.p[id]!, z: cur.z[id] ?? 0, radius: 0.7 }), { now });
+            thunk(landed.length);
         } else {
-          anim.current = { from, start: now, moved, charge: shownChargeHits(), glide: computerMoved() };
-          // A move always reads as picked up, carried and set down (feel.ts).
-          pickUp(moved, now, false);
+          show(cur);
+          if (useStore.getState().scrub === null) thunk(Math.min(moved.length, 60));
           // The last move's trail stays until the next one, then fades.
           setTrails((old) => [
             ...old
@@ -160,31 +143,6 @@ export function useTween(
     if (settleUntil.current && now >= settleUntil.current) {
       settleUntil.current = 0;
       show(cur);
-    }
-    const a = anim.current;
-    if (!a) return;
-    const t = Math.min(
-      1,
-      (now - a.start) / (a.charge ? CHARGE_TWEEN_MS : a.glide && !reducedMotion() ? GLIDE_MS : TWEEN_MS),
-    );
-    // A charge accelerates into contact; any other move eases in and out.
-    const e = a.charge ? t * t : t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
-    const p: Record<string, Vec2> = {};
-    const z: Record<string, number> = {};
-    for (const id of Object.keys(cur.p)) {
-      const to = cur.p[id]!;
-      const f = a.from.p[id] ?? to;
-      p[id] = { x: f.x + (to.x - f.x) * e, y: f.y + (to.y - f.y) * e };
-      const tz = cur.z[id] ?? 0;
-      const fz = a.from.z[id] ?? tz;
-      z[id] = fz + (tz - fz) * e;
-    }
-    drawn.current = { p, z };
-    setFrame({ p, z });
-    if (t >= 1) {
-      const { moved } = a;
-      anim.current = null;
-      setDown(moved.slice(0, 60), (id) => (p[id] ? { ...p[id], z: z[id] ?? 0, radius: 0.7 } : null), { now });
     }
   });
 
@@ -278,8 +236,6 @@ type Effect =
       kind: "stamp";
       key: string;
       start: number;
-      /** Held back until the charge reaches contact. */
-      delay: number;
       at: [number, number, number];
       text: string;
       tone: "hit" | "short" | "over";
@@ -339,8 +295,6 @@ export function WatchEffects() {
   const [arriving, setArriving] = useState<ReadonlySet<string>>(new Set());
   const focus = useRef<Focus | null>(null);
   const lastAction = useRef(0);
-  // The camera's nudge toward a charge's target: when, which way, and how much is applied now.
-  const nudge = useRef<{ start: number; x: number; y: number; applied?: number } | null>(null);
   const overview = useRef(true);
   // Effect keys must never repeat: a replay rewound and played again reaches the same seqs.
   const nextKey = useRef(0);
@@ -394,25 +348,19 @@ export function WatchEffects() {
         color: game.players[m.owner]?.color ?? "#999",
       });
     });
-    // A charge striking home: the target jolts, the camera nudges, a stamp says how far (PX-3c).
-    for (const { event, seq, by } of logged) {
+    // A charge striking home: the clash, and a stamp beside the unit saying how far (PX-3c). Nothing moves:
+    // no slam, jolt or camera nudge (Porter).
+    for (const { event, seq } of logged) {
       const c = chargeFor(event, prev.game, game);
       if (!c) continue;
-      // The blow lands once the charge tween reaches contact and holds for a beat; a
-      // move this player dragged into place has no tween, so it lands straight away.
-      const contact = draggedHere(event, by) ? 0 : CHARGE_TWEEN_MS;
-      const hit = contact + HIT_STOP_MS;
       if (c.target) {
-        jolt(c.target.ids, c.target.dir, now + hit);
-        setTimeout(clash, hit);
-        nudge.current = { start: now + hit, x: c.target.dir.x, y: c.target.dir.y };
+        clash();
         if (c.unitId) markCharge(c.unitId, { seq, round: game.turn.round, distance: c.distance });
       }
       fresh.push({
         kind: "stamp",
         key: `stamp-${nextKey.current++}`,
         start: now,
-        delay: contact,
         at: [c.at.x, c.at.z + 1.6, c.at.y],
         text:
           c.over !== null
@@ -469,21 +417,6 @@ export function WatchEffects() {
   // Once the action has been quiet a while, it eases back out to the whole table.
   const table = game.table;
   useFrame((_, dt) => {
-    // 0.15" toward the charge's target and back over 200 ms; 3D only, never with reduced motion.
-    const n = nudge.current;
-    if (n && controls && useStore.getState().view === "3d" && !reducedMotion()) {
-      const t = (performance.now() - n.start) / 200;
-      if (t >= 0) {
-        const want = t >= 1 ? 0 : 0.15 * Math.sin(Math.PI * Math.min(1, t));
-        const step = want - (n.applied ?? 0);
-        n.applied = want;
-        const shift = new Vector3(n.x * step, 0, n.y * step);
-        controls.target.add(shift);
-        controls.object.position.add(shift);
-        controls.update();
-        if (t >= 1) nudge.current = null;
-      }
-    } else if (n) nudge.current = null;
     if (!director || !controls || followed.active || showcasing()) return;
     // Never move the table under a drag; the quiet time starts again when it ends.
     if (tableDrag.active) {
@@ -553,7 +486,6 @@ export function WatchEffects() {
             center
             zIndexRange={[9, 0]}
             className={e.tone === "hit" ? "charge-stamp" : `charge-stamp ${e.tone}`}
-            style={{ animationDelay: `${e.delay}ms` }}
           >
             {e.text}
           </Html>
@@ -709,17 +641,6 @@ function blowFrom(game: GameState, victim: Model | undefined): Vec2 | null {
   return best?.position ?? null;
 }
 
-/** Whether the newest event on show is a charge that reaches an enemy, so its tween slams home. */
-function shownChargeHits(): boolean {
-  const { record, scrub, game } = useStore.getState();
-  const held = useHold.getState().held;
-  const upto = scrub ?? (held !== null ? held - 1 : Infinity);
-  const logged = record.events.findLast((e) => e.seq <= upto);
-  if (!logged || (logged.event.type !== "unit/move" && logged.event.type !== "models/move")) return false;
-  const state = upto === Infinity ? game : stateAt(record, upto);
-  return !!chargeFor(logged.event, state, state)?.target;
-}
-
 /** The computer has the go in a solo game on this screen. */
 function computerGo(): boolean {
   const s = useSolo.getState();
@@ -727,19 +648,8 @@ function computerGo(): boolean {
   return !!s.level && !s.paused && s.session === session && game.turn.activeSeat === s.seat;
 }
 
-/** Whether the newest event is a move the computer made in a solo game, so it glides. */
-function computerMoved(): boolean {
-  const { record, scrub, game } = useStore.getState();
-  if (scrub !== null) return false;
-  const logged = record.events.at(-1);
-  return !!logged && logged.event.type === "models/move" && soloPlays(game, logged.by);
-}
-
 /** A move this player made by dragging: it is already where it was dropped, with no tween. */
 function draggedHere(event: GameEvent, by: string): boolean {
   const { scrub, mode, session } = useStore.getState();
   return event.type === "models/move" && scrub === null && (mode === "hotseat" || by === session?.selfId);
 }
-
-const reducedMotion = () =>
-  typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;

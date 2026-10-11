@@ -319,13 +319,6 @@ export function topple(delay = 0) {
   burst(a, t + 0.035, { freq: 900, q: 1.5, dur: 0.03, gain: 0.12, type: "lowpass" });
 }
 
-/** A tape measure ticking past a tenth of an inch: barely there. */
-export function tick() {
-  const a = audio();
-  if (!a) return;
-  burst(a, a.currentTime, { freq: 4200, q: 6, dur: 0.008, gain: 0.03 });
-}
-
 /** A soft whoosh between moment cards. */
 export function whoosh() {
   const a = audio();

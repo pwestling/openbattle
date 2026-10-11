@@ -1,5 +1,5 @@
 import { Html } from "@react-three/drei";
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import {
   baseSizeInches,
   modelHeight,
@@ -10,7 +10,6 @@ import {
   type Vec2,
 } from "../core";
 import { aliveModels, blockedMoves, moveAllowance, unitMoved } from "../systems/wh40k/rules";
-import { tick } from "../ui/sound";
 import { t } from "../i18n";
 import { Ring } from "./ModelOverlay";
 
@@ -186,9 +185,8 @@ export function MoveLabel({
   const allowed = moveAllowance(game, unit);
   const deploying = game.turn.round === 0;
   const over = !deploying && allowed !== null && moved > allowed + 0.05;
-  // Within half an inch of the limit, the label gets tense (PX-3e).
+  // Within half an inch of the limit, the label turns amber (PX-3e), with no pulse or tick.
   const near = !deploying && !over && allowed !== null && moved >= allowed - 0.5;
-  useTapeTicks(near ? moved : null);
   const measured = deploying ? `${moved.toFixed(1)}"` : `${moved.toFixed(1)}" / ${allowed ?? "?"}"`;
   const base = legs ? t("{distance} in {n} legs", { distance: measured, n: legs + 1 }) : measured;
   const text = blocked.length
@@ -220,18 +218,4 @@ export function SimpleLabel({
       {text}
     </Html>
   );
-}
-
-/** A soft tape-measure tick for each tenth of an inch crossed near the limit (quiet; off when muted). */
-function useTapeTicks(moved: number | null) {
-  const last = useRef<number | null>(null);
-  useEffect(() => {
-    if (moved === null) {
-      last.current = null;
-      return;
-    }
-    const tenth = Math.floor(moved * 10);
-    if (last.current !== null && tenth !== last.current) tick();
-    last.current = tenth;
-  }, [moved]);
 }

@@ -139,17 +139,13 @@
   font-weight: 700;
   animation: your-turn 2.6s ease-out 1 forwards;
 }
+/* A fade, never a pop (Porter: no motion that isn't an exciting moment). */
 @keyframes your-turn {
   0% {
     opacity: 0;
-    transform: scale(0.8);
   }
   12% {
     opacity: 1;
-    transform: scale(1.12);
-  }
-  24% {
-    transform: scale(1);
   }
   80% {
     opacity: 1;
@@ -453,15 +449,9 @@ details p {
 .ruler.over {
   background: rgb(185 28 28 / 85%);
 }
-/* Within half an inch of the limit (PX-3e): amber, pulsing. */
+/* Within half an inch of the limit (PX-3e): amber, and still, since full moves are the usual aim (Porter). */
 .ruler.near {
   background: rgb(180 83 9 / 90%);
-  animation: ruler-near 0.6s ease-in-out infinite alternate;
-}
-@keyframes ruler-near {
-  to {
-    transform: scale(1.08);
-  }
 }
 /* A charge roll that only just makes it, or only just misses (PX-3e). */
 .charge .tense {
@@ -470,17 +460,10 @@ details p {
   border-radius: 4px;
   color: #fde68a;
   background: rgb(180 83 9 / 90%);
-  animation: ruler-near 0.6s ease-in-out infinite alternate;
 }
 .chip.charged {
   border-color: #b45309;
   color: #fde68a;
-}
-@media (prefers-reduced-motion: reduce) {
-  .ruler.near,
-  .charge .tense {
-    animation: none;
-  }
 }
 .wounds {
   font-size: 0.7rem;

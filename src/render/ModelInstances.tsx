@@ -1,4 +1,4 @@
-import { useFrame, type ThreeEvent } from "@react-three/fiber";
+import { type ThreeEvent } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import {
   BoxGeometry,
@@ -6,7 +6,6 @@ import {
   Color,
   CylinderGeometry,
   CanvasTexture,
-  Euler,
   InstancedMesh,
   Matrix4,
   MeshBasicMaterial,
@@ -17,7 +16,6 @@ import {
   type BufferGeometry,
 } from "three";
 import { baseSizeInches, type Model, type Vec2 } from "../core";
-import { feelActive, poseOf, type Pose } from "./feel";
 import { lookGeometry } from "./standIns";
 
 /** One model as drawn: where it stands and how it looks. */
@@ -142,8 +140,6 @@ const p = new Vector3();
 const s = new Vector3();
 const offset = new Vector3();
 const color = new Color();
-const tilt = new Quaternion();
-const euler = new Euler();
 
 /**
  * Every model's base, facing nub and stand-in as instanced meshes: a handful
@@ -186,11 +182,9 @@ export function ModelInstances({ draws, hovered, onDown, onHover }: Props) {
         material={shadowMaterial}
         list={draws}
         grounded
-        place={(d, pose) => {
-          // Stays on the table when the model is lifted, spreading a little (PX-3a).
+        place={(d) => {
           const { width, depth } = baseSizeInches(d.model.base);
-          const k = 1.6 + (pose?.lift ?? 0) * 0.8;
-          return s.set(width * k, 1, depth * k);
+          return s.set(width * 1.6, 1, depth * 1.6);
         }}
       />
       <Instances
@@ -281,24 +275,17 @@ function Instances({
   /** Pick handlers; without them the mesh ignores the pointer. */
   handlers?: Handlers;
   /** Sets the scale `s` for one model (and may nudge the position `p`, already rotated by `q`). */
-  place: (d: ModelDraw, pose: Pose | null) => Vector3;
+  place: (d: ModelDraw) => Vector3;
 }) {
   const ref = useRef<InstancedMesh>(null);
   // Capacity in powers of two, so the mesh isn't rebuilt every time a model dies or arrives.
   const cap = 2 ** Math.ceil(Math.log2(Math.max(16, list.length)));
 
   const draw = (mesh: InstancedMesh, colors: boolean) => {
-    const now = performance.now();
     list.forEach((d, i) => {
       q.setFromAxisAngle(up, d.model.facing);
-      // Held, landing or settling (feel.ts): lifted, leaning, squashed.
-      const pose = poseOf(d.model.id, now);
-      if (!grounded && pose && (pose.tiltX || pose.tiltZ))
-        q.premultiply(tilt.setFromEuler(euler.set(pose.tiltX, 0, pose.tiltZ)));
-      const lift = grounded ? 0.005 : (pose?.lift ?? 0);
-      p.set(d.position.x + (pose?.dx ?? 0), d.z + lift, d.position.y + (pose?.dy ?? 0));
-      const scale = place(d, pose);
-      if (pose && !grounded) scale.y *= pose.squash;
+      p.set(d.position.x, d.z + (grounded ? 0.005 : 0), d.position.y);
+      const scale = place(d);
       m4.compose(p, q, scale);
       mesh.setMatrixAt(i, m4);
       if (colors && hovered !== undefined)
@@ -314,10 +301,6 @@ function Instances({
     mesh.count = list.length;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.computeBoundingSphere();
-  });
-
-  useFrame(() => {
-    if (ref.current && feelActive()) draw(ref.current, false);
   });
 
   useEffect(() => () => ref.current?.dispose(), []);

@@ -1,6 +1,6 @@
 import { Html } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Color, type Group, type Mesh, type MeshStandardMaterial } from "three";
 import {
   applyEvent,
@@ -305,6 +305,12 @@ export function Topple({
   });
   const edge = { x: model.position.x + Math.sin(dir) * r, y: model.position.y + Math.cos(dir) * r };
   const still = reduced();
+  // A fallen figure is never in the way: clicks on the table go through it to what's underneath (PX T5).
+  useEffect(() => {
+    outer.current?.traverse((o) => {
+      o.raycast = () => {};
+    });
+  }, []);
   useFrame(() => {
     const g = outer.current;
     const p = pivot.current;

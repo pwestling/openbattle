@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef } from "react";
 import {
   BufferAttribute,
   BufferGeometry,
-  Euler,
   Frustum,
   InstancedMesh,
   Matrix4,
@@ -19,7 +18,6 @@ import {
 import { toCreasedNormals } from "three/addons/utils/BufferGeometryUtils.js";
 import type { Model, ModelFigure, Vec2 } from "../core";
 import { useAssets } from "../assets/store";
-import { poseOf } from "./feel";
 import { toLinear } from "../assets/paint";
 import { batchable, StandeeBatch } from "./StandeeBatch";
 import type { ModelAsset } from "../assets/types";
@@ -234,10 +232,8 @@ const s = new Vector3();
 const sphere = new Sphere();
 const frustum = new Frustum();
 const projScreen = new Matrix4();
-const tilt = new Quaternion();
-const euler = new Euler();
 
-/** Where a figure stands this frame, into `out`: position, facing and its pose (held, landing or settling; feel.ts). Returns its base's height. */
+/** Where a figure stands, into `out`: position and facing. Returns its base's height. */
 export function placeFigure(
   model: Model,
   binding: ModelFigure,
@@ -247,13 +243,9 @@ export function placeFigure(
 ): number {
   const p = positions[model.id] ?? model.position;
   q.setFromAxisAngle(up, model.facing + binding.yaw);
-  const pose = poseOf(model.id);
-  if (pose && (pose.tiltX || pose.tiltZ))
-    q.premultiply(tilt.setFromEuler(euler.set(pose.tiltX, 0, pose.tiltZ)));
-  const z = BASE_TOP + (heights[model.id] ?? model.z ?? 0) + (pose?.lift ?? 0);
-  v.set(p.x + (pose?.dx ?? 0), z, p.y + (pose?.dy ?? 0));
+  const z = BASE_TOP + (heights[model.id] ?? model.z ?? 0);
+  v.set(p.x, z, p.y);
   s.setScalar(binding.scale);
-  if (pose) s.y *= pose.squash;
   out.compose(v, q, s);
   return z;
 }

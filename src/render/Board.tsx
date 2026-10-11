@@ -6,7 +6,6 @@ import { TtsKeys } from "./TtsKeys";
 import { TableOnScreen } from "./TableOnScreen";
 import { playerShape } from "../ui/sides";
 import { Html, OrbitControls, OrthographicCamera, PerspectiveCamera } from "@react-three/drei";
-import { ShowcaseCamera } from "./ShowcaseCamera";
 import { openingPosition, openingScale } from "./openingView";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -58,8 +57,7 @@ import { displayName } from "../i18n/names";
 import { Lanterns, type LanternItem } from "./Lanterns";
 import { TalkLayer } from "./TalkLayer";
 import { DragPreview } from "./DragPreview";
-import { carry, pickUp, setDown } from "./feel";
-import { FeelLayer } from "./FeelLayer";
+import { pick, thunk } from "../ui/sound";
 import { planMove, planShot, usePlan } from "../ui/plan";
 import { PlanGhosts } from "./PlanGhosts";
 import { MAX_LINE, sendDrag, useTalk, type Said } from "../talk/talk";
@@ -401,7 +399,7 @@ function Scene() {
           x: ids.reduce((a, id) => a + starts[id]!.x, 0) / ids.length,
           y: ids.reduce((a, id) => a + starts[id]!.y, 0) / ids.length,
         };
-        pickUp(ids);
+        pick();
         setDrag(
           (dragRef.current = {
             kind: "models",
@@ -543,8 +541,9 @@ function Scene() {
           return setDrag((dragRef.current = { ...d, to, moved, points: [...d.points, to] }));
       }
       if (d.kind === "models") {
-        // Picked up once it really moves (a click only selects); then it leans into the carry.
-        if (moved && !d.moved) pickUp(d.ids);
+        // Picked up once it really moves (a click only selects): a sound, and the models stay flat under the
+        // pointer so the base and the ruler line up (Porter: no movement animation).
+        if (moved && !d.moved) pick();
         // The whole unit over an enemy in the Charge phase: letting go there charges it (UX 84, #2). Before the
         // battle, a leader over one of your units leads it (§6).
         const game = useStore.getState().game;
@@ -573,11 +572,6 @@ function Scene() {
             drag: { verb, unitId: unit.id, targetId: under.unitId, x: e.clientX, y: e.clientY },
           });
         else if (was) useDragVerb.setState({ drag: null });
-        const t = performance.now();
-        const last = hand.current;
-        if (last && t > last.t)
-          carry(((to.x - last.x) * 1000) / (t - last.t), ((to.y - last.y) * 1000) / (t - last.t));
-        hand.current = { t, x: to.x, y: to.y };
       }
       // Kept at once, not at the next render: a drop straight after reads it (catch-up below).
       setDrag((dragRef.current = { ...d, to, moved }));
@@ -600,10 +594,8 @@ function Scene() {
     const drop = () => {
       if (dragRef.current?.kind !== "models" || !dragRef.current.place) land();
     };
-    const putBack = (ids: string[]) => {
+    const putBack = () => {
       setDrag((dragRef.current = null));
-      hand.current = null;
-      setDown(ids, () => null, { sound: false });
     };
     const land = () => {
       const d = dragRef.current;
@@ -614,10 +606,9 @@ function Scene() {
           const p = { x: d.starts[id]!.x + d.to.x - d.grab.x, y: d.starts[id]!.y + d.to.y - d.grab.y };
           return Math.abs(p.x) > width / 2 || Math.abs(p.y) > depth / 2;
         });
-        if (off) return putBack(d.ids);
+        if (off) return putBack();
       }
       setDrag(null);
-      hand.current = null;
       const charge = useDragVerb.getState().drag;
       if (charge) useDragVerb.setState({ drag: null });
       // Planning the next turn (#81): the models go back, and ghosts stay where they were let go.
@@ -636,7 +627,6 @@ function Scene() {
             ]),
           ),
         );
-        setDown(d.ids, () => null, { sound: false });
         return;
       }
       // A leader let go on a unit: it stands beside the model it was dropped on, and leads the unit.
@@ -647,13 +637,7 @@ function Scene() {
           const to = { x: d.starts[id]!.x + delta.x, y: d.starts[id]!.y + delta.y };
           return { id, to, z: settleZ(game.terrain, to, d.startZ[id] ?? 0) };
         });
-        setDown(d.ids, (id) => {
-          const m = game.models[id];
-          const at = moves.find((x) => x.id === id);
-          if (!m || !at) return null;
-          const { width, depth } = baseSizeInches(m.base);
-          return { ...at.to, z: at.z, radius: Math.max(width, depth) / 2 };
-        });
+        thunk(d.ids.length);
         const owner = game.units[charge.unitId]?.owner;
         dispatch({ type: "models/move", moves }, owner);
         dispatch({ type: "unit/attach", id: charge.unitId, to: charge.targetId }, owner);
@@ -661,12 +645,7 @@ function Scene() {
       }
       // Let go on an enemy in the Charge phase: back where it stood, and the charge declared at it.
       if (charge && d?.kind === "models" && d.moved && d.unitId === charge.unitId) {
-        setDown(d.ids, (id) => {
-          const m = useStore.getState().game.models[id];
-          if (!m) return null;
-          const { width, depth } = baseSizeInches(m.base);
-          return { ...d.starts[id]!, z: d.startZ[id] ?? 0, radius: Math.max(width, depth) / 2 };
-        });
+        thunk(d.ids.length);
         doTableVerb({ ...charge.verb, verb: "charge" }, charge.unitId, charge.targetId);
         return;
       }
@@ -705,12 +684,10 @@ function Scene() {
         const whole = !!unitHere && aliveModels(game, unitHere).length === d.ids.length;
         // Before the battle, a unit that may wait in reserves goes there when taken off the table (UX 84 §6).
         if (off && whole && unitHere && canReserve(game, unitHere)) {
-          setDown(d.ids, () => null, { sound: false });
           dispatch({ type: "unit/reserve", id: unitHere.id, reserve: true }, unitHere.owner);
           return;
         }
         if (off) {
-          setDown(d.ids, () => null, { sound: false });
           removeAsCasualties(d.ids);
           return;
         }
@@ -720,13 +697,7 @@ function Scene() {
             const to = { x: d.starts[id]!.x + dx, y: d.starts[id]!.y + dy };
             return { id, to };
           });
-          setDown(d.ids, (id) => {
-            const m = game.models[id];
-            const at = moves.find((x) => x.id === id);
-            if (!m || !at) return null;
-            const { width, depth } = baseSizeInches(m.base);
-            return { ...at.to, z: settleZ(terrain, at.to, 0), radius: Math.max(width, depth) / 2 };
-          });
+          thunk(d.ids.length);
           dispatch({ type: "unit/reserve", id: unitHere.id, reserve: false, moves }, unitHere.owner);
           return;
         }
@@ -741,17 +712,7 @@ function Scene() {
             return m ? movedSoFar(m, to, dragVia(game, d, id)) : 0;
           }),
         );
-        setDown(
-          d.ids,
-          (id) => {
-            const m = game.models[id];
-            if (!m) return null;
-            const to = { x: d.starts[id]!.x + dx, y: d.starts[id]!.y + dy };
-            const { width, depth } = baseSizeInches(m.base);
-            return { ...to, z: settleZ(terrain, to, d.startZ[id] ?? 0), radius: Math.max(width, depth) / 2 };
-          },
-          { dull: limit !== null && far > limit + 0.05 },
-        );
+        thunk(d.ids.length, limit !== null && far > limit + 0.05);
       }
       if (d.kind === "stroke") {
         if (d.points.length > 1) talkOrNote({ kind: "line", points: d.points });
@@ -838,7 +799,7 @@ function Scene() {
         e.stopPropagation();
         move(e);
         if (e.button === 0) land();
-        else putBack(d.ids);
+        else putBack();
         return;
       }
       if ((e.button === 2 || (e.pointerType === "touch" && !e.isPrimary)) && corner()) {
@@ -851,7 +812,7 @@ function Scene() {
       if (e.key === "Escape" && d?.kind === "models" && d.place) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        putBack(d.ids);
+        putBack();
         return;
       }
       if (e.code === "Space" && !e.repeat && corner()) e.preventDefault();
@@ -1196,8 +1157,6 @@ function Scene() {
 
   const measuring = useStore((s) => s.measuring) && live;
   const tool = useTalk((s) => s.tool);
-  // The pointer's last place and time while carrying models, for their lean (feel.ts).
-  const hand = useRef<{ t: number; x: number; y: number } | null>(null);
   // Table talk on a spot or a unit: a ping now, or the start of an arrow or area.
   const talkAt = (at: Vec2, unitId?: string) => {
     if (tool === "ping" || !tool) {
@@ -1937,9 +1896,7 @@ function Scene() {
       <DragPreview game={game} />
       <PlanGhosts game={game} />
       <NotesLayer />
-      <FeelLayer />
       <CasterCamera />
-      <ShowcaseCamera />
       <FocusCamera />
       <TtsKeys />
       <TableOnScreen />

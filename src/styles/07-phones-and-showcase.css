@@ -286,24 +286,7 @@ body.broadcast:has(.stats-screen) .caption {
   }
 }
 
-/* The army showcase at battle start (PX-5a): a clean stage, a title card per army, then "Round 1". */
-body.showcase
-  :is(
-    .hud,
-    .mailbar,
-    .unitcard,
-    .attack,
-    .play,
-    .terrainpanel,
-    .caption,
-    .replaybar,
-    .talk-dock,
-    .broadcast-controls,
-    .plate,
-    .round-card
-  ) {
-  display: none;
-}
+/* The army showcase at battle start (PX-5a): a title card per army over the still table, panels left up. */
 .showcase-card {
   position: fixed;
   left: 50%;
@@ -315,7 +298,7 @@ body.showcase
   background: rgb(10 12 16 / 82%);
   border-left: 6px solid;
   border-radius: 8px;
-  animation: showcase-in 0.7s ease-out both;
+  animation: showcase-in 0.3s ease-out both;
   pointer-events: none;
 }
 .showcase-card .title {
@@ -330,11 +313,6 @@ body.showcase
 @keyframes showcase-in {
   from {
     opacity: 0;
-    transform: translate(-50%, 12px);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
   }
 }
 .showcase-round {
@@ -352,24 +330,12 @@ body.showcase
   letter-spacing: 0.08em;
   text-transform: uppercase;
   pointer-events: none;
-  animation: showcase-stamp 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
-}
-@keyframes showcase-stamp {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(2.2);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
+  transform: translate(-50%, -50%);
+  animation: showcase-in 0.3s ease-out both;
 }
 @media (prefers-reduced-motion: reduce) {
   .showcase-card,
   .showcase-round {
     animation: none;
-  }
-  .showcase-round {
-    transform: translate(-50%, -50%);
   }
 }

@@ -113,6 +113,11 @@ export function DiceTray() {
 
 let current: Stage | null = null;
 
+/** Land every roll in the tray now (PX T1): a press on the panel while the dice roll goes straight to the result. */
+export function landDice(): void {
+  current?.land();
+}
+
 /** Put the dice tray away, if it has finished rolling. */
 export function clearTray(): void {
   current?.reset();
@@ -232,6 +237,8 @@ class Stage {
   private dice: Die[] = [];
   private chain: string | undefined;
   private skip = false;
+  /** Every roll still queued lands at once too, until the tray is idle. */
+  private landing = false;
   private active = false;
   private hideTimer: ReturnType<typeof setTimeout> | undefined;
   private caption: HTMLDivElement;
@@ -266,6 +273,12 @@ class Stage {
       if (this.active) this.skip = true;
       else this.hideNow();
     });
+  }
+
+  land() {
+    if (!this.active && !this.waiting) return;
+    this.landing = true;
+    this.skip = true;
   }
 
   clear() {
@@ -307,7 +320,10 @@ class Stage {
       }
       settle();
       this.active = false;
-      if (this.waiting === 0) this.onIdle();
+      if (this.waiting === 0) {
+        this.landing = false;
+        this.onIdle();
+      }
     });
   }
 
@@ -431,7 +447,7 @@ class Stage {
     settle: () => void,
   ) {
     // A background tab paints nothing (and gets no animation frames): just settle the dice.
-    this.skip = reduced() || document.hidden;
+    this.skip = this.landing || reduced() || document.hidden;
     this.show();
     this.banner.className = "tray-banner";
     this.caption.textContent = roll.title;
@@ -529,7 +545,7 @@ class Stage {
     // Live, it stays until it's clicked, holding the next roll behind it (UX 102); never forever.
     // A replay shows it for a few seconds.
     const end = Date.now() + (document.hidden ? 0 : live ? 20_000 : 4_000);
-    while (Date.now() < end && !this.skip) await wait(100);
+    while (Date.now() < end && !this.skip && !this.landing) await wait(100);
     this.root.classList.remove("legendary");
     this.lingerThenHide();
   }

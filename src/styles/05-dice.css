@@ -305,11 +305,10 @@ button.rare-star:hover {
   display: grid;
   gap: 4px;
 }
-/* UX 100: the dice are still rolling; the panel can't be clicked ahead of them. */
+/* UX 100: the dice are still rolling and the panel shows the table before them. A press lands them (PX T1). */
 .holding .panel button,
 .holding .panel select {
-  pointer-events: none;
-  opacity: 0.55;
+  opacity: 0.8;
 }
 .dice-tray .tray-banner .hint {
   margin-top: 8px;
