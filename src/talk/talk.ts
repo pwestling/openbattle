@@ -49,6 +49,8 @@ interface TalkState {
   drags: Record<string, { models: Record<string, { x: number; y: number }>; at: number }>;
   /** Players planning their next turn on their own screen, by peer, since when (#81). */
   planning: Record<string, number>;
+  /** Another player's volley under way: who shoots what, with how many weapons, and how many are left (#81). */
+  volley: { by: string; attacker: string; target: string; total: number; left: number } | null;
 }
 
 interface Caster {
@@ -71,6 +73,7 @@ export const useTalk = create<TalkState>(() => ({
   reel: null,
   drags: {},
   planning: {},
+  volley: null,
 }));
 
 const vec3 = (v: unknown): v is [number, number, number] =>
@@ -97,6 +100,11 @@ export function sendDrag(models: [string, number, number][] | null): void {
 /** Tell the table this player is planning their next turn, or stopped (never what they plan). */
 export function sendPlanning(on: boolean): void {
   useStore.getState().session?.sendSide({ t: "talk/plan", on });
+}
+
+/** Tell the table this player's volley: the unit firing, its target, the weapons in all and those left (0: over). */
+export function sendVolley(attacker: string, target: string, total: number, left: number): void {
+  useStore.getState().session?.sendSide({ t: "talk/volley", attacker, target, total, left });
 }
 
 /** Move everyone's end-of-game reel to this card. */
@@ -287,6 +295,15 @@ function receive(message: SideMessage, from: string): void {
       const { [from]: _gone, ...rest } = s.planning;
       return { planning: message.on === true ? { ...rest, [from]: Date.now() } : rest };
     });
+  } else if (message.t === "talk/volley") {
+    // Only a player at the table shoots, and only at units on it.
+    const game = useStore.getState().game;
+    if (!game.players[from] || !game.units[message.attacker] || !game.units[message.target]) return;
+    const total = Math.min(50, Math.max(0, Math.floor(Number(message.total) || 0)));
+    const left = Math.min(total, Math.max(0, Math.floor(Number(message.left) || 0)));
+    useTalk.setState({
+      volley: left > 0 ? { by: from, attacker: message.attacker, target: message.target, total, left } : null,
+    });
   } else if (message.t === "talk/drag") {
     // Only a player at the table moves models; at most a big unit's worth, on the table.
     const game = useStore.getState().game;
@@ -332,7 +349,15 @@ export function useTableTalk(): void {
     return () => {
       session.listenSide(null, null, "talk");
       clearInterval(timer);
-      useTalk.setState({ items: [], chat: [], unread: 0, tool: null, casters: {}, shaking: {} });
+      useTalk.setState({
+        items: [],
+        chat: [],
+        unread: 0,
+        tool: null,
+        casters: {},
+        shaking: {},
+        volley: null,
+      });
     };
   }, [session]);
 }

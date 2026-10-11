@@ -3147,6 +3147,95 @@ const checks = {
   },
 
   // #81: Ben plans his turn on Ana's (a ghost move, nothing logged, Ana sees only that he's planning), then moves as planned.
+  // #81: Ana shoots several weapons at Ben's unit. Ben is told what's coming, his saves roll as the wounds land,
+  // and Ana can roll hits and wounds in one go.
+  async volley() {
+    const { host, guest } = await twoAt40k();
+    const a = host.page;
+    const b = guest.page;
+    // Ben says No to any reaction he's offered; Ana goes on past any beat.
+    const answer = async () => {
+      const no = b.locator(".reaction-cards").getByRole("button", { name: "No", exact: true });
+      if (await no.count())
+        await no
+          .first()
+          .click()
+          .catch(() => {});
+      const goOn = a.getByRole("button", { name: "Go on", exact: true });
+      if (await goOn.count())
+        await goOn
+          .first()
+          .click()
+          .catch(() => {});
+    };
+    for (
+      let i = 0;
+      i < 6 && !/Shooting/.test(await a.locator(".topbar .phases .current").textContent());
+      i++
+    ) {
+      await answer();
+      await nextPhase([a, b]);
+      await a.waitForTimeout(800);
+    }
+    await a
+      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
+      .first()
+      .click();
+    const canvas = await a.locator("canvas").first().boundingBox();
+    const several = a.getByRole("button", { name: /^Shoot \d+ weapons?/ });
+    for (let u = 0; u < 8 && !(await several.count()); u++) {
+      await a.keyboard.press("Escape");
+      await a.keyboard.press("]");
+      await a.waitForTimeout(300);
+      let found = false;
+      for (let y = 0.1; y < 0.55 && !found; y += 0.04)
+        for (let x = 0.1; x < 0.95 && !found; x += 0.03) {
+          await a.mouse.move(canvas.x + canvas.width * x, canvas.y + canvas.height * y);
+          if (await a.locator(".table-tag.ok").count()) found = true;
+        }
+      if (!found) continue;
+      await a.mouse.down();
+      await a.mouse.up();
+      await several.waitFor({ timeout: 3000 }).catch(() => {});
+    }
+    if (!(await several.count())) {
+      if (process.env.SMOKE_SHOTS)
+        await a.screenshot({ path: join(process.env.SMOKE_SHOTS, "volley-none.png") });
+      throw new Error("no unit of Ana's could shoot at Ben");
+    }
+    const n = Number(/Shoot (\d+)/.exec(await several.first().textContent())?.[1]);
+    await several.first().click();
+    // Ben: what's coming, by name and count.
+    await b
+      .locator(".panel.attack .incoming", {
+        hasText: new RegExp(`Ana is shooting your .+ with ${n} weapons?`),
+      })
+      .waitFor({ timeout: 10_000 });
+    // Ana: hits and wounds in one go, from now on.
+    await a.locator(".panel.attack .one-go input").check();
+    await a.locator(".panel.attack button.attack-roll", { hasText: "Roll hits and wounds" }).waitFor();
+    if (process.env.SMOKE_SHOTS) {
+      await a.screenshot({ path: join(process.env.SMOKE_SHOTS, "volley-attacker.png") });
+      await b.screenshot({ path: join(process.env.SMOKE_SHOTS, "volley-defender.png") });
+    }
+    // Through the first weapon: Ana rolls once for hits and wounds, Ben never presses a roll.
+    const saved = a.locator(".panel.attack", { hasText: /unsaved/ });
+    for (let i = 0; i < 40 && !(await saved.count()); i++) {
+      await answer();
+      if (/No hits|0 wounds/.test(await a.locator(".panel.attack").innerText())) break;
+      const roll = a.locator(".panel.attack button.attack-roll:enabled");
+      const stage = (await roll.count()) ? await roll.first().textContent() : "";
+      if (/hits and wounds/i.test(stage ?? "")) await roll.first().click();
+      await a.waitForTimeout(500);
+    }
+    const text = await a.locator(".panel.attack").innerText();
+    if (!(await saved.count()) && !/0 wounds|0 hits/.test(text))
+      throw new Error(`Ben's saves never rolled by themselves: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
+    await host.context.close();
+    await guest.context.close();
+    return [...a.errors, ...b.errors];
+  },
+
   async planning() {
     const { host, guest } = await twoAt40k();
     const g = guest.page;

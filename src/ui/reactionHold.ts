@@ -28,3 +28,9 @@ export function useReactionHeld(): boolean {
   const open = useStore((s) => s.game.reaction?.opened ?? null);
   return held && opened !== null && opened === open;
 }
+
+/** The same, read once outside React (a roll scheduled for later). */
+export function reactionHeldNow(): boolean {
+  const { opened, held } = useReactionHold.getState();
+  return held && opened !== null && opened === (useStore.getState().game.reaction?.opened ?? null);
+}

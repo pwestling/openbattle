@@ -3,6 +3,7 @@ import type { GameState } from "../core";
 import { aliveModels, suggestAttack } from "../systems/wh40k/rules";
 import { useStore } from "../store";
 import { t } from "../i18n";
+import { sendVolley } from "../talk/talk";
 
 /**
  * "Shoot everything at…" (UX 398): a unit's ranged weapons, one attack each,
@@ -15,6 +16,35 @@ interface Volley {
   weapons: string[];
   /** How many it started with, for "Weapon 2 of 3". */
   total: number;
+}
+
+/** This screen's shooting habits (#81), remembered: saves rolled as the wounds land, hits and wounds in one go. */
+interface ShotHabits {
+  /** Defending: roll your saves as soon as a person's wounds land, without a click. */
+  savesAsTheyLand: boolean;
+  /** Attacking a person: one roll button does the hits and then the wounds. */
+  oneGo: boolean;
+}
+const HABITS_KEY = "open-battle:shot-habits";
+function loadHabits(): ShotHabits {
+  const habits = { savesAsTheyLand: true, oneGo: false };
+  try {
+    const saved = JSON.parse(localStorage.getItem(HABITS_KEY) ?? "{}") as Partial<ShotHabits>;
+    if (typeof saved.savesAsTheyLand === "boolean") habits.savesAsTheyLand = saved.savesAsTheyLand;
+    if (typeof saved.oneGo === "boolean") habits.oneGo = saved.oneGo;
+  } catch {
+    // Private windows and blocked storage keep the defaults.
+  }
+  return habits;
+}
+export const useShotHabits = create<ShotHabits>(loadHabits);
+export function setShotHabit(habit: Partial<ShotHabits>): void {
+  useShotHabits.setState(habit);
+  try {
+    localStorage.setItem(HABITS_KEY, JSON.stringify(useShotHabits.getState()));
+  } catch {
+    // Kept for this visit only.
+  }
 }
 
 export const useVolley = create<{ queue: Volley | null }>(() => ({ queue: null }));
@@ -76,4 +106,13 @@ useStore.subscribe((s, prev) => {
     useVolley.getState().queue
   )
     window.setTimeout(fireNext, 0);
+});
+
+// The defender hears what's coming, and how much of it is left: "Ana is shooting your Ember Kin with 3 weapons".
+useVolley.subscribe((s, prev) => {
+  const q = s.queue;
+  const p = prev.queue;
+  if (q && (!p || p.attackerId !== q.attackerId || p.weapons.length !== q.weapons.length))
+    sendVolley(q.attackerId, q.targetId, q.total, q.weapons.length + 1);
+  else if (!q && p) sendVolley(p.attackerId, p.targetId, p.total, 0);
 });

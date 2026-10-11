@@ -597,3 +597,18 @@ p.odds {
   display: block;
   white-space: nowrap;
 }
+
+/* Shot at by a person's volley (#81): what's coming, in the attack panel on the defender's screen. */
+.panel.attack .incoming {
+  margin: 6px 0;
+  padding: 6px 8px;
+  border-left: 3px solid var(--accent, #e0a040);
+  background: color-mix(in srgb, var(--accent, #e0a040) 12%, transparent);
+  font-weight: 600;
+}
+.panel.attack .one-go,
+.panel.attack .saves-land {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

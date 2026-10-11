@@ -37,7 +37,7 @@ Events and intents are versioned together by `PROTOCOL`, not one by one. The red
 Side messages (`SideMessage`) are never logged or checksummed. Any peer may send them to any other:
 
 - **Content by hash:** `asset/want` and `asset/part` (figure and terrain models, by their id), `package/want`, `package/part` and `package/status` (rules packages, by SHA-256), `campaign/want` and `campaign/part` (campaign books, by SHA-256). Content travels in 48 KB base64 parts. The receiver checks package and campaign bytes against the hash before keeping them.
-- **Table talk:** `talk` (pings, arrows, areas, lines, chat, reactions), `talk/clear`, `talk/cam`, `talk/moment`, `talk/shake`, `talk/reel`, `talk/drag`, `talk/plan`, `talk/voice`.
+- **Table talk:** `talk` (pings, arrows, areas, lines, chat, reactions), `talk/clear`, `talk/cam`, `talk/moment`, `talk/shake`, `talk/reel`, `talk/drag`, `talk/plan`, `talk/volley`, `talk/voice`.
 - **Review rooms:** `review/lead`, `review/hello`, `review/note`, `review/unnote`, `review/notes`.
 - **Armies from a TTS table:** `army/offer`, `army/take`.
 

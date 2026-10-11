@@ -35,7 +35,9 @@ import { t, tn } from "../i18n";
 import { RollButton, useRealDice, useShakeDice } from "../companion/RealDice";
 import { WaitingDice } from "../companion/Shake";
 import { TableAttackSetup } from "../companion/TableAttack";
-import { fireNext, useVolley, volleyWeapons } from "./volley";
+import { fireNext, setShotHabit, useShotHabits, useVolley, volleyWeapons } from "./volley";
+import { useTalk } from "../talk/talk";
+import { reactionHeldNow, useReactionHeld } from "./reactionHold";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
 
 /**
@@ -456,6 +458,42 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
     const count = savesTheirs ? (attack.stage === "hit" ? 2 : 1) : remaining;
     for (let i = 0; i < count; i++) dispatch({ type: "attack/roll" }, roller);
   };
+  const habits = useShotHabits();
+  // Hits and wounds in one go (#81, opt-in): the hits land, then a beat later the wounds, so both read.
+  const oneGo = savesTheirs && habits.oneGo && !ownDice && attack.stage === "hit";
+  const thenWounds = () => {
+    if (!oneGo) return;
+    window.setTimeout(() => {
+      const now = useStore.getState().game.attack;
+      if (now?.stage === "wound" && sameAttack(now.spec, spec) && !reactionHeldNow())
+        useStore.getState().dispatch({ type: "attack/roll" }, roller);
+    }, ONE_GO_BEAT);
+  };
+  // Shot at by a person (#81): what's coming, and the saves rolled as soon as the wounds land.
+  const defending =
+    live &&
+    !!target &&
+    !!attacker &&
+    canControl(target.owner) &&
+    !canControl(attacker.owner) &&
+    !computerPlays(game, attacker.owner) &&
+    !game.settings.companion;
+  const talkVolley = useTalk((s) => s.volley);
+  const incoming =
+    defending && talkVolley?.attacker === attacker?.id && talkVolley?.target === target?.id
+      ? talkVolley
+      : null;
+  const autoSaves = defending && habits.savesAsTheyLand && !ownDice && !shake;
+  const held = useReactionHeld();
+  useEffect(() => {
+    if (!autoSaves || attack.stage !== "save" || held || !target) return;
+    const timer = window.setTimeout(() => {
+      const now = useStore.getState().game.attack;
+      if (now?.stage === "save" && sameAttack(now.spec, spec))
+        dispatch({ type: "attack/roll" }, target.owner);
+    }, SAVES_BEAT);
+    return () => window.clearTimeout(timer);
+  }, [autoSaves, attack, held, target, spec, dispatch]);
   // After the last roll its button goes: focus moves on to Done rather than dropping to the page (UX 199).
   const done = useRef<HTMLButtonElement>(null);
   const finished = attack.stage === "done";
@@ -489,6 +527,25 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
         ].join(" · ")}
       </p>
       {becauseText(spec) && <p className="muted small">{becauseText(spec)}</p>}
+      {incoming && (
+        <p className="incoming" role="status">
+          {tn(
+            incoming.total,
+            "{name} is shooting your {unit} with {n} weapon",
+            "{name} is shooting your {unit} with {n} weapons",
+            {
+              name: playerName(game.players[incoming.by]) || t("Your opponent"),
+              unit: target!.name,
+            },
+          )}
+          {incoming.total > 1 && (
+            <span className="muted small">
+              {" "}
+              {t("Weapon {i} of {n}", { i: incoming.total - incoming.left + 1, n: incoming.total })}
+            </span>
+          )}
+        </p>
+      )}
       {attack.hitDice && (
         <Stage label={t("Hits")} dice={attack.hitDice} judge={(v) => hitJudge(spec, v)}>
           {[
@@ -563,14 +620,39 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
                   roll={() => dispatch({ type: "attack/roll" }, roller)}
                 />
               )}
-              <RollButton className="primary attack-roll" intent={{ type: "attack/roll" }} as={roller}>
-                {stageLabel(attack.stage)}
+              <RollButton
+                className="primary attack-roll"
+                intent={{ type: "attack/roll" }}
+                as={roller}
+                onRolled={thenWounds}
+              >
+                {oneGo ? t("Roll hits and wounds") : stageLabel(attack.stage)}
                 {yourSaves && <SelfRollCountdown />}
               </RollButton>
-              {!botAttacks && !ownDice && (
+              {!botAttacks && !ownDice && !oneGo && (
                 <button onClick={rollAll}>
                   {savesTheirs ? t("Roll hits and wounds") : t("Roll everything")}
                 </button>
+              )}
+              {savesTheirs && !botAttacks && !ownDice && attack.stage === "hit" && (
+                <label className="one-go small muted">
+                  <input
+                    type="checkbox"
+                    checked={habits.oneGo}
+                    onChange={(e) => setShotHabit({ oneGo: e.target.checked })}
+                  />{" "}
+                  {t("Always in one go")}
+                </label>
+              )}
+              {defending && attack.stage === "save" && !ownDice && !shake && (
+                <label className="saves-land small muted">
+                  <input
+                    type="checkbox"
+                    checked={habits.savesAsTheyLand}
+                    onChange={(e) => setShotHabit({ savesAsTheyLand: e.target.checked })}
+                  />{" "}
+                  {t("Roll my saves as the wounds land")}
+                </label>
               )}
               {yourSaves && <RollsMineToggle />}
             </>
@@ -593,6 +675,17 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
         </div>
       )}
     </div>
+  );
+}
+
+/** How long the wounds stay on screen before the defender's saves roll themselves, and the hits before the wounds. */
+const SAVES_BEAT = 1200;
+const ONE_GO_BEAT = 900;
+
+/** The same weapon's attack, whatever copy of it this screen holds (events come back over the wire). */
+function sameAttack(a: AttackSpec, b: AttackSpec): boolean {
+  return (
+    a.attackerUnitId === b.attackerUnitId && a.targetUnitId === b.targetUnitId && a.weaponId === b.weaponId
   );
 }
 

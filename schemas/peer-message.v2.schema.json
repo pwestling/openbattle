@@ -10506,6 +10506,34 @@
           "properties": {
             "t": {
               "type": "string",
+              "const": "talk/volley"
+            },
+            "attacker": {
+              "type": "string"
+            },
+            "target": {
+              "type": "string"
+            },
+            "total": {
+              "type": "number"
+            },
+            "left": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "t",
+            "attacker",
+            "target",
+            "total",
+            "left"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
               "const": "talk/voice"
             },
             "on": {
