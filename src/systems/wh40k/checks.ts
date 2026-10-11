@@ -1,4 +1,4 @@
-import { alongPath, movePath, pathLength } from "../../core/path";
+import { alongPath, legsOf, movePath, pathLength } from "../../core/path";
 import type { GameView, Warning } from "../../sdk";
 import { opposed } from "../../core/teams";
 import { currentSlot } from "../../core/content/turn";
@@ -12,7 +12,7 @@ import {
   unitDistance,
   unitMoved,
 } from "./rules";
-import { baseToBaseDistance } from "../../core/geometry";
+import { baseReach, baseToBaseDistance, pointSegmentDistance } from "../../core/geometry";
 import type { GameState, Unit } from "../../core";
 
 const DEEP_STRIKE_GAP = 9;
@@ -34,10 +34,18 @@ function movedThroughEnemies(state: GameState, unit: Unit): number {
     const path = movePath(m);
     const length = pathLength(path);
     if (length < 0.05) return false;
+    // Only enemies whose base the path's corridor reaches can be passed over: the rest never touch it.
+    const legs = legsOf(path);
+    const reach = baseReach(m.base) + 0.01;
+    const near = enemies.filter((e) => {
+      const r = reach + baseReach(e.base);
+      return legs.some(([a, b]) => pointSegmentDistance(e.position, a, b) < r);
+    });
+    if (!near.length) return false;
     const steps = Math.ceil(length / 0.25);
     for (let i = 1; i <= steps; i++) {
       const at = { ...m, position: alongPath(path, (length * i) / steps) };
-      if (enemies.some((e) => baseToBaseDistance(at, e) < 0.01)) return true;
+      if (near.some((e) => baseToBaseDistance(at, e) < 0.01)) return true;
     }
     return false;
   }).length;

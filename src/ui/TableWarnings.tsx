@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import type { GameState } from "../core";
 import { create } from "zustand";
 import { t } from "../i18n";
 import { focusOn } from "../render/focus";
@@ -17,11 +18,19 @@ const usePanel = create<{ open: boolean; dismissed: Record<string, true> }>(() =
 /** Open the panel (the module workshop's test table). */
 export const openWarnings = () => usePanel.setState({ open: true });
 
+/** Each table's warnings, worked out once for every component that shows them (the button, the panel, unit cards). */
+const checked = new WeakMap<GameState, TableWarning[]>();
+function warningsOf(game: GameState): TableWarning[] {
+  let found = checked.get(game);
+  if (!found) checked.set(game, (found = tableWarnings(game)));
+  return found;
+}
+
 /** The table's warnings, less the ones dismissed on this screen. */
 export function useWarnings(): TableWarning[] {
   const game = useGame();
   const dismissed = usePanel((s) => s.dismissed);
-  const all = useMemo(() => tableWarnings(game), [game]);
+  const all = useMemo(() => warningsOf(game), [game]);
   return all.filter((w) => !dismissed[w.key]);
 }
 

@@ -133,7 +133,7 @@ export function polygonDistance(p: Vec2[], q: Vec2[]): number {
 }
 
 // The two below are on the bot's and the review's hottest path: no objects made per call.
-function pointSegmentDistance(p: Vec2, a: Vec2, b: Vec2): number {
+export function pointSegmentDistance(p: Vec2, a: Vec2, b: Vec2): number {
   const abx = b.x - a.x;
   const aby = b.y - a.y;
   const lengthSq = abx * abx + aby * aby;
