@@ -35,7 +35,16 @@
 //   GET  /rooms/<room>       { hosted }: whether this server hosts that room
 //   POST /rooms/<room>/wake  come back to a room it left while it stood empty
 import { createHmac } from "node:crypto";
-import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -197,4 +206,4 @@ async function main() {
   process.on("SIGINT", stop);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) void main();
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) void main();

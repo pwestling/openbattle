@@ -33,7 +33,7 @@
 //   HEAD   /blob/<sha256>         whether it's here
 //   DELETE /blob/<sha256>         Authorization: Bearer <ADMIN_TOKEN>; drops and blocks it
 import { createHash, timingSafeEqual } from "node:crypto";
-import { createReadStream } from "node:fs";
+import { createReadStream, realpathSync } from "node:fs";
 import { appendFile, mkdir, readdir, readFile, rename, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
@@ -206,7 +206,7 @@ export function createSeeder({
   return { server, sweep };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const env = process.env;
   const { server, sweep } = createSeeder({
     dataDir: env.DATA_DIR ?? "./seed-data",

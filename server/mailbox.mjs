@@ -28,6 +28,7 @@ import { createHash, createPrivateKey, generateKeyPairSync, sign } from "node:cr
 import { mkdir, readdir, readFile, rm, stat, utimes, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
+import { realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const BOX = /^[A-Za-z0-9_-]{20,64}$/;
@@ -243,7 +244,7 @@ export function createMailbox({
   return { server, sweep };
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   if (process.argv.includes("--vapid")) {
     const keys = vapidKeys();
     console.log(`VAPID_PUBLIC_KEY=${keys.publicKey}\nVAPID_PRIVATE_KEY=${keys.privateKey}`);
