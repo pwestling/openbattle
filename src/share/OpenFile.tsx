@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { t } from "../i18n";
-import { openBytes, sharedKind } from "./links";
+import { newerFormat, openBytes, sharedKind } from "./links";
 import { openTts } from "../figures/open";
 
 /**
@@ -24,7 +24,7 @@ export function OpenFile() {
       setNote("");
       return openTts(file);
     }
-    if (!kind) return setNote(t("That isn't a file Open Battle saves."));
+    if (!kind) return setNote(newerFormat(data) ?? t("That isn't a file Open Battle saves."));
     const name = file.name.replace(/\.(army|table|figures)?\.?(json|standee)$/i, "");
     setNote((await openBytes(kind, name, bytes)) ?? t("That file couldn't be opened."));
   };

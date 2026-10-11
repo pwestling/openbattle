@@ -1,0 +1,2550 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:army@1",
+  "title": "Open Battle army v1",
+  "$ref": "#/definitions/ArmyFile",
+  "definitions": {
+    "ArmyFile": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "const": "open-battle/army@1"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "savedAt": {
+          "type": "number"
+        },
+        "roster": {
+          "$ref": "#/definitions/ImportedRoster"
+        },
+        "figures": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/ShelfFigure"
+            }
+          }
+        },
+        "dice": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DiceSet"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "color": {
+          "type": "string"
+        },
+        "from": {
+          "type": "object",
+          "properties": {
+            "table": {
+              "type": "string"
+            },
+            "side": {
+              "type": "number",
+              "enum": [
+                0,
+                1
+              ]
+            }
+          },
+          "required": [
+            "table",
+            "side"
+          ]
+        },
+        "attachments": {
+          "type": "object",
+          "properties": {
+            "assets": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "figures",
+        "format",
+        "id",
+        "name",
+        "roster",
+        "savedAt",
+        "system"
+      ]
+    },
+    "ImportedRoster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "points": {
+          "type": "number"
+        },
+        "color": {
+          "type": "string"
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImportedUnit"
+          }
+        },
+        "army": {
+          "$ref": "#/definitions/Army"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "units",
+        "warnings"
+      ]
+    },
+    "ImportedUnit": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "sheet": {
+          "$ref": "#/definitions/UnitSheet"
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ImportedModel"
+          }
+        },
+        "base": {
+          "$ref": "#/definitions/BaseShape"
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "files": {
+          "type": "number"
+        },
+        "reserve": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "sheet",
+        "models",
+        "base"
+      ]
+    },
+    "UnitSheet": {
+      "type": "object",
+      "properties": {
+        "weapons": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/WeaponProfile"
+          }
+        },
+        "abilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Ability"
+          }
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "points": {
+          "type": "number"
+        },
+        "wizard": {
+          "type": "number"
+        },
+        "spells": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Spell"
+          }
+        }
+      },
+      "required": [
+        "weapons",
+        "abilities",
+        "keywords"
+      ]
+    },
+    "WeaponProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "ranged",
+            "melee"
+          ]
+        },
+        "chars": {
+          "$ref": "#/definitions/Characteristics"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "chars",
+        "keywords"
+      ]
+    },
+    "Characteristics": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "Ability": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "auto": {
+          "$ref": "#/definitions/AbilityAuto"
+        },
+        "group": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "text"
+      ]
+    },
+    "AbilityAuto": {
+      "type": "object",
+      "properties": {
+        "parts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AutoPart"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Effect"
+          }
+        },
+        "whileLeading": {
+          "type": "boolean"
+        },
+        "taught": {
+          "type": "boolean"
+        },
+        "pack": {
+          "type": "string"
+        },
+        "aura": {
+          "type": "object",
+          "properties": {
+            "range": {
+              "type": "number"
+            },
+            "side": {
+              "type": "string",
+              "enum": [
+                "friendly",
+                "enemy"
+              ]
+            },
+            "keyword": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "range",
+            "side"
+          ]
+        },
+        "oncePerBattle": {
+          "type": "boolean"
+        },
+        "onObjective": {
+          "type": "string",
+          "enum": [
+            "within",
+            "controls"
+          ]
+        },
+        "trigger": {
+          "type": "object",
+          "properties": {
+            "phase": {
+              "type": "string"
+            },
+            "at": {
+              "type": "string",
+              "enum": [
+                "start",
+                "end"
+              ]
+            },
+            "anyTurn": {
+              "type": "boolean"
+            },
+            "gain": {
+              "type": "object",
+              "properties": {
+                "resource": {
+                  "type": "string"
+                },
+                "amount": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "resource",
+                "amount"
+              ]
+            },
+            "heal": {
+              "type": "string"
+            },
+            "revive": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "phase",
+            "at"
+          ]
+        }
+      },
+      "required": [
+        "parts",
+        "effects"
+      ]
+    },
+    "AutoPart": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "attack"
+            },
+            "side": {
+              "type": "string",
+              "enum": [
+                "making",
+                "targeted"
+              ]
+            },
+            "weapon": {
+              "type": "string",
+              "enum": [
+                "ranged",
+                "melee"
+              ]
+            },
+            "against": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "when": {
+              "type": "string",
+              "enum": [
+                "charged",
+                "stationary"
+              ]
+            },
+            "roll": {
+              "type": "string",
+              "enum": [
+                "hit",
+                "wound",
+                "save",
+                "damage"
+              ]
+            },
+            "reroll": {
+              "type": "string",
+              "enum": [
+                "ones",
+                "failed"
+              ]
+            },
+            "by": {
+              "type": "number"
+            },
+            "grant": {
+              "type": "string"
+            },
+            "stat": {
+              "type": "string",
+              "enum": [
+                "A",
+                "S",
+                "AP"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "side"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "fnp"
+            },
+            "x": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "x"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "invuln"
+            },
+            "x": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "x"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "gain"
+            },
+            "resource": {
+              "type": "string"
+            },
+            "amount": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind",
+            "resource",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "heal"
+            },
+            "amount": {
+              "type": "string"
+            },
+            "revive": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "amount"
+          ]
+        }
+      ]
+    },
+    "Effect": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Id"
+        },
+        "when": {
+          "$ref": "#/definitions/EventPattern"
+        },
+        "if": {
+          "$ref": "#/definitions/Expr"
+        },
+        "scope": {
+          "$ref": "#/definitions/Scope"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "limit": {
+          "type": "object",
+          "properties": {
+            "count": {
+              "type": "number"
+            },
+            "per": {
+              "type": "string",
+              "enum": [
+                "phase",
+                "turn",
+                "round",
+                "battle"
+              ]
+            }
+          },
+          "required": [
+            "count",
+            "per"
+          ]
+        },
+        "do": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/EffectAction"
+          }
+        },
+        "choose": {
+          "type": "object",
+          "properties": {
+            "by": {
+              "type": "string",
+              "enum": [
+                "owner",
+                "opponent"
+              ]
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "do": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/EffectAction"
+                    }
+                  }
+                },
+                "required": [
+                  "label",
+                  "do"
+                ]
+              }
+            }
+          },
+          "required": [
+            "by",
+            "options"
+          ]
+        },
+        "duration": {
+          "$ref": "#/definitions/Duration"
+        }
+      },
+      "required": [
+        "when",
+        "do"
+      ]
+    },
+    "Id": {
+      "type": "string"
+    },
+    "EventPattern": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "type": "string"
+        },
+        "where": {
+          "$ref": "#/definitions/Expr"
+        }
+      },
+      "required": [
+        "event"
+      ]
+    },
+    "Expr": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "ref"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "dice": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/DiceText"
+                },
+                {
+                  "$ref": "#/definitions/Expr"
+                }
+              ]
+            }
+          },
+          "required": [
+            "dice"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "enum": [
+                "+",
+                "-",
+                "*",
+                "/",
+                "min",
+                "max",
+                "floor",
+                "ceil",
+                "half"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Expr"
+              }
+            }
+          },
+          "required": [
+            "op",
+            "args"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "cmp": {
+              "type": "string",
+              "enum": [
+                ">=",
+                ">",
+                "<=",
+                "<",
+                "==",
+                "!="
+              ]
+            },
+            "a": {
+              "$ref": "#/definitions/Expr"
+            },
+            "b": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "cmp",
+            "a",
+            "b"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "all": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Expr"
+              }
+            }
+          },
+          "required": [
+            "all"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "any": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Expr"
+              }
+            }
+          },
+          "required": [
+            "any"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "not": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "not"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "if": {
+              "$ref": "#/definitions/Expr"
+            },
+            "then": {
+              "$ref": "#/definitions/Expr"
+            },
+            "else": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "if",
+            "then",
+            "else"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "when": {
+                    "$ref": "#/definitions/Expr"
+                  },
+                  "then": {
+                    "$ref": "#/definitions/Expr"
+                  }
+                },
+                "required": [
+                  "when",
+                  "then"
+                ]
+              }
+            },
+            "else": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "cases",
+            "else"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "table": {
+              "$ref": "#/definitions/Id"
+            },
+            "row": {
+              "$ref": "#/definitions/Expr"
+            },
+            "col": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "table",
+            "row"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hasKeyword": {
+              "$ref": "#/definitions/Ref"
+            },
+            "keyword": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/Keyword"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "ref": {
+                      "$ref": "#/definitions/Ref"
+                    }
+                  },
+                  "required": [
+                    "ref"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "hasKeyword",
+            "keyword"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "is": {
+              "$ref": "#/definitions/Ref"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "is",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hasStatus": {
+              "$ref": "#/definitions/Ref"
+            },
+            "status": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "hasStatus",
+            "status"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hasRule": {
+              "$ref": "#/definitions/Ref"
+            },
+            "rule": {
+              "$ref": "#/definitions/Id"
+            },
+            "match": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "hasRule"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "hasFlag": {
+              "$ref": "#/definitions/Ref"
+            },
+            "flag": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "hasFlag",
+            "flag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "has": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "has"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "same": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Ref"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "required": [
+            "same"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "every": {
+              "$ref": "#/definitions/Ref"
+            },
+            "as": {
+              "type": "string"
+            },
+            "test": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "every",
+            "as",
+            "test"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "some": {
+              "$ref": "#/definitions/Ref"
+            },
+            "as": {
+              "type": "string"
+            },
+            "test": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "some",
+            "as",
+            "test"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "count": {
+              "$ref": "#/definitions/Ref"
+            },
+            "as": {
+              "type": "string"
+            },
+            "where": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "count"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "least": {
+              "$ref": "#/definitions/Ref"
+            },
+            "as": {
+              "type": "string"
+            },
+            "of": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "least",
+            "as",
+            "of"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "most": {
+              "$ref": "#/definitions/Ref"
+            },
+            "as": {
+              "type": "string"
+            },
+            "of": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "most",
+            "as",
+            "of"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "query": {
+              "$ref": "#/definitions/GeoQuery"
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "call": {
+              "$ref": "#/definitions/Id"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Expr"
+              }
+            }
+          },
+          "required": [
+            "call"
+          ]
+        }
+      ]
+    },
+    "Ref": {
+      "type": "string"
+    },
+    "DiceText": {
+      "type": "string"
+    },
+    "Keyword": {
+      "type": "string"
+    },
+    "GeoQuery": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "distance"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            },
+            "measure": {
+              "type": "string",
+              "enum": [
+                "baseEdge",
+                "centre"
+              ]
+            },
+            "axis": {
+              "type": "string",
+              "enum": [
+                "horizontal",
+                "vertical",
+                "3d"
+              ]
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "visible"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            },
+            "fully": {
+              "type": "boolean"
+            },
+            "models": {
+              "type": "boolean"
+            },
+            "allAround": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "inArc"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            },
+            "arc": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to",
+            "arc"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "inArea"
+            },
+            "subject": {
+              "$ref": "#/definitions/Ref"
+            },
+            "area": {
+              "$ref": "#/definitions/Ref"
+            },
+            "wholly": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "subject",
+            "area"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "crosses"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            },
+            "terrainCategory": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to",
+            "terrainCategory"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "elevation"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "cover"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "coverShare"
+            },
+            "from": {
+              "$ref": "#/definitions/Ref"
+            },
+            "to": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "from",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "objective"
+            },
+            "subject": {
+              "$ref": "#/definitions/Ref"
+            },
+            "range": {
+              "type": "number"
+            },
+            "controls": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "kind",
+            "subject"
+          ]
+        }
+      ]
+    },
+    "Scope": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "self"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "unit"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "attachedUnit"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "aura"
+            },
+            "range": {
+              "$ref": "#/definitions/Expr"
+            },
+            "filter": {
+              "$ref": "#/definitions/Expr"
+            },
+            "includeSelf": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "range"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "army"
+            },
+            "filter": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "player"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "eventSubject"
+            },
+            "ref": {
+              "$ref": "#/definitions/Ref"
+            }
+          },
+          "required": [
+            "kind",
+            "ref"
+          ]
+        }
+      ]
+    },
+    "EffectAction": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "modifyRoll"
+            },
+            "by": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "by"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "modifyTarget"
+            },
+            "by": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "by"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "reroll"
+            },
+            "which": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "const": "ones"
+                },
+                {
+                  "type": "string",
+                  "const": "failed"
+                },
+                {
+                  "type": "string",
+                  "const": "any"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "values": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  },
+                  "required": [
+                    "values"
+                  ]
+                }
+              ]
+            }
+          },
+          "required": [
+            "do",
+            "which"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "criticalOn"
+            },
+            "value": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "addSuccesses"
+            },
+            "count": {
+              "$ref": "#/definitions/Expr"
+            },
+            "tag": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "do",
+            "count"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "autoPass"
+            },
+            "step": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "do",
+            "step"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "skipStep"
+            },
+            "step": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "do",
+            "step"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "modifyCharacteristic"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "characteristic": {
+              "$ref": "#/definitions/Id"
+            },
+            "by": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "characteristic",
+            "by"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "setCharacteristic"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "characteristic": {
+              "$ref": "#/definitions/Id"
+            },
+            "to": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "characteristic",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "grantKeyword"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "keyword": {
+              "$ref": "#/definitions/Keyword"
+            }
+          },
+          "required": [
+            "do",
+            "keyword"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "grantRule"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "rule": {
+              "$ref": "#/definitions/RuleRef"
+            }
+          },
+          "required": [
+            "do",
+            "rule"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "applyStatus"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "status": {
+              "$ref": "#/definitions/Id"
+            },
+            "duration": {
+              "$ref": "#/definitions/Duration"
+            }
+          },
+          "required": [
+            "do",
+            "status"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "removeStatus"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "status": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "do",
+            "status"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "setFlag"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "flag": {
+              "$ref": "#/definitions/Id"
+            },
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "do",
+            "flag",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "gainResource"
+            },
+            "resource": {
+              "$ref": "#/definitions/Id"
+            },
+            "amount": {
+              "$ref": "#/definitions/Expr"
+            },
+            "player": {
+              "type": "string",
+              "enum": [
+                "owner",
+                "opponent"
+              ]
+            }
+          },
+          "required": [
+            "do",
+            "resource",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "spendResource"
+            },
+            "resource": {
+              "$ref": "#/definitions/Id"
+            },
+            "amount": {
+              "$ref": "#/definitions/Expr"
+            },
+            "player": {
+              "type": "string",
+              "enum": [
+                "owner",
+                "opponent"
+              ]
+            }
+          },
+          "required": [
+            "do",
+            "resource",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "inflictDamage"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "amount": {
+              "$ref": "#/definitions/Expr"
+            },
+            "kind": {
+              "$ref": "#/definitions/Id"
+            }
+          },
+          "required": [
+            "do",
+            "target",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "heal"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "amount": {
+              "$ref": "#/definitions/Expr"
+            },
+            "revive": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "do",
+            "target",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "ignoreDamage"
+            },
+            "atLeast": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "atLeast"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "roll"
+            },
+            "dice": {
+              "$ref": "#/definitions/DiceText"
+            },
+            "outcomes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "do": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/EffectAction"
+                    }
+                  }
+                },
+                "required": [
+                  "min",
+                  "max",
+                  "do"
+                ]
+              }
+            }
+          },
+          "required": [
+            "do",
+            "dice",
+            "outcomes"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "run"
+            },
+            "action": {
+              "$ref": "#/definitions/Id"
+            },
+            "with": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/Expr"
+              }
+            },
+            "optional": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "do",
+            "action"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "activate"
+            },
+            "count": {
+              "$ref": "#/definitions/Expr"
+            },
+            "filter": {
+              "$ref": "#/definitions/Expr"
+            }
+          },
+          "required": [
+            "do",
+            "count"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "damageTrack"
+            },
+            "target": {
+              "$ref": "#/definitions/Ref"
+            },
+            "chart": {
+              "$ref": "#/definitions/Ref"
+            },
+            "die": {
+              "type": "number"
+            },
+            "status": {
+              "$ref": "#/definitions/Id"
+            },
+            "through": {
+              "type": "object",
+              "properties": {
+                "chart": {
+                  "$ref": "#/definitions/Ref"
+                },
+                "prefix": {
+                  "type": "string"
+                },
+                "name": {
+                  "$ref": "#/definitions/Ref"
+                }
+              },
+              "required": [
+                "chart",
+                "prefix"
+              ]
+            }
+          },
+          "required": [
+            "do",
+            "target",
+            "chart"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "manual"
+            },
+            "reminder": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "do",
+            "reminder"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "do": {
+              "type": "string",
+              "const": "script"
+            },
+            "procedure": {
+              "$ref": "#/definitions/Id"
+            },
+            "args": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/Expr"
+              }
+            }
+          },
+          "required": [
+            "do",
+            "procedure"
+          ]
+        }
+      ]
+    },
+    "RuleRef": {
+      "type": "object",
+      "properties": {
+        "rule": {
+          "$ref": "#/definitions/Id"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Value"
+              },
+              {
+                "$ref": "#/definitions/Keyword"
+              }
+            ]
+          }
+        },
+        "def": {
+          "$ref": "#/definitions/RuleDef"
+        }
+      },
+      "required": [
+        "rule"
+      ]
+    },
+    "Value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/definitions/DiceText"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "RuleDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/definitions/Id"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "number",
+                  "dice",
+                  "keyword",
+                  "text"
+                ]
+              },
+              "default": {
+                "$ref": "#/definitions/Value"
+              }
+            },
+            "required": [
+              "id",
+              "type"
+            ]
+          }
+        },
+        "match": {
+          "type": "string"
+        },
+        "appliesTo": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "weapon",
+              "model",
+              "unit",
+              "army"
+            ]
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Effect"
+          }
+        },
+        "played": {
+          "type": "string",
+          "const": "code"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "effects"
+      ]
+    },
+    "Duration": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "instant"
+        },
+        {
+          "type": "string",
+          "const": "phase"
+        },
+        {
+          "type": "string",
+          "const": "turn"
+        },
+        {
+          "type": "string",
+          "const": "round"
+        },
+        {
+          "type": "string",
+          "const": "battle"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "until": {
+              "$ref": "#/definitions/EventPattern"
+            }
+          },
+          "required": [
+            "until"
+          ]
+        }
+      ]
+    },
+    "Spell": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "cv": {
+          "type": "number"
+        },
+        "range": {
+          "type": "number"
+        },
+        "kind": {
+          "$ref": "#/definitions/SpellKind"
+        },
+        "hits": {
+          "type": "string"
+        },
+        "strength": {
+          "type": "number"
+        },
+        "ap": {
+          "type": "number"
+        },
+        "remains": {
+          "type": "boolean"
+        },
+        "lore": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "cv",
+        "range",
+        "kind"
+      ]
+    },
+    "SpellKind": {
+      "type": "string",
+      "enum": [
+        "missile",
+        "vortex",
+        "assailment",
+        "enchantment",
+        "hex",
+        "conveyance"
+      ]
+    },
+    "ImportedModel": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "chars": {
+              "$ref": "#/definitions/Characteristics"
+            }
+          },
+          "required": [
+            "name",
+            "chars"
+          ]
+        },
+        "weapons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "base": {
+          "$ref": "#/definitions/BaseShape"
+        },
+        "look": {
+          "$ref": "#/definitions/StandInLook"
+        },
+        "height": {
+          "type": "number"
+        },
+        "at": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "facing": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "facing"
+          ]
+        }
+      },
+      "required": [
+        "profile",
+        "weapons"
+      ]
+    },
+    "BaseShape": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "round"
+            },
+            "diameterMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "diameterMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "oval"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "rect"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        }
+      ]
+    },
+    "StandInLook": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "type": "string",
+          "enum": [
+            "trooper",
+            "brute",
+            "robed",
+            "beast",
+            "walker",
+            "drone",
+            "vehicle",
+            "mound"
+          ]
+        },
+        "color": {
+          "type": "string"
+        },
+        "gear": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/StandInGear"
+          }
+        }
+      },
+      "required": [
+        "shape"
+      ]
+    },
+    "StandInGear": {
+      "type": "string",
+      "enum": [
+        "shield",
+        "pole",
+        "lamp",
+        "cog",
+        "thorns",
+        "blades",
+        "unarmed",
+        "hunched"
+      ]
+    },
+    "Army": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "faction": {
+          "type": "string"
+        },
+        "detachment": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Ability"
+          }
+        },
+        "stratagems": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ArmyStratagem"
+          }
+        },
+        "packs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ArmyPack"
+          }
+        }
+      },
+      "required": [
+        "rules",
+        "stratagems"
+      ]
+    },
+    "ArmyStratagem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "cp": {
+          "type": "number"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "active",
+            "inactive",
+            "either"
+          ]
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "targetsUnit": {
+          "type": "boolean"
+        },
+        "targetKeywords": {
+          "type": "string"
+        },
+        "notYet": {
+          "type": "string",
+          "enum": [
+            "shot",
+            "fought",
+            "charged"
+          ]
+        },
+        "once": {
+          "type": "string",
+          "enum": [
+            "phase",
+            "turn",
+            "battle"
+          ]
+        },
+        "when": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "auto": {
+          "$ref": "#/definitions/AbilityAuto"
+        },
+        "pack": {
+          "type": "string"
+        },
+        "reacts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "cp",
+        "side",
+        "text"
+      ]
+    },
+    "ArmyPack": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "kind": {
+          "type": "string",
+          "const": "system"
+        },
+        "url": {
+          "type": "string"
+        },
+        "code": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "bytes",
+        "hash",
+        "id",
+        "name",
+        "version"
+      ]
+    },
+    "ShelfFigure": {
+      "type": "object",
+      "properties": {
+        "figure": {
+          "$ref": "#/definitions/ModelFigure"
+        }
+      },
+      "required": [
+        "figure"
+      ]
+    },
+    "ModelFigure": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "yaw": {
+          "type": "number"
+        },
+        "scale": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "asset",
+        "name",
+        "yaw",
+        "scale"
+      ]
+    },
+    "DiceSet": {
+      "type": "object",
+      "properties": {
+        "body": {
+          "type": "string"
+        },
+        "pip": {
+          "type": "string"
+        },
+        "finish": {
+          "type": "string",
+          "enum": [
+            "solid",
+            "translucent",
+            "marbled",
+            "metallic"
+          ]
+        }
+      },
+      "required": [
+        "body",
+        "pip",
+        "finish"
+      ]
+    }
+  }
+}

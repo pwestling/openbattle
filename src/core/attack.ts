@@ -56,7 +56,7 @@ export interface AttackSpec {
   hitMod: number;
   /** Natural roll that counts as a critical hit. */
   critHit: number;
-  rerollHits: Reroll;
+  rerollHits: AttackReroll;
   /** Extra hits for each critical hit. */
   sustained: number;
   /** Critical hits wound automatically. */
@@ -64,7 +64,7 @@ export interface AttackSpec {
   wound: number;
   woundMod: number;
   critWound: number;
-  rerollWounds: Reroll;
+  rerollWounds: AttackReroll;
   /** Critical wounds skip the save. */
   devastating: boolean;
   /** Needed to save (X+) after AP, cover and invulnerable saves, or null for no save. */
@@ -76,10 +76,10 @@ export interface AttackSpec {
   /** Feel no pain X+, or null. */
   fnp: number | null;
   /** Re-roll damage: "ones" each 1, "failed"/"any" a below-average roll. */
-  rerollDamage?: Reroll;
+  rerollDamage?: AttackReroll;
 }
 
-export type Reroll = "none" | "ones" | "failed";
+export type AttackReroll = "none" | "ones" | "failed";
 
 export type AttackStage = "hit" | "wound" | "save" | "damage" | "done";
 
@@ -406,7 +406,7 @@ export function previewAttack(
   const weaponRules = p.rules.weapon ?? [];
   const has = (id: string) => weaponRules.find((r) => r.rule === id);
   const sustained = has("sustainedHits")?.params?.x;
-  const reroll = (r: TestPlan["reroll"]): Reroll => (r === "any" ? "failed" : r);
+  const reroll = (r: TestPlan["reroll"]): AttackReroll => (r === "any" ? "failed" : r);
   const spec: AttackSpec = {
     attackerUnitId: attackerId,
     targetUnitId: targetId,

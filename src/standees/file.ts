@@ -8,7 +8,8 @@
 export const STANDEE_EXTENSION = ".standee";
 const FORMAT = "open-battle/standee@1";
 
-interface StandeeFile {
+/** A standee file (open-battle/standee@1, docs/protocols/files.md). @public */
+export interface StandeeFile {
   format: typeof FORMAT;
   name: string;
   /** The base's width in the photo, in its pixels, and in millimetres: the photo's scale. */

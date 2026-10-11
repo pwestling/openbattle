@@ -27,7 +27,7 @@ export interface SavedArmy {
   savedAt: number;
   roster: ImportedRoster;
   /** Figures by unit (index in `roster.units`), then by model profile ("Line Trooper"). */
-  figures: Record<number, Record<string, ShelfFigure>>;
+  figures: Record<string, Record<string, ShelfFigure>>;
   dice?: DiceSet | null;
   color?: string;
   /**

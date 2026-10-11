@@ -352,6 +352,8 @@ export class Session {
   }
 
   private receive(message: NetMessage, from: string): void {
+    // A message this build can't read is ignored, never an error (docs/protocols/peer-protocol.md).
+    if (typeof (message as { t?: unknown } | null)?.t !== "string") return;
     if (
       message.t.startsWith("asset/") ||
       message.t.startsWith("package/") ||

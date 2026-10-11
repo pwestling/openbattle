@@ -28,7 +28,8 @@ export interface PackFigure {
   data: string;
 }
 
-interface FigurePack {
+/** A figure pack file (open-battle/figures@1, docs/protocols/files.md). @public */
+export interface FigurePack {
   format: typeof PACK_FORMAT;
   name: string;
   savedAt: number;

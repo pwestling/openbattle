@@ -1,0 +1,19 @@
+{
+  "format": "open-battle/table@2",
+  "id": "sample-table",
+  "name": "Ridge line",
+  "system": "forty-k-11",
+  "savedAt": 1760000000000,
+  "table": {
+    "width": 60,
+    "depth": 44
+  },
+  "layout": {
+    "terrain": [],
+    "objectives": [],
+    "zones": []
+  },
+  "attachments": {
+    "assets": {}
+  }
+}

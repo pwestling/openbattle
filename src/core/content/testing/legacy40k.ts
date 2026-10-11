@@ -3,7 +3,7 @@
  * ca8a718), kept only as the oracle for parity tests. Do not use at runtime.
  */
 import { parseDice, rollDice } from "../../dice";
-import type { AttackSpec, AttackState, DamageResult, Die, Reroll } from "../../attack";
+import type { AttackSpec, AttackState, DamageResult, Die, AttackReroll } from "../../attack";
 import { maxWounds, passes, woundsRemaining } from "../../attack";
 import type { GameState, Model, ModelId, Unit, WeaponProfile } from "../../types";
 import {
@@ -23,7 +23,7 @@ function rollD6(rng: Rng): number {
   return 1 + Math.floor(rng() * 6);
 }
 
-function rollPool(count: number, rng: Rng, reroll: Reroll, success: (v: number) => boolean): Die[] {
+function rollPool(count: number, rng: Rng, reroll: AttackReroll, success: (v: number) => boolean): Die[] {
   return Array.from({ length: count }, () => {
     const value = rollD6(rng);
     const again = (reroll === "ones" && value === 1) || (reroll === "failed" && !success(value));

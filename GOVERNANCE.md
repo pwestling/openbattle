@@ -25,9 +25,10 @@ Use the **Proposal** issue form; it adds the `proposal` label. A proposal is nee
 - change **what a ranked result records or signs**, or how ratings are worked out;
 - add or change a **standard ruleset** for the public ranked board (`rulesets.json`);
 - change the **board protocol** ([docs/board-protocol.md](docs/board-protocol.md));
+- make a **breaking change to any stable protocol** in [docs/protocols](docs/protocols/README.md) (a new major version of a file format, the Open link or a server API), or make a provisional one stable;
 - change the **licence**, this page, or the code of conduct.
 
-[docs/compatibility.md](docs/compatibility.md) says what each version number promises.
+[docs/compatibility.md](docs/compatibility.md) says what each version number promises, and [docs/protocols](docs/protocols/README.md) lists every protocol with its version.
 
 ## Forks
 

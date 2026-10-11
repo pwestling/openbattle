@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:manifest@1",
+  "title": "Open Battle manifest v1",
+  "$ref": "#/definitions/Manifest",
+  "definitions": {
+    "Manifest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "api": {
+          "type": "number"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "system",
+            "extension",
+            "lesson",
+            "faction"
+          ]
+        },
+        "systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "hash": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ]
+          }
+        },
+        "adds": {
+          "type": "string"
+        },
+        "changelog": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "api",
+        "kind",
+        "systems",
+        "requires"
+      ]
+    }
+  }
+}

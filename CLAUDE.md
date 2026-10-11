@@ -8,16 +8,17 @@ A browser-based, peer-to-peer tabletop for miniatures wargames: React Three Fibe
 - **`src/core` is deterministic.** No `Math.random`, `Date`, timers or DOM. Dice come from the rng passed in. Package and module procedures read the game only through `ctx.view` and roll only with `ctx.roll`.
 - **Everything peers must agree on is an event in the log.** Undo, replays, late joining, "What if" branches and desync checks all depend on it.
 - **Rules are advisory.** A check is a warning the player can override, never a wall.
-- **Compatibility is a promise.** Read [docs/compatibility.md](docs/compatibility.md) before changing an event's shape, the network messages, `MODULE_API` or what a ranked result signs.
+- **Compatibility is a promise.** Every file, link, message and server API others can use is a versioned protocol listed in [docs/protocols](docs/protocols/README.md). Within a major version, changes only add. Read it and [docs/compatibility.md](docs/compatibility.md) before changing an event's shape, a file format, the network messages, `MODULE_API` or what a ranked result signs.
 
 ## Checks
 
 ```sh
-pnpm format && pnpm lint && pnpm typecheck && pnpm test
+pnpm format && pnpm lint && pnpm typecheck && pnpm schemas:check && pnpm test
 ```
 
 - Type check with `pnpm typecheck` (`tsc -b`). `tsc --noEmit -p .` checks nothing here.
 - Run `pnpm soak` after touching `src/core`, `src/net` or a system module. A failure names its seed: `SOAK_FROM=<seed> SOAK_SEEDS=1 pnpm soak`.
+- `pnpm schemas:check` fails when a type behind a protocol changed without its schema. Additive change: `pnpm schemas` and commit. Breaking change: a new major version (docs/protocols/README.md).
 - `pnpm i18n:check` runs in CI: wrap new on-screen text in `t()` (see [docs/translating.md](docs/translating.md)).
 - `pnpm smoke <name>` drives the built app in a browser for one path.
 

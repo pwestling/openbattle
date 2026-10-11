@@ -41,6 +41,19 @@ export function sharedKind(data: unknown): SharedKind | null {
   return isYellowscribe(data) ? "army" : null;
 }
 
+/**
+ * A file from a newer Open Battle: its format is ours but a major version this
+ * build doesn't know (docs/protocols/README.md). The line to show, or null.
+ */
+export function newerFormat(data: unknown): string | null {
+  const format = (data as { format?: unknown } | null)?.format;
+  const m = typeof format === "string" ? /^open-battle\/([a-z-]+)@(\d+)$/.exec(format) : null;
+  if (!m || sharedKind({ format: `open-battle/${m[1]}@1` }) === null || Number(m[2]) <= 1) return null;
+  return t("This file was saved by a newer Open Battle ({format}). Update to open it.", {
+    format: format as string,
+  });
+}
+
 export const kindLabel = (kind: SharedKind): string =>
   ({
     figures: t("Figure pack"),
@@ -163,7 +176,7 @@ export async function fetchShared(
     return { error: t("That link isn't an Open Battle file.") };
   }
   const kind = sharedKind(data);
-  if (!kind) return { error: t("That link isn't an Open Battle file.") };
+  if (!kind) return { error: newerFormat(data) ?? t("That link isn't an Open Battle file.") };
   const hash = await sha256(bytes);
   const pinKey = magnet ? `magnet:${magnetHash(link)}` : link;
   const before = useSharedPins.getState().pins[pinKey];

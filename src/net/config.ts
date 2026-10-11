@@ -61,7 +61,8 @@ export interface NetConfig {
 }
 
 /** What a site's config.json may say, beyond the relays. */
-interface SiteConfig extends Partial<Omit<NetConfig, "openTables">> {
+/** A site's config.json (docs/protocols/servers.md). @public */
+export interface SiteConfig extends Partial<Omit<NetConfig, "openTables">> {
   openTables?: boolean;
 }
 

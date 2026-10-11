@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { sha256 } from "../packages/manifest";
 import { useTables } from "../tables/library";
-import { fetchShared, openShared, shareLink, sharedKind, useSharedPins } from "./links";
+import { fetchShared, newerFormat, openShared, shareLink, sharedKind, useSharedPins } from "./links";
 
 // Shared files by link. Every name below is invented.
 
@@ -31,6 +31,11 @@ describe("shared files by link", () => {
     expect(sharedKind({ format: "open-battle/record@1" })).toBe("replay");
     expect(sharedKind({ format: "something-else" })).toBeNull();
     expect(sharedKind(null)).toBeNull();
+    // A newer major version is named, so the player knows to update rather than that the file is broken.
+    expect(sharedKind({ format: "open-battle/army@2" })).toBeNull();
+    expect(newerFormat({ format: "open-battle/army@2" })).toContain("newer Open Battle");
+    expect(newerFormat({ format: "open-battle/army@1" })).toBeNull();
+    expect(newerFormat({ format: "open-battle/unknown@2" })).toBeNull();
   });
 
   it("says what a link holds, its size and hash, without opening it", async () => {

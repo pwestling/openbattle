@@ -1,0 +1,2217 @@
+{
+  "format": "open-battle/record@2",
+  "initial": {
+    "seq": 0,
+    "table": {
+      "width": 60,
+      "depth": 44
+    },
+    "players": {},
+    "units": {},
+    "models": {},
+    "terrain": [],
+    "objectives": [],
+    "zones": [],
+    "turn": {
+      "round": 0,
+      "activeSeat": 0,
+      "phase": 0,
+      "firstSeat": 0
+    },
+    "resources": {},
+    "attack": null,
+    "settings": {
+      "cover": "hit",
+      "modelsBlock": true
+    }
+  },
+  "events": [
+    {
+      "seq": 1,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "player/join",
+        "player": {
+          "id": "p1",
+          "name": "Ana",
+          "color": "#2563eb",
+          "seat": 0
+        }
+      },
+      "host": "a"
+    },
+    {
+      "seq": 2,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "player/join",
+        "player": {
+          "id": "p2",
+          "name": "Ben",
+          "color": "#dc2626",
+          "seat": 1
+        }
+      },
+      "host": "a"
+    },
+    {
+      "seq": 3,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "layout/set",
+        "layout": {
+          "terrain": [],
+          "objectives": [],
+          "zones": []
+        }
+      },
+      "host": "a"
+    },
+    {
+      "seq": 4,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p1-m-0",
+          "owner": "p1",
+          "name": "Line Troopers",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "service-pistol-ranged": {
+                "id": "service-pistol-ranged",
+                "name": "Service Pistol",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "12\"",
+                  "A": "1",
+                  "BS": "3+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": ["Pistol"]
+              },
+              "combat-knife-melee": {
+                "id": "combat-knife-melee",
+                "name": "Combat Knife",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "3+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": []
+              },
+              "ember-projector-ranged": {
+                "id": "ember-projector-ranged",
+                "name": "Ember Projector",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "12\"",
+                  "A": "D6",
+                  "BS": "N/A",
+                  "S": "5",
+                  "AP": "-1",
+                  "D": "1"
+                },
+                "keywords": ["Torrent", "Ignores Cover"]
+              },
+              "pattern-rifle-ranged": {
+                "id": "pattern-rifle-ranged",
+                "name": "Pattern Rifle",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "24\"",
+                  "A": "2",
+                  "BS": "3+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": ["Rapid Fire 1"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Hold the Line",
+                "text": "While this unit is within range of an objective, add 1 to its Leadership."
+              }
+            ],
+            "keywords": ["Infantry", "Battleline", "Vanguard Legion"],
+            "points": 90
+          },
+          "army": "Vanguard Legion"
+        },
+        "models": [
+          {
+            "id": "p1-m-0-0",
+            "owner": "p1",
+            "label": "Line Sergeant",
+            "position": {
+              "x": -23.57007874015748,
+              "y": 12.789763779527558
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Sergeant",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["service-pistol-ranged", "combat-knife-melee"]
+          },
+          {
+            "id": "p1-m-0-1",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -21.710236220472442,
+              "y": 12.789763779527558
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "ember-projector-ranged"]
+          },
+          {
+            "id": "p1-m-0-2",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -19.8503937007874,
+              "y": 12.789763779527558
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-3",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -17.99055118110236,
+              "y": 12.789763779527558
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-4",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -16.130708661417323,
+              "y": 12.789763779527558
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-5",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -23.57007874015748,
+              "y": 10.92992125984252
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-6",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -21.710236220472442,
+              "y": 10.92992125984252
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-7",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -19.8503937007874,
+              "y": 10.92992125984252
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-8",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -17.99055118110236,
+              "y": 10.92992125984252
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          },
+          {
+            "id": "p1-m-0-9",
+            "owner": "p1",
+            "label": "Line Trooper",
+            "position": {
+              "x": -16.130708661417323,
+              "y": 10.92992125984252
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Line Trooper",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "2",
+                "LD": "6+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 5,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p1-m-1",
+          "owner": "p1",
+          "name": "Lance Team",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "combat-knife-melee": {
+                "id": "combat-knife-melee",
+                "name": "Combat Knife",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "3+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": []
+              },
+              "arc-lance-ranged": {
+                "id": "arc-lance-ranged",
+                "name": "Arc Lance",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "36\"",
+                  "A": "1",
+                  "BS": "4+",
+                  "S": "9",
+                  "AP": "-3",
+                  "D": "D6+1"
+                },
+                "keywords": ["Heavy", "Devastating Wounds"]
+              },
+              "fusion-caster-ranged": {
+                "id": "fusion-caster-ranged",
+                "name": "Fusion Caster",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "12\"",
+                  "A": "1",
+                  "BS": "3+",
+                  "S": "9",
+                  "AP": "-4",
+                  "D": "D6"
+                },
+                "keywords": ["Melta 2"]
+              },
+              "pattern-rifle-ranged": {
+                "id": "pattern-rifle-ranged",
+                "name": "Pattern Rifle",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "24\"",
+                  "A": "2",
+                  "BS": "3+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": ["Rapid Fire 1"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Braced Firing",
+                "text": "Each time a model in this unit makes a ranged attack, if this unit Remained Stationary this turn, re-roll a Hit roll of 1."
+              }
+            ],
+            "keywords": ["Infantry", "Vanguard Legion"],
+            "points": 120
+          },
+          "army": "Vanguard Legion"
+        },
+        "models": [
+          {
+            "id": "p1-m-1-0",
+            "owner": "p1",
+            "label": "Lance Gunner",
+            "position": {
+              "x": -13.412598425196851,
+              "y": 11.087401574803149
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Lance Gunner",
+              "chars": {
+                "M": "5\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "3",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["combat-knife-melee", "arc-lance-ranged"]
+          },
+          {
+            "id": "p1-m-1-1",
+            "owner": "p1",
+            "label": "Lance Gunner",
+            "position": {
+              "x": -11.237795275590551,
+              "y": 11.087401574803149
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Lance Gunner",
+              "chars": {
+                "M": "5\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "3",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["combat-knife-melee", "arc-lance-ranged"]
+          },
+          {
+            "id": "p1-m-1-2",
+            "owner": "p1",
+            "label": "Lance Gunner",
+            "position": {
+              "x": -9.062992125984252,
+              "y": 11.087401574803149
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Lance Gunner",
+              "chars": {
+                "M": "5\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "3",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["combat-knife-melee", "arc-lance-ranged"]
+          },
+          {
+            "id": "p1-m-1-3",
+            "owner": "p1",
+            "label": "Lance Gunner",
+            "position": {
+              "x": -6.888188976377953,
+              "y": 11.087401574803149
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Lance Gunner",
+              "chars": {
+                "M": "5\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "3",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["combat-knife-melee", "fusion-caster-ranged"]
+          },
+          {
+            "id": "p1-m-1-4",
+            "owner": "p1",
+            "label": "Lance Gunner",
+            "position": {
+              "x": -4.713385826771654,
+              "y": 11.087401574803149
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Lance Gunner",
+              "chars": {
+                "M": "5\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "3",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["combat-knife-melee", "pattern-rifle-ranged"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 6,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p1-m-2",
+          "owner": "p1",
+          "name": "Field Marshal",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "relic-repeater-ranged": {
+                "id": "relic-repeater-ranged",
+                "name": "Relic Repeater",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "18\"",
+                  "A": "3",
+                  "BS": "2+",
+                  "S": "5",
+                  "AP": "-1",
+                  "D": "2"
+                },
+                "keywords": ["Sustained Hits 1"]
+              },
+              "duty-blade-melee": {
+                "id": "duty-blade-melee",
+                "name": "Duty Blade",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "5",
+                  "WS": "2+",
+                  "S": "5",
+                  "AP": "-2",
+                  "D": "2"
+                },
+                "keywords": ["Lethal Hits"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Invulnerable Save",
+                "text": "4+"
+              },
+              {
+                "name": "Rally Call",
+                "text": "Once per battle, a friendly unit nearby may ignore a Battle-shock test."
+              },
+              {
+                "name": "Steady Orders",
+                "text": "While this model is leading a unit, each time a model in that unit makes a ranged attack, re-roll a Wound roll of 1."
+              },
+              {
+                "name": "Quartermaster",
+                "text": "At the start of your Command phase, if this model is on the battlefield, you gain 1CP."
+              }
+            ],
+            "keywords": ["Infantry", "Character", "Vanguard Legion"],
+            "points": 75
+          },
+          "army": "Vanguard Legion"
+        },
+        "models": [
+          {
+            "id": "p1-m-2-0",
+            "owner": "p1",
+            "label": "Field Marshal",
+            "position": {
+              "x": -0.21574803149606225,
+              "y": 11.284251968503938
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 50
+            },
+            "profile": {
+              "name": "Field Marshal",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "3+",
+                "W": "5",
+                "LD": "5+",
+                "OC": "1",
+                "INV": "4+"
+              }
+            },
+            "weapons": ["relic-repeater-ranged", "duty-blade-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 7,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p1-m-3",
+          "owner": "p1",
+          "name": "Bastion Walker",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "twin-autocarbine-ranged": {
+                "id": "twin-autocarbine-ranged",
+                "name": "Twin Autocarbine",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "36\"",
+                  "A": "4",
+                  "BS": "3+",
+                  "S": "6",
+                  "AP": "-1",
+                  "D": "2"
+                },
+                "keywords": ["Twin-linked"]
+              },
+              "hydraulic-claw-melee": {
+                "id": "hydraulic-claw-melee",
+                "name": "Hydraulic Claw",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "4",
+                  "WS": "3+",
+                  "S": "12",
+                  "AP": "-2",
+                  "D": "3"
+                },
+                "keywords": []
+              }
+            },
+            "abilities": [
+              {
+                "name": "Steady Gait",
+                "text": "This model can shoot even if it Fell Back this turn."
+              }
+            ],
+            "keywords": ["Vehicle", "Walker", "Vanguard Legion"],
+            "points": 150
+          },
+          "army": "Vanguard Legion"
+        },
+        "models": [
+          {
+            "id": "p1-m-3-0",
+            "owner": "p1",
+            "label": "Bastion Walker",
+            "position": {
+              "x": 10.571653543307086,
+              "y": 12.071653543307086
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "round",
+              "diameterMm": 90
+            },
+            "profile": {
+              "name": "Bastion Walker",
+              "chars": {
+                "M": "8\"",
+                "T": "9",
+                "SV": "2+",
+                "W": "10",
+                "LD": "7+",
+                "OC": "4"
+              }
+            },
+            "weapons": ["twin-autocarbine-ranged", "hydraulic-claw-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 8,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p1-m-4",
+          "owner": "p1",
+          "name": "Rampart Battle Tank",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "siege-cannon-ranged": {
+                "id": "siege-cannon-ranged",
+                "name": "Siege Cannon",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "48\"",
+                  "A": "D6+3",
+                  "BS": "4+",
+                  "S": "10",
+                  "AP": "-1",
+                  "D": "3"
+                },
+                "keywords": ["Blast", "Heavy"]
+              },
+              "hull-repeater-ranged": {
+                "id": "hull-repeater-ranged",
+                "name": "Hull Repeater",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "36\"",
+                  "A": "3",
+                  "BS": "4+",
+                  "S": "5",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": []
+              },
+              "armoured-tracks-melee": {
+                "id": "armoured-tracks-melee",
+                "name": "Armoured Tracks",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "4+",
+                  "S": "6",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": []
+              }
+            },
+            "abilities": [
+              {
+                "name": "Armoured Hull",
+                "text": "Each time an attack targets this model, subtract 1 from the Damage characteristic of that attack."
+              }
+            ],
+            "keywords": ["Vehicle", "Vanguard Legion"],
+            "points": 190
+          },
+          "army": "Vanguard Legion"
+        },
+        "models": [
+          {
+            "id": "p1-m-4-0",
+            "owner": "p1",
+            "label": "Rampart Battle Tank",
+            "position": {
+              "x": 20.752755905511812,
+              "y": 13.252755905511812
+            },
+            "facing": 3.141592653589793,
+            "base": {
+              "shape": "rect",
+              "widthMm": 90,
+              "depthMm": 150
+            },
+            "profile": {
+              "name": "Rampart Battle Tank",
+              "chars": {
+                "M": "10\"",
+                "T": "11",
+                "SV": "2+",
+                "W": "13",
+                "LD": "7+",
+                "OC": "3"
+              }
+            },
+            "weapons": ["siege-cannon-ranged", "hull-repeater-ranged", "armoured-tracks-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 9,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "player/army",
+        "player": "p1",
+        "army": {
+          "name": "Vanguard Legion",
+          "faction": "Vanguard Legion",
+          "detachment": "Spearhead Muster",
+          "rules": [
+            {
+              "name": "Drilled Volleys",
+              "text": "Each time a model in a unit from your army makes a ranged attack, if that unit remained stationary this turn, re-roll a Hit roll of 1.",
+              "group": "Detachment rule",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "ranged",
+                    "when": "stationary",
+                    "roll": "hit",
+                    "reroll": "ones"
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "hit"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "ranged"
+                        },
+                        {
+                          "not": {
+                            "hasFlag": "attacker",
+                            "flag": "moved"
+                          }
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "reroll",
+                        "which": "ones"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "stratagems": [
+            {
+              "id": "focused-fire",
+              "name": "Focused Fire",
+              "cp": 1,
+              "side": "active",
+              "phases": ["shooting"],
+              "targetsUnit": true,
+              "when": "Your Shooting phase.",
+              "target": "One unit from your army that has not shot this phase.",
+              "effect": "Until the end of the phase, each time a model in your unit makes a ranged attack, add 1 to the Wound roll.",
+              "text": "When: Your Shooting phase.\nTarget: One unit from your army that has not shot this phase.\nEffect: Until the end of the phase, each time a model in your unit makes a ranged attack, add 1 to the Wound roll.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "ranged",
+                    "roll": "wound",
+                    "by": 1
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "wound"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "ranged"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "modifyRoll",
+                        "by": 1
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "id": "brace-lines",
+              "name": "Brace Lines",
+              "cp": 1,
+              "side": "inactive",
+              "phases": ["shooting"],
+              "targetsUnit": true,
+              "when": "Your opponent's Shooting phase, just after an enemy unit picks its targets.",
+              "target": "One unit from your army that was picked as a target.",
+              "effect": "Until the end of the phase, each time an attack targets your unit, subtract 1 from the Hit roll.",
+              "text": "When: Your opponent's Shooting phase, just after an enemy unit picks its targets.\nTarget: One unit from your army that was picked as a target.\nEffect: Until the end of the phase, each time an attack targets your unit, subtract 1 from the Hit roll.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "targeted",
+                    "roll": "hit",
+                    "by": -1
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "hit"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "target"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "modifyRoll",
+                        "by": -1
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "id": "hold-the-gate",
+              "name": "Hold the Gate",
+              "cp": 1,
+              "side": "either",
+              "phases": ["fight"],
+              "targetsUnit": true,
+              "when": "The Fight phase.",
+              "target": "One unit from your army that has not fought this phase.",
+              "effect": "Until the end of the phase, each time a model in your unit makes a melee attack, re-roll a Wound roll of 1.",
+              "text": "When: The Fight phase.\nTarget: One unit from your army that has not fought this phase.\nEffect: Until the end of the phase, each time a model in your unit makes a melee attack, re-roll a Wound roll of 1.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "melee",
+                    "roll": "wound",
+                    "reroll": "ones"
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "wound"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "melee"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "reroll",
+                        "which": "ones"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "host": "a"
+    },
+    {
+      "seq": 10,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p2-m-0",
+          "owner": "p2",
+          "name": "Ashen Thralls",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "ash-claws-melee": {
+                "id": "ash-claws-melee",
+                "name": "Ash Claws",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "4+",
+                  "S": "4",
+                  "AP": "-1",
+                  "D": "1"
+                },
+                "keywords": ["Sustained Hits 1"]
+              },
+              "overseer-hook-melee": {
+                "id": "overseer-hook-melee",
+                "name": "Overseer Hook",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "3+",
+                  "S": "5",
+                  "AP": "-1",
+                  "D": "1"
+                },
+                "keywords": ["Lethal Hits"]
+              },
+              "cinder-spitter-ranged": {
+                "id": "cinder-spitter-ranged",
+                "name": "Cinder Spitter",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "18\"",
+                  "A": "2",
+                  "BS": "4+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": ["Rapid Fire 1"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Endless Tide",
+                "text": "Each Command phase, return one destroyed model to this unit."
+              }
+            ],
+            "keywords": ["Infantry", "Battleline", "Ashen Host"],
+            "points": 80
+          },
+          "army": "Ashen Host"
+        },
+        "models": [
+          {
+            "id": "p2-m-0-0",
+            "owner": "p2",
+            "label": "Thrall Overseer",
+            "position": {
+              "x": -23.57007874015748,
+              "y": -12.789763779527558
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Thrall Overseer",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "2",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["ash-claws-melee", "overseer-hook-melee"]
+          },
+          {
+            "id": "p2-m-0-1",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -21.710236220472442,
+              "y": -12.789763779527558
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-2",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -19.8503937007874,
+              "y": -12.789763779527558
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-3",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -17.99055118110236,
+              "y": -12.789763779527558
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-4",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -16.130708661417323,
+              "y": -12.789763779527558
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-5",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -23.57007874015748,
+              "y": -10.92992125984252
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-6",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -21.710236220472442,
+              "y": -10.92992125984252
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-7",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -19.8503937007874,
+              "y": -10.92992125984252
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-8",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -17.99055118110236,
+              "y": -10.92992125984252
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          },
+          {
+            "id": "p2-m-0-9",
+            "owner": "p2",
+            "label": "Ashen Thrall",
+            "position": {
+              "x": -16.130708661417323,
+              "y": -10.92992125984252
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 32
+            },
+            "profile": {
+              "name": "Ashen Thrall",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "1",
+                "LD": "7+",
+                "OC": "2"
+              }
+            },
+            "weapons": ["cinder-spitter-ranged", "ash-claws-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 11,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p2-m-1",
+          "owner": "p2",
+          "name": "Cinder Brutes",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "ash-claws-melee": {
+                "id": "ash-claws-melee",
+                "name": "Ash Claws",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "4+",
+                  "S": "4",
+                  "AP": "-1",
+                  "D": "1"
+                },
+                "keywords": ["Sustained Hits 1"]
+              },
+              "bone-drill-ranged": {
+                "id": "bone-drill-ranged",
+                "name": "Bone Drill",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "24\"",
+                  "A": "3",
+                  "BS": "4+",
+                  "S": "7",
+                  "AP": "-2",
+                  "D": "2"
+                },
+                "keywords": ["Anti-Infantry 4+", "Heavy"]
+              },
+              "cinder-spitter-ranged": {
+                "id": "cinder-spitter-ranged",
+                "name": "Cinder Spitter",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "18\"",
+                  "A": "2",
+                  "BS": "4+",
+                  "S": "4",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": ["Rapid Fire 1"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Feel No Pain 5+",
+                "text": "Each time this model would lose a wound, roll one D6: on a 5+ it does not."
+              }
+            ],
+            "keywords": ["Infantry", "Ashen Host"],
+            "points": 130
+          },
+          "army": "Ashen Host"
+        },
+        "models": [
+          {
+            "id": "p2-m-1-0",
+            "owner": "p2",
+            "label": "Cinder Brute",
+            "position": {
+              "x": -13.412598425196851,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Cinder Brute",
+              "chars": {
+                "M": "6\"",
+                "T": "5",
+                "SV": "4+",
+                "W": "3",
+                "LD": "7+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["ash-claws-melee", "bone-drill-ranged"]
+          },
+          {
+            "id": "p2-m-1-1",
+            "owner": "p2",
+            "label": "Cinder Brute",
+            "position": {
+              "x": -11.237795275590551,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Cinder Brute",
+              "chars": {
+                "M": "6\"",
+                "T": "5",
+                "SV": "4+",
+                "W": "3",
+                "LD": "7+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["ash-claws-melee", "bone-drill-ranged"]
+          },
+          {
+            "id": "p2-m-1-2",
+            "owner": "p2",
+            "label": "Cinder Brute",
+            "position": {
+              "x": -9.062992125984252,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Cinder Brute",
+              "chars": {
+                "M": "6\"",
+                "T": "5",
+                "SV": "4+",
+                "W": "3",
+                "LD": "7+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["ash-claws-melee", "cinder-spitter-ranged"]
+          },
+          {
+            "id": "p2-m-1-3",
+            "owner": "p2",
+            "label": "Cinder Brute",
+            "position": {
+              "x": -6.888188976377953,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Cinder Brute",
+              "chars": {
+                "M": "6\"",
+                "T": "5",
+                "SV": "4+",
+                "W": "3",
+                "LD": "7+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["ash-claws-melee", "cinder-spitter-ranged"]
+          },
+          {
+            "id": "p2-m-1-4",
+            "owner": "p2",
+            "label": "Cinder Brute",
+            "position": {
+              "x": -4.713385826771654,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Cinder Brute",
+              "chars": {
+                "M": "6\"",
+                "T": "5",
+                "SV": "4+",
+                "W": "3",
+                "LD": "7+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["ash-claws-melee", "cinder-spitter-ranged"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 12,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p2-m-2",
+          "owner": "p2",
+          "name": "Pyre Speaker",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "pyre-wave-ranged": {
+                "id": "pyre-wave-ranged",
+                "name": "Pyre Wave",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "12\"",
+                  "A": "D6",
+                  "BS": "N/A",
+                  "S": "6",
+                  "AP": "-1",
+                  "D": "1"
+                },
+                "keywords": ["Torrent", "Psychic", "Hazardous"]
+              },
+              "ember-staff-melee": {
+                "id": "ember-staff-melee",
+                "name": "Ember Staff",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "3+",
+                  "S": "6",
+                  "AP": "-1",
+                  "D": "D3"
+                },
+                "keywords": []
+              }
+            },
+            "abilities": [
+              {
+                "name": "Smouldering Ward",
+                "text": "While a friendly Ashen Host unit is within 6\" of this model, each time a ranged attack targets that unit, subtract 1 from the Hit roll."
+              },
+              {
+                "name": "Kindle the Pyre",
+                "text": "Once per battle, at the start of any phase, this model can use this ability. If it does, until the end of the phase, each time a model in this unit makes a melee attack, add 1 to the Wound roll."
+              }
+            ],
+            "keywords": ["Infantry", "Character", "Psyker", "Ashen Host"],
+            "points": 70
+          },
+          "army": "Ashen Host"
+        },
+        "models": [
+          {
+            "id": "p2-m-2-0",
+            "owner": "p2",
+            "label": "Pyre Speaker",
+            "position": {
+              "x": -0.4125984251968511,
+              "y": -11.087401574803149
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 40
+            },
+            "profile": {
+              "name": "Pyre Speaker",
+              "chars": {
+                "M": "6\"",
+                "T": "4",
+                "SV": "5+",
+                "W": "4",
+                "LD": "6+",
+                "OC": "1"
+              }
+            },
+            "weapons": ["pyre-wave-ranged", "ember-staff-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 13,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p2-m-3",
+          "owner": "p2",
+          "name": "Cinder Colossus",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "magma-gout-ranged": {
+                "id": "magma-gout-ranged",
+                "name": "Magma Gout",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "18\"",
+                  "A": "D6",
+                  "BS": "3+",
+                  "S": "8",
+                  "AP": "-2",
+                  "D": "D6+1"
+                },
+                "keywords": ["Blast", "Devastating Wounds"]
+              },
+              "crushing-talons-melee": {
+                "id": "crushing-talons-melee",
+                "name": "Crushing Talons",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "6",
+                  "WS": "3+",
+                  "S": "9",
+                  "AP": "-2",
+                  "D": "3"
+                },
+                "keywords": ["Lethal Hits"]
+              }
+            },
+            "abilities": [
+              {
+                "name": "Burning Bulk",
+                "text": "After this model ends a Charge move, roll a D6 for each enemy unit nearby."
+              },
+              {
+                "name": "Searing Grip",
+                "text": "Each time this model makes an attack, re-roll a Damage roll of 1."
+              }
+            ],
+            "keywords": ["Monster", "Ashen Host"],
+            "points": 210
+          },
+          "army": "Ashen Host"
+        },
+        "models": [
+          {
+            "id": "p2-m-3-0",
+            "owner": "p2",
+            "label": "Cinder Colossus",
+            "position": {
+              "x": 10.768503937007875,
+              "y": -12.268503937007875
+            },
+            "facing": 0,
+            "base": {
+              "shape": "round",
+              "diameterMm": 100
+            },
+            "profile": {
+              "name": "Cinder Colossus",
+              "chars": {
+                "M": "8\"",
+                "T": "10",
+                "SV": "3+",
+                "W": "14",
+                "LD": "7+",
+                "OC": "5"
+              }
+            },
+            "weapons": ["magma-gout-ranged", "crushing-talons-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 14,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "unit/add",
+        "unit": {
+          "id": "p2-m-4",
+          "owner": "p2",
+          "name": "Slag Crawler",
+          "modelIds": [],
+          "formation": {
+            "kind": "skirmish"
+          },
+          "sheet": {
+            "weapons": {
+              "slag-mortar-ranged": {
+                "id": "slag-mortar-ranged",
+                "name": "Slag Mortar",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "48\"",
+                  "A": "D6",
+                  "BS": "4+",
+                  "S": "8",
+                  "AP": "-1",
+                  "D": "2"
+                },
+                "keywords": ["Blast", "Indirect Fire"]
+              },
+              "twin-fusion-jet-ranged": {
+                "id": "twin-fusion-jet-ranged",
+                "name": "Twin Fusion Jet",
+                "kind": "ranged",
+                "chars": {
+                  "RANGE": "12\"",
+                  "A": "1",
+                  "BS": "4+",
+                  "S": "9",
+                  "AP": "-4",
+                  "D": "D6"
+                },
+                "keywords": ["Melta 2", "Twin-linked"]
+              },
+              "grinding-treads-melee": {
+                "id": "grinding-treads-melee",
+                "name": "Grinding Treads",
+                "kind": "melee",
+                "chars": {
+                  "RANGE": "Melee",
+                  "A": "3",
+                  "WS": "4+",
+                  "S": "6",
+                  "AP": "0",
+                  "D": "1"
+                },
+                "keywords": []
+              }
+            },
+            "abilities": [
+              {
+                "name": "Molten Plating",
+                "text": "Attacks with AP -1 against this model are treated as AP 0."
+              },
+              {
+                "name": "Fused Plates",
+                "text": "Each time a ranged attack targets this model, add 1 to the saving throw."
+              }
+            ],
+            "keywords": ["Vehicle", "Ashen Host"],
+            "points": 160
+          },
+          "army": "Ashen Host"
+        },
+        "models": [
+          {
+            "id": "p2-m-4-0",
+            "owner": "p2",
+            "label": "Slag Crawler",
+            "position": {
+              "x": 20.752755905511812,
+              "y": -13.252755905511812
+            },
+            "facing": 0,
+            "base": {
+              "shape": "rect",
+              "widthMm": 90,
+              "depthMm": 150
+            },
+            "profile": {
+              "name": "Slag Crawler",
+              "chars": {
+                "M": "10\"",
+                "T": "10",
+                "SV": "3+",
+                "W": "12",
+                "LD": "7+",
+                "OC": "3"
+              }
+            },
+            "weapons": ["slag-mortar-ranged", "twin-fusion-jet-ranged", "grinding-treads-melee"]
+          }
+        ]
+      },
+      "host": "a"
+    },
+    {
+      "seq": 15,
+      "by": "p2",
+      "at": 1760000000000,
+      "event": {
+        "type": "player/army",
+        "player": "p2",
+        "army": {
+          "name": "Ashen Host",
+          "faction": "Ashen Host",
+          "detachment": "Pyre Covenant",
+          "rules": [
+            {
+              "name": "Burning Zeal",
+              "text": "Each time a model in a unit from your army makes a melee attack, if that unit made a charge move this turn, add 1 to the Hit roll.",
+              "group": "Detachment rule",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "melee",
+                    "when": "charged",
+                    "roll": "hit",
+                    "by": 1
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "hit"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "melee"
+                        },
+                        {
+                          "hasFlag": "attacker",
+                          "flag": "charged"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "modifyRoll",
+                        "by": 1
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "stratagems": [
+            {
+              "id": "fan-the-flames",
+              "name": "Fan the Flames",
+              "cp": 1,
+              "side": "active",
+              "phases": ["shooting"],
+              "targetsUnit": true,
+              "when": "Your Shooting phase.",
+              "target": "One unit from your army that has not shot this phase.",
+              "effect": "Until the end of the phase, each time a model in your unit makes a ranged attack, that attack has the [Lethal Hits] ability.",
+              "text": "When: Your Shooting phase.\nTarget: One unit from your army that has not shot this phase.\nEffect: Until the end of the phase, each time a model in your unit makes a ranged attack, that attack has the [Lethal Hits] ability.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "ranged",
+                    "grant": "lethal hits"
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "die.result",
+                      "where": {
+                        "all": [
+                          {
+                            "is": "event.step",
+                            "value": "hit"
+                          },
+                          {
+                            "ref": "event.critical"
+                          }
+                        ]
+                      }
+                    },
+                    "do": [
+                      {
+                        "do": "autoPass",
+                        "step": "wound"
+                      }
+                    ],
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "ranged"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "ash-cloak",
+              "name": "Ash Cloak",
+              "cp": 2,
+              "side": "inactive",
+              "phases": ["shooting"],
+              "targetsUnit": true,
+              "when": "Your opponent's Shooting phase, just after an enemy unit picks its targets.",
+              "target": "One unit from your army that was picked as a target.",
+              "effect": "Until the end of the phase, each time an attack targets your unit, subtract 1 from the Hit roll.",
+              "text": "When: Your opponent's Shooting phase, just after an enemy unit picks its targets.\nTarget: One unit from your army that was picked as a target.\nEffect: Until the end of the phase, each time an attack targets your unit, subtract 1 from the Hit roll.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "targeted",
+                    "roll": "hit",
+                    "by": -1
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "hit"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "target"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "modifyRoll",
+                        "by": -1
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "id": "cinder-charge",
+              "name": "Cinder Charge",
+              "cp": 1,
+              "side": "either",
+              "phases": ["fight"],
+              "targetsUnit": true,
+              "when": "The Fight phase.",
+              "target": "One unit from your army that has not fought this phase.",
+              "effect": "Until the end of the phase, each time a model in your unit makes a melee attack, add 1 to the Wound roll.",
+              "text": "When: The Fight phase.\nTarget: One unit from your army that has not fought this phase.\nEffect: Until the end of the phase, each time a model in your unit makes a melee attack, add 1 to the Wound roll.",
+              "auto": {
+                "parts": [
+                  {
+                    "kind": "attack",
+                    "side": "making",
+                    "weapon": "melee",
+                    "roll": "wound",
+                    "by": 1
+                  }
+                ],
+                "effects": [
+                  {
+                    "when": {
+                      "event": "step.before",
+                      "where": {
+                        "is": "event.step",
+                        "value": "wound"
+                      }
+                    },
+                    "if": {
+                      "all": [
+                        {
+                          "is": "ruleOwner",
+                          "value": "attacker"
+                        },
+                        {
+                          "is": "weapon.weaponKind",
+                          "value": "melee"
+                        }
+                      ]
+                    },
+                    "do": [
+                      {
+                        "do": "modifyRoll",
+                        "by": 1
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "host": "a"
+    },
+    {
+      "seq": 16,
+      "by": "p1",
+      "at": 1760000000000,
+      "event": {
+        "type": "turn/next",
+        "seed": 25135766
+      },
+      "host": "a"
+    }
+  ]
+}

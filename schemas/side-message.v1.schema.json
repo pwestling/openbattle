@@ -1,0 +1,693 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:side-message@1",
+  "title": "Open Battle side-message v1",
+  "$ref": "#/definitions/SideMessage",
+  "definitions": {
+    "SideMessage": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "asset/want"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "asset/part"
+            },
+            "id": {
+              "type": "string"
+            },
+            "part": {
+              "type": "number"
+            },
+            "parts": {
+              "type": "number"
+            },
+            "data": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "id",
+            "part",
+            "parts",
+            "data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "package/want"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "package/part"
+            },
+            "hash": {
+              "type": "string"
+            },
+            "part": {
+              "type": "number"
+            },
+            "parts": {
+              "type": "number"
+            },
+            "data": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "hash",
+            "part",
+            "parts",
+            "data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "package/status"
+            },
+            "missing": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "t",
+            "missing"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "campaign/want"
+            },
+            "hash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "hash"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "campaign/part"
+            },
+            "hash": {
+              "type": "string"
+            },
+            "part": {
+              "type": "number"
+            },
+            "parts": {
+              "type": "number"
+            },
+            "data": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "hash",
+            "part",
+            "parts",
+            "data"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk"
+            },
+            "item": {
+              "$ref": "#/definitions/TalkItem"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "item"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/clear"
+            }
+          },
+          "required": [
+            "t"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/cam"
+            },
+            "cam": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    },
+                    "position": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 3,
+                      "maxItems": 3
+                    }
+                  },
+                  "required": [
+                    "target",
+                    "position"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "cam"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/moment"
+            },
+            "seq": {
+              "type": "number"
+            },
+            "kind": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "seq",
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/shake"
+            },
+            "on": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "t",
+            "on"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/reel"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "t",
+            "index"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/drag"
+            },
+            "models": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "minItems": 3,
+                    "items": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ],
+                    "maxItems": 3
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "t",
+            "models"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/plan"
+            },
+            "on": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "t",
+            "on"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "talk/voice"
+            },
+            "on": {
+              "type": "boolean"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "on"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "review/lead"
+            },
+            "seq": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "seq"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "review/hello"
+            }
+          },
+          "required": [
+            "t"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "review/note"
+            },
+            "note": {}
+          },
+          "required": [
+            "t",
+            "note"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "review/unnote"
+            },
+            "id": {
+              "type": "string"
+            },
+            "author": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "review/notes"
+            },
+            "notes": {
+              "type": "array",
+              "items": {}
+            }
+          },
+          "required": [
+            "t",
+            "notes"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "army/offer"
+            },
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "units": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "by": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "id",
+            "name",
+            "units"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "t": {
+              "type": "string",
+              "const": "army/take"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "t",
+            "id"
+          ]
+        }
+      ]
+    },
+    "TalkItem": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "ping"
+            },
+            "at": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            },
+            "unitId": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "at",
+            "id",
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "arrow"
+            },
+            "from": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            },
+            "to": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "from",
+            "id",
+            "kind",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "area"
+            },
+            "at": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "y"
+              ]
+            },
+            "radius": {
+              "type": "number"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "at",
+            "id",
+            "kind",
+            "radius"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "line"
+            },
+            "points": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "x",
+                  "y"
+                ]
+              }
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "points"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "chat"
+            },
+            "text": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "kind",
+            "text"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "react"
+            },
+            "emoji": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "emoji",
+            "id",
+            "kind"
+          ]
+        }
+      ]
+    }
+  }
+}

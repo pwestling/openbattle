@@ -1,0 +1,172 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:signed-result@1",
+  "title": "Open Battle signed-result v1",
+  "$ref": "#/definitions/SignedResult",
+  "definitions": {
+    "SignedResult": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/RankedResult"
+        },
+        "sigs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        }
+      },
+      "required": [
+        "result",
+        "sigs"
+      ]
+    },
+    "RankedResult": {
+      "type": "object",
+      "properties": {
+        "v": {
+          "type": "number",
+          "const": 1
+        },
+        "system": {
+          "type": "string"
+        },
+        "points": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "rounds": {
+          "type": "number"
+        },
+        "players": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RankedPlayer"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "winner": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "enum": [
+            0,
+            1,
+            null
+          ]
+        },
+        "replay": {
+          "type": "string"
+        },
+        "at": {
+          "type": "number"
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "round": {
+              "type": "number"
+            },
+            "table": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "id",
+            "round",
+            "table"
+          ]
+        },
+        "rules": {
+          "$ref": "#/definitions/RankedRules"
+        }
+      },
+      "required": [
+        "v",
+        "system",
+        "points",
+        "rounds",
+        "players",
+        "winner",
+        "replay",
+        "at"
+      ]
+    },
+    "RankedPlayer": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/PlayerKey"
+        },
+        "name": {
+          "type": "string"
+        },
+        "vp": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "key",
+        "name",
+        "vp"
+      ]
+    },
+    "PlayerKey": {
+      "type": "string"
+    },
+    "RankedRules": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string"
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RankedPackage"
+          }
+        }
+      },
+      "required": [
+        "packages"
+      ]
+    },
+    "RankedPackage": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "game": {
+          "type": "boolean",
+          "const": true
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "hash"
+      ]
+    }
+  }
+}

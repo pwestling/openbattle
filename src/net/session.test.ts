@@ -208,4 +208,21 @@ describe("builds (docs/compatibility.md)", () => {
     expect(got.filter((m) => (m as { t: string }).t !== "host")).toEqual([]);
     expect(host.log.events.length).toBe(before + 1);
   });
+
+  it("ignores messages it can't read, so a newer peer can add message types (docs/protocols)", async () => {
+    const net = createLoopbackNetwork();
+    const h = peer();
+    const host = new Session({
+      transport: net.connect("host"),
+      role: "host",
+      onChange: h.onChange,
+      rng: () => 0.5,
+    });
+    const newer = net.connect("newer");
+    await flush();
+    for (const m of [{ t: "future/thing", x: 1 }, { t: 42 }, {}, null])
+      expect(() => newer.send(m as never)).not.toThrow();
+    host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
+    expect(h.seen.record?.events.length).toBe(1);
+  });
 });

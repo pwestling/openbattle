@@ -2,6 +2,8 @@
 
 Anyone can change Open Battle: fork it, write a rules package, run a modified build. This page says how those changes live side by side without splitting the players or making ranked games unfair. The short version: **a casual table plays whatever its players agree to, and a ranked game counts only on the ladder for the exact rules it was played under.**
 
+Every format and protocol others can build on (files, links, peer messages, server APIs, packages) is listed with its version, spec, schema and conformance files in [protocols/](protocols/README.md). This page is about how builds and packages that differ play together.
+
 ## The four layers
 
 Every game runs on four layers of code. Each has its own identity and its own rule for what happens when two players differ.

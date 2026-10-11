@@ -1,0 +1,26 @@
+{
+  "format": "open-battle/player@1",
+  "card": {
+    "name": "Ana",
+    "colors": ["#2563eb", "#f5c542"]
+  },
+  "identity": {
+    "publicKey": {
+      "key_ops": ["verify"],
+      "ext": true,
+      "kty": "EC",
+      "x": "KVuApSsgp8JCj74FmjMLqb9W7B4rQiRzvJ1NuHXVy_Q",
+      "y": "ypokCSVw2r9OrXOjXkZZLKkV0xu2TwQm_E1DFCuWTL0",
+      "crv": "P-256"
+    },
+    "privateKey": {
+      "key_ops": ["sign"],
+      "ext": true,
+      "kty": "EC",
+      "x": "KVuApSsgp8JCj74FmjMLqb9W7B4rQiRzvJ1NuHXVy_Q",
+      "y": "ypokCSVw2r9OrXOjXkZZLKkV0xu2TwQm_E1DFCuWTL0",
+      "crv": "P-256",
+      "d": "Iiaoi_gWsGJXjBhZ-mfRI4yn1YeenmPKthn20qHzmjo"
+    }
+  }
+}

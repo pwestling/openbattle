@@ -1,0 +1,11 @@
+{
+  "id": "open-battle.rift-lanterns",
+  "name": "Rift Lanterns",
+  "version": "1.3.2",
+  "api": 1,
+  "kind": "system",
+  "systems": ["rift-lanterns"],
+  "requires": [],
+  "author": "Open Battle contributors",
+  "adds": "A whole small skirmish game: four warbands, three missions and a starter table. CC BY 4.0."
+}

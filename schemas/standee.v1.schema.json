@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:standee@1",
+  "title": "Open Battle standee v1",
+  "$ref": "#/definitions/StandeeFile",
+  "definitions": {
+    "StandeeFile": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "const": "open-battle/standee@1"
+        },
+        "name": {
+          "type": "string"
+        },
+        "basePx": {
+          "type": "number"
+        },
+        "baseMm": {
+          "type": "number"
+        },
+        "front": {
+          "type": "string"
+        },
+        "back": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "name",
+        "basePx",
+        "baseMm",
+        "front"
+      ]
+    }
+  }
+}

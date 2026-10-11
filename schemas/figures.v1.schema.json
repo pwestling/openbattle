@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:figures@1",
+  "title": "Open Battle figures v1",
+  "$ref": "#/definitions/FigurePack",
+  "definitions": {
+    "FigurePack": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "const": "open-battle/figures@1"
+        },
+        "name": {
+          "type": "string"
+        },
+        "savedAt": {
+          "type": "number"
+        },
+        "figures": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackFigure"
+          }
+        },
+        "hash": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "name",
+        "savedAt",
+        "figures",
+        "hash"
+      ]
+    },
+    "PackFigure": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/definitions/AssetKind"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "units": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string"
+        },
+        "thumb": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "tags",
+        "units",
+        "data"
+      ]
+    },
+    "AssetKind": {
+      "type": "string",
+      "enum": [
+        "miniature",
+        "terrain"
+      ]
+    }
+  }
+}

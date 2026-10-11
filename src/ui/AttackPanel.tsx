@@ -5,7 +5,14 @@ import { playerName } from "../i18n/names";
 import { useCoach, computerPlays } from "../teach/store";
 import { focusSoon } from "./focusSoon";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { passes, type AttackSpec, type AttackState, type Die, type GameState, type Reroll } from "../core";
+import {
+  passes,
+  type AttackSpec,
+  type AttackState,
+  type Die,
+  type GameState,
+  type AttackReroll,
+} from "../core";
 import {
   aliveModels,
   carriers,
@@ -270,8 +277,8 @@ export function SpecEditor({
       <option value={1}>+1</option>
     </select>
   );
-  const reroll = (v: Reroll, onChange: (v: Reroll) => void) => (
-    <select value={v} onChange={(e) => onChange(e.target.value as Reroll)}>
+  const reroll = (v: AttackReroll, onChange: (v: AttackReroll) => void) => (
+    <select value={v} onChange={(e) => onChange(e.target.value as AttackReroll)}>
       <option value="none">{t("no re-roll")}</option>
       <option value="ones">{t("re-roll 1s")}</option>
       <option value="failed">{t("re-roll fails")}</option>

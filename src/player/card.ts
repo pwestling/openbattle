@@ -75,8 +75,15 @@ export function signedBy(text: string, sig: string, key: PlayerKey): Promise<boo
 
 const FILE = "open-battle/player@1";
 
+/** The identity file (open-battle/player@1, docs/protocols/files.md): the card and its keys. @public */
+export interface PlayerFile {
+  format: typeof FILE;
+  card: PlayerCard;
+  identity: Identity;
+}
+
 /** The identity file: the card and the key that signs for it. Private: whoever has it plays as you. */
-export async function cardFile(): Promise<unknown> {
+export async function cardFile(): Promise<PlayerFile> {
   const { name, colors } = useCard.getState();
   return { format: FILE, card: { name, colors }, identity: await identity() };
 }
