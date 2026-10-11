@@ -19,6 +19,12 @@ export const useHold = create<{ held: number | null; busy: boolean }>(() => ({ h
 export const quietRolls = { upTo: 0 };
 
 /**
+ * Presses on the panel to ignore until this time (ms): a defender reaching for "Roll now" just as their saves
+ * roll by themselves would otherwise land those dice at once (PX S1, #81).
+ */
+export const quietClicks = { until: 0 };
+
+/**
  * Hold new events that roll dice, set in the same update as the event, before
  * anything renders it, so the result never flashes up early. The tray starts
  * this when it mounts; returns the unsubscribe.

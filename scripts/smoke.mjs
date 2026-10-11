@@ -3220,17 +3220,30 @@ const checks = {
     }
     // Through the first weapon: Ana rolls once for hits and wounds, Ben never presses a roll.
     const saved = a.locator(".panel.attack", { hasText: /unsaved/ });
+    let decisive = false;
     for (let i = 0; i < 40 && !(await saved.count()); i++) {
       await answer();
       if (/No hits|0 wounds/.test(await a.locator(".panel.attack").innerText())) break;
       const roll = a.locator(".panel.attack button.attack-roll:enabled");
       const stage = (await roll.count()) ? await roll.first().textContent() : "";
       if (/hits and wounds/i.test(stage ?? "")) await roll.first().click();
+      // A decisive save (the last model or a character, a real doubt) waits for Ben's own press (PX).
+      const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
+      if ((await own.count()) && !(await b.getByText("Your saves roll by themselves").count())) {
+        await b.waitForTimeout(2000);
+        if ((await own.count()) && !(await b.getByText("Your saves roll by themselves").count())) {
+          await own.first().click();
+          decisive = true;
+        }
+      }
       await a.waitForTimeout(500);
     }
     const text = await a.locator(".panel.attack").innerText();
     if (!(await saved.count()) && !/0 wounds|0 hits/.test(text))
-      throw new Error(`Ben's saves never rolled by themselves: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
+      throw new Error(`Ben's saves never rolled: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
+    console.log(
+      `  volley: Ben's saves ${decisive ? "were decisive and waited for him" : "rolled by themselves"}`,
+    );
     await host.context.close();
     await guest.context.close();
     return [...a.errors, ...b.errors];

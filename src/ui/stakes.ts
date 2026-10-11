@@ -87,12 +87,7 @@ export function stakesOf(roll: TrayRoll, before: GameState, after: GameState): S
 
   if (roll.defender && roll.step && /save/i.test(roll.step) && roll.need != null && roll.targetId) {
     const unit = before.units[roll.targetId];
-    if (!unit) return null;
-    const last = aliveModels(before, unit).length <= 1;
-    const character = unit.sheet?.keywords?.some((k) => /character/i.test(k)) ?? false;
-    if (!last && !character) return null;
-    const p = Math.max(0, Math.min(1, (roll.sides + 1 - roll.need) / roll.sides));
-    if (!doubtful(p ** n)) return null;
+    if (!unit || !decisiveSave(before, roll.targetId, n, roll.need, roll.sides)) return null;
     const saved = roll.dice.every((d) => d.ok);
     const gone = aliveModels(after, after.units[roll.targetId]).length === 0;
     return {
@@ -106,6 +101,26 @@ export function stakesOf(roll: TrayRoll, before: GameState, after: GameState): S
     };
   }
   return null;
+}
+
+/**
+ * A save worth holding your breath for: the unit's last model or a character, 1-3 dice, a real doubt. The
+ * defender rolls it themselves, with no timer (PX, #81); the chance only picks it and is never shown.
+ */
+export function decisiveSave(
+  state: GameState,
+  targetId: string,
+  n: number,
+  need: number,
+  sides = 6,
+): boolean {
+  const unit = state.units[targetId];
+  if (!unit || n < 1 || n > 3) return false;
+  const last = aliveModels(state, unit).length <= 1;
+  const character = unit.sheet?.keywords?.some((k) => /character/i.test(k)) ?? false;
+  if (!last && !character) return false;
+  const p = Math.max(0, Math.min(1, (sides + 1 - need) / sides));
+  return doubtful(p ** n);
 }
 
 /** The charge declared this round, or the nearest enemy. */

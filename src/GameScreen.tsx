@@ -16,7 +16,7 @@ import { useStore } from "./store";
 import { useTalk } from "./talk/talk";
 import { AttackPanel } from "./ui/AttackPanel";
 import { DiceTray, landDice } from "./ui/DiceTray";
-import { useHold } from "./ui/hold";
+import { quietClicks, useHold } from "./ui/hold";
 import { useHelp } from "./ui/help";
 import { Hud } from "./ui/Hud";
 import { TouchLayer } from "./ui/TouchLayer";
@@ -303,7 +303,14 @@ export function GameScreen({ started }: { started: boolean }) {
             className={holding ? "panels holding" : "panels"}
             style={{ display: "contents" }}
             onClickCapture={(e) => {
-              if (!holding || !(e.target as Element).closest?.("button, select")) return;
+              if (!(e.target as Element).closest?.("button, select")) return;
+              // A press that came just as the saves rolled by themselves: neither a second roll nor a skip.
+              if (performance.now() < quietClicks.until) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+              }
+              if (!holding) return;
               e.preventDefault();
               e.stopPropagation();
               landDice();
