@@ -4,14 +4,14 @@ The public site at https://openbattle.thehivemind5.com runs on Craftworld (vps-0
 host. It is the same stack as the docker compose kit in [docs/self-host.md](../../docs/self-host.md),
 run as NixOS services with nginx in place of Caddy:
 
-| Path | Service | Port |
-|---|---|---|
-| `/`, `/health` | nginx serves `/srv/openbattle/current/dist` | 443 |
-| `/relay`, `/config.json`, `/health.json` | `openbattle-relay` (server/relay.mjs) | 4400 |
-| `/mailbox` | `openbattle-mailbox` (server/mailbox.mjs) | 4401 |
-| `/seed` | `openbattle-seeder` (server/seeder.mjs) | 4402 |
-| `/host/` | `openbattle-host` (server/host.mjs) | 4403 |
-| TURN | `coturn` | 3478 UDP/TCP, relays on UDP 49160–49359 |
+| Path                                     | Service                                     | Port                                    |
+| ---------------------------------------- | ------------------------------------------- | --------------------------------------- |
+| `/`, `/health`                           | nginx serves `/srv/openbattle/current/dist` | 443                                     |
+| `/relay`, `/config.json`, `/health.json` | `openbattle-relay` (server/relay.mjs)       | 4400                                    |
+| `/mailbox`                               | `openbattle-mailbox` (server/mailbox.mjs)   | 4401                                    |
+| `/seed`                                  | `openbattle-seeder` (server/seeder.mjs)     | 4402                                    |
+| `/host/`                                 | `openbattle-host` (server/host.mjs)         | 4403                                    |
+| TURN                                     | `coturn`                                    | 3478 UDP/TCP, relays on UDP 49160–49359 |
 
 State lives in `/var/lib/openbattle/{mailbox,seed,host}`. Releases live in
 `/srv/openbattle/releases/<time>-<rev>`, with `/srv/openbattle/current` pointing at one.
