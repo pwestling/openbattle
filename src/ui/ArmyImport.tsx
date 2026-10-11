@@ -33,6 +33,7 @@ import { ImportAutomation } from "./AutoAbilities";
 import { FactionPacks, PackChecks, packsToGame } from "./FactionPacks";
 import { withPinnedPacks } from "../packages/packPins";
 import { ListMerge } from "../tts/ListMerge";
+import { PackageArmiesToShelf, PackageArmySelect } from "./PackageArmies";
 import { addSpells, importedWizard, parseSpellList } from "../systems/tow/spells";
 
 /** Common base sizes, so a player can fix a guessed base in one click. */
@@ -277,6 +278,14 @@ export function ArmyImport({ players }: { players: { id: PlayerId; name: string;
               {t("Sample army")}
             </button>
           )}
+          {/* Armies the game's rules packages bring (#82b). */}
+          <PackageArmySelect
+            system={game.system ?? DEFAULT_SYSTEM}
+            onPick={(army) => {
+              setFromShelf(null);
+              setRoster(withPinnedPacks(army, game.system ?? DEFAULT_SYSTEM, systemOf(game)));
+            }}
+          />
         </div>
       )}
       {!(game.system && isPlaceholder(game.system)) && (
@@ -289,6 +298,7 @@ export function ArmyImport({ players }: { players: { id: PlayerId; name: string;
         />
       )}
       <ShelfManager system={game.system ?? DEFAULT_SYSTEM} />
+      <PackageArmiesToShelf system={game.system ?? DEFAULT_SYSTEM} />
       <PackChecks />
       {players.map((p) => (
         <SaveToShelf key={p.id} owner={p.id} name={players.length > 1 ? p.name : null} />

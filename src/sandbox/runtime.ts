@@ -5,7 +5,12 @@ import { systemOf } from "../core/content/turn";
 import { extendSystem, restoreSystems } from "../core/content/systems";
 import { registerHooks, unregisterHooks } from "../core/script";
 import { setIntentRouter } from "../net/session";
-import { registerPackageSystem, unregisterPackageSystem } from "../systems";
+import {
+  addPackageMissions,
+  clearPackageMissions,
+  registerPackageSystem,
+  unregisterPackageSystem,
+} from "../systems";
 import { useLibrary } from "../packages/library";
 import { useStore } from "../store";
 import { Sandbox, STARTUP_MS } from "./host";
@@ -84,6 +89,7 @@ function unload() {
   wantsAppState = false;
   askedFor = -1;
   useSandbox.setState({ app: null });
+  clearPackageMissions();
   restoreSystems();
   for (const id of provided.splice(0)) unregisterPackageSystem(id);
   for (const owner of hookOwners.splice(0)) unregisterHooks(owner);
@@ -241,8 +247,14 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
         extendSystem(s, p.data);
         registerHooks(s, p.hash, p.hooks);
       }
+      // Missions an extension adds (#82b): picked at setup, their suggestions worked out in here.
+      for (const [s, missions] of Object.entries(p.missions ?? {})) {
+        addPackageMissions(s, missions.map(packageMission));
+        wantsAppState = true;
+      }
       hookOwners.push(p.hash);
     }
+    refreshApp();
     useSandbox.setState({
       status: "on",
       code,

@@ -101,6 +101,13 @@ export interface PackageContents {
    * with `reacts`.
    */
   reactionWindows?: GameSystem["reactionWindows"];
+  /**
+   * Missions an extension adds to the games it extends (#82b), picked at
+   * setup beside the game's own; one with the id of the game's own replaces
+   * it. The same `Mission` a whole game's `module.app.missions` gives, and
+   * run the same way, in the sandbox.
+   */
+  missions?: Mission[];
   /** A `system` package's whole module. */
   module?: GameModule;
 }

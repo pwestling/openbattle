@@ -3,7 +3,7 @@ import { registerSystem } from "../core/content";
 import { unregisterSystem } from "../core/content/systems";
 import { registerFunctions } from "../core/content/calls";
 import { hookProcedures, registerCode, registerCodeActions, registerHooks } from "../core/script";
-import type { GameModule } from "../sdk";
+import type { GameModule, Mission } from "../sdk";
 import type { SystemModule } from "./app";
 import { conquestModule } from "./conquest/module";
 import { fsdModule } from "./fsd/module";
@@ -56,6 +56,27 @@ export function unregisterPackageSystem(id: string): void {
   if (BUILT_IN.some((m) => m.system.id === id)) return;
   MODULES.delete(id);
   unregisterSystem(id);
+}
+
+/** Modules as they were before extension packages added missions to them, to put back. */
+const BEFORE_MISSIONS = new Map<string, GameModule<SystemModule>>();
+
+/**
+ * Missions an extension package adds to a system (#82b, PackageContents.missions),
+ * after its own; one with the id of one already there replaces it.
+ */
+export function addPackageMissions(id: string, missions: Mission[]): void {
+  const m = MODULES.get(id);
+  if (!m?.app || !missions.length) return;
+  if (!BEFORE_MISSIONS.has(id)) BEFORE_MISSIONS.set(id, m);
+  const kept = (m.app.missions ?? []).filter((x) => !missions.some((y) => y.id === x.id));
+  MODULES.set(id, { ...m, app: { ...m.app, missions: [...kept, ...missions] } });
+}
+
+/** Take every package's added missions back off (the game's packages stopped). */
+export function clearPackageMissions(): void {
+  for (const [id, m] of BEFORE_MISSIONS) if (MODULES.has(id)) MODULES.set(id, m);
+  BEFORE_MISSIONS.clear();
 }
 
 /** The game module for a system id, if one is registered. */

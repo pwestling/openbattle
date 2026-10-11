@@ -33,8 +33,11 @@ export default {
   rules: [], // data: rules (keywords, abilities) in the system's rules schema
   abilityTimings: [], // data: when abilities matching some text come up
   reactionWindows: [], // data: when the other side may react (docs/reactions.md)
+  missions: [], // missions players pick at setup (see "Armies and missions")
 };
 ```
+
+It may also export `armies`, sample armies read as data (see "Armies and missions").
 
 The app reads the manifest as data, without running anything, so it can show the consent sheet first. That means the manifest must be a plain literal. Variables, function calls, spreads and `${}` templates are rejected.
 
@@ -145,6 +148,20 @@ invented ones that work in any game.
 ## Data rules
 
 `rules`, `abilityTimings`, `reactionWindows` and `actions` entries without a `run`, are plain data in the system's rules schema (`src/core/content/schema.ts`). They are added to the system on every player's screen that runs the package, so previews and panels show them as well. A data rule with the same id as a built-in one replaces it.
+
+## Armies and missions
+
+An extension can bring armies and missions to the game it extends (needs Open Battle 0.2.0 or later; an older app
+loads the package without them). The spec is [protocols/packages.md](protocols/packages.md).
+
+- `export const armies = [...]` is a list of [Army list v1](protocols/army-list.md) documents, read as data like
+  the manifest. While a game names the package, they are offered beside the game's sample armies, labelled with the
+  package's name, and can be put on the army shelf. An entry the app can't read is left out with a warning.
+- `missions` in the default export are the same `Mission`s a whole game gives (below). They are added after the
+  game's own and run in the sandbox.
+
+[`examples/packages/border-muster.js`](../examples/packages/border-muster.js) brings two invented warbands and a
+mission to Quality d6.
 
 ## Reaction windows
 

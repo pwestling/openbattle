@@ -4,6 +4,7 @@ What changed in each release of Open Battle. The in-app **What's new** on the st
 
 ## Unreleased
 
+- **Packages bring armies and missions.** An extension package can carry sample armies as Army list v1 documents (`export const armies`, read as data, never run) and missions for the game it extends. Its armies are offered beside the game's own samples, labelled with the package, and go on the army shelf in one click; its missions join the game's at setup. See [docs/protocols/packages.md](docs/protocols/packages.md) and the example `examples/packages/border-muster.js`.
 - **Ladders keep different rules apart.** A ranked result now records the rules it was played under (the app build and every rules package, by hash), and both players check and sign them. Named seasons in `rulesets.json` share a ladder; any other rules, a house rule or a modded copy of a game, get a ladder of their own. See [docs/compatibility.md](docs/compatibility.md).
 - **Shared dice in ranked games.** No one device decides a roll: the host commits to a secret seed, the opponent adds one, and each round's dice are checked once the host's seed is shown. A result whose dice don't check out can't be signed.
 - **No farming the ladder.** A rating moves only against an opponent who has played five games against three different players.
