@@ -408,7 +408,7 @@ msgid "Blocking: no sight"
 msgstr ""
 
 #: src/GameScreen.tsx:383
-#: src/next/Game.tsx:167
+#: src/next/Game.tsx:172
 msgid "Leave model's eye view (Esc)"
 msgstr ""
 
@@ -1117,6 +1117,7 @@ msgstr ""
 #: src/campaign/CampaignUI.tsx:673
 #: src/events/EventsUI.tsx:129
 #: src/events/EventsUI.tsx:341
+#: src/next/End.tsx:64
 #: src/ui/RoundCard.tsx:113
 #: src/ui/StatsScreen.tsx:75
 msgid "{n} round"
@@ -3752,6 +3753,7 @@ msgid "After the battle"
 msgstr ""
 
 #: src/next/Drawer.tsx:110
+#: src/next/End.tsx:84
 #: src/ui/Hud.tsx:270
 msgid "Replay with notes"
 msgstr ""
@@ -3838,6 +3840,34 @@ msgstr ""
 #: src/ui/Hud.tsx:193
 #: src/ui/TerrainPanel.tsx:162
 msgid "Edit terrain"
+msgstr ""
+
+#: src/next/End.tsx:62
+#: src/next/step.ts:188
+#: src/ui/WhatNow.tsx:43
+#: src/ui/gameLog.ts:110
+#: src/ui/gameLog.ts:112
+msgid "The battle is over"
+msgstr ""
+
+#: src/next/End.tsx:70
+msgid "Play again"
+msgstr ""
+
+#: src/next/End.tsx:76
+msgid "Watch the highlights"
+msgstr ""
+
+#: src/next/End.tsx:80
+msgid "Battle stats and review"
+msgstr ""
+
+#: src/next/End.tsx:89
+msgid "Share"
+msgstr ""
+
+#: src/next/End.tsx:94
+msgid "Back to the front door"
 msgstr ""
 
 #: src/next/SaveDoor.tsx:100
@@ -4302,13 +4332,6 @@ msgstr ""
 
 #: src/next/step.ts:160
 msgid "{name} rolls {stage}"
-msgstr ""
-
-#: src/next/step.ts:188
-#: src/ui/WhatNow.tsx:43
-#: src/ui/gameLog.ts:110
-#: src/ui/gameLog.ts:112
-msgid "The battle is over"
 msgstr ""
 
 #: src/next/step.ts:205

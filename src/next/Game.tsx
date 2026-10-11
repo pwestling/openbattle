@@ -38,7 +38,7 @@ import { ReplayTitle, RoundCard } from "../ui/RoundCard";
 import { SandboxNotice } from "../ui/SandboxNotice";
 import { ScriptPanel } from "../ui/ScriptPanel";
 import { Showcase } from "../ui/Showcase";
-import { StatsScreen } from "../ui/StatsScreen";
+import { battleOver, StatsScreen } from "../ui/StatsScreen";
 import { StratagemHand } from "../ui/StratagemHand";
 import { DragTag, TableTag } from "../ui/TableTag";
 import { TableWarningsPanel } from "../ui/TableWarnings";
@@ -49,6 +49,7 @@ import { UnitCard } from "../ui/UnitCard";
 import { useHotseatMark } from "../ui/resumeHotseat";
 import { OnAir, VoiceRoom } from "../voice/VoiceBar";
 import { Drawer } from "./Drawer";
+import { NextEnd, useEndStats } from "./End";
 import { Setup } from "./Setup";
 import { StepBar } from "./StepBar";
 import { Strip } from "./Strip";
@@ -77,6 +78,9 @@ export function NextGame() {
   const selected = useStore((s) => s.selected !== null);
   const reacting = useStore((s) => !!s.game.pending);
   const view = useStore((s) => s.view);
+  // At the end the result card leads; the classic stats screen opens only when asked for from it.
+  const over = useStore((s) => battleOver(s.game) && s.scrub === null);
+  const statsAsked = useEndStats((s) => s.asked);
   const setView = useStore((s) => s.setView);
   // A finished attack's panel doesn't follow into the next phase (UX N19), nor does the pick: the next unit is lit instead.
   const phaseKey = useStore((s) => `${s.game.turn.round}/${s.game.turn.phase}/${s.game.turn.activeSeat}`);
@@ -145,7 +149,8 @@ export function NextGame() {
       <Moments />
       <Ambience />
       <Showcase />
-      <StatsScreen />
+      {(!over || statsAsked) && <StatsScreen />}
+      <NextEnd />
       <PackageCards />
       <SandboxNotice />
       {!editing && <BetterMoveHint />}

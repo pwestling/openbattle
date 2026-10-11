@@ -489,7 +489,7 @@ msgid "Blocking: no sight"
 msgstr "Blockierend: keine Sicht"
 
 #: src/GameScreen.tsx:383
-#: src/next/Game.tsx:167
+#: src/next/Game.tsx:172
 #, fuzzy
 msgid "Leave model's eye view (Esc)"
 msgstr "Modellperspektive verlassen (Esc)"
@@ -1351,6 +1351,7 @@ msgstr "von Hand eingetragen"
 #: src/campaign/CampaignUI.tsx:673
 #: src/events/EventsUI.tsx:129
 #: src/events/EventsUI.tsx:341
+#: src/next/End.tsx:64
 #: src/ui/RoundCard.tsx:113
 #: src/ui/StatsScreen.tsx:75
 #, fuzzy
@@ -4513,6 +4514,7 @@ msgid "After the battle"
 msgstr "Nach der Schlacht"
 
 #: src/next/Drawer.tsx:110
+#: src/next/End.tsx:84
 #: src/ui/Hud.tsx:270
 #, fuzzy
 msgid "Replay with notes"
@@ -4611,6 +4613,35 @@ msgstr "Geschehen folgen"
 #, fuzzy
 msgid "Edit terrain"
 msgstr "Gelände bearbeiten"
+
+#: src/next/End.tsx:62
+#: src/next/step.ts:188
+#: src/ui/WhatNow.tsx:43
+#: src/ui/gameLog.ts:110
+#: src/ui/gameLog.ts:112
+#, fuzzy
+msgid "The battle is over"
+msgstr "Die Schlacht ist vorbei"
+
+#: src/next/End.tsx:70
+msgid "Play again"
+msgstr ""
+
+#: src/next/End.tsx:76
+msgid "Watch the highlights"
+msgstr ""
+
+#: src/next/End.tsx:80
+msgid "Battle stats and review"
+msgstr ""
+
+#: src/next/End.tsx:89
+msgid "Share"
+msgstr ""
+
+#: src/next/End.tsx:94
+msgid "Back to the front door"
+msgstr ""
 
 #: src/next/SaveDoor.tsx:100
 #: src/tts/TtsWholeTable.tsx:147
@@ -5103,14 +5134,6 @@ msgstr ""
 #: src/next/step.ts:160
 msgid "{name} rolls {stage}"
 msgstr ""
-
-#: src/next/step.ts:188
-#: src/ui/WhatNow.tsx:43
-#: src/ui/gameLog.ts:110
-#: src/ui/gameLog.ts:112
-#, fuzzy
-msgid "The battle is over"
-msgstr "Die Schlacht ist vorbei"
 
 #: src/next/step.ts:205
 msgid "A reaction"
