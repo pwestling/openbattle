@@ -132,7 +132,7 @@ export function NextGame() {
       <FloatingReactions />
       <TableTag />
       <DragTag />
-      {!editing && <StratagemHand />}
+      {!editing && <StratagemHand tucked />}
       {!editing && <RerollCard />}
       {!editing && <ReactionCard />}
       {!editing && <MayReact />}

@@ -7,6 +7,7 @@ import {
   type PlayerId,
   type Unit,
 } from "../core";
+import { abilityReminders } from "../core/content/player";
 import { actingUnits, unitActions } from "../core/content/play";
 import { simultaneousPhase } from "../core/content/simultaneous";
 import { currentSlot, phaseHint, plainActivations, systemOf, turnView } from "../core/content/turn";
@@ -149,7 +150,8 @@ function attackSay(game: GameState, mine: PlayerId[]): { say: string; sub: strin
   const roller = rollerUnit ? game.players[rollerUnit.owner] : undefined;
   if (!roller) return { say, sub: "" };
   // Damage is worked out from the dice already rolled: nobody's press (UX N22).
-  if (a.stage === "damage" || a.stage === "done") return { say, sub: t("Then the damage, where the dice are.") };
+  if (a.stage === "damage" || a.stage === "done")
+    return { say, sub: t("Then the damage, where the dice are.") };
   const stage = a.stage === "hit" ? t("hits") : a.stage === "wound" ? t("wounds") : t("saves");
   return {
     say,
@@ -247,6 +249,17 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     const others = together.waiting
       .filter((p) => !isMine(p))
       .map((p) => displayName(game.players[p]?.name ?? ""));
+    // The jobs themselves, named (UX N12): this phase's abilities still to use.
+    const jobs = me
+      ? abilityReminders(game)
+          .filter((r) => r.owner === me && !r.applied)
+          .map((r) => gameText(r.ability.name))
+      : [];
+    const jobLine = jobs.length
+      ? tn(jobs.length, "To use: {names}", "To use: {names}", {
+          names: formatList([...new Set(jobs)].slice(0, 4)),
+        })
+      : null;
     if (me)
       return {
         tone: "job",
@@ -259,9 +272,15 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
                 phase: gameText(phase),
               })
             : t("{phase}: your jobs, then Done", { phase: gameText(phase) }),
-        sub: others.length
-          ? t("{names} is doing theirs at the same time.", { names: formatList(others) })
-          : hint,
+        sub:
+          [
+            jobLine,
+            others.length
+              ? t("{names} is doing theirs at the same time.", { names: formatList(others) })
+              : null,
+          ]
+            .filter(Boolean)
+            .join(" · ") || hint,
         buttons: [{ label: t("Done"), lit: true, as: me, intent: { type: "turn/ready" } }],
       };
     const back = together.ready.find((p) => isMine(p));

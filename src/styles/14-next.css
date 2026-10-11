@@ -843,3 +843,29 @@ body:has(.obn-game) .table-tag.ok {
   border-color: var(--obn-lit);
   box-shadow: 0 0 0 3px rgb(233 185 73 / 22%);
 }
+
+/* Leftover classic parts (UX N14): the setup card keeps only what the checklist doesn't say. */
+.obn-setup .room > .row.spread:first-child,
+.obn-setup .rules-line:not(:has(.warn)),
+.obn-setup .deploy-tray > .row.spread label:has(input[type="checkbox"]) {
+  display: none;
+}
+/* CP and VP steppers show on hover or focus: the count is what's read at a glance. */
+.obn-side .counter > button {
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.obn-side:hover .counter > button,
+.obn-side:focus-within .counter > button,
+.obn-side .counter.open > button {
+  opacity: 1;
+}
+@media (hover: none) {
+  .obn-side .counter > button {
+    opacity: 1;
+  }
+}
+/* The live game's replay handle lives in ⋯ ("Look back over the game"). */
+.obn.obn-game .replaybar.tucked {
+  display: none;
+}

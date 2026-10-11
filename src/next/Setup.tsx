@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTtsNote } from "../tts/TtsNote";
 import { openTts } from "../figures/open";
+import { standingWith } from "../ui/CoreAbilities";
 import { applyLayout } from "../tables/actions";
 import { starterLayout, starters } from "../tables/starters";
 import { sideName, sides, type GameRecord, type Player } from "../core";
@@ -112,6 +113,17 @@ export function Setup() {
   const myReady = mine.every((p) => p.ready);
   const roll = lastRollOff(record);
   const seats = sides(game);
+  // A tie rolls again by itself (UX N13): the host's screen rolls, so it happens once.
+  const tie = !!roll && roll[0] === roll[1] && !guest && role !== "spectator";
+  const rolls = record.events.length;
+  useEffect(() => {
+    if (!tie) return;
+    const id = setTimeout(
+      () => dispatch({ type: "dice/roll", count: 2, sides: 6, label: "first turn" }),
+      1500,
+    );
+    return () => clearTimeout(id);
+  }, [tie, rolls, dispatch]);
 
   if (role === "spectator")
     return (
@@ -188,7 +200,7 @@ export function Setup() {
     note: !roll
       ? undefined
       : roll[0] === roll[1]
-        ? t("A tie, {a} each: roll again", { a: roll[0] ?? 0 })
+        ? t("A tie, {a} each: rolling again…", { a: roll[0] ?? 0 })
         : t("Rolled {a} – {b}", { a: roll[0] ?? 0, b: roll[1] ?? 0 }),
   });
   const now = lines.find((l) => !l.done)?.id ?? "start";
@@ -261,12 +273,37 @@ export function Setup() {
               mine.forEach((p) => dispatch({ type: "player/ready", player: p.id, ready: true }, p.id)),
           });
       } else {
-        say = t("Check your deployment, then say you're ready");
-        sub = t("Characters standing with a squad can lead it: see the list on the left.");
-        lit = {
-          label: t("Ready"),
-          run: () => mine.forEach((p) => dispatch({ type: "player/ready", player: p.id, ready: true }, p.id)),
-        };
+        // Characters standing with a squad: leading is the step people forget (UX N10).
+        const pairs = mine.flatMap((p) =>
+          unitsOf(p.id).flatMap((u) => {
+            const near = standingWith(game, u);
+            return near ? [{ leader: u, near, as: p.id }] : [];
+          }),
+        );
+        const ready = () =>
+          mine.forEach((p) => dispatch({ type: "player/ready", player: p.id, ready: true }, p.id));
+        if (pairs.length) {
+          say = tn(pairs.length, "{n} character stands with a squad", "{n} characters stand with a squad");
+          sub = formatList(
+            pairs.map((x) => t("{leader} with {unit}", { leader: x.leader.name, unit: x.near.name })),
+          );
+          lit = {
+            label: pairs.length > 1 ? tn(pairs.length, "Lead all {n}", "Lead all {n}") : t("Lead it"),
+            run: () => {
+              const taken = new Set<string>();
+              for (const x of pairs) {
+                if (taken.has(x.near.id)) continue;
+                taken.add(x.near.id);
+                dispatch({ type: "unit/attach", id: x.leader.id, to: x.near.id }, x.as);
+              }
+            },
+          };
+          plain.push({ label: t("Ready anyway"), run: ready });
+        } else {
+          say = t("Check your deployment, then say you're ready");
+          sub = t("Drag a character onto a squad to lead it.");
+          lit = { label: t("Ready"), run: ready };
+        }
       }
       break;
     case "first":

@@ -158,6 +158,17 @@ export function Drawer({ onClose }: { onClose: () => void }) {
       </section>
       <section>
         <h3 className="obn-label">{t("What happened")}</h3>
+        {session && !over && (
+          <button
+            onClick={() => {
+              // The replay bar's own handle, tucked out of sight in ui-next.
+              document.querySelector<HTMLButtonElement>(".replaybar.tucked button")?.click();
+              onClose();
+            }}
+          >
+            {t("Look back over the game")}
+          </button>
+        )}
         <GameLog />
       </section>
       <button className="obn-link" onClick={() => switchUi(false)}>

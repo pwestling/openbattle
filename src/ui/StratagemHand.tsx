@@ -111,7 +111,8 @@ function cardText(game: GameState, o: PlayerActionOption): [string, string][] {
   ];
 }
 
-export function StratagemHand() {
+/** `tucked` (ui-next): stays folded to its chip until hovered or opened, even with cards playable now. */
+export function StratagemHand({ tucked = false }: { tucked?: boolean } = {}) {
   const game = useGame();
   const dispatch = useStore((s) => s.dispatch);
   const canControl = useCanControl();
@@ -312,7 +313,7 @@ export function StratagemHand() {
 
   if (!player) return <Reveals />;
   const cp = game.resources[player.id]?.CP;
-  const folded = !held && !picked && !peek && (ready === 0 || narrow());
+  const folded = !held && !picked && !peek && (ready === 0 || narrow() || tucked);
   const visible = spread || options.length <= FAN ? options : options.slice(0, FAN - 1);
   const stacked = options.length - visible.length;
   const speed = { "--hand-speed": fast ? 0.5 : 1 } as CSSProperties;
