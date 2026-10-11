@@ -71,7 +71,7 @@ const Board = lazy(() => loadBoard().then((m) => ({ default: m.Board })));
  * Keyboard: [ ] pick a unit, arrows move it, Enter opens its card; ? shows every control; Esc clears; M toggles the ruler; Q/E rotate; R/F move a unit up or down a floor;
  * Delete removes the selected terrain piece while editing, else a model as a casualty (asking); Home resets the camera.
  */
-function onKey(e: KeyboardEvent) {
+export function onKey(e: KeyboardEvent) {
   const target = e.target;
   if (
     target instanceof HTMLInputElement ||

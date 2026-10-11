@@ -472,7 +472,7 @@ export function NameCard({ player }: { player: Player }) {
  * While a joining player waits for a seat (rules packages, a slow connection), the name is asked
  * at once (UX 403): it's kept on this device, and NameCard uses it the moment they sit down.
  */
-function EarlyNameCard() {
+export function EarlyNameCard() {
   const [stored, setStored] = useState(() => localStorage.getItem("open-battle:name") ?? "");
   const [name, setName] = useState(() => nameDraft);
   if (stored)
@@ -509,7 +509,7 @@ function EarlyNameCard() {
  * A player back from a closed tab finds both seats taken: offer the seat whose
  * player has gone (never one whose player is still connected), or watching.
  */
-function RejoinCard({ seated }: { seated: Player[] }) {
+export function RejoinCard({ seated }: { seated: Player[] }) {
   const { net, dispatch, start, mode, roomId } = useStore();
   // This device's own seat is offered even while its old, closed tab still looks connected (UX 216).
   const own = roomId ? loadRoom(roomId)?.playerId : undefined;
@@ -545,7 +545,7 @@ function RejoinCard({ seated }: { seated: Player[] }) {
 }
 
 /** Stats, with a dot once the game review is ready (UX 424). */
-function StatsButton({ over }: { over: boolean }) {
+export function StatsButton({ over }: { over: boolean }) {
   const set = useStore((s) => s.set);
   return (
     <button onClick={() => set({ stats: !(useStore.getState().stats ?? over) })}>

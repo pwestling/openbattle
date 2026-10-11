@@ -8,7 +8,7 @@ import { openTts } from "../figures/open";
  * replay, an army or Yellowscribe list, a table, a figure pack, a standee),
  * recognised by what's inside, and opened where it belongs.
  */
-export function OpenFile() {
+export function OpenFile({ onTts }: { onTts?: (save: File) => void } = {}) {
   const [note, setNote] = useState("");
   const open = async (file: File) => {
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -22,7 +22,7 @@ export function OpenFile() {
     // A Tabletop Simulator save opens in the TTS import, already loaded (UX 503).
     if (!kind && (data as { ObjectStates?: unknown } | null)?.ObjectStates) {
       setNote("");
-      return openTts(file);
+      return onTts ? onTts(file) : openTts(file);
     }
     if (!kind) return setNote(newerFormat(data) ?? t("That isn't a file Open Battle saves."));
     const name = file.name.replace(/\.(army|table|figures)?\.?(json|standee)$/i, "");

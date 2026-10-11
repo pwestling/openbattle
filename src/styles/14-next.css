@@ -1,0 +1,845 @@
+/*
+ * Open Battle Next (ui-next, src/next): the from-scratch UI. Loaded only with
+ * its chunk (src/next/NextApp.tsx), so the classic UI never sees it, and every
+ * rule is under .obn. Gold (--obn-lit) means one thing: press this next.
+ *
+ * Four places on the game screen: the strip (top), the table, the step bar
+ * (bottom centre) and the sheet (right, only with a unit or an attack).
+ */
+.obn {
+  --obn-ink: #101318;
+  --obn-felt: #1a1f26;
+  --obn-felt-2: #232a33;
+  --obn-line: #333c48;
+  --obn-text: #ece7dc;
+  --obn-muted: #9aa3ae;
+  --obn-lit: #e9b949;
+  --obn-lit-ink: #1d1606;
+  --obn-good: #6fcf8f;
+  --obn-warn: #f2c14e;
+  --obn-display: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --below-bar: 64px;
+  color: var(--obn-text);
+}
+.obn button,
+.obn select,
+.obn input {
+  border-radius: 8px;
+}
+/* Classic panels' own primary buttons: strong, never gold (gold is the step bar's). */
+.obn button.primary {
+  background: var(--obn-felt-2);
+  border-color: var(--obn-text);
+  color: var(--obn-text);
+  font-weight: 600;
+}
+/* An attack's next roll is in its panel: with nothing lit in the bar, the panel's primary is the lit step. */
+.obn-game:has(.obn-bar[data-lit="none"]) .obn-sheet-wrap button.primary,
+.obn .reaction-card button.primary,
+.obn .reroll-card button.primary {
+  background: var(--obn-lit);
+  border-color: var(--obn-lit);
+  color: var(--obn-lit-ink);
+}
+.obn .obn-lit,
+.obn button.obn-lit {
+  background: var(--obn-lit);
+  border: 1px solid var(--obn-lit);
+  color: var(--obn-lit-ink);
+  font-weight: 700;
+  box-shadow: 0 0 0 4px rgb(233 185 73 / 18%);
+}
+.obn button.obn-lit:hover:not(:disabled) {
+  background: #f3c85e;
+}
+.obn button.obn-lit:disabled {
+  background: var(--obn-felt-2);
+  border-color: var(--obn-line);
+  color: var(--obn-muted);
+  box-shadow: none;
+}
+.obn button.obn-plain {
+  background: var(--obn-felt-2);
+  border-color: var(--obn-line);
+  font-weight: 600;
+}
+.obn button.obn-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--obn-muted);
+}
+.obn button.obn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--obn-text);
+  text-decoration: underline;
+  text-decoration-color: var(--obn-line);
+  text-underline-offset: 3px;
+}
+.obn .obn-label {
+  font: 600 0.8rem var(--obn-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--obn-muted);
+  margin: 0;
+}
+.obn .obn-muted {
+  color: var(--obn-muted);
+}
+.obn .small {
+  font-size: 0.85rem;
+}
+.obn .obn-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.obn .obn-row.wrap {
+  flex-wrap: wrap;
+}
+.obn .obn-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.obn kbd {
+  font: 600 0.7rem system-ui;
+  border: 1px solid currentcolor;
+  border-radius: 4px;
+  padding: 0 4px;
+  opacity: 0.65;
+}
+
+/* ===== Front door ===== */
+.obn-door {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 130%, #22301f, var(--obn-ink) 62%);
+  padding: 0 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.obn-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-top: 18px;
+}
+.obn-brand {
+  font: 700 2rem/1 var(--obn-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.obn-brand b {
+  color: var(--obn-text);
+  font-weight: 700;
+  opacity: 0.7;
+}
+.obn-pitch {
+  font-size: 0.95rem;
+}
+.obn-invite {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 6px 5px 12px;
+  border: 1px dashed var(--obn-line);
+  border-radius: 10px;
+}
+.obn-invite label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--obn-muted);
+}
+.obn-invite input {
+  width: 15rem;
+  background: var(--obn-felt);
+  padding: 6px 10px;
+}
+.obn-pop {
+  position: relative;
+}
+.obn-popmenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  min-width: 14rem;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+  border-radius: 10px;
+}
+.obn-resume {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 16px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+  border-radius: 10px;
+  text-align: left;
+}
+.obn-resume strong {
+  font: 700 1.3rem var(--obn-display);
+}
+.obn-cols {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+.obn-col {
+  width: 24rem;
+  max-width: 100%;
+  padding: 0 22px;
+  border-left: 1px solid var(--obn-line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.obn-col:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+.obn-col h2 {
+  font: 700 1.05rem var(--obn-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--obn-muted);
+  margin: 0 0 2px;
+  display: flex;
+  gap: 8px;
+}
+.obn-no {
+  color: var(--obn-text);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .obn-drawer {
+    animation: obn-drawer 0.18s ease-out;
+  }
+}
+@keyframes obn-drawer {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+.obn button.obn-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+}
+.obn button.obn-pick strong {
+  font: 700 1.35rem/1.1 var(--obn-display);
+  letter-spacing: 0.02em;
+}
+.obn button.obn-pick em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--obn-muted);
+  font-size: 1rem;
+}
+.obn button.obn-pick span {
+  color: var(--obn-muted);
+  font-size: 0.85rem;
+}
+.obn button.obn-pick.small {
+  padding: 8px 12px;
+}
+.obn button.obn-pick.small strong {
+  font-size: 1.1rem;
+}
+/* Picked: a bone ring and a tick, never gold. */
+.obn button.obn-pick.on {
+  border-color: var(--obn-text);
+  box-shadow: inset 0 0 0 1px var(--obn-text);
+}
+.obn button.obn-pick.on strong::after {
+  content: " ✓";
+}
+.obn button.obn-pick.dim {
+  opacity: 0.55;
+}
+/* The suggested answer in the open column (last time's, or the first): the one lit step until something is picked. */
+.obn-col:last-of-type .obn-stack:not(:has([aria-checked="true"])) button.obn-pick[data-last] {
+  border-color: var(--obn-lit);
+  box-shadow: 0 0 0 3px rgb(233 185 73 / 22%);
+}
+.obn-col:last-of-type .obn-stack:not(:has([aria-checked="true"])) button.obn-pick[data-last] strong {
+  color: var(--obn-lit);
+}
+.obn .obn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.obn .obn-field input {
+  padding: 8px 12px;
+  background: var(--obn-felt);
+  font-size: 1rem;
+}
+.obn-col > button.obn-lit {
+  align-self: flex-start;
+  padding: 10px 22px;
+  font-size: 1.1rem;
+}
+.obn-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--obn-line);
+}
+.obn-version {
+  margin-left: auto;
+  font-size: 0.85rem;
+}
+.obn-guest {
+  align-self: center;
+  margin-top: 8vh;
+  width: min(32rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.obn-display {
+  font: 700 2.6rem/1 var(--obn-display);
+  text-transform: uppercase;
+  margin: 0;
+}
+.obn-guest button.obn-lit {
+  padding: 10px 22px;
+  font-size: 1.1rem;
+}
+.obn .obn-file {
+  align-self: flex-start;
+  cursor: pointer;
+}
+.obn .obn-warn {
+  color: var(--obn-warn);
+  margin: 0;
+}
+.obn .obn-tick {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--obn-muted);
+}
+.obn-sheet.obn-more {
+  position: fixed;
+  right: 16px;
+  bottom: 64px;
+  z-index: 40;
+  width: min(26rem, calc(100vw - 32px));
+  max-height: 70vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+  border-radius: 12px;
+  box-shadow: 0 16px 50px rgb(0 0 0 / 50%);
+}
+.obn-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+@media (max-width: 760px) {
+  .obn-door {
+    padding: 0 16px 16px;
+  }
+  .obn-cols {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .obn-col {
+    width: 100%;
+    padding: 0;
+    border-left: 0;
+  }
+  .obn-invite {
+    margin-left: 0;
+    width: 100%;
+  }
+  .obn-invite input {
+    width: 100%;
+  }
+  .obn-pitch {
+    display: none;
+  }
+}
+
+/* ===== Game screen ===== */
+.obn-game {
+  position: absolute;
+  inset: 0;
+}
+.obn-strip {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 56px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: linear-gradient(var(--obn-ink), rgb(16 19 24 / 0%));
+  pointer-events: none;
+}
+.obn-strip > * {
+  pointer-events: auto;
+}
+.obn button.obn-menu {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+  line-height: 1;
+  background: var(--obn-felt-2);
+  border-color: var(--obn-line);
+}
+.obn-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  background: rgb(26 31 38 / 92%);
+  border: 1px solid var(--side, var(--obn-line));
+  font-variant-numeric: tabular-nums;
+}
+.obn-side.on {
+  box-shadow: inset 0 0 0 2px var(--side);
+}
+.obn-side.right {
+  order: 3;
+}
+.obn-shape {
+  color: var(--side);
+}
+.obn-name {
+  font: 700 1.2rem var(--obn-display);
+  letter-spacing: 0.02em;
+  color: var(--side);
+}
+.obn-name.speaking {
+  text-decoration: underline;
+}
+.obn-name small {
+  font: 400 0.8rem system-ui;
+  color: var(--obn-muted);
+  margin-left: 4px;
+}
+.obn-name .obn-away {
+  color: var(--obn-warn);
+}
+.obn-side .counter {
+  font-weight: 600;
+}
+.obn-side .counter button {
+  padding: 0 6px;
+  margin-left: 2px;
+}
+.obn-round {
+  order: 2;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 600 1.15rem var(--obn-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--obn-muted);
+}
+.obn-chip {
+  font: 600 0.8rem system-ui;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--obn-line);
+}
+.obn-tools {
+  order: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.obn-strip .net-banner {
+  order: 5;
+  flex-basis: 100%;
+}
+
+/* The step bar */
+.obn-bar {
+  position: absolute;
+  z-index: 21;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: min(780px, calc(100vw - 24px));
+  box-sizing: border-box;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 50%);
+  overflow: hidden;
+}
+.obn-bar.wait {
+  border-color: var(--side, var(--obn-line));
+}
+.obn-bar.job {
+  border-color: color-mix(in srgb, var(--side, var(--obn-text)) 60%, var(--obn-line));
+}
+.obn-rail {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--obn-line);
+}
+.obn-rail li {
+  flex: 1;
+  text-align: center;
+  padding: 5px 0 4px;
+  font: 600 0.85rem var(--obn-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--obn-muted);
+  border-bottom: 3px solid transparent;
+}
+.obn-rail li.done {
+  opacity: 0.55;
+}
+.obn-rail li.done::before {
+  content: "✓ ";
+}
+.obn-rail li.on {
+  color: var(--obn-text);
+  border-bottom-color: var(--side, var(--obn-text));
+}
+.obn-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px 10px 16px;
+}
+.obn-say {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.obn-say strong {
+  font-size: 1.1rem;
+}
+.obn-say > span {
+  color: var(--obn-muted);
+  font-size: 0.9rem;
+}
+.obn-left {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 5px;
+}
+.obn button.obn-unit {
+  font-size: 0.8rem;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--obn-line);
+}
+.obn button.obn-unit.done {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+.obn button.obn-unit.obn-lit {
+  background: var(--obn-lit);
+  border-color: var(--obn-lit);
+  color: var(--obn-lit-ink);
+  font-weight: 600;
+}
+.obn button.obn-unit.picked {
+  border: 2px solid var(--obn-text);
+  color: var(--obn-text);
+}
+.obn button.obn-unit.picked::before {
+  content: "✓ ";
+}
+.obn-buttons,
+.obn-ask {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.obn-buttons button {
+  padding: 8px 14px;
+  font-weight: 600;
+}
+.obn-buttons button.obn-lit {
+  padding: 10px 20px;
+  font-size: 1.05rem;
+}
+.obn-ask span {
+  color: var(--obn-warn);
+}
+
+/* The sheet: the classic unit card and attack panel, on the right */
+.obn .obn-sheet-wrap {
+  display: contents;
+}
+.obn .unitcard,
+.obn .panel.attack,
+.obn .terrainpanel {
+  top: 64px;
+  right: 12px;
+  width: min(380px, calc(100vw - 24px));
+  max-height: calc(100vh - 64px - 150px);
+  background: rgb(26 31 38 / 96%);
+  border: 1px solid var(--obn-line);
+  border-radius: 12px;
+}
+/* Out of the way of the bar: the hand chip and play panel at the bottom right, the replay and talk at the bottom left. */
+.obn .stratagem-hand.folded {
+  left: auto;
+  right: 12px;
+  bottom: 12px;
+  transform: none;
+}
+.obn .stratagem-hand {
+  z-index: 23;
+}
+/* Opened, the fan sits at the right, above the bar and below the sheet, never over the bar's button. */
+.obn .stratagem-hand:not(.folded) {
+  left: auto;
+  right: 12px;
+  bottom: 190px;
+  transform: scale(0.85);
+  transform-origin: bottom right;
+}
+.obn-game:has(.stratagem-hand:not(.folded)) :is(.unitcard, .panel.attack) {
+  max-height: calc(100vh - 64px - 300px);
+}
+.obn .play {
+  bottom: 64px;
+}
+.obn.obn-game .replaybar,
+.obn.obn-game .replaybar.tucked {
+  left: 12px;
+  bottom: 12px;
+  transform: none;
+}
+.obn .talk-dock {
+  bottom: 60px;
+}
+.obn .dice-tray {
+  bottom: 150px;
+}
+
+/* Before the battle: the room's checklist, the one setup-only left panel */
+.obn-setup {
+  position: absolute;
+  z-index: 19;
+  top: 64px;
+  left: 12px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 64px - 140px);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgb(26 31 38 / 96%);
+  border: 1px solid var(--obn-line);
+  border-radius: 12px;
+}
+.obn-setup-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.obn-setup-head strong {
+  font: 700 1.4rem var(--obn-display);
+}
+.obn-setup .room {
+  border-bottom: 1px solid var(--obn-line);
+  padding-bottom: 8px;
+}
+.obn-check {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.obn-check li {
+  display: flex;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+.obn-check li > div {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.obn-check li.now {
+  border-color: var(--obn-text);
+  background: var(--obn-felt-2);
+}
+.obn-check li.done {
+  color: var(--obn-muted);
+}
+.obn-check li.later {
+  opacity: 0.6;
+}
+.obn-mark {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--obn-line);
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+}
+.obn-check li.done .obn-mark {
+  background: var(--obn-good);
+  border-color: var(--obn-good);
+  color: var(--obn-ink);
+}
+.obn-check li.now .obn-mark {
+  border-color: var(--obn-text);
+}
+
+/* ⋯ */
+.obn-drawer-panel {
+  position: absolute;
+  z-index: 30;
+  top: 60px;
+  left: 12px;
+  bottom: 12px;
+  width: min(360px, calc(100vw - 24px));
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-line);
+  border-radius: 12px;
+  box-shadow: 0 16px 50px rgb(0 0 0 / 55%);
+}
+.obn-drawer-panel section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.obn-drawer-panel input[type="number"] {
+  width: 4rem;
+}
+
+/* Phones */
+@media (max-width: 760px) {
+  .obn-strip {
+    gap: 6px;
+    padding: 6px;
+  }
+  .obn-side {
+    gap: 6px;
+    padding: 3px 8px;
+  }
+  .obn-name {
+    font-size: 1rem;
+  }
+  .obn-round {
+    display: none;
+  }
+  .obn-bar {
+    bottom: 6px;
+    width: calc(100vw - 12px);
+  }
+  .obn-rail li {
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+  }
+  .obn-bar-row {
+    flex-wrap: wrap;
+  }
+  .obn-say > span {
+    display: none;
+  }
+  .obn .unitcard,
+  .obn .panel.attack {
+    top: auto;
+    bottom: 150px;
+    max-height: 40vh;
+  }
+  .obn-setup {
+    max-height: 45vh;
+  }
+}
+
+/* The table tag says what a click does; gold stays for the one step to press (UX N8). */
+body:has(.obn-game) .table-tag.ok {
+  border-color: #ece7dc;
+}
+
+/* A TTS save's card at the door (UX N2): a picked card, not a button. */
+.obn .obn-save {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--obn-felt);
+  border: 1px solid var(--obn-text);
+}
+.obn .obn-save strong {
+  font: 700 1.35rem/1.1 var(--obn-display);
+}
+.obn .obn-save span {
+  color: var(--obn-muted);
+  font-size: 0.85rem;
+}
+/* An empty name is the step to take when the lit button waits on it. */
+.obn .obn-field input.obn-lit-field {
+  border-color: var(--obn-lit);
+  box-shadow: 0 0 0 3px rgb(233 185 73 / 22%);
+}
