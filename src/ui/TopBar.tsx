@@ -113,9 +113,14 @@ export function TopBar() {
     .filter(Boolean)
     .join(" · ");
   const [asking, setAsking] = useState(false);
-  // A phase both sides play at once (#81, 40k's Command): each screen says "Done" for its own player.
-  const selfId = useStore((s) => s.session?.selfId ?? null);
-  const together = live && !deploying && mode !== "hotseat" ? simultaneousPhase(game) : null;
+  const solo = useSolo((s) => (s.level && s.session === useStore.getState().session ? s : null));
+  // A phase both sides play at once (#81, 40k's Command): each screen says "Done" for its own player. Against
+  // the computer on this screen, that's the person's side; the computer says it for itself.
+  const sessionSelf = useStore((s) => s.session?.selfId ?? null);
+  const selfId = solo
+    ? (Object.values(game.players).find((p) => p.seat !== undefined && p.seat !== solo.seat)?.id ?? null)
+    : sessionSelf;
+  const together = live && !deploying && (mode !== "hotseat" || solo) ? simultaneousPhase(game) : null;
   const me =
     together && selfId && (together.waiting.includes(selfId) || together.ready.includes(selfId))
       ? selfId
@@ -130,7 +135,6 @@ export function TopBar() {
   const held = useReactionHeld();
   const [menu, setMenu] = useState(false);
   // Solo against the computer (#45): its go is its own; ⋯ can pause it (UX 347).
-  const solo = useSolo((s) => (s.level && s.session === useStore.getState().session ? s : null));
   const computerGo =
     live && !!solo && !solo.paused && !deploying && activeSide.some((p) => p.seat === solo.seat);
   const system = systemOf(game);

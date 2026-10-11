@@ -80,8 +80,9 @@ export function guarded(p: Policy, seat: number): Policy {
 
 /**
  * A simultaneous phase (#81): both sides act, then each says it is done.
- * Moving on becomes `turn/ready` for its own player; the side whose turn it
- * isn't says so once it has nothing else to do; a bot that is ready waits.
+ * Moving on (▶, or passing the go) becomes `turn/ready` for its own player; the side whose turn it
+ * isn't says so once it has nothing else to do; a bot that is ready waits. It never passes the whole turn
+ * from a shared phase: that skipped its own Movement to Fight in solo games.
  */
 function together(
   m: BotMove | null,
@@ -91,7 +92,7 @@ function together(
   me: Seat,
 ): BotMove | null {
   const ready: BotMove = { intent: { type: "turn/ready" }, as: me.player, kind: "ready" };
-  if (m && m.intent.type !== "turn/next") return m;
+  if (m && m.intent.type !== "turn/next" && m.intent.type !== "turn/pass") return m;
   if (!m && state.turn.activeSeat === seat && !sharedPhase(state)) return null;
   return !isReady(state, me.player) && legal(record, state, ready) ? ready : null;
 }

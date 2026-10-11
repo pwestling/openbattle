@@ -851,7 +851,11 @@ const checks = {
     // Pass through your turn, phase by phase, until the computer shoots at you.
     const deadline = Date.now() + 150000;
     for (;;) {
-      if (Date.now() > deadline) throw new Error("the computer never shot at you in its first turn");
+      if (Date.now() > deadline) {
+        if (process.env.SMOKE_SHOTS)
+          await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "solo-saves-none.png") });
+        throw new Error("the computer never shot at you in its first turn");
+      }
       if (await page.locator(".self-roll-note").count()) break;
       const anyway = page.locator(".topbar .ask button.primary");
       const next = page.locator('.topbar button[title="Next phase"]');
@@ -1775,8 +1779,24 @@ const checks = {
     // The 3D view first (where most play happens): a twist must work there (PX re-check of #60).
     await touchTable(page, t, false);
     const next = page.locator(".topbar .turn button", { hasText: "▶" });
+    // ▶ waits a beat while the other side may react (#80): Go on, as a player would.
+    const tapNext = async () => {
+      const goOn = page.getByRole("button", { name: "Go on", exact: true });
+      for (let i = 0; i < 20 && !(await next.isEnabled()); i++) {
+        if (await goOn.count())
+          await goOn
+            .first()
+            .tap()
+            .catch(() => {});
+        await sleep(250);
+      }
+      if (!(await next.isEnabled()) && process.env.SMOKE_SHOTS) {
+        await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "touch-next-held.png") });
+      }
+      await next.tap();
+    };
     const phase = () => page.locator(".topbar .turn .phases .current").textContent();
-    await next.tap();
+    await tapNext();
     await sleep(1000);
     if ((await phase()) !== "Movement") throw new Error(`▶ went to ${await phase()}, not Movement`);
     const mover = await tapOwnUnit(page, t);
@@ -1790,7 +1810,7 @@ const checks = {
     // Top-down from here; turned, its models stand elsewhere: find one again to drag.
     await topDown(page, t);
     await touchMove(page, t, await tapOwnUnit(page, t), { x: 0, y: -40 });
-    await next.tap();
+    await tapNext();
     await sleep(1500);
     await page
       .locator(".unitcard button", { hasText: /^Shoot$/ })
@@ -1840,14 +1860,19 @@ const checks = {
     }
     await declare.tap();
     for (let i = 0; i < 10; i++) {
-      const roll = page.locator(".attack button.primary, .procedure button.primary").first();
-      if (!(await roll.count())) break;
-      await roll.tap();
+      // The other side may react first (#80): both sides are on this screen, and they say no.
+      const no = page.locator(".reaction-cards").getByRole("button", { name: "No", exact: true });
+      if (await no.count()) await no.first().tap();
+      const goOn = page.locator(".may-react").getByRole("button", { name: "Go on" });
+      if (await goOn.count()) await goOn.first().tap();
+      const roll = page.locator(".attack button.primary:enabled, .procedure button.primary:enabled").first();
+      if (!(await page.locator(".attack button.primary, .procedure button.primary").count())) break;
+      if (await roll.count()) await roll.tap();
       await sleep(2500);
     }
     await page.locator(".attack button, .procedure button", { hasText: "Done" }).first().tap();
     for (let i = 0; i < 8 && /Player 1/.test(await page.locator(".topbar .turn strong").textContent()); i++) {
-      await next.tap();
+      await tapNext();
       await sleep(800);
     }
     if (!/Player 2/.test(await page.locator(".topbar .turn strong").textContent()))
@@ -2571,6 +2596,9 @@ const checks = {
     if (!link.includes("room=")) throw new Error(`no room in ${link}`);
     // 479: both armies are on Ana's shelf for this game, named after their units (483).
     const shelf = host.page.locator('select[aria-label="From your shelf"] option');
+    // The room's army step waits behind the invite (UX 515): open it to see the shelf.
+    const pickNow = host.page.locator(".setup-steps").getByRole("button", { name: /^(Pick it now|Change)$/ });
+    if (!(await shelf.count()) && (await pickNow.count())) await pickNow.first().click();
     await shelf.filter({ hasText: "Ember Kin (Club Night)" }).first().waitFor({ state: "attached" });
     await shelf.filter({ hasText: "Scrap Brute (Club Night)" }).first().waitFor({ state: "attached" });
     const p1 = (await host.page.locator(".plate").first().textContent()) ?? "";
