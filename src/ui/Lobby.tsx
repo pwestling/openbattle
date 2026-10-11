@@ -16,7 +16,7 @@ import { ArmyGuide } from "./ArmyGuide";
 import { NetCheck } from "./NetCheck";
 import { presetMission, startDemo } from "./demo";
 import { reloadedInto } from "./resumeHotseat";
-import { useRouteFlag, useRouteParam } from "./route";
+import { usePlayRoute, useRouteFlag } from "./route";
 import {
   BRINEWATCH,
   installOwnGame,
@@ -71,6 +71,38 @@ const LiveStrip = lazy(() => import("../opentables/OpenTables").then((m) => ({ d
 /** The sample game that stays in sight beside our own two; the rest fold under More games (UX 504). */
 const FIRST = new Set(["forty-k-11"]);
 
+/** Who against, on the front door (UX 513). */
+type Who = "friend" | "computer" | "both" | "table";
+const WHOS: Who[] = ["friend", "computer", "both", "table"];
+const WHO_KEY = "open-battle:who";
+
+/** Arrow keys move within a column's choices, as in a radio group. */
+function arrows(e: React.KeyboardEvent<HTMLElement>) {
+  const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+  if (!step) return;
+  const all = [...e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]:not([disabled])')];
+  const at = all.indexOf(document.activeElement as HTMLElement);
+  if (at < 0) return;
+  e.preventDefault();
+  all[(at + step + all.length) % all.length]?.focus();
+}
+
+/** Focus a column's chosen answer, else last time's, else its first choice or field, once it has opened. */
+function focusInto(id: string) {
+  requestAnimationFrame(() => {
+    for (const want of [
+      '[aria-checked="true"]',
+      "[data-last]",
+      '[role="radio"]',
+      "input",
+      "button.primary",
+    ]) {
+      const el = document.querySelector<HTMLElement>(`#${id} ${want}`);
+      if (el) return el.focus();
+    }
+  });
+}
+
 /** Run `then` once the game's session exists: at once, or when an online start has loaded WebRTC. */
 function whenStarted(then: () => void): void {
   if (useStore.getState().session) return then();
@@ -120,9 +152,28 @@ export function Lobby() {
     const timer = setTimeout(() => setLiveStrip(true), 1500);
     return () => clearTimeout(timer);
   }, []);
-  // #/play/<game> (and the old `?play=<game>`, a watcher's "Play this yourself"): that game's "How hard?".
-  const [playing, setAsking] = useRouteParam("play");
-  const asking = playing && (FRONT[playing] || ownGame(playing)) ? playing : null;
+  // The front door is a flow (UX 513, Porter): the game, then who against, then getting ready, each column
+  // opening once the one before is answered. Its address is `#/play/<game>/<who>` (src/ui/route.ts), so Back
+  // closes the last column. The weekly group's last choices come back already picked; `?play=<game>`, a
+  // watcher's "Play this yourself" (PX), lands on that game against the computer.
+  const flow = usePlayRoute();
+  const opened = flow.game !== null;
+  const who = WHOS.includes(flow.who as Who) ? (flow.who as Who) : null;
+  const [level, setLevel] = useState<Level | null>(() => savedLevel());
+  const [phones, setPhones] = useState<"one" | "each">("one");
+  // Esc closes the last column opened ("‹" for the keyboard, UX 513).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || document.querySelector(".modal-backdrop, .modal")) return;
+      if (level && who === "computer") setLevel(null);
+      else if (who) flow.go(flow.game, null);
+      else if (opened) flow.go(null);
+      else return;
+      e.preventDefault();
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [who, opened, level, flow]);
   // Built-in games, then whole games from trusted rules packages (their code runs in the sandbox).
   const library = useLibrary((s) => s.packages);
   useEffect(() => {
@@ -146,9 +197,19 @@ export function Lobby() {
         name: t("{name} {version}", { name: p.manifest.name, version: p.manifest.version }),
       })),
   ];
-  const [system, setSystem] = useState(() => {
-    const last = localStorage.getItem("open-battle:system");
-    return systems.some((s) => s.id === last) ? last! : DEFAULT_SYSTEM;
+  // The game picked on the front door (UX 513): a watcher's ?play=, else the last one played, else the sci-fi battle.
+  const [stored, setSystem] = useState(() => {
+    const want = params.get("play") || localStorage.getItem("open-battle:system");
+    return want && (systems.some((s) => s.id === want) || ownGame(want)) ? want : DEFAULT_SYSTEM;
+  });
+  // Back, Forward or a link at #/play/<game>: that game is the one picked.
+  const system =
+    flow.game && (systems.some((s) => s.id === flow.game) || ownGame(flow.game)) ? flow.game : stored;
+  // Last time's choices, for the weekly group: Enter, Enter, Enter (UX 513). A watcher's ?play= is the computer.
+  const [lastWho] = useState<Who | null>(() => {
+    if (params.get("play")) return "computer";
+    const last = localStorage.getItem(WHO_KEY) as Who | null;
+    return last && WHOS.includes(last) ? last : null;
   });
   const [saved] = useState(loadSavedGame);
   // "Resume: Sci-fi battle, round 2" first in the lobby, not under everything else (UX 395).
@@ -184,9 +245,11 @@ export function Lobby() {
     enterRoom(q);
   };
 
-  /** A game from a package names that package, so every player gets its code. */
+  /** A game from a package names that package, so every player gets its code (read now: our own may have just gone in). */
   const namePackage = () => {
-    const pkg = fromPackages.find((p) => p.manifest.systems[0] === system);
+    const pkg = Object.values(useLibrary.getState().packages).find(
+      (p) => p.trusted && p.manifest.kind === "system" && p.manifest.systems[0] === system,
+    );
     if (!pkg) return;
     useStore.getState().dispatch({
       type: "game/packages",
@@ -195,11 +258,13 @@ export function Lobby() {
       packages: [refOf(pkg)],
     });
   };
-  const host = (companion = false) => {
-    remember();
+  const host = async (companion = false, as = name) => {
+    // Our own games go in the library first, so the room names their package.
+    if (ownGame(system)) await installOwnGame(system);
+    remember(as);
     const roomId = room || crypto.randomUUID().slice(0, 8);
     linkTo(roomId);
-    start({ role: "host", mode, roomId, name, system });
+    start({ role: "host", mode, roomId, name: as, system });
     // Online, the session starts once WebRTC has loaded: until then a dispatch goes nowhere, and a
     // 2 vs 2 room opened as 1 vs 1 (dogfood).
     whenStarted(() => {
@@ -211,6 +276,7 @@ export function Lobby() {
   };
   /** Real models on a real table (#37): this screen keeps the cards, dice and score. */
   const companionHere = () => {
+    if (ownGame(system)) return void playOwnAtTable(system);
     remember();
     start({ role: "host", mode: "hotseat", name, system });
     namePackage();
@@ -229,8 +295,22 @@ export function Lobby() {
     // The computer takes its side again, at the level it played (UX 439).
     if (saved.computer) armSolo(saved.computer.level, saved.computer.seat);
   };
-  // An invite link from a player with no name yet: asked first, as the host was (#78 rehearsal).
-  const [askName, setAskName] = useState<{ roomId: string; mode: Mode } | null>(null);
+  // The name is asked once, when it's needed: an invite link, or hosting or joining with none yet (#78, UX 517).
+  const [askName, setAskName] = useState<{ go: (name: string) => void; watch?: () => void } | null>(null);
+  const needName = (go: (name: string) => void) => {
+    const n = name.trim() || useCard.getState().name.trim();
+    if (n) go(n);
+    else setAskName({ go });
+  };
+  /** Both sides on this screen: our own games and the samples set up and started, any other game on an empty table. */
+  const bothSides = () => {
+    if (ownGame(system)) return void playOwnGame(system);
+    if (FRONT[system]) return startDemo(system);
+    remember();
+    start({ role: "host", mode: "hotseat", name, system });
+    namePackage();
+    presetMission();
+  };
   // A tab reloaded in the middle of a game goes straight back into its room.
   useEffect(() => {
     if (autoJoined) return;
@@ -263,7 +343,12 @@ export function Lobby() {
     if (!back?.role) {
       if (!who.trim() && !useCard.getState().name.trim()) {
         // Set from the link, once: not a cascade of renders.
-        queueMicrotask(() => setAskName({ roomId, mode: m }));
+        queueMicrotask(() =>
+          setAskName({
+            go: (n) => start({ role: "client", mode: m, roomId, name: n }),
+            watch: () => start({ role: "spectator", mode: m, roomId, name: "" }),
+          }),
+        );
         return;
       }
       start({ role: "client", mode: m, roomId, name: who });
@@ -305,56 +390,6 @@ export function Lobby() {
       })),
   ];
 
-  const gameCard = (g: (typeof games)[number]) => (
-    <div key={g.id} className="demo">
-      <strong>{g.title}</strong>
-      <span className="muted small">{g.blurb}</span>
-      {/* One main button and Play the computer; the rest one click in (UX 83). */}
-      <div className="row wrap">
-        {g.lessons.slice(0, 1).map((l) => (
-          <button
-            key={l.id}
-            className="primary small learn"
-            title={gameText(l.summary)}
-            onClick={() => void import("../teach/store").then((m) => m.startLesson(l))}
-          >
-            {t("Learn (guided)")}
-          </button>
-        ))}
-        {g.demo && !g.lessons.length && (
-          <button className="primary small try" onClick={() => startDemo(g.id)}>
-            {t("Try (both sides)")}
-          </button>
-        )}
-        {g.demo && (
-          <button className="small solo" onClick={() => setAsking(g.id)}>
-            {t("Play the computer")}
-          </button>
-        )}
-        {(g.lessons.length > 1 || (g.demo && g.lessons.length > 0)) && (
-          <PopMenu label="⋯" title={t("More for this game")} className="small">
-            {g.demo && g.lessons.length > 0 && (
-              <button className="try" onClick={() => startDemo(g.id)}>
-                {t("Try (both sides)")}
-              </button>
-            )}
-            {g.lessons.slice(1).map((l) => (
-              <button
-                key={l.id}
-                className="learn"
-                title={gameText(l.summary)}
-                onClick={() => void import("../teach/store").then((m) => m.startLesson(l))}
-              >
-                {gameText(l.title)}
-              </button>
-            ))}
-          </PopMenu>
-        )}
-      </div>
-      {asking === g.id && <HowHard system={g.id} onCancel={() => setAsking(null)} />}
-    </div>
-  );
-
   if (askName)
     return (
       <div className="panel lobby">
@@ -365,12 +400,17 @@ export function Lobby() {
             const n = name.trim();
             if (!n) return;
             localStorage.setItem("open-battle:name", n);
-            start({ role: "client", mode: askName.mode, roomId: askName.roomId, name: n });
+            setAskName(null);
+            askName.go(n);
           }}
         >
           {/* i18n-ignore */}
           <h1>Open Battle</h1>
-          <p>{t("You've been invited to a game. What should the others call you?")}</p>
+          <p>
+            {askName.watch
+              ? t("You've been invited to a game. What should the others call you?")
+              : t("What should the others call you?")}
+          </p>
           <div className="row">
             <input
               value={name}
@@ -384,16 +424,95 @@ export function Lobby() {
               {t("Use this name")}
             </button>
           </div>
-          <button
-            type="button"
-            className="link quiet small"
-            onClick={() => start({ role: "spectator", mode: askName.mode, roomId: askName.roomId, name: "" })}
-          >
-            {t("Just watch")}
-          </button>
+          {askName.watch ? (
+            <button type="button" className="link quiet small" onClick={askName.watch}>
+              {t("Just watch")}
+            </button>
+          ) : (
+            <button type="button" className="link quiet small" onClick={() => setAskName(null)}>
+              {t("Back")}
+            </button>
+          )}
         </form>
       </div>
     );
+
+  // 1. What are you playing? (UX 513): the sci-fi battle and our own two side by side, the same shape, no
+  // buttons on them; every other game under More games.
+  const ours = [
+    {
+      id: RIFT_LANTERNS,
+      // i18n-ignore
+      title: "Rift Lanterns",
+      blurb: t(
+        "Our own skirmish game, free to share (CC BY). Four warbands fight over lanterns fallen into a rift. Nothing to import.",
+      ),
+    },
+    {
+      id: BRINEWATCH,
+      // i18n-ignore
+      title: "Brinewatch",
+      blurb: t(
+        "Our own skirmish game, free to share (CC BY). Crews of five to ten climb a drowned town's towers at low tide: two actions a go, guards and hidden lurkers. Nothing to import.",
+      ),
+    },
+  ];
+  const first = [
+    ...games.filter((g) => FIRST.has(g.id)).map((g) => ({ id: g.id, title: g.title, blurb: g.blurb })),
+    ...ours,
+  ];
+  const more = [
+    ...games.filter((g) => !FIRST.has(g.id)).map((g) => ({ id: g.id, title: g.title, blurb: g.blurb })),
+    ...systems
+      .filter((x) => !games.some((g) => g.id === x.id) && !ownGame(x.id))
+      .map((x) => ({ id: x.id, title: systemLabel(x.id, x.name), blurb: "" })),
+  ];
+  // A game picked from More games takes its place in the row.
+  const shown = first.some((g) => g.id === system)
+    ? first
+    : [...first, ...more.filter((g) => g.id === system)];
+  const picked = [...first, ...more].find((g) => g.id === system);
+  const lesson = games.find((g) => g.id === system)?.lessons[0];
+  const pick = (id: string) => {
+    setSystem(id);
+    localStorage.setItem("open-battle:system", id);
+    // A choice the new game can't take (the computer) is asked again.
+    flow.go(id, who === "computer" && !(FRONT[id] || ownGame(id)) ? null : who);
+    focusInto("flow-who");
+  };
+  const choose = (id: Who) => {
+    flow.go(system, id);
+    localStorage.setItem(WHO_KEY, id);
+    if (id === "computer") {
+      setLevel(null);
+      focusInto("flow-who .how-hard");
+    } else focusInto("flow-ready");
+  };
+  /** The one button at the foot of Get ready: what happens is in its name. */
+  const go = () => {
+    if (who === "friend") void host(false, name.trim());
+    else if (who === "both") bothSides();
+    else if (who === "table") {
+      if (phones === "one") companionHere();
+      else void host(true, name.trim());
+    }
+  };
+  const gameCard = (g: { id: string; title: string; blurb: string }) => (
+    <button
+      key={g.id}
+      role="radio"
+      aria-checked={opened && system === g.id}
+      data-last={!opened && system === g.id ? "" : undefined}
+      className={`demo game-pick${opened && system === g.id ? " on" : ""}${ownGame(g.id) ? " ours" : ""}`}
+      onClick={() => pick(g.id)}
+    >
+      <strong>{g.title}</strong>
+      {g.blurb && <span className="muted small">{g.blurb}</span>}
+    </button>
+  );
+  // 2. Who against? Online is the computer's only where there's a computer player for the game.
+  const computer = !!FRONT[system] || ownGame(system);
+  const atTable = ownGame(system) || !fromPackages.some((p) => p.manifest.systems[0] === system);
 
   return (
     <div className="panel lobby">
@@ -410,9 +529,82 @@ export function Lobby() {
           </PopMenu>
         </div>
       </div>
+      {/* Joining is the one thing a guest does: always at the top (UX 513). */}
+      <div className="invite-box">
+        <label>
+          {t("Got an invite? Paste it")}{" "}
+          <input
+            value={room}
+            placeholder={t("a room code or invite link")}
+            aria-label={t("Room")}
+            onChange={(e) => setRoom(roomFrom(e.target.value))}
+          />
+        </label>
+        {room && (
+          <>
+            <div className="row">
+              <button className="primary" onClick={() => needName((n) => join("client", room, n))}>
+                {t("Join")}
+              </button>
+              <button onClick={() => join("spectator")}>{t("Watch")}</button>
+            </div>
+            {/* The connection check is for joining; it's in Report a problem too (UX 83). */}
+            <NetCheck />
+          </>
+        )}
+      </div>
       <p className="pitch">
         {t("Tabletop battles on a 3D table in your browser. Bring your army; the rules keep count.")}
       </p>
+      {saved && savedAt?.event && savedAt.over ? (
+        // An event game played out: the event is what's next, not the finished table (PX events 6).
+        <button
+          className="primary resume-top"
+          onClick={() => void import("../events/play").then((m) => m.backToEvent(savedAt.event!.id))}
+        >
+          <strong>{t("{event}: back to the event", { event: savedAt.event.name })}</strong>
+          <span className="small">
+            {t("Event round {n} · Table {table}", { n: savedAt.event.round, table: savedAt.event.table })}
+          </span>
+        </button>
+      ) : (
+        saved && (
+          <button className="primary resume-top" onClick={resume}>
+            <strong>
+              {savedAt
+                ? savedAt.over
+                  ? t("Back to {game}: Battle over", { game: savedAt.game })
+                  : savedAt.round === null
+                    ? t("Resume: {game}", { game: savedAt.game })
+                    : savedAt.round > 0
+                      ? t("Resume: {game}, round {n}", { game: savedAt.game, n: savedAt.round })
+                      : t("Resume: {game}, deploying", { game: savedAt.game })
+                : t("Resume last game")}
+            </strong>
+            <span className="small">
+              {tn(
+                saved.record.events.length,
+                "{mode}, {n} event, saved {date}",
+                "{mode}, {n} events, saved {date}",
+                {
+                  mode: saved.computer
+                    ? t("Against the computer ({level})", { level: levelName(saved.computer.level) })
+                    : ({ online: t("online"), local: t("local"), hotseat: t("hotseat") }[saved.mode] ??
+                      saved.mode),
+                  date: formatDate(new Date(saved.savedAt), {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
+                    second: "numeric",
+                  }),
+                },
+              )}
+            </span>
+          </button>
+        )
+      )}
       {liveStrip && (
         <Suspense fallback={null}>
           <LiveStrip onMore={() => setTables(true)} />
@@ -421,58 +613,275 @@ export function Lobby() {
       <WhatsNew />
       <UpdateToast />
       <OfflineNote />
-      {/* Two columns on a wide screen (UX 288): getting started, then playing with people. */}
-      <div className="lobby-cols">
-        <div className="lobby-col">
-          {saved && savedAt?.event && savedAt.over ? (
-            // An event game played out: the event is what's next, not the finished table (PX events 6).
-            <button
-              className="primary resume-top"
-              onClick={() => void import("../events/play").then((m) => m.backToEvent(savedAt.event!.id))}
-            >
-              <strong>{t("{event}: back to the event", { event: savedAt.event.name })}</strong>
-              <span className="small">
-                {t("Event round {n} · Table {table}", { n: savedAt.event.round, table: savedAt.event.table })}
-              </span>
-            </button>
-          ) : (
-            saved && (
-              <button className="primary resume-top" onClick={resume}>
-                <strong>
-                  {savedAt
-                    ? savedAt.over
-                      ? t("Back to {game}: Battle over", { game: savedAt.game })
-                      : savedAt.round === null
-                        ? t("Resume: {game}", { game: savedAt.game })
-                        : savedAt.round > 0
-                          ? t("Resume: {game}, round {n}", { game: savedAt.game, n: savedAt.round })
-                          : t("Resume: {game}, deploying", { game: savedAt.game })
-                    : t("Resume last game")}
-                </strong>
-                <span className="small">
-                  {tn(
-                    saved.record.events.length,
-                    "{mode}, {n} event, saved {date}",
-                    "{mode}, {n} events, saved {date}",
-                    {
-                      mode: saved.computer
-                        ? t("Against the computer ({level})", { level: levelName(saved.computer.level) })
-                        : ({ online: t("online"), local: t("local"), hotseat: t("hotseat") }[saved.mode] ??
-                          saved.mode),
-                      date: formatDate(new Date(saved.savedAt), {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        second: "numeric",
-                      }),
-                    },
-                  )}
-                </span>
-              </button>
-            )
+      <div className="flow">
+        <section id="flow-game" className="flow-col" aria-labelledby="flow-game-h">
+          <h2 id="flow-game-h">{t("1. What are you playing?")}</h2>
+          <div className="demos game-row" role="radiogroup" aria-labelledby="flow-game-h" onKeyDown={arrows}>
+            {shown.map(gameCard)}
+          </div>
+          {more.length > 0 && (
+            <details className="more-games">
+              <summary>{t("More games ▸")}</summary>
+              <div className="demos">{more.filter((g) => g.id !== system).map(gameCard)}</div>
+            </details>
           )}
+          {ownGame(system) && opened && (
+            <button
+              className="link small"
+              onClick={() => (system === BRINEWATCH ? setBrineRules(true) : setRules(true))}
+            >
+              {t("Rules, print and play")}
+            </button>
+          )}
+        </section>
+        {opened && (
+          <section id="flow-who" key={system} className="flow-col drawer" aria-labelledby="flow-who-h">
+            <h2 id="flow-who-h">
+              {picked ? t("2. Who against, in {game}?", { game: picked.title }) : t("2. Who against?")}
+            </h2>
+            <div className="who" role="radiogroup" aria-labelledby="flow-who-h" onKeyDown={arrows}>
+              {(
+                [
+                  [
+                    "friend",
+                    "friend",
+                    t("A friend online"),
+                    t("You get a link to send; whoever opens it joins your table."),
+                    true,
+                  ],
+                  ["computer", "solo", t("The computer"), t("Easy, Steady or Sharp."), computer],
+                  [
+                    "both",
+                    "try play-now",
+                    t("Both sides, on this screen"),
+                    FRONT[system] || ownGame(system)
+                      ? t("Two sample armies set up; you play both.")
+                      : t("You set up both armies and play both."),
+                    true,
+                  ],
+                  [
+                    "table",
+                    "table",
+                    t("At a real table, with your models"),
+                    t("Open Battle keeps the cards, wounds, CP, VP and each attack."),
+                    atTable,
+                  ],
+                ] as const
+              ).map(([id, cls, title, line, can]) => (
+                <button
+                  key={id}
+                  role="radio"
+                  aria-checked={who === id}
+                  data-last={!who && lastWho === id ? "" : undefined}
+                  disabled={!can}
+                  title={can ? undefined : t("No computer player for this game yet")}
+                  className={`who-pick ${cls}${who === id ? " on" : ""}`}
+                  onClick={() => choose(id)}
+                >
+                  <strong>{title}</strong>
+                  <span className="muted small">{line}</span>
+                </button>
+              ))}
+            </div>
+            {who === "computer" && computer && (
+              <div className="how-hard" role="radiogroup" aria-label={t("How hard?")} onKeyDown={arrows}>
+                <strong className="small">{t("How hard?")}</strong>
+                {(
+                  [
+                    ["random", t("plays loosely; good for a first game")],
+                    ["steady", t("plays to win")],
+                    ["sharp", t("thinks harder about every move")],
+                  ] as const
+                ).map(([l, line]) => (
+                  <button
+                    key={l}
+                    role="radio"
+                    aria-checked={level === l}
+                    className={level === l ? "small on" : "small"}
+                    onClick={() => {
+                      setLevel(l);
+                      focusInto("flow-ready");
+                    }}
+                  >
+                    {levelName(l)} <span className="muted small">{characterName(l)}</span>{" "}
+                    <span className="muted small">{line}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {lesson && (
+              <button
+                className="link small learn"
+                title={gameText(lesson.summary)}
+                onClick={() => void import("../teach/store").then((m) => m.startLesson(lesson))}
+              >
+                {t("New to it? Learn with a coach")}
+              </button>
+            )}
+          </section>
+        )}
+        {opened && who && (who !== "computer" || level) && (
+          <section
+            id="flow-ready"
+            key={`${system}/${who}`}
+            className="flow-col drawer"
+            aria-labelledby="flow-ready-h"
+          >
+            <h2 id="flow-ready-h">{t("3. Get ready")}</h2>
+            {who === "computer" && level && (
+              <YourArmy system={system} level={level} onBack={() => setLevel(null)} />
+            )}
+            {who === "table" && (
+              <div className="segmented" role="radiogroup" aria-label={t("Phones")} onKeyDown={arrows}>
+                <button
+                  role="radio"
+                  aria-checked={phones === "one"}
+                  className={phones === "one" ? "on" : ""}
+                  onClick={() => setPhones("one")}
+                >
+                  {t("One phone for both of us")}
+                </button>
+                {!ownGame(system) && (
+                  <button
+                    role="radio"
+                    aria-checked={phones === "each"}
+                    className={phones === "each" ? "on" : ""}
+                    title={t("You get a link to send; the other player opens it on their phone")}
+                    onClick={() => setPhones("each")}
+                  >
+                    {t("A phone each")}
+                  </button>
+                )}
+              </div>
+            )}
+            {(who === "friend" || (who === "table" && phones === "each")) && (
+              <label className="flow-name">
+                {t("Your name")}{" "}
+                <input
+                  value={name}
+                  maxLength={32}
+                  placeholder={t("What should the others call you?")}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    // Kept as typed, so Open tables and mail invites offer it too (dogfood).
+                    if (e.target.value.trim())
+                      localStorage.setItem("open-battle:name", e.target.value.trim());
+                  }}
+                />
+              </label>
+            )}
+            {who === "friend" && (
+              <p className="muted small">{t("Next, in the room: your army and the invite link to send.")}</p>
+            )}
+            {who === "both" && (
+              <p className="muted small">
+                {FRONT[system] || ownGame(system)
+                  ? t("Both armies go on the table and the battle starts. Pass the screen at each turn.")
+                  : t("An empty table: put both armies on it, then start.")}
+              </p>
+            )}
+            {who !== "computer" && (
+              <button
+                className="primary flow-go"
+                disabled={(who === "friend" || (who === "table" && phones === "each")) && !name.trim()}
+                onClick={go}
+              >
+                {who === "both" ? t("Set up both sides") : t("Open the table")}
+              </button>
+            )}
+            {who === "friend" && (
+              <div className="row wrap who-more">
+                <OfflineForFriends />
+                {boardOn() && (
+                  <button className="link open-tables-button" onClick={() => setTables(true)}>
+                    {t("Or find an opponent on Open tables")}
+                  </button>
+                )}
+                <details className="host-options">
+                  <summary className="muted small">
+                    {teamSize === 2 ? t("Options: 2 vs 2") : t("Options")}
+                  </summary>
+                  <div className="segmented" role="radiogroup" aria-label={t("Players")}>
+                    {(
+                      [
+                        [1, t("1 vs 1"), t("Two players")],
+                        [2, t("2 vs 2"), t("Four players in two teams; teams share CP and VP")],
+                      ] as const
+                    ).map(([n, label, about]) => (
+                      <button
+                        key={n}
+                        role="radio"
+                        aria-checked={teamSize === n}
+                        className={teamSize === n ? "on" : ""}
+                        title={about}
+                        onClick={() => setTeamSize(n)}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              </div>
+            )}
+          </section>
+        )}
+      </div>
+      {tables && (
+        <Suspense fallback={null}>
+          <OpenTablesBoard
+            onClose={() => setTables(false)}
+            onJoin={(code, as) => {
+              setRoom(code);
+              if (as) setName(as);
+              join("client", code, as || name);
+            }}
+            onHost={() => {
+              setTables(false);
+              useOpenTables.setState({ asked: true });
+              needName((n) => void host(false, n));
+            }}
+          />
+        </Suspense>
+      )}
+      {rules && (
+        <Suspense fallback={null}>
+          <RulesPage
+            onClose={() => setRules(false)}
+            play={[
+              { label: t("Both sides, on this screen"), primary: true, run: () => void playRiftLanterns() },
+              {
+                label: t("The computer"),
+                run: () => (setRules(false), pick(RIFT_LANTERNS), choose("computer")),
+              },
+              { label: t("At a real table"), run: () => void playRiftAtTable() },
+            ]}
+          />
+        </Suspense>
+      )}
+      {brineRules && (
+        <Suspense fallback={null}>
+          <BrinewatchRules
+            onClose={() => setBrineRules(false)}
+            play={[
+              {
+                label: t("Both sides, on this screen"),
+                primary: true,
+                run: () => void playOwnGame(BRINEWATCH),
+              },
+              {
+                label: t("The computer"),
+                run: () => (setBrineRules(false), pick(BRINEWATCH), choose("computer")),
+              },
+              { label: t("At a real table"), run: () => void playOwnAtTable(BRINEWATCH) },
+            ]}
+          />
+        </Suspense>
+      )}
+      {/* Files: one way in that recognises what it's given (UX 516); the rest of the ways to play fold below. */}
+      <div className="row wrap lobby-files">
+        <OpenFile />
+        <details className="fold">
+          <summary>{t("More ways to play")}</summary>
           <button className="own-army" onClick={() => setGuide(true)}>
             <strong>{t("Play your own army: import a list")}</strong>
             <span className="muted small">
@@ -481,293 +890,43 @@ export function Lobby() {
               )}
             </span>
           </button>
-          {/* On a narrow screen the board is screens down, under Play with friends: a way in up here (UX 383). */}
-          {boardOn() && (
-            <button className="find-opponent" onClick={() => setTables(true)}>
-              <strong>{t("Find an opponent")}</strong>
-              <span className="muted small">{t("Join a game someone has put up on Open tables.")}</span>
-            </button>
-          )}
-          {/* Our own game (#42): original, free to share, and nothing to import. */}
-          <div className="demo ours">
-            {/* i18n-ignore */}
-            <strong>Rift Lanterns</strong>
-            <span className="muted small">
-              {t(
-                "Our own skirmish game, free to share (CC BY). Four warbands fight over lanterns fallen into a rift. Nothing to import.",
-              )}
-            </span>
-            <div className="row wrap">
-              <button className="primary small play-now" onClick={() => void playRiftLanterns()}>
-                {t("Play now (both sides)")}
-              </button>
-              <button className="small solo" onClick={() => setAsking(RIFT_LANTERNS)}>
-                {t("Play the computer")}
-              </button>
-              <PopMenu label="⋯" title={t("More for this game")} className="small">
-                <button
-                  title={t(
-                    "Printed or real models on your table: this phone keeps the cards, rolls and scores",
-                  )}
-                  onClick={() => void playRiftAtTable()}
-                >
-                  {t("At a real table")}
-                </button>
-                <button onClick={() => setRules(true)}>{t("Rules, print and play")}</button>
-              </PopMenu>
-            </div>
-            {rules && (
-              <Suspense fallback={null}>
-                <RulesPage
-                  onClose={() => setRules(false)}
-                  play={[
-                    { label: t("Play now (both sides)"), primary: true, run: () => void playRiftLanterns() },
-                    { label: t("Play the computer"), run: () => setAsking(RIFT_LANTERNS) },
-                    { label: t("At a real table"), run: () => void playRiftAtTable() },
-                  ]}
-                />
-              </Suspense>
-            )}
-            {asking === RIFT_LANTERNS && <HowHard system={RIFT_LANTERNS} onCancel={() => setAsking(null)} />}
-          </div>
-          {/* Our second (#69): a skirmish game of model-by-model goes, guards and hidden lurkers. */}
-          <div className="demo ours">
-            {/* i18n-ignore */}
-            <strong>Brinewatch</strong>
-            <span className="muted small">
-              {t(
-                "Our own skirmish game, free to share (CC BY). Crews of five to ten climb a drowned town's towers at low tide: two actions a go, guards and hidden lurkers. Nothing to import.",
-              )}
-            </span>
-            <div className="row wrap">
-              <button className="primary small play-now" onClick={() => void playOwnGame(BRINEWATCH)}>
-                {t("Play now (both sides)")}
-              </button>
-              <button className="small solo" onClick={() => setAsking(BRINEWATCH)}>
-                {t("Play the computer")}
-              </button>
-              <PopMenu label="⋯" title={t("More for this game")} className="small">
-                <button
-                  title={t(
-                    "Printed or real models on your table: this phone keeps the cards, rolls and scores",
-                  )}
-                  onClick={() => void playOwnAtTable(BRINEWATCH)}
-                >
-                  {t("At a real table")}
-                </button>
-                <button onClick={() => setBrineRules(true)}>{t("Rules, print and play")}</button>
-              </PopMenu>
-            </div>
-            {brineRules && (
-              <Suspense fallback={null}>
-                <BrinewatchRules
-                  onClose={() => setBrineRules(false)}
-                  play={[
-                    {
-                      label: t("Play now (both sides)"),
-                      primary: true,
-                      run: () => void playOwnGame(BRINEWATCH),
-                    },
-                    { label: t("Play the computer"), run: () => setAsking(BRINEWATCH) },
-                    { label: t("At a real table"), run: () => void playOwnAtTable(BRINEWATCH) },
-                  ]}
-                />
-              </Suspense>
-            )}
-            {asking === BRINEWATCH && <HowHard system={BRINEWATCH} onCancel={() => setAsking(null)} />}
-          </div>
-          <h2>{t("Pick a game")}</h2>
-          <p className="muted small">
-            {t(
-              "Learn: a guided first game against the computer, with a coach. Try: two sample armies set up, and you play both sides.",
-            )}
-          </p>
-          <p className="muted small">
-            {t(
-              "These are built-in sample rules. For your own game system, load its rules package under More ways to play.",
-            )}
-          </p>
-          <div className="demos">
-            {games.filter((g) => FIRST.has(g.id)).map(gameCard)}
-            {/* The other sample games one click in, the sci-fi battle beside our own two (UX 504). */}
-            {games.some((g) => !FIRST.has(g.id)) && (
-              <details className="more-games">
-                <summary>{t("More games")}</summary>
-                <div className="demos">{games.filter((g) => !FIRST.has(g.id)).map(gameCard)}</div>
-              </details>
-            )}
-          </div>
-        </div>
-        <div className="lobby-col">
-          <h2>{t("Play with friends")}</h2>
-          <OfflineForFriends />
-          {boardOn() && (
-            <>
-              <button className="open-tables-button" onClick={() => setTables(true)}>
-                <strong>{t("Open tables: find an opponent")}</strong>
-                <span className="muted small">
-                  {t("Games other players have put up. Join one, or post your own.")}
-                </span>
-              </button>
-              {tables && (
-                <Suspense fallback={null}>
-                  <OpenTablesBoard
-                    onClose={() => setTables(false)}
-                    onJoin={(code, as) => {
-                      setRoom(code);
-                      if (as) setName(as);
-                      join("client", code, as || name);
-                    }}
-                    onHost={() => {
-                      setTables(false);
-                      useOpenTables.setState({ asked: true });
-                      host();
-                    }}
-                  />
-                </Suspense>
-              )}
-            </>
-          )}
-          {/* The player card's name is used as it is (UX 83); the field shows without one, or another typed. */}
-          {(!cardName || (name.trim() !== "" && name.trim() !== cardName)) && (
-            <label>
-              {t("Your name")}{" "}
-              <input
-                value={name}
-                placeholder={t("Player 1 or 2, by seat")}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  // Kept as typed, so Open tables and mail invites offer it too (dogfood).
-                  if (e.target.value.trim()) localStorage.setItem("open-battle:name", e.target.value.trim());
-                }}
-              />
-            </label>
-          )}
-          <label>
-            {t("Game")}{" "}
-            <select value={system} onChange={(e) => setSystem(e.target.value)}>
-              {systems.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {systemLabel(s.id, s.name)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {/* The table's size beside the button it changes (UX 406). */}
-          <div className="row wrap">
-            <button className="primary" onClick={() => host()}>
-              {t("Host a game")}
-            </button>
-            <details className="host-options">
-              <summary className="muted small">
-                {teamSize === 2 ? t("Options: 2 vs 2") : t("Options")}
-              </summary>
-              <div className="segmented" role="radiogroup" aria-label={t("Players")}>
-                {(
-                  [
-                    [1, t("1 vs 1"), t("Two players")],
-                    [2, t("2 vs 2"), t("Four players in two teams; teams share CP and VP")],
-                  ] as const
-                ).map(([n, label, about]) => (
-                  <button
-                    key={n}
-                    role="radio"
-                    aria-checked={teamSize === n}
-                    className={teamSize === n ? "on" : ""}
-                    title={about}
-                    onClick={() => setTeamSize(n)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </details>
-          </div>
-          <p className="muted small">{t("You get a link to send; whoever opens it joins your table.")}</p>
-          {/* Most guests open the link itself; Join and Watch show once something is pasted (UX 83). */}
-          <label>
-            {t("Have an invite? Paste it here")}{" "}
-            <input
-              value={room}
-              placeholder={t("a room code or invite link")}
-              aria-label={t("Room")}
-              onChange={(e) => setRoom(roomFrom(e.target.value))}
-            />
-          </label>
-          {room && (
-            <>
-              <div className="row">
-                <button className="primary" onClick={() => join("client")}>
-                  {t("Join")}
-                </button>
-                <button onClick={() => join("spectator")}>{t("Watch")}</button>
-              </div>
-              {/* The connection check is for joining; it's in Report a problem too (UX 83). */}
-              <NetCheck />
-            </>
-          )}
-          <h2>{t("At a real table")}</h2>
-          <p className="muted small">
-            {t(
-              "Playing with your own models? Open Battle keeps the unit cards, wounds, CP, VP and mission, and works out each attack. Roll on screen or roll your own dice and type them in.",
-            )}
-          </p>
-          <div className="row wrap">
-            <button onClick={companionHere}>{t("One phone for both of us")}</button>
-            <button
-              onClick={() => host(true)}
-              title={t("You get a link to send; the other player opens it on their phone")}
-            >
-              {t("A phone each")}
-            </button>
-          </div>
-          <details className="fold">
-            <summary>{t("More ways to play")}</summary>
-            <label className="check">
-              <input
-                type="checkbox"
-                checked={sameBrowser}
-                onChange={(e) => setSameBrowser(e.target.checked)}
-              />
-              {t("Same browser (play between two tabs, no network)")}
-            </label>
-            <button
-              onClick={() => {
-                remember();
-                start({ role: "host", mode: "hotseat", name, system });
-                namePackage();
-                presetMission();
-              }}
-            >
-              {t("Set up a game on this screen (hotseat)")}
-            </button>
-            <PackageLibrary system={system} onPick={setSystem} />
-            <Suspense fallback={null}>
-              <MailLobby
-                name={name}
-                system={system}
-                onStarted={() => {
-                  remember();
-                  namePackage();
-                }}
-              />
-            </Suspense>
-            <button className="link" onClick={() => openLibrary()}>
-              {t("Figure library: your models, packs and storage")}
-            </button>
-            <button className="link" onClick={openWorkshop}>
-              {t("Module workshop: write your own game system")}
-            </button>
-          </details>
-          <InstallLink />
-          <hr />
-          {/* New, and Porter's focus: kept in sight for now (UX 83). */}
           <button className="tts-entry" onClick={() => openTts()}>
             {t("Open a Tabletop Simulator save as a game")}
           </button>
-          <OpenFile />
+          <label className="check">
+            <input type="checkbox" checked={sameBrowser} onChange={(e) => setSameBrowser(e.target.checked)} />
+            {t("Same browser (play between two tabs, no network)")}
+          </label>
+          <button
+            onClick={() => {
+              remember();
+              start({ role: "host", mode: "hotseat", name, system });
+              namePackage();
+              presetMission();
+            }}
+          >
+            {t("Set up a game on this screen (hotseat)")}
+          </button>
+          <PackageLibrary system={system} onPick={pick} />
+          <Suspense fallback={null}>
+            <MailLobby
+              name={name}
+              system={system}
+              onStarted={() => {
+                remember();
+                namePackage();
+              }}
+            />
+          </Suspense>
+          <button className="link" onClick={() => openLibrary()}>
+            {t("Figure library: your models, packs and storage")}
+          </button>
+          <button className="link" onClick={openWorkshop}>
+            {t("Module workshop: write your own game system")}
+          </button>
           <OpenLink />
-        </div>
+        </details>
+        <InstallLink />
       </div>
       <footer className="lobby-foot muted small">
         <span>{t("No account: games run between your browsers.")}</span>
@@ -792,40 +951,6 @@ function roomFrom(text: string): string {
   } catch {
     return v;
   }
-}
-
-/**
- * "How hard?" (UX 350): asked in the card once Play the computer is pressed,
- * Easy picked the first time and the last choice after that.
- */
-function HowHard({ system, onCancel }: { system: string; onCancel: () => void }) {
-  const last = savedLevel();
-  const [level, setLevel] = useState<Level | null>(null);
-  if (level) return <YourArmy system={system} level={level} onBack={() => setLevel(null)} />;
-  const levels: { level: Level; line: string }[] = [
-    { level: "random", line: t("plays loosely; good for a first game") },
-    { level: "steady", line: t("plays to win") },
-    { level: "sharp", line: t("thinks harder about every move") },
-  ];
-  return (
-    <div className="how-hard" role="group" aria-label={t("How hard?")}>
-      <strong className="small">{t("How hard?")}</strong>
-      {levels.map((l) => (
-        <button
-          key={l.level}
-          className={l.level === last ? "primary small" : "small"}
-          autoFocus={l.level === last}
-          onClick={() => setLevel(l.level)}
-        >
-          {levelName(l.level)} <span className="muted small">{characterName(l.level)}</span>{" "}
-          <span className="muted small">{l.line}</span>
-        </button>
-      ))}
-      <button className="quiet small" title={t("Not now")} onClick={onCancel}>
-        ✕
-      </button>
-    </div>
-  );
 }
 
 /** The player card in the lobby's header (UX 453): name and colour, one tap to the card and the ladder. */

@@ -114,7 +114,8 @@ export function RoomCard() {
           {t("Room")} <code>{roomId}</code>
           {mode === "local" ? ` ${t("(this browser)")}` : ""}
         </span>
-        {(waiting || copied) && (
+        {/* Before the battle a seated player has it in the setup steps (UX 515). */}
+        {(waiting || copied) && !(game.turn.round === 0 && seated.some((p) => p.id === selfId)) && (
           <button
             className={waiting && !joining && !copied ? "primary" : copied ? "on" : ""}
             onClick={() => {

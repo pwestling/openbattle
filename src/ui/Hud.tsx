@@ -6,7 +6,6 @@ import { displayName } from "../i18n/names";
 import { VIEWER } from "../viewer/flag";
 import { ReportButton } from "./SavedNote";
 import { CampaignFold } from "../campaign/CampaignUI";
-import { TablePicker } from "../tables/TableLibrary";
 import { useHold } from "./hold";
 import { bundleReplay } from "./replayFile";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -20,9 +19,10 @@ import { GameSettings } from "./GameSettings";
 import { PopMenu } from "./PopMenu";
 import { NET_PARAMS } from "../net/config";
 import { useCard } from "../player/card";
-import { MissionPicker, SecretMissions } from "./Missions";
+import { SecretMissions } from "./Missions";
 import { SecretObjectives } from "./SecretObjectives";
-import { copyInvite, DeployTray, RoomCard, useRoomWaiting } from "./Room";
+import { copyInvite, RoomCard, useRoomWaiting } from "./Room";
+import { SetupSteps } from "./SetupSteps";
 import { TemplateTools } from "./TemplateTools";
 import { battleOver } from "./StatsScreen";
 import { reviewThisGame } from "../replay/review";
@@ -121,6 +121,8 @@ export function Hud() {
         </Suspense>
       )}
       <RoomCard />
+      {/* Before the battle: what's left to do, in order, at the top (UX 515). */}
+      {mine.length > 0 && round === 0 && <SetupSteps mine={mine} />}
       {mode === "hotseat" && (
         <p className="muted">
           {lesson
@@ -209,21 +211,9 @@ export function Hud() {
             {mode !== "hotseat" && selfId && liveGame.players[selfId] && (
               <NameCard player={liveGame.players[selfId]!} />
             )}
-            <TablePicker />
-            <MissionPicker />
             {/* Near the top before the battle, where a host sets the game up (UX 203); without a campaign
                 attached it waits in Game settings (UX 83). */}
             {liveGame.campaign && <CampaignFold />}
-            {/* Open while a side still has no army; once every side has one it folds away (UX 83). */}
-            {mine.every((p) => Object.values(liveGame.units).some((u) => u.owner === p.id)) ? (
-              <details className="fold">
-                <summary>{t("Armies")}</summary>
-                <ArmyImport players={mine} />
-              </details>
-            ) : (
-              <ArmyImport players={mine} />
-            )}
-            <DeployTray players={mine} />
           </>
         ) : (
           // Photographing the army needn't wait for setup (a game against the computer starts at once,

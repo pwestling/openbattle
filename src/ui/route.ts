@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { create } from "zustand";
 import { useStore } from "../store";
 import { closeWorkshop, openWorkshop, useWorkshopOpen } from "../workshop/open";
@@ -68,16 +69,31 @@ export function useRouteFlag(path: string): [boolean, (on: boolean) => void] {
   return [on, (to) => (to ? go(path) : useRoute.getState().path === path && go("/"))];
 }
 
-/** The `<x>` of `/<screen>/<x>` now, or null, and a setter (null goes back to the front door). */
-export function useRouteParam(screen: string): [string | null, (x: string | null) => void] {
-  const value = useRoute((r) => {
-    const [s, x] = parts(r.path);
-    return s === screen && x ? x : null;
+/**
+ * The front door's flow (UX 513): `/play/<game>/<who>`, the game picked and who against, each opening the next
+ * column. `go(null)` goes back to the front door.
+ */
+export function usePlayRoute(): {
+  game: string | null;
+  who: string | null;
+  go: (game: string | null, who?: string | null) => void;
+} {
+  const game = useRoute((r) => {
+    const [s, g] = parts(r.path);
+    return s === "play" && g ? g : null;
   });
-  return [
-    value,
-    (x) => (x ? go(`/${screen}/${x}`) : parts(useRoute.getState().path)[0] === screen && go("/")),
-  ];
+  const who = useRoute((r) => {
+    const [s, g, w] = parts(r.path);
+    return s === "play" && g && w ? w : null;
+  });
+  return useMemo(
+    () => ({
+      game,
+      who,
+      go: (g: string | null, w: string | null = null) => go(g ? (w ? `/play/${g}/${w}` : `/play/${g}`) : "/"),
+    }),
+    [game, who],
+  );
 }
 
 /** Whether a game (or a replay) is on screen: the front door's screens are under it. */

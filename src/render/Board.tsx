@@ -574,14 +574,17 @@ function Scene() {
           !usePlan.getState().on &&
           d.ids.some((id) => {
             const p = d.starts[id]!;
-            return (
-              Math.abs(p.x + to.x - d.grab.x) > width / 2 || Math.abs(p.y + to.y - d.grab.y) > depth / 2
-            );
+            return Math.abs(p.x + to.x - d.grab.x) > width / 2 || Math.abs(p.y + to.y - d.grab.y) > depth / 2;
           });
         const wasOff = useDragVerb.getState().off;
         if (off)
           useDragVerb.setState({
-            off: { reserve: !!unit && whole && canReserve(game, unit), n: d.ids.length, x: e.clientX, y: e.clientY },
+            off: {
+              reserve: !!unit && whole && canReserve(game, unit),
+              n: d.ids.length,
+              x: e.clientX,
+              y: e.clientY,
+            },
           });
         else if (wasOff) useDragVerb.setState({ off: null });
         const was = useDragVerb.getState().drag;

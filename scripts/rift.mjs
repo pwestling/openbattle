@@ -107,14 +107,15 @@ try {
 
     const t0 = Date.now();
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: "commit" });
-    const play = page
-      .locator(".demo.ours", { hasText: "Rift Lanterns" })
-      .getByRole("button", { name: "Play now (both sides)" });
-    await play.waitFor();
+    const card = page.locator(".game-pick", { hasText: "Rift Lanterns" });
+    await card.waitFor();
+    await card.click();
+    const play = page.locator(".who-pick.try");
     const lobbyMs = Date.now() - t0;
     const tap = await page.evaluate(() => performance.now());
     const t1 = Date.now();
     await play.tap();
+    await page.locator(".flow-go").tap();
     await page.locator("body.showcase").waitFor({ timeout: 120_000 });
     const showcaseStartMs = Date.now() - t1;
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {

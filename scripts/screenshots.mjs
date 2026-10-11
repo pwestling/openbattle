@@ -54,7 +54,7 @@ try {
   }
   {
     const p = await page();
-    await p.locator(".demos .learn").first().click();
+    await p.locator(".lobby .learn").first().click();
     await p.locator(".coach").waitFor();
     await p.waitForTimeout(4000);
     await p.screenshot({ path: `${OUT}/lesson.png` });
@@ -67,7 +67,9 @@ try {
       hasTouch: true,
       deviceScaleFactor: 2,
     });
-    await p.getByRole("button", { name: "One phone for both of us" }).click();
+    await p.locator(".who-pick.table").click();
+    await p.getByRole("radio", { name: "One phone for both of us" }).click();
+    await p.locator(".flow-go").click();
     await p.locator(".companion").waitFor();
     await sampleArmies(p);
     await p.getByRole("button", { name: /Start battle/ }).click();

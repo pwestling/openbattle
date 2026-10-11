@@ -28,7 +28,6 @@ import { isPlaceholder } from "../core/content/systems";
 import { systemModule } from "../systems";
 import { formatDate, t, tn } from "../i18n";
 import { useStore } from "../store";
-import { DicePicker } from "./DicePicker";
 import { ImportAutomation } from "./AutoAbilities";
 import { FactionPacks, PackChecks, packsToGame } from "./FactionPacks";
 import { withPinnedPacks } from "../packages/packPins";
@@ -309,7 +308,6 @@ export function ArmyImport({ players }: { players: { id: PlayerId; name: string;
           name={players.length > 1 ? players.find((p) => p.id === owner)?.name : null}
         />
       )}
-      {owner && <DicePicker key={owner} player={owner} />}
       {/* On the page itself: inside the side panel, the table talk dock sat over its buttons. */}
       {roster &&
         createPortal(

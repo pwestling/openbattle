@@ -60,13 +60,12 @@ async function rankedToResult() {
   const guest = await device();
   const tables = async (page) => {
     await lobby(page, q);
-    await page.getByRole("button", { name: /Open tables: find/ }).click();
+    await openTables(page);
   };
   await lobby(host.page, q);
-  const game = host.page.locator(".lobby label", { hasText: "Game" }).locator("select");
-  await game.locator('option[value="rift-lanterns"]').waitFor({ state: "attached", timeout: 20_000 });
-  await game.selectOption("rift-lanterns");
-  await host.page.getByRole("button", { name: /Open tables: find/ }).click();
+  await pickGame(host.page, "Rift Lanterns");
+  await host.page.locator(".who-pick.friend").click();
+  await host.page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
   await host.page.getByRole("button", { name: "Host a table and post it" }).click();
   const form = host.page.locator(".post-table");
   await form.locator("label", { hasText: "Your name" }).locator("input").fill("Ana");
@@ -124,11 +123,7 @@ async function twoAt40k() {
   const host = await device();
   const guest = await device();
   await lobby(host.page, `?${SIGNAL}`);
-  await host.page.locator(".lobby input").first().fill("Ana");
-  const game = host.page.locator(".lobby label", { hasText: "Game" }).locator("select");
-  await game.locator('option[value="forty-k-11"]').waitFor({ state: "attached", timeout: 20_000 });
-  await game.selectOption("forty-k-11");
-  await host.page.getByRole("button", { name: "Host a game", exact: true }).click();
+  await hostOnline(host.page, "Ana", "Sci-fi battle");
   await host.page.locator(".room").waitFor();
   await guest.page.goto(host.page.url());
   await guest.page.getByText(/What should the others call you/).waitFor({ timeout: 10_000 });
@@ -159,6 +154,18 @@ async function twoAt40k() {
   return { host, guest };
 }
 
+/** On to the next phase: in a phase both sides take together (#81), each screen says it's done. */
+async function nextPhase(pages) {
+  if (await pages[0].locator(".topbar .together").count()) {
+    for (const page of pages) {
+      const done = page.locator('.topbar .together button[title="Next phase"]:enabled');
+      if (await done.count()) await done.click().catch(() => {});
+    }
+    return;
+  }
+  await pages[0].locator('.topbar button[title="Next phase"]').click({ timeout: 10_000 });
+}
+
 async function device(options = {}) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, ...options });
   const page = await context.newPage();
@@ -168,13 +175,73 @@ async function device(options = {}) {
   return { context, page };
 }
 
-/** A sample game's "Try (both sides)", from its card's ⋯ where Learn leads (UX 83). */
+/** The front door's flow (UX 513): a game's card, "Both sides, on this screen", then Set up both sides. */
 async function tryDemo(page, card, tap = false) {
   const go = (l) => (tap ? l.tap() : l.click());
-  // The other sample games fold under More games (UX 504).
+  await pickGame(page, card, tap);
+  await go(page.locator(".who-pick.try"));
+  await go(page.locator(".flow-go"));
+}
+
+/** Pick a game on the front door by its card (a locator) or its title; the others fold under More games (UX 504). */
+async function pickGame(page, card, tap = false) {
+  const go = (l) => (tap ? l.tap() : l.click());
+  if (typeof card === "string") card = page.locator(".game-pick", { hasText: card }).first();
   if (!(await card.isVisible())) await go(page.locator(".more-games > summary"));
-  if (!(await card.locator(".try").isVisible())) await go(card.getByRole("button", { name: "⋯" }));
-  await go(card.locator(".try"));
+  await go(card);
+}
+
+/** Who against: the computer, for this game (UX 513). */
+async function playComputer(page, title) {
+  await pickGame(page, title);
+  await page.locator(".who-pick.solo").click();
+}
+
+/** At a real table: the phones are picked in Get ready, with a name for a phone each (UX 513). */
+async function atTable(page, phones, tap = false, name = "Ana", title = "Sci-fi battle") {
+  const go = (l) => (tap ? l.tap() : l.click());
+  await pickGame(page, title, tap);
+  await go(page.locator(".who-pick.table"));
+  await go(page.getByRole("radio", { name: phones }));
+  const box = page.locator(".flow-name input");
+  if ((await box.count()) && !(await box.inputValue())) await box.fill(name);
+  await go(page.locator(".flow-go"));
+}
+
+/** The name, asked when it's first needed (UX 517). */
+async function answerName(page, name) {
+  const box = page.locator(".join-name input");
+  if (
+    await box.waitFor({ timeout: 4000 }).then(
+      () => true,
+      () => false,
+    )
+  ) {
+    await box.fill(name);
+    await page.getByRole("button", { name: "Use this name" }).click();
+  }
+}
+
+/** Host a game online from the front door: its card, A friend online, the name, Open the table (UX 513). */
+async function hostOnline(page, name, title = "Sci-fi battle") {
+  await pickGame(page, title);
+  await page.locator(".who-pick.friend").click();
+  await page.locator(".flow-name input").fill(name);
+  await page.locator(".flow-go").click();
+}
+
+/** Open tables from the front door: under A friend online (UX 513). */
+async function openTables(page) {
+  await pickGame(page, "Sci-fi battle");
+  await page.locator(".who-pick.friend").click();
+  await page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+}
+
+/** A name kept on this device, as if given before (the front door has no name field, UX 517). */
+async function presetName(page, name) {
+  await page.evaluate((n) => localStorage.setItem("open-battle:name", n), name);
+  await page.reload();
+  await page.locator(".lobby").waitFor();
 }
 
 async function lobby(page, query = "") {
@@ -320,17 +387,11 @@ const checks = {
   async "try-it-now"() {
     const { page, context } = await device();
     await lobby(page);
-    const demos = await page
-      .locator(".demos .demo")
-      .filter({ has: page.locator(".solo") })
-      .count();
+    const demos = await page.locator(".demos .demo.game-pick").count();
     if (demos < 4) throw new Error(`only ${demos} games to try`);
     for (let i = 0; i < demos; i++) {
       await lobby(page);
-      const card = page
-        .locator(".demos .demo")
-        .filter({ has: page.locator(".solo") })
-        .nth(i);
+      const card = page.locator(".demos .demo.game-pick").nth(i);
       const name = await card.locator("strong").textContent();
       await tryDemo(page, card);
       await page.locator(".topbar").waitFor();
@@ -431,10 +492,7 @@ const checks = {
   async "play-now"() {
     const { page, context } = await device();
     await lobby(page);
-    await page
-      .locator(".demo.ours", { hasText: "Rift Lanterns" })
-      .getByRole("button", { name: /Play now/ })
-      .click();
+    await tryDemo(page, "Rift Lanterns");
     await page.locator(".topbar").waitFor();
     await page.locator("canvas").first().waitFor();
     // The battle starts by itself, Lantern Grab set, and "What can I do now?" open on round 1.
@@ -523,7 +581,8 @@ const checks = {
   async lesson() {
     const { page, context } = await device();
     await lobby(page);
-    await page.locator(".demos .learn").first().click();
+    await pickGame(page, "Sci-fi battle");
+    await page.locator(".lobby .learn").first().click();
     await page.locator(".coach").waitFor();
     await page.getByRole("button", { name: "Got it" }).click();
     await page
@@ -757,6 +816,8 @@ const checks = {
     await lobby(page);
     await page.locator("summary", { hasText: "More ways to play" }).click();
     await page.getByRole("button", { name: "Set up a game on this screen (hotseat)" }).click();
+    // Table and mission fold under Change once a mission is set (UX 515).
+    await page.locator(".setup-steps").getByRole("button", { name: "Change ▸" }).click();
     const mission = page.locator(".mission-picker select").first();
     if (!(await mission.inputValue())) throw new Error("hotseat started with no mission");
     await mission.selectOption("");
@@ -781,10 +842,7 @@ const checks = {
   async "solo-saves"() {
     const { page, context } = await device();
     await lobby(page);
-    await page
-      .locator(".demos .demo", { hasText: "Sci-fi battle" })
-      .getByRole("button", { name: "Play the computer" })
-      .click();
+    await playComputer(page, "Sci-fi battle");
     await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
     await page.locator(".your-army button").first().click();
     await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
@@ -817,10 +875,7 @@ const checks = {
   async "solo-own-army"() {
     const { page, context } = await device();
     await lobby(page);
-    await page
-      .locator(".demos .demo", { hasText: "Sci-fi battle" })
-      .getByRole("button", { name: "Play the computer" })
-      .click();
+    await playComputer(page, "Sci-fi battle");
     await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
     await page
       .locator(".your-army input[type=file]")
@@ -879,8 +934,7 @@ const checks = {
     const host = await device();
     const guest = await device();
     await lobby(host.page, `?${SIGNAL}`);
-    await host.page.locator(".lobby input").first().fill("Ana");
-    await host.page.getByRole("button", { name: "Host a game", exact: true }).click();
+    await hostOnline(host.page, "Ana");
     await host.page.locator(".room").waitFor();
     await guest.page.goto(host.page.url());
     // The name is asked at once, while the table connects (UX 403), and used once seated.
@@ -904,7 +958,7 @@ const checks = {
     const watcher = await device();
     const tables = async (page) => {
       await lobby(page, q);
-      await page.getByRole("button", { name: /Open tables: find/ }).click();
+      await openTables(page);
     };
     await tables(host.page);
     await host.page.getByRole("button", { name: "Host a table and post it" }).click();
@@ -1041,11 +1095,7 @@ const checks = {
       step(`shelf army for ${name}`);
       // A shelf army: deploy Rift Lanterns' sample warband at a table of one's own and save it.
       await lobby(d.page, q);
-      await d.page.locator(".lobby label", { hasText: "Your name" }).locator("input").fill(name);
-      const game = d.page.locator(".lobby label", { hasText: "Game" }).locator("select");
-      await game.locator('option[value="rift-lanterns"]').waitFor({ state: "attached", timeout: 20_000 });
-      await game.selectOption("rift-lanterns");
-      await d.page.getByRole("button", { name: /^Host/ }).first().click();
+      await hostOnline(d.page, name, "Rift Lanterns");
       await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
       await d.page
         .getByRole("button", { name: /^Deploy for/ })
@@ -1058,7 +1108,7 @@ const checks = {
     }
     const board = async (page) => {
       await lobby(page, q);
-      await page.getByRole("button", { name: /Open tables: find/ }).click();
+      await openTables(page);
     };
     const [ana] = ds;
     const watcher = await device();
@@ -1221,8 +1271,7 @@ const checks = {
     const host = await device();
     const guest = await device({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
     await lobby(host.page, `?${SIGNAL}`);
-    await host.page.locator(".lobby input").first().fill("Ana");
-    await host.page.getByRole("button", { name: "Host a game", exact: true }).click();
+    await hostOnline(host.page, "Ana");
     await host.page.locator(".room").waitFor();
     await guest.page.goto(host.page.url());
     await guest.page.getByPlaceholder("Your name").fill("Ben");
@@ -1538,7 +1587,7 @@ const checks = {
       hasTouch: true,
     });
     await lobby(page);
-    await page.getByRole("button", { name: "One phone for both of us" }).click();
+    await atTable(page, "One phone for both of us");
     await page.locator(".companion").waitFor();
     await sampleArmies(page);
     await page.getByRole("button", { name: /Start battle/ }).click();
@@ -1579,7 +1628,7 @@ const checks = {
     const host = await device(phone);
     const guest = await device(phone);
     await lobby(host.page, `?${SIGNAL}`);
-    await host.page.getByRole("button", { name: "A phone each" }).click();
+    await atTable(host.page, "A phone each");
     await host.page.locator(".companion").waitFor();
     const link = await host.page.locator(".invite-link").textContent();
     if (!link?.includes("room=")) throw new Error(`no invite link: ${link}`);
@@ -1604,7 +1653,7 @@ const checks = {
       hasTouch: true,
     });
     await lobby(page);
-    await page.getByRole("button", { name: "One phone for both of us" }).click();
+    await atTable(page, "One phone for both of us");
     await page.locator(".companion").waitFor();
     for (const who of [0, 1]) {
       const pick = page.getByLabel("Army for");
@@ -1672,10 +1721,7 @@ const checks = {
     const { page, context } = await device(IPAD);
     const t = await touch(page);
     await lobby(page);
-    await page
-      .locator(".demo.ours", { hasText: "Rift Lanterns" })
-      .getByRole("button", { name: "Play now (both sides)" })
-      .tap();
+    await tryDemo(page, "Rift Lanterns", true);
     await touchTable(page, t);
     const primary = page.locator(".topbar .turn button.primary");
     const u = await tapOwnUnit(page, t);
@@ -1855,13 +1901,7 @@ const checks = {
     await page.reload();
     await page.locator(".lobby").waitFor();
     await page.getByText("You're offline").first().waitFor();
-    await tryDemo(
-      page,
-      page
-        .locator(".demos .demo")
-        .filter({ has: page.locator(".solo") })
-        .first(),
-    );
+    await tryDemo(page, page.locator(".demos .demo.game-pick").first());
     await page.locator(".topbar").waitFor();
     await context.close();
     return page.errors;
@@ -2515,7 +2555,8 @@ const checks = {
     const path = join(files, "tts-online.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(host.page, `?${SIGNAL}`);
-    await host.page.locator(".lobby input").first().fill("Ana");
+    await presetName(host.page, "Ana");
+    await host.page.locator("summary", { hasText: "More ways to play" }).click();
     await host.page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
     await host.page
       .locator(".tts-import label", { hasText: "Open a save file" })
@@ -3004,7 +3045,7 @@ const checks = {
     };
     // Through the Command and Movement phases: Movement's end opens a window for the side that waited.
     for (let i = 0; i < 2 && !(await look()); i++) {
-      await host.page.locator('.topbar button[title="Next phase"]').click({ timeout: 10_000 });
+      await nextPhase([host.page, guest.page]);
       const ask = host.page.locator(".topbar .ask button.primary");
       if (await ask.count()) await ask.click();
       await card.waitFor({ timeout: 2500 }).catch(() => {});
@@ -3127,7 +3168,8 @@ const checks = {
       const mine = g.locator('.topbar button[title="Next phase"]:enabled');
       // Ben's turn: his plan panel stops offering to plan.
       const yours = !(await g.getByRole("button", { name: /^(Plan my turn|Done planning)$/ }).count());
-      if (yours && (await mine.count())) await mine.click().catch(() => {});
+      if (await host.page.locator(".topbar .together").count()) await nextPhase([host.page, g]);
+      else if (yours && (await mine.count())) await mine.click().catch(() => {});
       else if (await next.count()) await next.click().catch(() => {});
       for (const page of [host.page, g]) {
         const ask = page.locator(".topbar .ask button.primary");
@@ -3301,6 +3343,8 @@ for (const [name, run] of Object.entries(checks)) {
   } catch (e) {
     failed++;
     console.log(`✗ ${name}: ${e instanceof Error ? e.message.split("\n")[0] : e}`);
+    if (process.env.SMOKE_VERBOSE && e instanceof Error)
+      console.log(e.message.split("\n").slice(1, 6).join("\n"));
   }
 }
 await browser.close();

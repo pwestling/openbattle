@@ -94,6 +94,8 @@ export function TopBar() {
         )
         .map((seat) => sideName(game, seat))
     : [];
+  // Start battle lights up once both sides are here with an army (UX 515); before that it still works, after a "Start anyway?".
+  const unset = deploying && (armyless.length > 0 || players.length < 2);
   // A game with missions to pick from, and none picked, ends 0-0 unless scored by hand (UX 394).
   const missionless = deploying && !game.mission && !!systemModule(game.system).missions?.length;
   const people = armyless.length
@@ -362,7 +364,8 @@ export function TopBar() {
               <button
                 disabled={held}
                 className="next-phase primary"
-                title={t("I'm done with this phase")}
+                title={t("Next phase")}
+                aria-label={t("I'm done with this phase")}
                 onClick={() => dispatch({ type: "turn/ready" }, me)}
               >
                 {t("Done ▶")}
@@ -400,7 +403,7 @@ export function TopBar() {
         {!(together && me) && myTurn && !over && !mailGuest && !(view.alternating && !deploying) && (
           <button
             disabled={held}
-            className={`next-phase ${view.alternating && !deploying ? "" : notReady.length || askedText ? "" : "primary"}`}
+            className={`next-phase ${view.alternating && !deploying ? "" : notReady.length || askedText || unset ? "" : "primary"}`}
             title={
               notReady.length
                 ? t("Waiting for {names} to be ready", { names: formatList(notReady) })

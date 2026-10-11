@@ -104,11 +104,17 @@ try {
         };
       });
     await page.goto(`http://localhost:${PORT}/`);
-    await page.locator(".solo-level select").selectOption(level);
     const tap = (l) => (profile.context.hasTouch ? l.tap() : l.click());
     await tap(
-      page.locator(game === "rift" ? ".demo.ours button.solo" : ".demo:not(.ours) button.solo").first(),
+      page.locator(".game-pick", { hasText: game === "rift" ? "Rift Lanterns" : "Sci-fi battle" }).first(),
     );
+    await tap(page.locator(".who-pick.solo"));
+    await tap(
+      page.getByRole("radio", {
+        name: new RegExp(`^${{ random: "Easy", steady: "Steady", sharp: "Sharp" }[level] ?? "Steady"}`),
+      }),
+    );
+    await tap(page.locator(".your-army button.primary"));
     await page.locator(".topbar").waitFor();
 
     // The player's side: move the phases on whenever it is their go, until the computer has had its turns.

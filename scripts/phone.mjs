@@ -75,11 +75,13 @@ try {
 
     const t0 = Date.now();
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: "commit" });
-    await page.getByRole("button", { name: "One phone for both of us" }).waitFor();
+    await page.locator(".who-pick.table").waitFor();
     const lobbyMs = Date.now() - t0;
 
     let t = Date.now();
-    await page.getByRole("button", { name: "One phone for both of us" }).tap();
+    await page.locator(".who-pick.table").tap();
+    await page.getByRole("radio", { name: "One phone for both of us" }).tap();
+    await page.locator(".flow-go").tap();
     await page.locator(".companion").waitFor();
     const companionMs = Date.now() - t;
     const companionKB = kb();

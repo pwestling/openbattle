@@ -443,32 +443,32 @@ msgctxt "game"
 msgid "They held. Combat can drag on into the next turn."
 msgstr "Ils ont tenu. Un corps à corps peut se prolonger au tour suivant."
 
-#: src/App.tsx:62
+#: src/App.tsx:65
 #, fuzzy
 msgid "Setting up the table…"
 msgstr "Installation de la table…"
 
-#: src/GameScreen.tsx:351
+#: src/GameScreen.tsx:361
 #, fuzzy
 msgid "Fully visible"
 msgstr "Entièrement visible"
 
-#: src/GameScreen.tsx:352
+#: src/GameScreen.tsx:362
 #, fuzzy
 msgid "Partly visible or in cover"
 msgstr "Partiellement visible ou à couvert"
 
-#: src/GameScreen.tsx:353
+#: src/GameScreen.tsx:363
 #, fuzzy
 msgid "Hidden"
 msgstr "Caché"
 
-#: src/GameScreen.tsx:354
+#: src/GameScreen.tsx:364
 #, fuzzy
 msgid "Hover an enemy unit for its sight lines"
 msgstr "Survole une unité ennemie pour voir ses lignes de vue"
 
-#: src/GameScreen.tsx:359
+#: src/GameScreen.tsx:369
 #: src/events/EventsUI.tsx:146
 #: src/mail/MailLobby.tsx:181
 #: src/share/OpenLink.tsx:141
@@ -477,17 +477,17 @@ msgstr "Survole une unité ennemie pour voir ses lignes de vue"
 msgid "Open"
 msgstr "Dégagé"
 
-#: src/GameScreen.tsx:360
+#: src/GameScreen.tsx:370
 #, fuzzy
 msgid "Obscuring: cover"
 msgstr "Gênant : couvert"
 
-#: src/GameScreen.tsx:361
+#: src/GameScreen.tsx:371
 #, fuzzy
 msgid "Blocking: no sight"
 msgstr "Bloquant : pas de vue"
 
-#: src/GameScreen.tsx:366
+#: src/GameScreen.tsx:376
 #, fuzzy
 msgid "Leave model's eye view (Esc)"
 msgstr "Quitter la vue de la figurine (Esc)"
@@ -561,7 +561,7 @@ msgstr[1] "{n} unités"
 #: src/bot/YourArmy.tsx:152
 #: src/bot/YourArmy.tsx:164
 #: src/printplay/RulesPage.tsx:178
-#: src/ui/Showcase.tsx:54
+#: src/ui/Showcase.tsx:45
 #: src/ui/SystemPanels.tsx:190
 #, fuzzy
 msgid "{points} pts"
@@ -612,7 +612,7 @@ msgstr "Ranger sur l'étagère"
 #: src/companion/RealDice.tsx:357
 #: src/ranked/RankedGame.tsx:514
 #: src/standees/StandeeMaker.tsx:243
-#: src/ui/ReactionCard.tsx:131
+#: src/ui/Lobby.tsx:433
 #, fuzzy
 msgid "Back"
 msgstr "Reculer"
@@ -914,6 +914,9 @@ msgid "Skip to stats"
 msgstr "Passer aux stats"
 
 #: src/broadcast/exhibition.ts:100
+#: src/ui/Lobby.tsx:652
+#: src/ui/Lobby.tsx:853
+#: src/ui/Lobby.tsx:872
 #, fuzzy
 msgid "The computer"
 msgstr "L'ordinateur"
@@ -1143,7 +1146,7 @@ msgstr "Livre de campagne : {book}"
 
 #: src/campaign/CampaignUI.tsx:546
 #: src/tables/TableLibrary.tsx:220
-#: src/ui/ArmyImport.tsx:665
+#: src/ui/ArmyImport.tsx:663
 #: src/workshop/Workshop.tsx:358
 #: src/workshop/Workshop.tsx:363
 #, fuzzy
@@ -1186,7 +1189,7 @@ msgid "Games"
 msgstr "Parties"
 
 #: src/campaign/CampaignUI.tsx:572
-#: src/companion/CompanionScreen.tsx:93
+#: src/companion/CompanionScreen.tsx:98
 #: src/ui/StatsScreen.tsx:157
 #, fuzzy
 msgid "Units"
@@ -1303,7 +1306,7 @@ msgstr "3 pour une victoire, 1 pour un nul"
 
 #: src/campaign/CampaignUI.tsx:616
 #: src/campaign/EventTab.tsx:272
-#: src/ui/ArmyImport.tsx:404
+#: src/ui/ArmyImport.tsx:402
 #, fuzzy
 msgid "Pts"
 msgstr "Pts"
@@ -1375,7 +1378,7 @@ msgstr "Les éliminations, parties et blessures se remplissent après chaque par
 
 #: src/campaign/CampaignUI.tsx:727
 #: src/ui/GameSettings.tsx:160
-#: src/ui/Hud.tsx:191
+#: src/ui/Hud.tsx:193
 #, fuzzy
 msgid "Done editing"
 msgstr "Terminer"
@@ -1387,7 +1390,7 @@ msgid "Edit"
 msgstr "Modifier"
 
 #: src/campaign/CampaignUI.tsx:736
-#: src/ui/ArmyImport.tsx:403
+#: src/ui/ArmyImport.tsx:401
 #: src/ui/StatsScreen.tsx:162
 #, fuzzy
 msgid "Unit"
@@ -1824,150 +1827,151 @@ msgstr "L’hôte peut activer {rules}."
 msgid "This device doesn't have {rules}: load it in Game settings."
 msgstr "Cet appareil n’a pas {rules} : charge-les dans les Paramètres de partie."
 
-#: src/companion/CompanionScreen.tsx:130
+#: src/companion/CompanionScreen.tsx:100
+#, fuzzy
+msgid "Log"
+msgstr "Journal"
+
+#: src/companion/CompanionScreen.tsx:101
+#: src/events/EventsUI.tsx:242
+#: src/opentables/OpenTables.tsx:216
+#: src/player/PlayerCard.tsx:311
+#: src/tts/TtsWholeTable.tsx:195
+#, fuzzy
+msgid "Game"
+msgstr "Partie"
+
+#: src/companion/CompanionScreen.tsx:135
 #, fuzzy
 msgid "Waiting for the other player"
 msgstr "En attente de l'autre joueur"
 
-#: src/companion/CompanionScreen.tsx:131
+#: src/companion/CompanionScreen.tsx:136
 #, fuzzy
 msgid "Send them this link to open on their phone:"
 msgstr "Envoie-leur ce lien à ouvrir sur leur téléphone :"
 
-#: src/companion/CompanionScreen.tsx:138
-#: src/ui/Room.tsx:125
+#: src/companion/CompanionScreen.tsx:143
+#: src/ui/Room.tsx:126
+#: src/ui/SetupSteps.tsx:76
 #, fuzzy
 msgid "Copied ✓"
 msgstr "Copié ✓"
 
-#: src/companion/CompanionScreen.tsx:138
+#: src/companion/CompanionScreen.tsx:143
 #: src/mail/MailBar.tsx:236
-#: src/ui/Hud.tsx:320
+#: src/ui/Hud.tsx:310
 #: src/ui/NetBanner.tsx:75
-#: src/ui/Room.tsx:125
+#: src/ui/Room.tsx:126
+#: src/ui/SetupSteps.tsx:76
 #, fuzzy
 msgid "Copy invite link"
 msgstr "Copier le lien d’invitation"
 
-#: src/companion/CompanionScreen.tsx:142
+#: src/companion/CompanionScreen.tsx:147
 #: src/ui/ReplayBar.tsx:175
 #: src/ui/StatsScreen.tsx:84
 #, fuzzy
 msgid "Share…"
 msgstr "Partager…"
 
-#: src/companion/CompanionScreen.tsx:178
+#: src/companion/CompanionScreen.tsx:183
 #, fuzzy
 msgid "Your go"
 msgstr "À vous"
 
-#: src/companion/CompanionScreen.tsx:179
+#: src/companion/CompanionScreen.tsx:184
 #, fuzzy
 msgid "{side}'s go"
 msgstr "Au tour de {side}"
 
-#: src/companion/CompanionScreen.tsx:183
+#: src/companion/CompanionScreen.tsx:188
 #, fuzzy
 msgid "No army yet."
 msgstr "Pas encore d'armée."
 
-#: src/companion/CompanionScreen.tsx:197
+#: src/companion/CompanionScreen.tsx:202
 #, fuzzy
 msgid "Add an army"
 msgstr "Ajouter une armée"
 
-#: src/companion/CompanionScreen.tsx:216
+#: src/companion/CompanionScreen.tsx:221
 #, fuzzy
 msgid "Destroyed"
 msgstr "Détruite"
 
-#: src/companion/CompanionScreen.tsx:216
+#: src/companion/CompanionScreen.tsx:221
 #, fuzzy
 msgid "{alive}/{all} models"
 msgstr "{alive}/{all} figurines"
 
-#: src/companion/CompanionScreen.tsx:221
+#: src/companion/CompanionScreen.tsx:226
 #, fuzzy
 msgid "{n} wound on {model}"
 msgid_plural "{n} wounds on {model}"
 msgstr[0] "{n} blessure sur {model}"
 msgstr[1] "{n} blessures sur {model}"
 
-#: src/companion/CompanionScreen.tsx:224
+#: src/companion/CompanionScreen.tsx:229
 #, fuzzy
 msgid "in reserve"
 msgstr "en réserve"
 
-#: src/companion/CompanionScreen.tsx:226
+#: src/companion/CompanionScreen.tsx:231
 #, fuzzy
 msgid "had its go"
 msgstr "a déjà joué"
 
-#: src/companion/CompanionScreen.tsx:260
+#: src/companion/CompanionScreen.tsx:265
 #, fuzzy
 msgid "No mission chosen."
 msgstr "Aucune mission choisie."
 
-#: src/companion/CompanionScreen.tsx:291
+#: src/companion/CompanionScreen.tsx:296
 #, fuzzy
 msgid "Number of dice"
 msgstr "Nombre de dés"
 
-#: src/companion/CompanionScreen.tsx:297
-#: src/ui/Hud.tsx:262
+#: src/companion/CompanionScreen.tsx:302
+#: src/ui/Hud.tsx:252
 #, fuzzy
 msgid "D"
 msgstr "D"
 
-#: src/companion/CompanionScreen.tsx:298
+#: src/companion/CompanionScreen.tsx:303
 #, fuzzy
 msgid "Sides"
 msgstr "Faces"
 
-#: src/companion/CompanionScreen.tsx:303
-#: src/ui/Hud.tsx:268
+#: src/companion/CompanionScreen.tsx:308
+#: src/ui/Hud.tsx:258
 #: src/ui/StatsScreen.tsx:218
 #, fuzzy
 msgid "Roll"
 msgstr "Lancer"
 
-#: src/companion/CompanionScreen.tsx:310
-#: src/ui/Hud.tsx:562
+#: src/companion/CompanionScreen.tsx:315
+#: src/ui/Hud.tsx:552
 #, fuzzy
 msgid "Stats"
 msgstr "Stats"
 
-#: src/companion/CompanionScreen.tsx:312
-#: src/ui/Hud.tsx:316
+#: src/companion/CompanionScreen.tsx:317
+#: src/ui/Hud.tsx:306
 #, fuzzy
 msgid "Download replay"
 msgstr "Télécharger le replay"
 
-#: src/companion/CompanionScreen.tsx:71
+#: src/companion/CompanionScreen.tsx:76
 #, fuzzy
 msgid "← All units"
 msgstr "← Toutes les unités"
 
-#: src/companion/CompanionScreen.tsx:94
+#: src/companion/CompanionScreen.tsx:99
 #: src/ui/Missions.tsx:64
 #, fuzzy
 msgid "Mission"
 msgstr "Mission"
-
-#: src/companion/CompanionScreen.tsx:95
-#, fuzzy
-msgid "Log"
-msgstr "Journal"
-
-#: src/companion/CompanionScreen.tsx:96
-#: src/events/EventsUI.tsx:242
-#: src/opentables/OpenTables.tsx:216
-#: src/player/PlayerCard.tsx:311
-#: src/tts/TtsWholeTable.tsx:195
-#: src/ui/Lobby.tsx:646
-#, fuzzy
-msgid "Game"
-msgstr "Partie"
 
 #: src/companion/RealDice.tsx:101
 #, fuzzy
@@ -2092,7 +2096,7 @@ msgstr "Face"
 
 #: src/companion/RealDice.tsx:90
 #: src/ui/DicePicker.tsx:59
-#: src/ui/Hud.tsx:249
+#: src/ui/Hud.tsx:239
 #: src/ui/StatsScreen.tsx:219
 #, fuzzy
 msgid "Dice"
@@ -2710,7 +2714,7 @@ msgid "Event round {n} of {of} · Table {table}"
 msgstr "Ronde d'événement {n} sur {of} · Table {table}"
 
 #: src/events/EventSeat.tsx:117
-#: src/ui/Lobby.tsx:434
+#: src/ui/Lobby.tsx:567
 #, fuzzy
 msgid "Event round {n} · Table {table}"
 msgstr "Ronde d'événement {n} · Table {table}"
@@ -3290,7 +3294,7 @@ msgstr "Choisir pour un pack"
 
 #: src/figures/FigureLibrary.tsx:390
 #: src/figures/TtsImport.tsx:192
-#: src/ui/ArmyImport.tsx:409
+#: src/ui/ArmyImport.tsx:407
 #, fuzzy
 msgid "Figure"
 msgstr "Figurine"
@@ -3933,7 +3937,7 @@ msgstr "ton adversaire"
 #: src/opentables/OpenTables.tsx:788
 #: src/player/PlayerCard.tsx:131
 #: src/replay/NotesPanel.tsx:252
-#: src/ui/Hud.tsx:469
+#: src/ui/Hud.tsx:459
 #, fuzzy
 msgid "Your name"
 msgstr "Ton nom"
@@ -3944,7 +3948,6 @@ msgid "Join the game"
 msgstr "Rejoindre la partie"
 
 #: src/mail/MailLobby.tsx:113
-#: src/ui/Lobby.tsx:823
 #, fuzzy
 msgid "Not now"
 msgstr "Pas maintenant"
@@ -4000,13 +4003,13 @@ msgid "Remove this mail game from this device?"
 msgstr "Retirer cette partie par correspondance de cet appareil ?"
 
 #: src/mail/MailLobby.tsx:210
-#: src/ui/Lobby.tsx:668
+#: src/ui/Lobby.tsx:808
 #, fuzzy
 msgid "2 vs 2"
 msgstr "2 contre 2"
 
 #: src/mail/MailLobby.tsx:210
-#: src/ui/Lobby.tsx:667
+#: src/ui/Lobby.tsx:807
 #, fuzzy
 msgid "1 vs 1"
 msgstr "1 contre 1"
@@ -4363,8 +4366,8 @@ msgstr "En direct : {game}, round {n}"
 
 #: src/opentables/OpenTables.tsx:357
 #: src/opentables/OpenTables.tsx:425
-#: src/ui/Hud.tsx:552
-#: src/ui/Lobby.tsx:702
+#: src/ui/Hud.tsx:542
+#: src/ui/Lobby.tsx:549
 #, fuzzy
 msgid "Watch"
 msgstr "Regarder"
@@ -4397,8 +4400,8 @@ msgid "round {n}"
 msgstr "tour {n}"
 
 #: src/opentables/OpenTables.tsx:406
-#: src/ui/Room.tsx:208
-#: src/ui/TopBar.tsx:706
+#: src/ui/Room.tsx:209
+#: src/ui/TopBar.tsx:709
 #, fuzzy
 msgid "{n} watching"
 msgid_plural "{n} watching"
@@ -4583,7 +4586,7 @@ msgid "Your table"
 msgstr "Votre table"
 
 #: src/opentables/OpenTables.tsx:615
-#: src/ui/Lobby.tsx:700
+#: src/ui/Lobby.tsx:547
 #, fuzzy
 msgid "Join"
 msgstr "Rejoindre"
@@ -4949,7 +4952,7 @@ msgstr "V–D–N"
 #: src/player/PlayerCard.tsx:34
 #: src/player/PlayerCard.tsx:121
 #: src/player/PlayerCard.tsx:303
-#: src/ui/Lobby.tsx:842
+#: src/ui/Lobby.tsx:968
 #, fuzzy
 msgid "Your player card"
 msgstr "Ta carte de joueur"
@@ -5359,62 +5362,62 @@ msgid_plural "signs {signed} of {n} results"
 msgstr[0] "signe {signed} résultat sur {n}"
 msgstr[1] "signe {signed} résultats sur {n}"
 
-#: src/render/Board.tsx:1419
+#: src/render/Board.tsx:1381
 #, fuzzy
 msgid "{label}: held by {player}"
 msgstr "{label} : tenue par {player}"
 
-#: src/render/Board.tsx:1421
+#: src/render/Board.tsx:1383
 #, fuzzy
 msgid "{label}: contested"
 msgstr "{label} : contestée"
 
-#: src/render/Board.tsx:1422
+#: src/render/Board.tsx:1384
 #, fuzzy
 msgid "{label}: nobody holds it"
 msgstr "{label} : tenue par personne"
 
-#: src/render/Board.tsx:1483
+#: src/render/Board.tsx:1445
 #, fuzzy
 msgid "Not visible"
 msgstr "Non visible"
 
-#: src/render/Board.tsx:1485
+#: src/render/Board.tsx:1447
 #, fuzzy
 msgid "{visible}/{n} visible · {cover} in cover"
 msgstr "{visible}/{n} visibles · {cover} à couvert"
 
-#: src/render/Board.tsx:1490
+#: src/render/Board.tsx:1452
 #, fuzzy
 msgid "{visible}/{n} visible"
 msgstr "{visible}/{n} visibles"
 
-#: src/render/Board.tsx:2010
+#: src/render/Board.tsx:1970
 #, fuzzy
 msgid "Move {inches}\""
 msgstr "Mouvement {inches}\""
 
-#: src/render/Board.tsx:2177
+#: src/render/Board.tsx:2137
 #, fuzzy
 msgid "{player} controls it: OC {oc}"
 msgstr "{player} le contrôle : OC {oc}"
 
-#: src/render/Board.tsx:2178
+#: src/render/Board.tsx:2138
 #, fuzzy
 msgid "Contested: OC {oc}"
 msgstr "Disputé : OC {oc}"
 
-#: src/render/Board.tsx:2179
+#: src/render/Board.tsx:2139
 #, fuzzy
 msgid "Nobody controls it: OC {oc}"
 msgstr "Personne ne le contrôle : OC {oc}"
 
-#: src/render/Board.tsx:2180
+#: src/render/Board.tsx:2140
 #, fuzzy
 msgid "Nobody controls it: no models in range"
 msgstr "Personne ne le contrôle : aucune figurine à portée"
 
-#: src/render/Board.tsx:429
+#: src/render/Board.tsx:427
 #, fuzzy
 msgid "The table"
 msgstr "La table"
@@ -5533,27 +5536,27 @@ msgstr "Gabarit"
 msgid " · no models under it"
 msgstr " · aucune figurine dessous"
 
-#: src/render/boardLabels.tsx:111
+#: src/render/boardLabels.tsx:110
 #, fuzzy
 msgid " base to base"
 msgstr " socle contre socle"
 
-#: src/render/boardLabels.tsx:114
+#: src/render/boardLabels.tsx:113
 #, fuzzy
 msgid " · in by {inches}\""
 msgstr " · {inches}\" de marge"
 
-#: src/render/boardLabels.tsx:115
+#: src/render/boardLabels.tsx:114
 #, fuzzy
 msgid " · out by {inches}\""
 msgstr " · {inches}\" de trop"
 
-#: src/render/boardLabels.tsx:193
+#: src/render/boardLabels.tsx:191
 #, fuzzy
 msgid "{distance} in {n} legs"
 msgstr "{distance} en {n} étapes"
 
-#: src/render/boardLabels.tsx:195
+#: src/render/boardLabels.tsx:193
 #, fuzzy
 msgid "{distance} · through {terrain}"
 msgstr "{distance} · à travers {terrain}"
@@ -5792,7 +5795,7 @@ msgstr "Chapitres"
 #: src/systems/conquest/CommandPanel.tsx:59
 #: src/ui/Hud.tsx:115
 #: src/ui/PlayPanel.tsx:84
-#: src/ui/TableWarnings.tsx:99
+#: src/ui/TableWarnings.tsx:108
 #: src/ui/WhatNow.tsx:416
 #, fuzzy
 msgid "Hide"
@@ -5806,7 +5809,7 @@ msgstr "Masquer les notes et chapitres"
 #: src/replay/chapters.ts:45
 #: src/ui/PlayPanel.tsx:59
 #: src/ui/TerrainPanel.tsx:353
-#: src/ui/TopBar.tsx:254
+#: src/ui/TopBar.tsx:256
 #: src/ui/WhatNow.tsx:46
 #: src/ui/gameLog.ts:454
 #, fuzzy
@@ -5818,7 +5821,7 @@ msgstr "Déploiement"
 msgid "After the battle"
 msgstr "Après la bataille"
 
-#: src/replay/review.ts:185
+#: src/replay/review.ts:186
 #, fuzzy
 msgid "Reviewing leaves this game's room. The game stays saved, to resume from the start page."
 msgstr "Revoir la partie quitte son salon. La partie reste enregistrée et peut être reprise depuis la page d'accueil."
@@ -6695,7 +6698,7 @@ msgid "What happened"
 msgstr "Ce qui s'est passé"
 
 #: src/share/clip.ts:266
-#: src/ui/TopBar.tsx:283
+#: src/ui/TopBar.tsx:285
 #, fuzzy
 msgid "Battle over"
 msgstr "Bataille terminée"
@@ -6797,9 +6800,8 @@ msgid "That data link is too big; share a file instead."
 msgstr ""
 
 #: src/share/links.ts:77
-#, fuzzy
 msgid "This file was saved by a newer Open Battle ({format}). Update to open it."
-msgstr "Ce fichier a été enregistré par une version plus récente d'Open Battle ({format}). Mettez à jour pour l'ouvrir."
+msgstr ""
 
 #: src/share/links.ts:85
 #: src/tables/TableLibrary.tsx:99
@@ -6937,7 +6939,7 @@ msgid "Undo the last stroke (Ctrl+Z)"
 msgstr "Annuler le dernier trait (Ctrl+Z)"
 
 #: src/standees/StandeeMaker.tsx:446
-#: src/ui/Hud.tsx:368
+#: src/ui/Hud.tsx:358
 #, fuzzy
 msgid "Undo"
 msgstr "Annuler"
@@ -7291,7 +7293,7 @@ msgid "Save table"
 msgstr "Enregistrer la table"
 
 #: src/tables/TableLibrary.tsx:19
-#: src/ui/ArmyImport.tsx:660
+#: src/ui/ArmyImport.tsx:658
 #, fuzzy
 msgid "another game"
 msgstr "un autre jeu"
@@ -7331,7 +7333,7 @@ msgid "Take {name} out of your library?"
 msgstr "Retirer {name} de ta bibliothèque ?"
 
 #: src/tables/TableLibrary.tsx:228
-#: src/ui/ArmyImport.tsx:686
+#: src/ui/ArmyImport.tsx:684
 #: src/ui/Packages.tsx:235
 #: src/ui/SystemPanels.tsx:439
 #: src/ui/TeachRule.tsx:543
@@ -7557,6 +7559,7 @@ msgstr[0] "{n} élément de décor"
 msgstr[1] "{n} éléments de décor"
 
 #: src/tts/TtsWholeTable.tsx:148
+#: src/ui/SetupSteps.tsx:89
 #, fuzzy
 msgid "{n} unit on the table"
 msgid_plural "{n} units on the table"
@@ -7681,12 +7684,12 @@ msgstr "{names} et {n} de plus"
 msgid "{army} ({save})"
 msgstr "{army} ({save})"
 
-#: src/tts/online.ts:41
+#: src/tts/online.ts:42
 #, fuzzy
 msgid "Invite link copied: send it to your friend. The army brought for them is offered when they sit down."
 msgstr "Lien d’invitation copié : envoie-le à ton ami. L’armée apportée pour lui lui sera proposée quand il s’installera."
 
-#: src/tts/online.ts:44
+#: src/tts/online.ts:45
 #, fuzzy
 msgid "Send your friend the invite link (Copy invite link). The army brought for them is offered when they sit down."
 msgstr "Envoie le lien d’invitation à ton ami (Copier le lien d’invitation). L’armée apportée pour lui lui sera proposée quand il s’installera."
@@ -7802,29 +7805,24 @@ msgid "Each regiment comes in as a block of stands. Fill in any stats the summar
 msgstr "Chaque régiment arrive en bloc de socles. Remplis les caractéristiques que le récapitulatif signale comme manquantes."
 
 #: src/ui/ArmyGuide.tsx:38
-#, fuzzy
 msgid "Start from a sample army, or bring your own list file (JSON or text). It stays on your device."
-msgstr "Commence avec une armée d'exemple, ou apporte ton propre fichier de liste (JSON ou texte). Il reste sur ton appareil."
+msgstr ""
 
 #: src/ui/ArmyGuide.tsx:39
-#, fuzzy
 msgid "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment."
-msgstr "Les fichiers de liste d'armée (JSON, open-battle/army-list@1) sont lus, tout comme les exports de créateurs d'unités avec la qualité, la défense et l'équipement de chaque unité."
+msgstr ""
 
 #: src/ui/ArmyGuide.tsx:42
-#, fuzzy
 msgid "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1))."
-msgstr "Les listes texte lisent une unité par ligne, ses armes à la suivante : Wardens [5] Q4+ D4+ | 100pts | Fearless puis 5x Glaive (A2, AP(1))."
+msgstr ""
 
 #: src/ui/ArmyGuide.tsx:45
-#, fuzzy
 msgid "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file."
-msgstr "En partie, appuie sur Importer une liste dans le panneau de gauche et choisis le fichier, ou ouvre-le depuis un lien ou avec Ouvrir un fichier."
+msgstr ""
 
 #: src/ui/ArmyGuide.tsx:48
-#, fuzzy
 msgid "Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."
-msgstr "Les règles spéciales que le jeu connaît se jouent seules ; les autres apparaissent comme rappels. Rien n'est deviné."
+msgstr ""
 
 #: src/ui/ArmyGuide.tsx:64
 #: src/ui/ArmyGuide.tsx:68
@@ -7849,364 +7847,364 @@ msgid "Your list stays with you: it goes to the people in your game and nowhere 
 msgstr "Ta liste reste à toi : elle va aux joueurs de ta partie et nulle part ailleurs. Open Battle ne fournit aucune armée hormis ses exemples inventés."
 
 #: src/ui/ArmyGuide.tsx:97
-#: src/ui/ArmyImport.tsx:522
+#: src/ui/ArmyImport.tsx:520
 #: src/ui/FigurePicker.tsx:207
 #, fuzzy
 msgid "Your figures"
 msgstr "Tes figurines"
 
-#: src/ui/ArmyImport.tsx:213
+#: src/ui/ArmyImport.tsx:212
 #, fuzzy
 msgid "{count} spells read for {n} wizard."
 msgid_plural "{count} spells read for {n} wizards."
 msgstr[0] "{count} sorts lus pour {n} sorcier."
 msgstr[1] "{count} sorts lus pour {n} sorciers."
 
-#: src/ui/ArmyImport.tsx:229
+#: src/ui/ArmyImport.tsx:228
 #, fuzzy
 msgid "Army for"
 msgstr "Armée pour"
 
-#: src/ui/ArmyImport.tsx:241
+#: src/ui/ArmyImport.tsx:240
 #, fuzzy
 msgid "Armies can be added once this game's rules package is running."
 msgstr "Les armées peuvent être ajoutées une fois le paquet de règles de cette partie lancé."
 
-#: src/ui/ArmyImport.tsx:245
+#: src/ui/ArmyImport.tsx:244
 #, fuzzy
 msgid "Reading…"
 msgstr "Lecture…"
 
-#: src/ui/ArmyImport.tsx:245
+#: src/ui/ArmyImport.tsx:244
 #, fuzzy
 msgid "Import a list"
 msgstr "Importer une liste"
 
-#: src/ui/ArmyImport.tsx:255
-#: src/ui/ArmyImport.tsx:278
+#: src/ui/ArmyImport.tsx:254
+#: src/ui/ArmyImport.tsx:277
 #, fuzzy
 msgid "Sample army"
 msgstr "Armée d'exemple"
 
-#: src/ui/ArmyImport.tsx:264
+#: src/ui/ArmyImport.tsx:263
 #, fuzzy
 msgid "Sample army…"
 msgstr "Armée d'exemple…"
 
-#: src/ui/ArmyImport.tsx:330
+#: src/ui/ArmyImport.tsx:328
 #, fuzzy
 msgid "Your figure library has figures that fit {n} unit."
 msgid_plural "Your figure library has figures that fit {n} units."
 msgstr[0] "Ta bibliothèque de figurines a des figurines adaptées à {n} unité."
 msgstr[1] "Ta bibliothèque de figurines a des figurines adaptées à {n} unités."
 
-#: src/ui/ArmyImport.tsx:344
+#: src/ui/ArmyImport.tsx:342
 #, fuzzy
 msgid "Use them"
 msgstr "Les utiliser"
 
-#: src/ui/ArmyImport.tsx:353
+#: src/ui/ArmyImport.tsx:351
 #, fuzzy
 msgid "Use your own OpenAI key to match library figures to units from a photo of your army"
 msgstr "Utilise ta propre clé OpenAI pour associer les figurines de la bibliothèque aux unités d'après une photo de ton armée"
 
-#: src/ui/ArmyImport.tsx:358
+#: src/ui/ArmyImport.tsx:356
 #, fuzzy
 msgid "Match figures from a photo…"
 msgstr "Associer les figurines par photo…"
 
-#: src/ui/ArmyImport.tsx:363
+#: src/ui/ArmyImport.tsx:361
 #, fuzzy
 msgid "Loading…"
 msgstr "Chargement…"
 
-#: src/ui/ArmyImport.tsx:394
+#: src/ui/ArmyImport.tsx:392
 #, fuzzy
 msgid "Picked figures go on when the army is deployed."
 msgstr "Les figurines choisies sont appliquées au déploiement de l'armée."
 
-#: src/ui/ArmyImport.tsx:396
+#: src/ui/ArmyImport.tsx:394
 #, fuzzy
 msgid "Clear the figures"
 msgstr "Retirer les figurines"
 
-#: src/ui/ArmyImport.tsx:405
+#: src/ui/ArmyImport.tsx:403
 #, fuzzy
 msgid "Troop type"
 msgstr "Type de troupe"
 
-#: src/ui/ArmyImport.tsx:406
+#: src/ui/ArmyImport.tsx:404
 #: src/ui/TemplateTools.tsx:89
 #, fuzzy
 msgid "Models"
 msgstr "Figurines"
 
-#: src/ui/ArmyImport.tsx:407
+#: src/ui/ArmyImport.tsx:405
 #, fuzzy
 msgid "Base"
 msgstr "Socle"
 
-#: src/ui/ArmyImport.tsx:408
+#: src/ui/ArmyImport.tsx:406
 #, fuzzy
 msgid "Models in the front rank"
 msgstr "Figurines au premier rang"
 
-#: src/ui/ArmyImport.tsx:408
+#: src/ui/ArmyImport.tsx:406
 #: src/ui/RegimentPanel.tsx:95
 #: src/ui/RegimentPanel.tsx:336
 #, fuzzy
 msgid "Frontage"
 msgstr "Front"
 
-#: src/ui/ArmyImport.tsx:42
-#: src/ui/ArmyImport.tsx:817
+#: src/ui/ArmyImport.tsx:41
+#: src/ui/ArmyImport.tsx:815
 #, fuzzy
 msgid "{d}mm round"
 msgstr "{d} mm rond"
 
-#: src/ui/ArmyImport.tsx:421
+#: src/ui/ArmyImport.tsx:419
 #, fuzzy
 msgid "Level {level} wizard:"
 msgstr "Sorcier de niveau {level} :"
 
-#: src/ui/ArmyImport.tsx:424
+#: src/ui/ArmyImport.tsx:422
 #, fuzzy
 msgid "no spells yet"
 msgstr "pas encore de sorts"
 
-#: src/ui/ArmyImport.tsx:453
+#: src/ui/ArmyImport.tsx:451
 #, fuzzy
 msgid "single"
 msgstr "seul"
 
-#: src/ui/ArmyImport.tsx:459
+#: src/ui/ArmyImport.tsx:457
 #, fuzzy
 msgid "{unit} frontage"
 msgstr "Front de {unit}"
 
-#: src/ui/ArmyImport.tsx:476
+#: src/ui/ArmyImport.tsx:474
 #, fuzzy
 msgid "Deploy as a loose spread instead of a block"
 msgstr "Déployer en ordre dispersé plutôt qu'en bloc"
 
-#: src/ui/ArmyImport.tsx:483
+#: src/ui/ArmyImport.tsx:481
 #: src/ui/RegimentPanel.tsx:26
 #: src/workshop/Workshop.tsx:55
 #, fuzzy
 msgid "Skirmish"
 msgstr "Tirailleurs"
 
-#: src/ui/ArmyImport.tsx:492
-#: src/ui/ArmyImport.tsx:615
+#: src/ui/ArmyImport.tsx:490
+#: src/ui/ArmyImport.tsx:613
 #, fuzzy
 msgid "From your shelf"
 msgstr "De ton étagère"
 
-#: src/ui/ArmyImport.tsx:495
+#: src/ui/ArmyImport.tsx:493
 #, fuzzy
 msgid "{unit} figure"
 msgstr "Figurine pour {unit}"
 
-#: src/ui/ArmyImport.tsx:499
+#: src/ui/ArmyImport.tsx:497
 #, fuzzy
 msgid "From the photo ({sure}% sure): {why}"
 msgstr "D'après la photo (sûr à {sure} %) : {why}"
 
-#: src/ui/ArmyImport.tsx:510
+#: src/ui/ArmyImport.tsx:508
 #, fuzzy
 msgid "Suggested: {name}"
 msgstr "Suggestion : {name}"
 
-#: src/ui/ArmyImport.tsx:511
+#: src/ui/ArmyImport.tsx:509
 #, fuzzy
 msgid "Stand-ins"
 msgstr "Figurines génériques"
 
-#: src/ui/ArmyImport.tsx:514
+#: src/ui/ArmyImport.tsx:512
 #: src/ui/FigurePicker.tsx:199
 #, fuzzy
 msgid "Fits this unit"
 msgstr "Adaptées à cette unité"
 
-#: src/ui/ArmyImport.tsx:53
-#: src/ui/ArmyImport.tsx:819
+#: src/ui/ArmyImport.tsx:52
+#: src/ui/ArmyImport.tsx:817
 #, fuzzy
 msgid "{w}×{d}mm oval"
 msgstr "{w}×{d} mm ovale"
 
-#: src/ui/ArmyImport.tsx:537
+#: src/ui/ArmyImport.tsx:535
 #, fuzzy
 msgid "Not in the list, fill in:"
 msgstr "Absent de la liste, à remplir :"
 
-#: src/ui/ArmyImport.tsx:562
+#: src/ui/ArmyImport.tsx:560
 #, fuzzy
 msgid "Bases are a guess from each unit's troop type; check them against your models."
 msgstr "Les socles sont devinés d'après le type de troupe de chaque unité ; compare-les à tes figurines."
 
-#: src/ui/ArmyImport.tsx:563
+#: src/ui/ArmyImport.tsx:561
 #, fuzzy
 msgid "Bases are a guess from keywords and wounds; check them against your models."
 msgstr "Les socles sont devinés d'après les mots-clés et les PV ; compare-les à tes figurines."
 
-#: src/ui/ArmyImport.tsx:572
+#: src/ui/ArmyImport.tsx:570
 #, fuzzy
 msgid "A spell list file: names, casting values, ranges and kinds"
 msgstr "Un fichier de liste de sorts : noms, valeurs de lancement, portées et types"
 
-#: src/ui/ArmyImport.tsx:574
+#: src/ui/ArmyImport.tsx:572
 #, fuzzy
 msgid "Add spells from a list"
 msgstr "Ajouter des sorts depuis une liste"
 
-#: src/ui/ArmyImport.tsx:590
+#: src/ui/ArmyImport.tsx:588
 #, fuzzy
 msgid "Deploy for {name}"
 msgstr "Déployer pour {name}"
 
-#: src/ui/ArmyImport.tsx:623
+#: src/ui/ArmyImport.tsx:621
 #, fuzzy
 msgid "From your shelf…"
 msgstr "De ton étagère…"
 
-#: src/ui/ArmyImport.tsx:645
+#: src/ui/ArmyImport.tsx:643
 #, fuzzy
 msgid "Your army shelf ({count})"
 msgstr "Ton étagère d'armées ({count})"
 
-#: src/ui/ArmyImport.tsx:645
+#: src/ui/ArmyImport.tsx:643
 #, fuzzy
 msgid "Your army shelf"
 msgstr "Ton étagère d'armées"
 
-#: src/ui/ArmyImport.tsx:648
+#: src/ui/ArmyImport.tsx:646
 #, fuzzy
 msgid "Armies saved on this device. Save one after deploying it; pass one on as a file, figures included."
 msgstr "Armées enregistrées sur cet appareil. Enregistres-en une après l'avoir déployée ; transmets-en une sous forme de fichier, figurines comprises."
 
-#: src/ui/ArmyImport.tsx:670
+#: src/ui/ArmyImport.tsx:668
 #, fuzzy
 msgid "Yellowscribe army data, for Tabletop Simulator army tools"
 msgstr "Données d'armée Yellowscribe, pour les outils d'armée Tabletop Simulator"
 
-#: src/ui/ArmyImport.tsx:673
-#, fuzzy
-msgid "Saved {file}: Yellowscribe army data for TTS tools."
-msgstr "{file} enregistré : données d'armée Yellowscribe pour les outils TTS."
-
-#: src/ui/ArmyImport.tsx:679
-#, fuzzy
-msgid "Export for Yellowscribe / TTS"
-msgstr "Exporter pour Yellowscribe / TTS"
-
-#: src/ui/ArmyImport.tsx:68
+#: src/ui/ArmyImport.tsx:67
 #, fuzzy
 msgid "{w}mm square"
 msgstr "{w} mm carré"
 
-#: src/ui/ArmyImport.tsx:68
-#: src/ui/ArmyImport.tsx:820
+#: src/ui/ArmyImport.tsx:67
+#: src/ui/ArmyImport.tsx:818
 #, fuzzy
 msgid "{w}×{d}mm"
 msgstr "{w}×{d} mm"
 
-#: src/ui/ArmyImport.tsx:684
+#: src/ui/ArmyImport.tsx:671
+#, fuzzy
+msgid "Saved {file}: Yellowscribe army data for TTS tools."
+msgstr "{file} enregistré : données d'armée Yellowscribe pour les outils TTS."
+
+#: src/ui/ArmyImport.tsx:677
+#, fuzzy
+msgid "Export for Yellowscribe / TTS"
+msgstr "Exporter pour Yellowscribe / TTS"
+
+#: src/ui/ArmyImport.tsx:682
 #, fuzzy
 msgid "Take {name} off your shelf?"
 msgstr "Retirer {name} de ton étagère ?"
 
-#: src/ui/ArmyImport.tsx:693
+#: src/ui/ArmyImport.tsx:691
 #, fuzzy
 msgid "Open an army file"
 msgstr "Ouvrir un fichier d'armée"
 
-#: src/ui/ArmyImport.tsx:701
+#: src/ui/ArmyImport.tsx:699
 #, fuzzy
 msgid "{name} is on your shelf."
 msgstr "{name} est sur ton étagère."
 
-#: src/ui/ArmyImport.tsx:723
+#: src/ui/ArmyImport.tsx:721
 #, fuzzy
 msgid "{n} unit · saved {when}"
 msgid_plural "{n} units · saved {when}"
 msgstr[0] "{n} unité · enregistrée {when}"
 msgstr[1] "{n} unités · enregistrée {when}"
 
-#: src/ui/ArmyImport.tsx:738
+#: src/ui/ArmyImport.tsx:736
 #, fuzzy
 msgid "{name}'s army is on your shelf as it is now."
 msgstr "L'armée de {name} est sur ton étagère telle qu'elle est maintenant."
 
-#: src/ui/ArmyImport.tsx:739
+#: src/ui/ArmyImport.tsx:737
 #, fuzzy
 msgid "This army is on your shelf as it is now."
 msgstr "Cette armée est sur ton étagère telle qu'elle est maintenant."
 
-#: src/ui/ArmyImport.tsx:746
+#: src/ui/ArmyImport.tsx:744
 #, fuzzy
 msgid "Keep this army on this device for later games, with its unit names, figures, dice and colour"
 msgstr "Garder cette armée sur cet appareil pour de futures parties, avec ses noms d'unités, figurines, dés et couleur"
 
-#: src/ui/ArmyImport.tsx:753
-#, fuzzy
-msgid "Update {name}'s army on your shelf"
-msgstr "Mettre à jour l'armée de {name} sur ton étagère"
-
-#: src/ui/ArmyImport.tsx:754
-#, fuzzy
-msgid "Update it on your shelf"
-msgstr "La mettre à jour sur ton étagère"
-
-#: src/ui/ArmyImport.tsx:756
-#, fuzzy
-msgid "Save {name}'s army to your shelf"
-msgstr "Enregistrer l'armée de {name} sur ton étagère"
-
-#: src/ui/ArmyImport.tsx:757
-#, fuzzy
-msgid "Save army to your shelf"
-msgstr "Enregistrer l'armée sur ton étagère"
-
-#: src/ui/ArmyImport.tsx:76
+#: src/ui/ArmyImport.tsx:75
 #, fuzzy
 msgid "{w}×{d}mm hull"
 msgstr "coque {w}×{d} mm"
 
-#: src/ui/ArmyImport.tsx:772
+#: src/ui/ArmyImport.tsx:751
+#, fuzzy
+msgid "Update {name}'s army on your shelf"
+msgstr "Mettre à jour l'armée de {name} sur ton étagère"
+
+#: src/ui/ArmyImport.tsx:752
+#, fuzzy
+msgid "Update it on your shelf"
+msgstr "La mettre à jour sur ton étagère"
+
+#: src/ui/ArmyImport.tsx:754
+#, fuzzy
+msgid "Save {name}'s army to your shelf"
+msgstr "Enregistrer l'armée de {name} sur ton étagère"
+
+#: src/ui/ArmyImport.tsx:755
+#, fuzzy
+msgid "Save army to your shelf"
+msgstr "Enregistrer l'armée sur ton étagère"
+
+#: src/ui/ArmyImport.tsx:770
 #: src/ui/FigurePicker.tsx:120
 #, fuzzy
 msgid "Photograph your painted miniature and stand it on its base"
 msgstr "Photographie ta figurine peinte et pose-la sur son socle"
 
-#: src/ui/ArmyImport.tsx:777
+#: src/ui/ArmyImport.tsx:775
 #, fuzzy
 msgid "Photograph {name}'s painted figures"
 msgstr "Photographie les figurines peintes de {name}"
 
-#: src/ui/ArmyImport.tsx:778
+#: src/ui/ArmyImport.tsx:776
 #, fuzzy
 msgid "Photograph your painted figures"
 msgstr "Photographie tes figurines peintes"
 
-#: src/ui/ArmyImport.tsx:780
+#: src/ui/ArmyImport.tsx:778
 #, fuzzy
 msgid "{n} unit in its stand-in"
 msgid_plural "{n} units in their stand-ins"
 msgstr[0] "{n} unité avec sa figurine provisoire"
 msgstr[1] "{n} unités avec leur figurine provisoire"
 
-#: src/ui/ArmyImport.tsx:803
+#: src/ui/ArmyImport.tsx:801
 #, fuzzy
 msgid "on {mount}"
 msgstr "sur {mount}"
 
-#: src/ui/ArmyImport.tsx:809
-#: src/ui/ArmyImport.tsx:812
+#: src/ui/ArmyImport.tsx:807
+#: src/ui/ArmyImport.tsx:810
 #, fuzzy
 msgid "({points} pts)"
 msgstr "({points} pts)"
 
-#: src/ui/ArmyImport.tsx:811
+#: src/ui/ArmyImport.tsx:809
 #, fuzzy
 msgid "({points} pts; units {units})"
 msgstr "({points} pts ; unités {units})"
@@ -8399,7 +8397,7 @@ msgstr "Dévastatrices"
 #: src/ui/AttackPanel.tsx:375
 #: src/ui/AttackPanel.tsx:384
 #: src/ui/AttackPanel.tsx:485
-#: src/ui/TopBar.tsx:531
+#: src/ui/TopBar.tsx:534
 #, fuzzy
 msgid "none"
 msgstr "aucun"
@@ -8606,9 +8604,9 @@ msgstr "Tout lancer"
 #: src/ui/AttackPanel.tsx:590
 #: src/ui/Coach.tsx:87
 #: src/ui/ProcedurePanels.tsx:421
+#: src/ui/SetupSteps.tsx:109
 #: src/ui/TerrainPanel.tsx:163
-#: src/ui/TopBar.tsx:680
-#: src/ui/TouchLayer.tsx:80
+#: src/ui/TopBar.tsx:683
 #, fuzzy
 msgid "Done"
 msgstr "Terminé"
@@ -8796,6 +8794,7 @@ msgstr "Automatisé :"
 #: src/ui/AutoAbilities.tsx:604
 #: src/ui/PlayPanel.tsx:453
 #: src/ui/PlayPanel.tsx:502
+#: src/ui/SetupSteps.tsx:91
 #: src/workshop/PackPanes.tsx:235
 #, fuzzy
 msgid "Change"
@@ -8848,62 +8847,62 @@ msgstr "Utiliser {ability}"
 msgid "{ability} used"
 msgstr "{ability} utilisée"
 
-#: src/ui/Branch.tsx:120
+#: src/ui/Branch.tsx:121
 #, fuzzy
 msgid "Open the game this one branched from"
 msgstr "Ouvrir la partie dont celle-ci est issue"
 
-#: src/ui/Branch.tsx:121
+#: src/ui/Branch.tsx:122
 #, fuzzy
 msgid "Back to the original"
 msgstr "Retour à l'original"
 
-#: src/ui/Branch.tsx:36
+#: src/ui/Branch.tsx:37
 #, fuzzy
 msgid "Start a new game from this point"
 msgstr "Lancer une nouvelle partie à partir d'ici"
 
-#: src/ui/Branch.tsx:37
+#: src/ui/Branch.tsx:38
 #, fuzzy
 msgid "What if…"
 msgstr "Et si…"
 
-#: src/ui/Branch.tsx:41
+#: src/ui/Branch.tsx:42
 #, fuzzy
 msgid "Play on from here"
 msgstr "Continuer à partir d'ici"
 
-#: src/ui/Branch.tsx:42
+#: src/ui/Branch.tsx:43
 #, fuzzy
 msgid "A new game from this moment. This one stays as it is."
 msgstr "Une nouvelle partie à partir de ce moment. Celle-ci reste telle quelle."
 
-#: src/ui/Branch.tsx:44
+#: src/ui/Branch.tsx:45
 #, fuzzy
 msgid "On this screen"
 msgstr "Sur cet écran"
 
-#: src/ui/Branch.tsx:47
+#: src/ui/Branch.tsx:48
 #, fuzzy
 msgid "Invite someone"
 msgstr "Inviter quelqu'un"
 
-#: src/ui/Branch.tsx:62
+#: src/ui/Branch.tsx:63
 #, fuzzy
 msgid "round {round}, {phase}"
 msgstr "round {round}, {phase}"
 
-#: src/ui/Branch.tsx:63
+#: src/ui/Branch.tsx:64
 #, fuzzy
 msgid "round {round}"
 msgstr "round {round}"
 
-#: src/ui/Branch.tsx:64
+#: src/ui/Branch.tsx:65
 #, fuzzy
 msgid "deployment"
 msgstr "déploiement"
 
-#: src/ui/Branch.tsx:65
+#: src/ui/Branch.tsx:66
 #, fuzzy
 msgid "{when}, just after {what}"
 msgstr "{when}, juste après {what}"
@@ -9438,7 +9437,8 @@ msgid "Redo this step"
 msgstr "Refaire cette étape"
 
 #: src/ui/Coach.tsx:210
-#: src/ui/TopBar.tsx:407
+#: src/ui/TopBar.tsx:367
+#: src/ui/TopBar.tsx:410
 #: src/ui/WhatNow.tsx:398
 #, fuzzy
 msgid "Next phase"
@@ -9641,35 +9641,35 @@ msgstr "Corps"
 msgid "Pips"
 msgstr "Points"
 
-#: src/ui/DiceTray.tsx:462
+#: src/ui/DiceTray.tsx:478
 #, fuzzy
 msgid "{title}: {n} of {total} saved"
 msgstr "{title} : {n} sur {total} sauvegardés"
 
-#: src/ui/DiceTray.tsx:463
-#: src/ui/DiceTray.tsx:744
+#: src/ui/DiceTray.tsx:479
+#: src/ui/DiceTray.tsx:760
 #, fuzzy
 msgid "{title}: {n} of {total} pass"
 msgstr "{title} : {n} sur {total} réussis"
 
-#: src/ui/DiceTray.tsx:466
+#: src/ui/DiceTray.tsx:482
 #, fuzzy
 msgid "{title}: re-rolled a {from}, now {to}"
 msgstr "{title} : un {from} relancé, maintenant {to}"
 
-#: src/ui/DiceTray.tsx:485
+#: src/ui/DiceTray.tsx:501
 #: src/ui/StatsScreen.tsx:164
 #: src/ui/stakes.ts:100
 #, fuzzy
 msgid "Slain"
 msgstr "Tuées"
 
-#: src/ui/DiceTray.tsx:514
+#: src/ui/DiceTray.tsx:530
 #, fuzzy
 msgid "Tap to continue"
 msgstr "Touche pour continuer"
 
-#: src/ui/DiceTray.tsx:514
+#: src/ui/DiceTray.tsx:530
 #, fuzzy
 msgid "Click to continue"
 msgstr "Clique pour continuer"
@@ -10125,230 +10125,230 @@ msgstr "Taille de partie (points)"
 msgid "☰ Menu"
 msgstr "☰ Menu"
 
-#: src/ui/Hud.tsx:127
+#: src/ui/Hud.tsx:129
 #, fuzzy
 msgid "Lesson: the computer plays the other side."
 msgstr "Leçon : l'ordinateur joue l'autre camp."
 
-#: src/ui/Hud.tsx:129
+#: src/ui/Hud.tsx:131
 #, fuzzy
 msgid "You play the near side; {name} plays the far side ({level})."
 msgstr "Tu joues le côté proche ; {name} joue le côté éloigné ({level})."
 
-#: src/ui/Hud.tsx:134
+#: src/ui/Hud.tsx:136
 #, fuzzy
 msgid "Play by mail: you play your side; send your file when you're done."
 msgstr "Partie par correspondance : tu joues ton camp et tu envoies ton fichier quand tu as fini."
 
-#: src/ui/Hud.tsx:135
+#: src/ui/Hud.tsx:137
 #, fuzzy
 msgid "Hotseat: you control both sides."
 msgstr "Hotseat : tu contrôles les deux camps."
 
-#: src/ui/Hud.tsx:138
+#: src/ui/Hud.tsx:140
 #, fuzzy
 msgid "Spectating."
 msgstr "Spectateur."
 
-#: src/ui/Hud.tsx:143
+#: src/ui/Hud.tsx:145
 #: src/ui/TouchLayer.tsx:174
 #, fuzzy
 msgid "3D view"
 msgstr "Vue 3D"
 
-#: src/ui/Hud.tsx:143
+#: src/ui/Hud.tsx:145
 #: src/ui/TouchLayer.tsx:174
 #, fuzzy
 msgid "Top-down view"
 msgstr "Vue de dessus"
 
-#: src/ui/Hud.tsx:148
+#: src/ui/Hud.tsx:150
 #, fuzzy
 msgid "Drag between models or points to measure; both players see it (M)"
 msgstr "Fais glisser entre des figurines ou des points pour mesurer ; les deux joueurs le voient (M)"
 
-#: src/ui/Hud.tsx:151
+#: src/ui/Hud.tsx:153
 #, fuzzy
 msgid "Ruler"
 msgstr "Mètre"
 
-#: src/ui/Hud.tsx:156
+#: src/ui/Hud.tsx:158
 #, fuzzy
 msgid "Clear the ruler (Esc)"
 msgstr "Effacer le mètre (Esc)"
 
-#: src/ui/Hud.tsx:159
+#: src/ui/Hud.tsx:161
 #, fuzzy
 msgid "Clear ruler"
 msgstr "Effacer le mètre"
 
-#: src/ui/Hud.tsx:163
+#: src/ui/Hud.tsx:165
 #: src/ui/Keys.tsx:68
 #, fuzzy
 msgid "View ▾"
 msgstr "Vue ▾"
 
-#: src/ui/Hud.tsx:164
+#: src/ui/Hud.tsx:166
 #: src/ui/Keys.tsx:47
 #, fuzzy
 msgid "Home"
 msgstr "Home"
 
-#: src/ui/Hud.tsx:165
+#: src/ui/Hud.tsx:167
 #: src/ui/TouchLayer.tsx:177
 #, fuzzy
 msgid "Reset view"
 msgstr "Réinitialiser la vue"
 
-#: src/ui/Hud.tsx:169
+#: src/ui/Hud.tsx:171
 #, fuzzy
 msgid "Unit names"
 msgstr "Noms des unités"
 
-#: src/ui/Hud.tsx:173
+#: src/ui/Hud.tsx:175
 #, fuzzy
 msgid "X-ray terrain"
 msgstr "Décors en rayons X"
 
-#: src/ui/Hud.tsx:178
+#: src/ui/Hud.tsx:180
 #, fuzzy
 msgid "Camera follows the action: moves, shots and charges"
 msgstr "La caméra suit l'action : mouvements, tirs et charges"
 
-#: src/ui/Hud.tsx:182
+#: src/ui/Hud.tsx:184
 #, fuzzy
 msgid "Follow action"
 msgstr "Suivre l'action"
 
-#: src/ui/Hud.tsx:191
+#: src/ui/Hud.tsx:193
 #: src/ui/TerrainPanel.tsx:162
 #, fuzzy
 msgid "Edit terrain"
 msgstr "Modifier les décors"
 
-#: src/ui/Hud.tsx:220
-#: src/ui/Hud.tsx:232
+#: src/ui/Hud.tsx:222
 #: src/ui/Keys.tsx:70
 #, fuzzy
 msgid "Armies"
 msgstr "Armées"
 
-#: src/ui/Hud.tsx:279
+#: src/ui/Hud.tsx:269
 #: src/ui/ReplayBar.tsx:179
 #, fuzzy
 msgid "Open this game as a replay to add notes and marks"
 msgstr "Ouvrir cette partie en replay pour ajouter des notes et des marques"
 
-#: src/ui/Hud.tsx:280
+#: src/ui/Hud.tsx:270
 #, fuzzy
 msgid "Replay with notes"
 msgstr "Revoir avec des notes"
 
-#: src/ui/Hud.tsx:305
+#: src/ui/Hud.tsx:295
+#: src/ui/route.ts:247
 #, fuzzy
 msgid "Leave this game? The others can't go on without you."
 msgstr "Quitter cette partie ? Les autres ne peuvent pas continuer sans toi."
 
-#: src/ui/Hud.tsx:314
+#: src/ui/Hud.tsx:304
 #: src/ui/Keys.tsx:69
 #, fuzzy
 msgid "⋯ Game"
 msgstr "⋯ Partie"
 
-#: src/ui/Hud.tsx:314
+#: src/ui/Hud.tsx:304
 #, fuzzy
 msgid "Download the replay, report a problem, leave"
 msgstr "Télécharger le replay, signaler un problème, quitter"
 
-#: src/ui/Hud.tsx:326
+#: src/ui/Hud.tsx:316
 #, fuzzy
 msgid "Leave game"
 msgstr "Quitter la partie"
 
-#: src/ui/Hud.tsx:355
+#: src/ui/Hud.tsx:345
 #, fuzzy
 msgid "Take back {what}"
 msgstr "Annuler {what}"
 
-#: src/ui/Hud.tsx:356
+#: src/ui/Hud.tsx:346
 #, fuzzy
 msgid "Take back your last action"
 msgstr "Annuler ta dernière action"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "three"
 msgstr "trois"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "four"
 msgstr "quatre"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "five"
 msgstr "cinq"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "six"
 msgstr "six"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "seven"
 msgstr "sept"
 
-#: src/ui/Hud.tsx:423
+#: src/ui/Hud.tsx:413
 #, fuzzy
 msgid "eight"
 msgstr "huit"
 
-#: src/ui/Hud.tsx:426
+#: src/ui/Hud.tsx:416
 #, fuzzy
 msgid "Both players are here."
 msgstr "Les deux joueurs sont là."
 
-#: src/ui/Hud.tsx:427
+#: src/ui/Hud.tsx:417
 #, fuzzy
 msgid "All {count} seats are taken."
 msgstr "Les {count} places sont prises."
 
-#: src/ui/Hud.tsx:464
+#: src/ui/Hud.tsx:454
 #, fuzzy
 msgid "You're {name}. What should the others call you?"
 msgstr "Tu es {name}. Comment les autres doivent-ils t'appeler ?"
 
-#: src/ui/Hud.tsx:474
-#: src/ui/Hud.tsx:511
-#: src/ui/Lobby.tsx:383
+#: src/ui/Hud.tsx:464
+#: src/ui/Hud.tsx:501
+#: src/ui/Lobby.tsx:424
 #, fuzzy
 msgid "Use this name"
 msgstr "Utiliser ce nom"
 
-#: src/ui/Hud.tsx:489
+#: src/ui/Hud.tsx:479
 #, fuzzy
 msgid "Connecting to the table as {name}…"
 msgstr "Connexion à la table en tant que {name}…"
 
-#: src/ui/Hud.tsx:501
+#: src/ui/Hud.tsx:491
 #, fuzzy
 msgid "Connecting to the table… What should the others call you?"
 msgstr "Connexion à la table… Comment les autres doivent-ils t'appeler ?"
 
-#: src/ui/Hud.tsx:538
+#: src/ui/Hud.tsx:528
 #, fuzzy
 msgid "This game is already under way. Rejoining?"
 msgstr "Cette partie est déjà en cours. Tu la rejoins ?"
 
-#: src/ui/Hud.tsx:545
+#: src/ui/Hud.tsx:535
 #, fuzzy
 msgid "Rejoin as {name}"
 msgstr "Rejoindre en tant que {name}"
 
-#: src/ui/Hud.tsx:574
-#: src/ui/Hud.tsx:574
+#: src/ui/Hud.tsx:564
+#: src/ui/Hud.tsx:564
 #, fuzzy
 msgid "Review ready"
 msgstr "Analyse prête"
@@ -10820,355 +10820,363 @@ msgstr "Balayer la fiche d'unité vers la droite"
 msgid "Put it away (tap a unit to bring it back)"
 msgstr "La range (touche une unité pour la faire revenir)"
 
-#: src/ui/Lobby.tsx:145
+#: src/ui/Lobby.tsx:197
 #: src/workshop/PackPanes.tsx:336
 #: src/workshop/Workshop.tsx:764
 #, fuzzy
 msgid "{name} {version}"
 msgstr "{name} {version}"
 
-#: src/ui/Lobby.tsx:320
-#, fuzzy
-msgid "Learn (guided)"
-msgstr "Apprendre (guidé)"
-
-#: src/ui/Lobby.tsx:325
-#: src/ui/Lobby.tsx:337
-#, fuzzy
-msgid "Try (both sides)"
-msgstr "Essayer (les deux camps)"
-
-#: src/ui/Lobby.tsx:330
-#: src/ui/Lobby.tsx:504
-#: src/ui/Lobby.tsx:524
-#: src/ui/Lobby.tsx:546
-#: src/ui/Lobby.tsx:570
-#, fuzzy
-msgid "Play the computer"
-msgstr "Contre l'ordinateur"
-
-#: src/ui/Lobby.tsx:334
-#: src/ui/Lobby.tsx:506
-#: src/ui/Lobby.tsx:548
-#, fuzzy
-msgid "More for this game"
-msgstr "Plus pour ce jeu"
-
-#: src/ui/Lobby.tsx:372
+#: src/ui/Lobby.tsx:411
 #, fuzzy
 msgid "You've been invited to a game. What should the others call you?"
 msgstr "Tu as une invitation à une partie. Comment les autres doivent-ils t'appeler ?"
 
-#: src/ui/Lobby.tsx:391
+#: src/ui/Lobby.tsx:412
+#: src/ui/Lobby.tsx:763
+#, fuzzy
+msgid "What should the others call you?"
+msgstr "Comment les autres doivent-ils t'appeler ?"
+
+#: src/ui/Lobby.tsx:429
 #, fuzzy
 msgid "Just watch"
 msgstr "Juste regarder"
 
-#: src/ui/Lobby.tsx:406
+#: src/ui/Lobby.tsx:447
+#, fuzzy
+msgid "Our own skirmish game, free to share (CC BY). Four warbands fight over lanterns fallen into a rift. Nothing to import."
+msgstr "Notre propre jeu d'escarmouche, libre de partage (CC BY). Quatre bandes se disputent des lanternes tombées dans une faille. Rien à importer."
+
+#: src/ui/Lobby.tsx:455
+#, fuzzy
+msgid "Our own skirmish game, free to share (CC BY). Crews of five to ten climb a drowned town's towers at low tide: two actions a go, guards and hidden lurkers. Nothing to import."
+msgstr "Notre propre jeu d'escarmouche, libre de partage (CC BY). Des bandes de cinq à dix escaladent les tours d'une ville engloutie à marée basse : deux actions par tour, des gardes et des rôdeurs cachés. Rien à importer."
+
+#: src/ui/Lobby.tsx:526
 #, fuzzy
 msgid "Aa ▾"
 msgstr "Aa ▾"
 
-#: src/ui/Lobby.tsx:406
+#: src/ui/Lobby.tsx:526
 #, fuzzy
 msgid "Text size and language"
 msgstr "Taille du texte et langue"
 
-#: src/ui/Lobby.tsx:413
+#: src/ui/Lobby.tsx:535
+#, fuzzy
+msgid "Got an invite? Paste it"
+msgstr "Une invitation ? Colle-la ici"
+
+#: src/ui/Lobby.tsx:538
+#, fuzzy
+msgid "a room code or invite link"
+msgstr "un code de salle ou un lien d'invitation"
+
+#: src/ui/Lobby.tsx:539
+#: src/ui/Room.tsx:114
+#, fuzzy
+msgid "Room"
+msgstr "Salon"
+
+#: src/ui/Lobby.tsx:557
 #, fuzzy
 msgid "Tabletop battles on a 3D table in your browser. Bring your army; the rules keep count."
 msgstr "Des batailles de figurines sur une table 3D dans ton navigateur. Apporte ton armée ; les règles tiennent les comptes."
 
-#: src/ui/Lobby.tsx:432
+#: src/ui/Lobby.tsx:565
 #, fuzzy
 msgid "{event}: back to the event"
 msgstr "{event} : retour à l'événement"
 
-#: src/ui/Lobby.tsx:443
+#: src/ui/Lobby.tsx:576
 #, fuzzy
 msgid "Back to {game}: Battle over"
 msgstr "Retour à {game} : bataille terminée"
 
-#: src/ui/Lobby.tsx:445
+#: src/ui/Lobby.tsx:578
 #, fuzzy
 msgid "Resume: {game}"
 msgstr "Reprendre : {game}"
 
-#: src/ui/Lobby.tsx:447
+#: src/ui/Lobby.tsx:580
 #, fuzzy
 msgid "Resume: {game}, round {n}"
 msgstr "Reprendre : {game}, tour {n}"
 
-#: src/ui/Lobby.tsx:448
+#: src/ui/Lobby.tsx:581
 #, fuzzy
 msgid "Resume: {game}, deploying"
 msgstr "Reprendre : {game}, déploiement"
 
-#: src/ui/Lobby.tsx:449
+#: src/ui/Lobby.tsx:582
 #, fuzzy
 msgid "Resume last game"
 msgstr "Reprendre la dernière partie"
 
-#: src/ui/Lobby.tsx:452
+#: src/ui/Lobby.tsx:585
 #, fuzzy
 msgid "{mode}, {n} event, saved {date}"
 msgid_plural "{mode}, {n} events, saved {date}"
 msgstr[0] "{mode}, {n} événement, enregistrée le {date}"
 msgstr[1] "{mode}, {n} événements, enregistrée le {date}"
 
-#: src/ui/Lobby.tsx:458
+#: src/ui/Lobby.tsx:591
 #, fuzzy
 msgid "Against the computer ({level})"
 msgstr "Contre l'ordinateur ({level})"
 
-#: src/ui/Lobby.tsx:459
+#: src/ui/Lobby.tsx:592
 #, fuzzy
 msgid "online"
 msgstr "en ligne"
 
-#: src/ui/Lobby.tsx:459
+#: src/ui/Lobby.tsx:592
 #, fuzzy
 msgid "local"
 msgstr "local"
 
-#: src/ui/Lobby.tsx:459
+#: src/ui/Lobby.tsx:592
 #, fuzzy
 msgid "hotseat"
 msgstr "hotseat"
 
-#: src/ui/Lobby.tsx:476
+#: src/ui/Lobby.tsx:618
 #, fuzzy
-msgid "Play your own army: import a list"
-msgstr "Joue ta propre armée : importe une liste"
+msgid "1. What are you playing?"
+msgstr "1. À quoi joues-tu ?"
 
-#: src/ui/Lobby.tsx:478
+#: src/ui/Lobby.tsx:624
 #, fuzzy
-msgid "From New Recruit, BattleScribe, Yellowscribe or a Tabletop Simulator save, with your own figures if you have them."
-msgstr "Depuis New Recruit, BattleScribe, Yellowscribe ou une sauvegarde Tabletop Simulator, avec tes propres figurines si tu en as."
+msgid "More games ▸"
+msgstr "Plus de jeux ▸"
 
-#: src/ui/Lobby.tsx:486
-#, fuzzy
-msgid "Find an opponent"
-msgstr "Trouver un adversaire"
-
-#: src/ui/Lobby.tsx:487
-#, fuzzy
-msgid "Join a game someone has put up on Open tables."
-msgstr "Rejoignez une partie publiée sur Tables ouvertes."
-
-#: src/ui/Lobby.tsx:495
-#, fuzzy
-msgid "Our own skirmish game, free to share (CC BY). Four warbands fight over lanterns fallen into a rift. Nothing to import."
-msgstr "Notre propre jeu d'escarmouche, libre de partage (CC BY). Quatre bandes se disputent des lanternes tombées dans une faille. Rien à importer."
-
-#: src/ui/Lobby.tsx:501
-#: src/ui/Lobby.tsx:523
-#: src/ui/Lobby.tsx:543
-#: src/ui/Lobby.tsx:566
-#, fuzzy
-msgid "Play now (both sides)"
-msgstr "Jouer maintenant (les deux camps)"
-
-#: src/ui/Lobby.tsx:508
-#: src/ui/Lobby.tsx:550
-#, fuzzy
-msgid "Printed or real models on your table: this phone keeps the cards, rolls and scores"
-msgstr "Figurines imprimées ou réelles sur votre table : ce téléphone tient les cartes, les jets et les scores"
-
-#: src/ui/Lobby.tsx:513
-#: src/ui/Lobby.tsx:525
-#: src/ui/Lobby.tsx:555
-#: src/ui/Lobby.tsx:571
-#: src/ui/Lobby.tsx:708
-#, fuzzy
-msgid "At a real table"
-msgstr "Sur une vraie table"
-
-#: src/ui/Lobby.tsx:515
-#: src/ui/Lobby.tsx:557
+#: src/ui/Lobby.tsx:633
 #, fuzzy
 msgid "Rules, print and play"
 msgstr "Règles, imprimer et jouer"
 
-#: src/ui/Lobby.tsx:537
+#: src/ui/Lobby.tsx:640
 #, fuzzy
-msgid "Our own skirmish game, free to share (CC BY). Crews of five to ten climb a drowned town's towers at low tide: two actions a go, guards and hidden lurkers. Nothing to import."
-msgstr "Notre propre jeu d'escarmouche, libre de partage (CC BY). Des bandes de cinq à dix escaladent les tours d'une ville engloutie à marée basse : deux actions par tour, des gardes et des rôdeurs cachés. Rien à importer."
+msgid "2. Who against, in {game}?"
+msgstr "2. Contre qui, à {game} ?"
 
-#: src/ui/Lobby.tsx:578
+#: src/ui/Lobby.tsx:640
 #, fuzzy
-msgid "Pick a game"
-msgstr "Choisis un jeu"
+msgid "2. Who against?"
+msgstr "2. Contre qui ?"
 
-#: src/ui/Lobby.tsx:580
+#: src/ui/Lobby.tsx:648
 #, fuzzy
-msgid "Learn: a guided first game against the computer, with a coach. Try: two sample armies set up, and you play both sides."
-msgstr "Apprendre : une première partie guidée contre l'ordinateur, avec un coach. Essayer : deux armées d'exemple en place, et tu joues les deux camps."
+msgid "A friend online"
+msgstr "Un ami en ligne"
 
-#: src/ui/Lobby.tsx:585
-#, fuzzy
-msgid "These are built-in sample rules. For your own game system, load its rules package under More ways to play."
-msgstr "Ce sont des règles d'exemple intégrées. Pour ton propre système de jeu, charge son paquet de règles dans Autres façons de jouer."
-
-#: src/ui/Lobby.tsx:594
-#, fuzzy
-msgid "More games"
-msgstr "Plus de jeux"
-
-#: src/ui/Lobby.tsx:601
-#, fuzzy
-msgid "Play with friends"
-msgstr "Jouer avec des amis"
-
-#: src/ui/Lobby.tsx:606
-#, fuzzy
-msgid "Open tables: find an opponent"
-msgstr "Tables ouvertes : trouver un adversaire"
-
-#: src/ui/Lobby.tsx:608
-#, fuzzy
-msgid "Games other players have put up. Join one, or post your own."
-msgstr "Des parties proposées par d'autres joueurs. Rejoignez-en une ou proposez la vôtre."
-
-#: src/ui/Lobby.tsx:636
-#, fuzzy
-msgid "Player 1 or 2, by seat"
-msgstr "Joueur 1 ou 2, selon la place"
-
-#: src/ui/Lobby.tsx:658
-#, fuzzy
-msgid "Host a game"
-msgstr "Héberger une partie"
-
-#: src/ui/Lobby.tsx:662
-#, fuzzy
-msgid "Options: 2 vs 2"
-msgstr "Options : 2 contre 2"
-
-#: src/ui/Lobby.tsx:662
-#, fuzzy
-msgid "Options"
-msgstr "Options"
-
-#: src/ui/Lobby.tsx:664
-#, fuzzy
-msgid "Players"
-msgstr "Joueurs"
-
-#: src/ui/Lobby.tsx:667
-#, fuzzy
-msgid "Two players"
-msgstr "Deux joueurs"
-
-#: src/ui/Lobby.tsx:668
-#, fuzzy
-msgid "Four players in two teams; teams share CP and VP"
-msgstr "Quatre joueurs en deux équipes ; les équipes partagent les CP et les VP"
-
-#: src/ui/Lobby.tsx:685
+#: src/ui/Lobby.tsx:649
 #, fuzzy
 msgid "You get a link to send; whoever opens it joins your table."
 msgstr "Tu obtiens un lien à envoyer ; quiconque l'ouvre rejoint ta table."
 
+#: src/ui/Lobby.tsx:652
+#, fuzzy
+msgid "Easy, Steady or Sharp."
+msgstr "Facile, Solide ou Redoutable."
+
+#: src/ui/Lobby.tsx:656
+#: src/ui/Lobby.tsx:851
+#: src/ui/Lobby.tsx:867
+#, fuzzy
+msgid "Both sides, on this screen"
+msgstr "Les deux camps, sur cet écran"
+
+#: src/ui/Lobby.tsx:658
+#, fuzzy
+msgid "Two sample armies set up; you play both."
+msgstr "Deux armées d'exemple en place ; tu joues les deux."
+
+#: src/ui/Lobby.tsx:659
+#, fuzzy
+msgid "You set up both armies and play both."
+msgstr "Tu installes les deux armées et tu joues les deux."
+
+#: src/ui/Lobby.tsx:665
+#, fuzzy
+msgid "At a real table, with your models"
+msgstr "Sur une vraie table, avec tes figurines"
+
+#: src/ui/Lobby.tsx:666
+#, fuzzy
+msgid "Open Battle keeps the cards, wounds, CP, VP and each attack."
+msgstr "Open Battle tient les cartes, les blessures, les PC, les PV et chaque attaque."
+
+#: src/ui/Lobby.tsx:677
+#, fuzzy
+msgid "No computer player for this game yet"
+msgstr "Pas encore d'adversaire ordinateur pour ce jeu"
+
+#: src/ui/Lobby.tsx:687
 #: src/ui/Lobby.tsx:688
-#, fuzzy
-msgid "Have an invite? Paste it here"
-msgstr "Une invitation ? Colle-la ici"
-
-#: src/ui/Lobby.tsx:691
-#, fuzzy
-msgid "a room code or invite link"
-msgstr "un code de salle ou un lien d'invitation"
-
-#: src/ui/Lobby.tsx:692
-#: src/ui/Room.tsx:114
-#, fuzzy
-msgid "Room"
-msgstr "Salon"
-
-#: src/ui/Lobby.tsx:710
-#, fuzzy
-msgid "Playing with your own models? Open Battle keeps the unit cards, wounds, CP, VP and mission, and works out each attack. Roll on screen or roll your own dice and type them in."
-msgstr "Tu joues avec tes propres figurines ? Open Battle garde les fiches d'unité, les blessures, les CP, les VP et la mission, et calcule chaque attaque. Lance les dés à l'écran ou lance tes propres dés et saisis les résultats."
-
-#: src/ui/Lobby.tsx:715
-#, fuzzy
-msgid "One phone for both of us"
-msgstr "Un téléphone pour nous deux"
-
-#: src/ui/Lobby.tsx:718
-#, fuzzy
-msgid "You get a link to send; the other player opens it on their phone"
-msgstr "Tu reçois un lien à envoyer ; l'autre joueur l'ouvre sur son téléphone"
-
-#: src/ui/Lobby.tsx:720
-#, fuzzy
-msgid "A phone each"
-msgstr "Un téléphone chacun"
-
-#: src/ui/Lobby.tsx:724
-#, fuzzy
-msgid "More ways to play"
-msgstr "Autres façons de jouer"
-
-#: src/ui/Lobby.tsx:731
-#, fuzzy
-msgid "Same browser (play between two tabs, no network)"
-msgstr "Même navigateur (jouer entre deux onglets, sans réseau)"
-
-#: src/ui/Lobby.tsx:741
-#, fuzzy
-msgid "Set up a game on this screen (hotseat)"
-msgstr "Préparer une partie sur cet écran (hotseat)"
-
-#: src/ui/Lobby.tsx:755
-#, fuzzy
-msgid "Figure library: your models, packs and storage"
-msgstr "Bibliothèque de figurines : tes modèles, packs et stockage"
-
-#: src/ui/Lobby.tsx:758
-#, fuzzy
-msgid "Module workshop: write your own game system"
-msgstr "Atelier de modules : écris ton propre système de jeu"
-
-#: src/ui/Lobby.tsx:765
-#, fuzzy
-msgid "Open a Tabletop Simulator save as a game"
-msgstr "Ouvrir une sauvegarde Tabletop Simulator comme partie"
-
-#: src/ui/Lobby.tsx:772
-#, fuzzy
-msgid "No account: games run between your browsers."
-msgstr "Pas de compte : les parties passent directement entre vos navigateurs."
-
-#: src/ui/Lobby.tsx:777
-#, fuzzy
-msgid "Source code"
-msgstr "Code source"
-
-#: src/ui/Lobby.tsx:805
-#, fuzzy
-msgid "plays loosely; good for a first game"
-msgstr "joue sans trop forcer ; idéal pour une première partie"
-
-#: src/ui/Lobby.tsx:806
-#, fuzzy
-msgid "plays to win"
-msgstr "joue pour gagner"
-
-#: src/ui/Lobby.tsx:807
-#, fuzzy
-msgid "thinks harder about every move"
-msgstr "réfléchit davantage à chaque coup"
-
-#: src/ui/Lobby.tsx:810
-#: src/ui/Lobby.tsx:811
 #, fuzzy
 msgid "How hard?"
 msgstr "Quelle difficulté ?"
 
-#: src/ui/Lobby.tsx:838
-#: src/ui/Lobby.tsx:839
+#: src/ui/Lobby.tsx:691
+#, fuzzy
+msgid "plays loosely; good for a first game"
+msgstr "joue sans trop forcer ; idéal pour une première partie"
+
+#: src/ui/Lobby.tsx:692
+#, fuzzy
+msgid "plays to win"
+msgstr "joue pour gagner"
+
+#: src/ui/Lobby.tsx:693
+#, fuzzy
+msgid "thinks harder about every move"
+msgstr "réfléchit davantage à chaque coup"
+
+#: src/ui/Lobby.tsx:718
+#, fuzzy
+msgid "New to it? Learn with a coach"
+msgstr "Nouveau ? Apprends avec un coach"
+
+#: src/ui/Lobby.tsx:730
+#, fuzzy
+msgid "3. Get ready"
+msgstr "3. Prépare-toi"
+
+#: src/ui/Lobby.tsx:735
+#, fuzzy
+msgid "Phones"
+msgstr "Téléphones"
+
+#: src/ui/Lobby.tsx:742
+#, fuzzy
+msgid "One phone for both of us"
+msgstr "Un téléphone pour nous deux"
+
+#: src/ui/Lobby.tsx:749
+#, fuzzy
+msgid "You get a link to send; the other player opens it on their phone"
+msgstr "Tu reçois un lien à envoyer ; l'autre joueur l'ouvre sur son téléphone"
+
+#: src/ui/Lobby.tsx:752
+#, fuzzy
+msgid "A phone each"
+msgstr "Un téléphone chacun"
+
+#: src/ui/Lobby.tsx:774
+#, fuzzy
+msgid "Next, in the room: your army and the invite link to send."
+msgstr "Ensuite, dans la salle : ton armée et le lien d'invitation à envoyer."
+
+#: src/ui/Lobby.tsx:779
+#, fuzzy
+msgid "Both armies go on the table and the battle starts. Pass the screen at each turn."
+msgstr "Les deux armées vont sur la table et la bataille commence. Passez-vous l'écran à chaque tour."
+
+#: src/ui/Lobby.tsx:780
+#, fuzzy
+msgid "An empty table: put both armies on it, then start."
+msgstr "Une table vide : place les deux armées, puis commence."
+
+#: src/ui/Lobby.tsx:789
+#, fuzzy
+msgid "Set up both sides"
+msgstr "Installer les deux camps"
+
+#: src/ui/Lobby.tsx:789
+#, fuzzy
+msgid "Open the table"
+msgstr "Ouvrir la table"
+
+#: src/ui/Lobby.tsx:797
+#, fuzzy
+msgid "Or find an opponent on Open tables"
+msgstr "Ou trouve un adversaire sur Tables ouvertes"
+
+#: src/ui/Lobby.tsx:802
+#, fuzzy
+msgid "Options: 2 vs 2"
+msgstr "Options : 2 contre 2"
+
+#: src/ui/Lobby.tsx:802
+#, fuzzy
+msgid "Options"
+msgstr "Options"
+
+#: src/ui/Lobby.tsx:804
+#, fuzzy
+msgid "Players"
+msgstr "Joueurs"
+
+#: src/ui/Lobby.tsx:807
+#, fuzzy
+msgid "Two players"
+msgstr "Deux joueurs"
+
+#: src/ui/Lobby.tsx:808
+#, fuzzy
+msgid "Four players in two teams; teams share CP and VP"
+msgstr "Quatre joueurs en deux équipes ; les équipes partagent les CP et les VP"
+
+#: src/ui/Lobby.tsx:856
+#: src/ui/Lobby.tsx:875
+#, fuzzy
+msgid "At a real table"
+msgstr "Sur une vraie table"
+
+#: src/ui/Lobby.tsx:884
+#, fuzzy
+msgid "More ways to play"
+msgstr "Autres façons de jouer"
+
+#: src/ui/Lobby.tsx:886
+#, fuzzy
+msgid "Play your own army: import a list"
+msgstr "Joue ta propre armée : importe une liste"
+
+#: src/ui/Lobby.tsx:888
+#, fuzzy
+msgid "From New Recruit, BattleScribe, Yellowscribe or a Tabletop Simulator save, with your own figures if you have them."
+msgstr "Depuis New Recruit, BattleScribe, Yellowscribe ou une sauvegarde Tabletop Simulator, avec tes propres figurines si tu en as."
+
+#: src/ui/Lobby.tsx:894
+#, fuzzy
+msgid "Open a Tabletop Simulator save as a game"
+msgstr "Ouvrir une sauvegarde Tabletop Simulator comme partie"
+
+#: src/ui/Lobby.tsx:898
+#, fuzzy
+msgid "Same browser (play between two tabs, no network)"
+msgstr "Même navigateur (jouer entre deux onglets, sans réseau)"
+
+#: src/ui/Lobby.tsx:908
+#, fuzzy
+msgid "Set up a game on this screen (hotseat)"
+msgstr "Préparer une partie sur cet écran (hotseat)"
+
+#: src/ui/Lobby.tsx:922
+#, fuzzy
+msgid "Figure library: your models, packs and storage"
+msgstr "Bibliothèque de figurines : tes modèles, packs et stockage"
+
+#: src/ui/Lobby.tsx:925
+#, fuzzy
+msgid "Module workshop: write your own game system"
+msgstr "Atelier de modules : écris ton propre système de jeu"
+
+#: src/ui/Lobby.tsx:932
+#, fuzzy
+msgid "No account: games run between your browsers."
+msgstr "Pas de compte : les parties passent directement entre vos navigateurs."
+
+#: src/ui/Lobby.tsx:937
+#, fuzzy
+msgid "Source code"
+msgstr "Code source"
+
+#: src/ui/Lobby.tsx:964
+#: src/ui/Lobby.tsx:965
 #, fuzzy
 msgid "Your player card: name, colours, ranked games"
 msgstr "Ta carte de joueur : nom, couleurs, parties classées"
@@ -11211,7 +11219,7 @@ msgstr "Score"
 #: src/ui/Missions.tsx:206
 #: src/ui/Missions.tsx:345
 #: src/ui/ProcedurePanels.tsx:387
-#: src/ui/TopBar.tsx:349
+#: src/ui/TopBar.tsx:351
 #, fuzzy
 msgid "Pass"
 msgstr "Passer"
@@ -11496,34 +11504,28 @@ msgid "no answer"
 msgstr "pas de réponse"
 
 #: src/ui/PackageArmies.tsx:33
-#, fuzzy
 msgid "{army} · {package}"
-msgstr "{army} · {package}"
+msgstr ""
 
 #: src/ui/PackageArmies.tsx:47
-#, fuzzy
 msgid "Armies from rules packages"
-msgstr "Armées des packs de règles"
+msgstr ""
 
 #: src/ui/PackageArmies.tsx:54
-#, fuzzy
 msgid "From a rules package…"
-msgstr "Depuis un pack de règles…"
+msgstr ""
 
 #: src/ui/PackageArmies.tsx:71
-#, fuzzy
 msgid "Armies from rules packages ({count})"
-msgstr "Armées des packs de règles ({count})"
+msgstr ""
 
 #: src/ui/PackageArmies.tsx:93
-#, fuzzy
 msgid "On your shelf"
-msgstr "Sur ton étagère"
+msgstr ""
 
 #: src/ui/PackageArmies.tsx:93
-#, fuzzy
 msgid "Put on your shelf"
-msgstr "Mettre sur ton étagère"
+msgstr ""
 
 #: src/ui/Packages.tsx:135
 #, fuzzy
@@ -11847,7 +11849,7 @@ msgid "{names} declined."
 msgstr "{names} a refusé."
 
 #: src/ui/Packages.tsx:750
-#: src/ui/TopBar.tsx:373
+#: src/ui/TopBar.tsx:376
 #, fuzzy
 msgid "Waiting for {names}"
 msgstr "En attente de {names}"
@@ -12803,153 +12805,153 @@ msgstr "reconnexion…"
 msgid "(this browser)"
 msgstr "(ce navigateur)"
 
-#: src/ui/Room.tsx:133
-#, fuzzy
+#: src/ui/Room.tsx:134
 msgid "This site's game relay is busy right now, so players on some networks can't connect. Try again in a few minutes, or from another network such as a phone hotspot."
-msgstr "Le relais de jeu de ce site est saturé pour le moment : les joueurs de certains réseaux ne peuvent pas se connecter. Réessayez dans quelques minutes, ou depuis un autre réseau, comme un partage de connexion sur téléphone."
+msgstr ""
 
-#: src/ui/Room.tsx:147
+#: src/ui/Room.tsx:148
 #, fuzzy
 msgid "A replay, watched together. {names} played it."
 msgstr "Une rediffusion, regardée ensemble. Jouée par {names}."
 
-#: src/ui/Room.tsx:159
+#: src/ui/Room.tsx:160
 #, fuzzy
 msgid "host"
 msgstr "hôte"
 
-#: src/ui/Room.tsx:160
+#: src/ui/Room.tsx:161
 #, fuzzy
 msgid "ready"
 msgstr "prêt"
 
-#: src/ui/Room.tsx:161
+#: src/ui/Room.tsx:162
 #, fuzzy
 msgid "getting rules…"
 msgstr "chargement des règles…"
 
-#: src/ui/Room.tsx:166
+#: src/ui/Room.tsx:167
 #, fuzzy
 msgid "Playing without {rules}: their table may disagree"
 msgstr "Partie sans {rules} : leur table peut différer"
 
-#: src/ui/Room.tsx:171
+#: src/ui/Room.tsx:172
 #, fuzzy
 msgid "some of the game's rules"
 msgstr "certaines règles de la partie"
 
-#: src/ui/Room.tsx:175
+#: src/ui/Room.tsx:176
 #, fuzzy
 msgid "⚠ different rules"
 msgstr "⚠ règles différentes"
 
-#: src/ui/Room.tsx:184
+#: src/ui/Room.tsx:185
 #, fuzzy
 msgid "Joining {name}'s game…"
 msgstr "Connexion à la partie de {name}…"
 
-#: src/ui/Room.tsx:185
+#: src/ui/Room.tsx:186
 #, fuzzy
 msgid "Joining the host's game…"
 msgstr "Connexion à la partie de l'hôte…"
 
-#: src/ui/Room.tsx:186
+#: src/ui/Room.tsx:187
 #, fuzzy
 msgid "Looking for the game's host…"
 msgstr "Recherche de l'hôte de la partie…"
 
-#: src/ui/Room.tsx:188
+#: src/ui/Room.tsx:189
 #, fuzzy
 msgid "Back to the lobby"
 msgstr "Retour au salon d'accueil"
 
-#: src/ui/Room.tsx:193
+#: src/ui/Room.tsx:194
 #, fuzzy
 msgid "Waiting for an opponent to join…"
 msgstr "En attente d'un adversaire…"
 
-#: src/ui/Room.tsx:197
+#: src/ui/Room.tsx:198
 #, fuzzy
 msgid "Someone joining is getting the rules…"
 msgid_plural "{n} people joining are getting the rules…"
 msgstr[0] "Quelqu'un qui rejoint reçoit les règles…"
 msgstr[1] "{n} personnes qui rejoignent reçoivent les règles…"
 
-#: src/ui/Room.tsx:207
+#: src/ui/Room.tsx:208
 #, fuzzy
 msgid "{n} watching (you included)"
 msgid_plural "{n} watching (you included)"
 msgstr[0] "{n} spectateur (toi compris)"
 msgstr[1] "{n} spectateurs (toi compris)"
 
-#: src/ui/Room.tsx:241
+#: src/ui/Room.tsx:242
 #, fuzzy
 msgid "{name}: {n} to place"
 msgid_plural "{name}: {n} to place"
 msgstr[0] "{name} : {n} à placer"
 msgstr[1] "{name} : {n} à placer"
 
-#: src/ui/Room.tsx:244
+#: src/ui/Room.tsx:245
 #, fuzzy
 msgid "{name}: All placed"
 msgstr "{name} : tout placé"
 
-#: src/ui/Room.tsx:246
+#: src/ui/Room.tsx:247
 #, fuzzy
 msgid "{n} to place"
 msgid_plural "{n} to place"
 msgstr[0] "{n} à placer"
 msgstr[1] "{n} à placer"
 
-#: src/ui/Room.tsx:247
+#: src/ui/Room.tsx:248
 #, fuzzy
 msgid "All placed"
 msgstr "Tout placé"
 
-#: src/ui/Room.tsx:249
+#: src/ui/Room.tsx:250
 #, fuzzy
 msgid "Tell the other player you've finished deploying"
 msgstr "Dis à l'autre joueur que tu as fini de te déployer"
 
-#: src/ui/Room.tsx:257
-#: src/ui/TopBar.tsx:563
+#: src/ui/Room.tsx:258
+#: src/ui/SetupSteps.tsx:121
+#: src/ui/TopBar.tsx:566
 #, fuzzy
 msgid "Ready"
 msgstr "Prêt"
 
-#: src/ui/Room.tsx:268
+#: src/ui/Room.tsx:269
 #, fuzzy
 msgid "outside your zone"
 msgstr "hors de ta zone"
 
-#: src/ui/Room.tsx:268
+#: src/ui/Room.tsx:269
 #, fuzzy
 msgid "not placed yet"
 msgstr "pas encore placée"
 
-#: src/ui/Room.tsx:275
+#: src/ui/Room.tsx:276
 #, fuzzy
 msgid "{n} unit in reserve"
 msgid_plural "{n} units in reserve"
 msgstr[0] "{n} unité en réserve"
 msgstr[1] "{n} unités en réserve"
 
-#: src/ui/Room.tsx:318
+#: src/ui/Room.tsx:319
 #, fuzzy
 msgid "{leader} stands with {unit}"
 msgstr "{leader} est avec {unit}"
 
-#: src/ui/Room.tsx:320
+#: src/ui/Room.tsx:321
 #, fuzzy
 msgid "Lead it"
 msgstr "La mener"
 
-#: src/ui/Room.tsx:326
+#: src/ui/Room.tsx:327
 #, fuzzy
 msgid "{leader} can lead: drag it onto a squad"
 msgstr "{leader} peut mener une unité : fais-le glisser sur une escouade"
 
-#: src/ui/Room.tsx:332
+#: src/ui/Room.tsx:333
 msgid "Lead all {n}"
 msgid_plural "Lead all {n}"
 msgstr[0] "Mener les {n}"
@@ -13123,22 +13125,82 @@ msgstr "(écrit sur un autre appareil)"
 msgid "Reveal"
 msgstr "Révéler"
 
-#: src/ui/Showcase.tsx:227
+#: src/ui/SetupSteps.tsx:104
+#, fuzzy
+msgid "Table and mission"
+msgstr "Table et mission"
+
+#: src/ui/SetupSteps.tsx:106
+#, fuzzy
+msgid "No mission yet"
+msgstr "Pas encore de mission"
+
+#: src/ui/SetupSteps.tsx:109
+#, fuzzy
+msgid "Change ▸"
+msgstr "Changer ▸"
+
+#: src/ui/SetupSteps.tsx:124
+#, fuzzy
+msgid "Everyone's ready: start the battle"
+msgstr "Tout le monde est prêt : lance la bataille"
+
+#: src/ui/SetupSteps.tsx:126
+#, fuzzy
+msgid "Not ready yet: {names}"
+msgstr "Pas encore prêt : {names}"
+
+#: src/ui/SetupSteps.tsx:129
+#, fuzzy
+msgid "Waiting for your opponent"
+msgstr "En attente de ton adversaire"
+
+#: src/ui/SetupSteps.tsx:53
+#, fuzzy
+msgid "Before the battle"
+msgstr "Avant la bataille"
+
+#: src/ui/SetupSteps.tsx:58
+#, fuzzy
+msgid "{name}'s table · {game}"
+msgstr "Table de {name} · {game}"
+
+#: src/ui/SetupSteps.tsx:65
+#, fuzzy
+msgid "Invite your opponent"
+msgstr "Invite ton adversaire"
+
+#: src/ui/SetupSteps.tsx:80
+#, fuzzy
+msgid "{names} is here"
+msgstr "{names} est là"
+
+#: src/ui/SetupSteps.tsx:86
+#, fuzzy
+msgid "Your armies"
+msgstr "Tes armées"
+
+#: src/ui/SetupSteps.tsx:97
+#, fuzzy
+msgid "Pick it now"
+msgstr "La choisir maintenant"
+
+#: src/ui/Showcase.tsx:151
 #, fuzzy
 msgid "Round {round}"
 msgstr "Round {round}"
 
-#: src/ui/Showcase.tsx:237
+#: src/ui/Showcase.tsx:161
 #, fuzzy
 msgid "Tap to skip"
 msgstr "Touche pour passer"
 
-#: src/ui/Showcase.tsx:237
+#: src/ui/Showcase.tsx:161
 #, fuzzy
 msgid "Click or Esc to skip"
 msgstr "Clic ou Échap pour passer"
 
-#: src/ui/Showcase.tsx:53
+#: src/ui/Showcase.tsx:44
 #, fuzzy
 msgid "{side}'s army"
 msgstr "Armée de {side}"
@@ -13287,7 +13349,7 @@ msgid "Mark {status}"
 msgstr "Marquer {status}"
 
 #: src/ui/StratagemHand.tsx:100
-#: src/ui/TopBar.tsx:694
+#: src/ui/TopBar.tsx:697
 #, fuzzy
 msgid "Your turn"
 msgstr "Ton tour"
@@ -13537,13 +13599,13 @@ msgid "Activated: {used} of {budget} actions used."
 msgstr "Activée : {used} actions utilisées sur {budget}."
 
 #: src/ui/SystemPanels.tsx:542
-#: src/ui/TopBar.tsx:330
+#: src/ui/TopBar.tsx:332
 #, fuzzy
 msgid "End this activation; the other player goes next"
 msgstr "Terminer cette activation ; c'est au tour de l'autre joueur"
 
 #: src/ui/SystemPanels.tsx:548
-#: src/ui/TopBar.tsx:337
+#: src/ui/TopBar.tsx:339
 #, fuzzy
 msgid "End activation"
 msgstr "Terminer l'activation"
@@ -13712,51 +13774,51 @@ msgstr "Lâche pour déclarer la charge"
 msgid "Let go to charge anyway"
 msgstr "Lâche pour charger quand même"
 
-#: src/ui/TableWarnings.tsx:111
-#, fuzzy
-msgid "Warnings for this unit"
-msgstr "Avertissements pour cette unité"
-
-#: src/ui/TableWarnings.tsx:155
-#: src/ui/TableWarnings.tsx:158
-#, fuzzy
-msgid "Table warnings"
-msgstr "Avertissements de table"
-
-#: src/ui/TableWarnings.tsx:164
-#, fuzzy
-msgid "Nothing to flag on the table right now."
-msgstr "Rien à signaler sur la table pour l'instant."
-
-#: src/ui/TableWarnings.tsx:172
-#, fuzzy
-msgid "Advisory: the rules never block a move. Players decide."
-msgstr "À titre indicatif : les règles ne bloquent jamais un mouvement. Les joueurs décident."
-
-#: src/ui/TableWarnings.tsx:37
-#, fuzzy
-msgid "Table warnings: rules the table may be breaking"
-msgstr "Avertissements de table : règles que la table enfreint peut-être"
-
-#: src/ui/TableWarnings.tsx:68
-#, fuzzy
-msgid "Show this unit"
-msgstr "Montrer cette unité"
-
-#: src/ui/TableWarnings.tsx:78
-#, fuzzy
-msgid "Clear this for everyone until the unit moves again (the log notes it)"
-msgstr "Effacer pour tout le monde jusqu'à ce que l'unité bouge à nouveau (noté dans le journal)"
-
-#: src/ui/TableWarnings.tsx:91
+#: src/ui/TableWarnings.tsx:100
 #, fuzzy
 msgid "It's fine (tell everyone)"
 msgstr "C'est bon (prévenir tout le monde)"
 
-#: src/ui/TableWarnings.tsx:96
+#: src/ui/TableWarnings.tsx:105
 #, fuzzy
 msgid "Hide it on this screen"
 msgstr "Masquer sur cet écran"
+
+#: src/ui/TableWarnings.tsx:120
+#, fuzzy
+msgid "Warnings for this unit"
+msgstr "Avertissements pour cette unité"
+
+#: src/ui/TableWarnings.tsx:164
+#: src/ui/TableWarnings.tsx:167
+#, fuzzy
+msgid "Table warnings"
+msgstr "Avertissements de table"
+
+#: src/ui/TableWarnings.tsx:173
+#, fuzzy
+msgid "Nothing to flag on the table right now."
+msgstr "Rien à signaler sur la table pour l'instant."
+
+#: src/ui/TableWarnings.tsx:181
+#, fuzzy
+msgid "Advisory: the rules never block a move. Players decide."
+msgstr "À titre indicatif : les règles ne bloquent jamais un mouvement. Les joueurs décident."
+
+#: src/ui/TableWarnings.tsx:46
+#, fuzzy
+msgid "Table warnings: rules the table may be breaking"
+msgstr "Avertissements de table : règles que la table enfreint peut-être"
+
+#: src/ui/TableWarnings.tsx:77
+#, fuzzy
+msgid "Show this unit"
+msgstr "Montrer cette unité"
+
+#: src/ui/TableWarnings.tsx:87
+#, fuzzy
+msgid "Clear this for everyone until the unit moves again (the log notes it)"
+msgstr "Effacer pour tout le monde jusqu'à ce que l'unité bouge à nouveau (noté dans le journal)"
 
 #: src/ui/TalkPanel.tsx:100
 #, fuzzy
@@ -13977,7 +14039,7 @@ msgid "after it charged"
 msgstr "après avoir chargé"
 
 #: src/ui/TeachRule.tsx:27
-#: src/ui/TopBar.tsx:571
+#: src/ui/TopBar.tsx:574
 #, fuzzy
 msgid "Re-roll"
 msgstr "Relancer"
@@ -14482,299 +14544,299 @@ msgstr "Le mettre à 6\" de large"
 msgid "Text size"
 msgstr "Taille du texte"
 
-#: src/ui/TopBar.tsx:101
+#: src/ui/TopBar.tsx:103
 #, fuzzy
 msgid "{names} have no army yet"
 msgstr "{names} n'ont pas encore d'armée"
 
-#: src/ui/TopBar.tsx:102
+#: src/ui/TopBar.tsx:104
 #, fuzzy
 msgid "{name} has no army yet"
 msgstr "{name} n'a pas encore d'armée"
 
-#: src/ui/TopBar.tsx:105
+#: src/ui/TopBar.tsx:107
 #, fuzzy
 msgid "{n} players aren't ready yet"
 msgstr "{n} joueurs ne sont pas encore prêts"
 
-#: src/ui/TopBar.tsx:107
+#: src/ui/TopBar.tsx:109
 #, fuzzy
 msgid "{names} aren't ready yet"
 msgstr "{names} ne sont pas encore prêts"
 
-#: src/ui/TopBar.tsx:108
+#: src/ui/TopBar.tsx:110
 #, fuzzy
 msgid "{name} isn't ready yet"
 msgstr "{name} n'est pas encore prêt"
 
-#: src/ui/TopBar.tsx:110
+#: src/ui/TopBar.tsx:112
 #, fuzzy
 msgid "No mission: you'll score by hand"
 msgstr "Pas de mission : tu comptes les points à la main"
 
-#: src/ui/TopBar.tsx:146
+#: src/ui/TopBar.tsx:148
 #, fuzzy
 msgid "Advance a phase during {side}'s turn?"
 msgstr "Avancer d'une phase pendant le tour de {side} ?"
 
-#: src/ui/TopBar.tsx:147
+#: src/ui/TopBar.tsx:149
 #, fuzzy
 msgid "Advance a phase during the other player's turn?"
 msgstr "Avancer d'une phase pendant le tour de l'autre joueur ?"
 
-#: src/ui/TopBar.tsx:149
+#: src/ui/TopBar.tsx:151
 #, fuzzy
 msgid "Go back a phase during {side}'s turn?"
 msgstr "Revenir d'une phase pendant le tour de {side} ?"
 
-#: src/ui/TopBar.tsx:150
+#: src/ui/TopBar.tsx:152
 #, fuzzy
 msgid "Go back a phase during the other player's turn?"
 msgstr "Revenir d'une phase pendant le tour de l'autre joueur ?"
 
-#: src/ui/TopBar.tsx:234
+#: src/ui/TopBar.tsx:236
 #, fuzzy
 msgid "{name} is playing…"
 msgstr "{name} joue…"
 
-#: src/ui/TopBar.tsx:241
+#: src/ui/TopBar.tsx:243
 #, fuzzy
 msgid "Let the computer play"
 msgstr "Laisser jouer l’ordinateur"
 
-#: src/ui/TopBar.tsx:245
+#: src/ui/TopBar.tsx:247
 #, fuzzy
 msgid "Previous phase"
 msgstr "Phase précédente"
 
-#: src/ui/TopBar.tsx:258
+#: src/ui/TopBar.tsx:260
 #, fuzzy
 msgid "First turn:"
 msgstr "Premier tour :"
 
-#: src/ui/TopBar.tsx:271
+#: src/ui/TopBar.tsx:273
 #, fuzzy
 msgid "Place your units in your zone"
 msgstr "Place tes unités dans ta zone"
 
-#: src/ui/TopBar.tsx:273
+#: src/ui/TopBar.tsx:275
 #, fuzzy
 msgid "Joining the game…"
 msgstr "Connexion à la partie…"
 
-#: src/ui/TopBar.tsx:275
+#: src/ui/TopBar.tsx:277
 #, fuzzy
 msgid "Players are deploying"
 msgstr "Les joueurs se déploient"
 
-#: src/ui/TopBar.tsx:285
+#: src/ui/TopBar.tsx:287
 #, fuzzy
 msgid "Round {round} of {rounds} · {side}"
 msgstr "Round {round} sur {rounds} · {side}"
 
-#: src/ui/TopBar.tsx:290
+#: src/ui/TopBar.tsx:292
 #, fuzzy
 msgid "Round {round} · {side}"
 msgstr "Round {round} · {side}"
 
-#: src/ui/TopBar.tsx:311
+#: src/ui/TopBar.tsx:313
 #, fuzzy
 msgid "The roll-off lets you pick who goes first this round"
 msgstr "Le jet de dés te laisse choisir qui commence ce round"
 
-#: src/ui/TopBar.tsx:314
+#: src/ui/TopBar.tsx:316
 #, fuzzy
 msgid "Let {side} go first"
 msgstr "Laisser {side} commencer"
 
-#: src/ui/TopBar.tsx:329
+#: src/ui/TopBar.tsx:331
 #, fuzzy
 msgid "Answer the open question first"
 msgstr "Répondez d'abord à la question en cours"
 
-#: src/ui/TopBar.tsx:344
+#: src/ui/TopBar.tsx:346
 #, fuzzy
 msgid "Both passed: the round moves on"
 msgstr "Les deux ont passé : le round avance"
 
-#: src/ui/TopBar.tsx:345
+#: src/ui/TopBar.tsx:347
 #, fuzzy
 msgid "Pass; the other player goes next"
 msgstr "Passer ; c'est au tour de l'autre joueur"
 
-#: src/ui/TopBar.tsx:355
+#: src/ui/TopBar.tsx:357
 #, fuzzy
 msgid "Deploy, then Send to {name}"
 msgstr "Déploie, puis Envoyer à {name}"
 
-#: src/ui/TopBar.tsx:356
+#: src/ui/TopBar.tsx:358
 #, fuzzy
 msgid "Waiting for {name} to start"
 msgstr "En attente du début par {name}"
 
-#: src/ui/TopBar.tsx:365
+#: src/ui/TopBar.tsx:368
 #, fuzzy
 msgid "I'm done with this phase"
 msgstr "J'ai fini cette phase"
 
-#: src/ui/TopBar.tsx:368
+#: src/ui/TopBar.tsx:371
 #, fuzzy
 msgid "Done ▶"
 msgstr "Fini ▶"
 
-#: src/ui/TopBar.tsx:377
+#: src/ui/TopBar.tsx:380
 #, fuzzy
 msgid "Not done after all"
 msgstr "Pas encore fini, finalement"
 
-#: src/ui/TopBar.tsx:380
+#: src/ui/TopBar.tsx:383
 #, fuzzy
 msgid "Not done"
 msgstr "Pas fini"
 
-#: src/ui/TopBar.tsx:388
+#: src/ui/TopBar.tsx:391
 #, fuzzy
 msgid "{names} aren't done yet. Go on anyway?"
 msgstr "{names} n'ont pas encore fini. Continuer quand même ?"
 
-#: src/ui/TopBar.tsx:389
+#: src/ui/TopBar.tsx:392
 #, fuzzy
 msgid "{name} isn't done yet. Go on anyway?"
 msgstr "{name} n'a pas encore fini. Continuer quand même ?"
 
-#: src/ui/TopBar.tsx:393
-#: src/ui/TopBar.tsx:443
+#: src/ui/TopBar.tsx:396
+#: src/ui/TopBar.tsx:446
 #, fuzzy
 msgid "Go on anyway"
 msgstr "Continuer quand même"
 
-#: src/ui/TopBar.tsx:406
+#: src/ui/TopBar.tsx:409
 #, fuzzy
 msgid "Waiting for {names} to be ready"
 msgstr "En attente que {names} soient prêts"
 
-#: src/ui/TopBar.tsx:418
+#: src/ui/TopBar.tsx:421
 #, fuzzy
 msgid "Start battle ▶"
 msgstr "Lancer la bataille ▶"
 
-#: src/ui/TopBar.tsx:433
+#: src/ui/TopBar.tsx:436
 #, fuzzy
 msgid "Pick one"
 msgstr "En choisir une"
 
-#: src/ui/TopBar.tsx:443
+#: src/ui/TopBar.tsx:446
 #, fuzzy
 msgid "Start anyway"
 msgstr "Lancer quand même"
 
-#: src/ui/TopBar.tsx:445
+#: src/ui/TopBar.tsx:448
 #, fuzzy
 msgid "Not yet"
 msgstr "Pas encore"
 
-#: src/ui/TopBar.tsx:452
+#: src/ui/TopBar.tsx:455
 #, fuzzy
 msgid "Phase options"
 msgstr "Options de phase"
 
-#: src/ui/TopBar.tsx:464
+#: src/ui/TopBar.tsx:467
 #, fuzzy
 msgid "Skip to the next phase"
 msgstr "Passer à la phase suivante"
 
-#: src/ui/TopBar.tsx:476
+#: src/ui/TopBar.tsx:479
 #, fuzzy
 msgid "Pause the computer"
 msgstr "Mettre l’ordinateur en pause"
 
-#: src/ui/TopBar.tsx:479
+#: src/ui/TopBar.tsx:482
 #, fuzzy
 msgid "Advance their phase"
 msgstr "Avancer leur phase"
 
-#: src/ui/TopBar.tsx:480
+#: src/ui/TopBar.tsx:483
 #, fuzzy
 msgid "Back a phase"
 msgstr "Revenir d'une phase"
 
-#: src/ui/TopBar.tsx:490
+#: src/ui/TopBar.tsx:493
 #, fuzzy
 msgid "Controls (?)"
 msgstr "Commandes (?)"
 
-#: src/ui/TopBar.tsx:549
+#: src/ui/TopBar.tsx:552
 #, fuzzy
 msgid "Already re-rolled this round"
 msgstr "Déjà relancé ce round"
 
-#: src/ui/TopBar.tsx:551
+#: src/ui/TopBar.tsx:554
 #, fuzzy
 msgid "Re-roll the picked dice: once a round"
 msgstr "Relancer les dés choisis : une fois par round"
 
-#: src/ui/TopBar.tsx:552
+#: src/ui/TopBar.tsx:555
 #, fuzzy
 msgid "Pick dice to re-roll first"
 msgstr "Choisis d'abord des dés à relancer"
 
-#: src/ui/TopBar.tsx:556
+#: src/ui/TopBar.tsx:559
 #, fuzzy
 msgid "Re-roll (once)"
 msgstr "Relancer (une fois)"
 
-#: src/ui/TopBar.tsx:560
+#: src/ui/TopBar.tsx:563
 #, fuzzy
 msgid "Keep these dice as they are: you give up this round's re-roll"
 msgstr "Garder ces dés : tu renonces à la relance de ce round"
 
-#: src/ui/TopBar.tsx:570
+#: src/ui/TopBar.tsx:573
 #, fuzzy
 msgid "Spend"
 msgstr "Dépenser"
 
-#: src/ui/TopBar.tsx:612
-#: src/ui/TopBar.tsx:613
+#: src/ui/TopBar.tsx:615
+#: src/ui/TopBar.tsx:616
 #, fuzzy
 msgid "Sound and dice"
 msgstr "Son et dés"
 
-#: src/ui/TopBar.tsx:613
+#: src/ui/TopBar.tsx:616
 #, fuzzy
 msgid "Sound muted"
 msgstr "Son coupé"
 
-#: src/ui/TopBar.tsx:621
+#: src/ui/TopBar.tsx:624
 #, fuzzy
 msgid "Sound"
 msgstr "Son"
 
-#: src/ui/TopBar.tsx:624
+#: src/ui/TopBar.tsx:627
 #, fuzzy
 msgid "Volume"
 msgstr "Volume"
 
-#: src/ui/TopBar.tsx:635
+#: src/ui/TopBar.tsx:638
 #, fuzzy
 msgid "A quiet room under the game; the turn bell follows Sound"
 msgstr "Une pièce calme sous la partie ; la cloche de tour suit le réglage Son"
 
-#: src/ui/TopBar.tsx:637
+#: src/ui/TopBar.tsx:640
 #, fuzzy
 msgid "Table ambience"
 msgstr "Ambiance de table"
 
-#: src/ui/TopBar.tsx:640
+#: src/ui/TopBar.tsx:643
 #, fuzzy
 msgid "Fast dice"
 msgstr "Dés rapides"
 
-#: src/ui/TopBar.tsx:668
+#: src/ui/TopBar.tsx:671
 #, fuzzy
 msgid "Change {label}"
 msgstr "Modifier {label}"
 
-#: src/ui/TopBar.tsx:705
+#: src/ui/TopBar.tsx:708
 #, fuzzy
 msgid "People watching this game, running a little behind it"
 msgstr "Les personnes qui regardent cette partie, avec un peu de retard"
@@ -17259,14 +17321,12 @@ msgid "Regiments by hand, a card stack for activations, clash and volley."
 msgstr "Des régiments à la main, une pile de cartes pour les activations, mêlée et salves."
 
 #: src/ui/systemLabels.ts:55
-#, fuzzy
 msgid "Quality d6"
-msgstr "Quality d6"
+msgstr ""
 
 #: src/ui/systemLabels.ts:58
-#, fuzzy
 msgid "Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out."
-msgstr "Chaque unité jette sa propre Qualité. Donnez tour à tour un ordre à une unité, puis battez-vous."
+msgstr ""
 
 #: src/ui/tableVerbs.ts:102
 #, fuzzy

@@ -360,3 +360,155 @@ body.reeling .whatnow-toggle {
 .host-options summary {
   cursor: pointer;
 }
+
+/* The front door in three questions (UX 87): the invite box, what you're playing, who against. */
+@media (min-width: 760px) {
+  .lobby {
+    width: min(760px, calc(100vw - 64px));
+  }
+}
+.lobby .invite-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px 8px;
+  border: 1px dashed #4b5563;
+  border-radius: 6px;
+}
+.lobby .invite-box label {
+  flex: 1 1 260px;
+}
+.lobby .game-row {
+  grid-template-columns: repeat(3, 1fr);
+}
+.lobby .game-pick {
+  min-height: 92px;
+  justify-content: flex-start;
+  background: transparent;
+  cursor: pointer;
+}
+.lobby .game-row .game-pick.demo.on {
+  border-color: #fbbf24;
+  background: rgb(251 191 36 / 10%);
+  box-shadow: 0 0 0 1px #fbbf24 inset;
+}
+.lobby .game-extras {
+  gap: 4px 14px;
+}
+.lobby .who {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.lobby .who-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+}
+.lobby .who-pick.on {
+  box-shadow: 0 0 0 1px #fbbf24 inset;
+}
+.lobby .who-more {
+  align-items: center;
+  gap: 6px 12px;
+}
+.lobby .lobby-files {
+  align-items: flex-start;
+  gap: 8px 16px;
+}
+.lobby .lobby-files details.fold {
+  flex: 1 1 100%;
+}
+@media (max-width: 560px) {
+  .lobby .game-row,
+  .lobby .who {
+    grid-template-columns: 1fr;
+  }
+  .lobby .game-pick {
+    min-height: 0;
+  }
+}
+.lobby .game-row {
+  align-items: stretch;
+}
+.lobby .game-row > .game-pick.demo {
+  margin: 0;
+}
+.lobby .invite-box label {
+  flex-wrap: wrap;
+}
+.lobby .invite-box input {
+  flex: 1 1 200px;
+}
+
+/* The front door as a flow (UX 513, Porter): column 1, then each next column slides open like a drawer. */
+.lobby .flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lobby .flow-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.lobby .flow-col.drawer {
+  animation: flow-drawer 250ms ease-out;
+}
+@keyframes flow-drawer {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby .flow-col.drawer {
+    animation: none;
+  }
+}
+.lobby .flow .who {
+  grid-template-columns: 1fr;
+}
+.lobby .flow .game-row {
+  grid-template-columns: 1fr;
+}
+.lobby .flow .game-pick {
+  min-height: 0;
+}
+.lobby .flow-go {
+  align-self: stretch;
+  padding: 10px 14px;
+  font-size: 1rem;
+}
+.lobby .flow-name {
+  flex-wrap: wrap;
+}
+.lobby .flow .how-hard button.on {
+  box-shadow: 0 0 0 1px #fbbf24 inset;
+}
+@media (min-width: 900px) {
+  .lobby:has(.flow) {
+    width: min(1080px, calc(100vw - 64px));
+  }
+  .lobby .flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px;
+  }
+}
+.lobby .flow .who-pick.on,
+.lobby .flow .how-hard button.on {
+  border-color: #fbbf24;
+  background: rgb(251 191 36 / 12%);
+  color: inherit;
+}

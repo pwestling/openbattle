@@ -798,3 +798,45 @@
   gap: 8px;
   align-items: center;
 }
+
+/* The room before the battle as steps, in order (UX 515). */
+.setup-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+}
+.setup-steps > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 6px 8px;
+  border-left: 3px solid #4b5563;
+  background: rgb(255 255 255 / 3%);
+  border-radius: 0 6px 6px 0;
+}
+.setup-steps > li:has(> strong.done) {
+  border-left-color: #22c55e;
+}
+.setup-steps > li > :not(strong):not(span):not(button) {
+  flex: 1 1 100%;
+}
+.setup-steps strong.done {
+  color: #86efac;
+}
+/* One next step lit (UX 515): the step to do now stands out, the ones after it wait quietly. */
+.setup-steps > li.now {
+  border-left-color: #fbbf24;
+  background: rgb(251 191 36 / 8%);
+}
+.setup-steps > li.later {
+  opacity: 0.6;
+}
+.setup-steps > li.setup-where {
+  border-left-color: transparent;
+  background: none;
+  padding-left: 0;
+}
