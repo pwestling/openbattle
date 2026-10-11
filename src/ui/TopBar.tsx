@@ -507,7 +507,7 @@ export function TopBar() {
 }
 
 /** A player's dice pool, e.g. ready activation dice: pick dice to spend or re-roll. */
-function DicePool({
+export function DicePool({
   label,
   title,
   faces,
@@ -584,7 +584,7 @@ function DicePool({
 }
 
 /** Sound on or off, with the table's ambience and fast dice in a small menu (PX-5c), for this device. */
-function SoundToggle() {
+export function SoundToggle() {
   const { on, toggle, ambience, toggleAmbience, fast, toggleFast, volume, setVolume } = useSound();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
@@ -655,7 +655,7 @@ function SoundToggle() {
 }
 
 /** "VP 3 − +". On a touch screen the − and + wait behind a tap on the number, at full finger size (UX 436). */
-function Counter({
+export function Counter({
   label,
   value,
   step,
@@ -693,7 +693,7 @@ function Counter({
 }
 
 /** "Your turn", flashing once on your own card when the turn comes to you (PX B3). */
-function YourTurnFlash() {
+export function YourTurnFlash() {
   const { at, on } = useYourTurn();
   if (!on) return null;
   return (
@@ -704,7 +704,7 @@ function YourTurnFlash() {
 }
 
 /** "3 watching": the players see when their game has an audience (#64). */
-function WatchingChip() {
+export function WatchingChip() {
   const watching = useWatching();
   const role = useStore((s) => s.role);
   if (!watching || role === "spectator") return null;

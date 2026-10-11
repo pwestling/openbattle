@@ -269,7 +269,7 @@ function CameraFit() {
   // The left panel's edge, checked now and then; it changes only when it is hidden or shown.
   useEffect(() => {
     const measure = () => {
-      const l = Math.round(document.querySelector(".hud")?.getBoundingClientRect().right ?? 0);
+      const l = Math.round(document.querySelector(".hud, .obn-setup")?.getBoundingClientRect().right ?? 0);
       setLeft((old) => (Math.abs(old - l) > 40 ? l : old));
     };
     measure();

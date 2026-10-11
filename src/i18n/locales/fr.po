@@ -443,7 +443,8 @@ msgctxt "game"
 msgid "They held. Combat can drag on into the next turn."
 msgstr "Ils ont tenu. Un corps à corps peut se prolonger au tour suivant."
 
-#: src/App.tsx:65
+#: src/App.tsx:68
+#: src/next/NextApp.tsx:18
 #, fuzzy
 msgid "Setting up the table…"
 msgstr "Installation de la table…"
@@ -488,6 +489,7 @@ msgid "Blocking: no sight"
 msgstr "Bloquant : pas de vue"
 
 #: src/GameScreen.tsx:376
+#: src/next/Game.tsx:159
 #, fuzzy
 msgid "Leave model's eye view (Esc)"
 msgstr "Quitter la vue de la figurine (Esc)"
@@ -545,7 +547,7 @@ msgstr "Lancer mes sauvegardes à ma place"
 #: src/bot/YourArmy.tsx:142
 #: src/bot/YourArmy.tsx:144
 #: src/events/EventsUI.tsx:599
-#: src/ui/AutoAbilities.tsx:326
+#: src/next/Setup.tsx:139
 #, fuzzy
 msgid "Your army"
 msgstr "Ton armée"
@@ -914,6 +916,7 @@ msgid "Skip to stats"
 msgstr "Passer aux stats"
 
 #: src/broadcast/exhibition.ts:100
+#: src/next/Door.tsx:324
 #: src/ui/Lobby.tsx:652
 #: src/ui/Lobby.tsx:853
 #: src/ui/Lobby.tsx:872
@@ -1158,7 +1161,7 @@ msgstr "Exporter"
 #: src/events/EventsUI.tsx:69
 #: src/figures/FigureLibrary.tsx:82
 #: src/figures/FigureLibrary.tsx:82
-#: src/opentables/OpenTables.tsx:206
+#: src/next/Door.tsx:526
 #, fuzzy
 msgid "Close"
 msgstr "Fermer"
@@ -1190,6 +1193,7 @@ msgstr "Parties"
 
 #: src/campaign/CampaignUI.tsx:572
 #: src/companion/CompanionScreen.tsx:98
+#: src/next/StepBar.tsx:121
 #: src/ui/StatsScreen.tsx:157
 #, fuzzy
 msgid "Units"
@@ -1377,6 +1381,7 @@ msgid "Kills, games and wounds fill in after each game. Honours, scars and XP ar
 msgstr "Les éliminations, parties et blessures se remplissent après chaque partie. Les honneurs, cicatrices et XP, c’est à toi de les écrire, ou tes règles de campagne les ajoutent."
 
 #: src/campaign/CampaignUI.tsx:727
+#: src/next/Drawer.tsx:99
 #: src/ui/GameSettings.tsx:160
 #: src/ui/Hud.tsx:193
 #, fuzzy
@@ -1834,6 +1839,7 @@ msgstr "Journal"
 
 #: src/companion/CompanionScreen.tsx:101
 #: src/events/EventsUI.tsx:242
+#: src/next/Drawer.tsx:155
 #: src/opentables/OpenTables.tsx:216
 #: src/player/PlayerCard.tsx:311
 #: src/tts/TtsWholeTable.tsx:195
@@ -1860,10 +1866,10 @@ msgstr "Copié ✓"
 
 #: src/companion/CompanionScreen.tsx:143
 #: src/mail/MailBar.tsx:236
+#: src/next/Setup.tsx:193
 #: src/ui/Hud.tsx:310
 #: src/ui/NetBanner.tsx:75
 #: src/ui/Room.tsx:126
-#: src/ui/SetupSteps.tsx:76
 #, fuzzy
 msgid "Copy invite link"
 msgstr "Copier le lien d’invitation"
@@ -1881,6 +1887,7 @@ msgid "Your go"
 msgstr "À vous"
 
 #: src/companion/CompanionScreen.tsx:184
+#: src/next/step.ts:258
 #, fuzzy
 msgid "{side}'s go"
 msgstr "Au tour de {side}"
@@ -1933,17 +1940,20 @@ msgid "Number of dice"
 msgstr "Nombre de dés"
 
 #: src/companion/CompanionScreen.tsx:302
+#: src/next/Drawer.tsx:143
 #: src/ui/Hud.tsx:252
 #, fuzzy
 msgid "D"
 msgstr "D"
 
 #: src/companion/CompanionScreen.tsx:303
+#: src/next/Drawer.tsx:144
 #, fuzzy
 msgid "Sides"
 msgstr "Faces"
 
 #: src/companion/CompanionScreen.tsx:308
+#: src/next/Drawer.tsx:149
 #: src/ui/Hud.tsx:258
 #: src/ui/StatsScreen.tsx:218
 #, fuzzy
@@ -3434,6 +3444,7 @@ msgstr "Open Battle utilise {used} sur les {quota} que ce navigateur lui accorde
 
 #: src/figures/FigureLibrary.tsx:77
 #: src/figures/FigureLibrary.tsx:81
+#: src/next/Door.tsx:538
 #, fuzzy
 msgid "Figure library"
 msgstr "Bibliothèque de figurines"
@@ -3933,11 +3944,11 @@ msgid "your opponent"
 msgstr "ton adversaire"
 
 #: src/mail/MailLobby.tsx:104
+#: src/next/Door.tsx:280
+#: src/next/Door.tsx:478
 #: src/opentables/OpenTables.tsx:591
 #: src/opentables/OpenTables.tsx:788
 #: src/player/PlayerCard.tsx:131
-#: src/replay/NotesPanel.tsx:252
-#: src/ui/Hud.tsx:459
 #, fuzzy
 msgid "Your name"
 msgstr "Ton nom"
@@ -4169,6 +4180,952 @@ msgstr "Un jet ou un résultat ne correspond pas à ce que ses coups et ses dés
 msgid "count it on your table"
 msgstr "à compter sur la table"
 
+#: src/next/Door.tsx:120
+msgid "Our own free skirmish game. Warbands included, nothing to import."
+msgstr ""
+
+#: src/next/Door.tsx:126
+msgid "Our own free game of climbing crews at low tide. Crews included."
+msgstr ""
+
+#: src/next/Door.tsx:133
+msgid "Squads move, shoot, charge and fight. Bring your army list, or use the sample."
+msgstr ""
+
+#: src/next/Door.tsx:254
+#: src/ui/Lobby.tsx:789
+#, fuzzy
+msgid "Open the table"
+msgstr "Ouvrir la table"
+
+#: src/next/Door.tsx:256
+#: src/ui/Lobby.tsx:789
+#, fuzzy
+msgid "Set up both sides"
+msgstr "Installer les deux camps"
+
+#: src/next/Door.tsx:259
+msgid "Open the table for two phones"
+msgstr ""
+
+#: src/next/Door.tsx:260
+msgid "Start on this screen"
+msgstr ""
+
+#: src/next/Door.tsx:277
+msgid "You're invited to a game"
+msgstr ""
+
+#: src/next/Door.tsx:278
+msgid "Join the table"
+msgstr ""
+
+#: src/next/Door.tsx:285
+#: src/next/Door.tsx:482
+#: src/ui/Lobby.tsx:412
+#: src/ui/Lobby.tsx:763
+#, fuzzy
+msgid "What should the others call you?"
+msgstr "Comment les autres doivent-ils t'appeler ?"
+
+#: src/next/Door.tsx:289
+msgid "Next: your army, at the table."
+msgstr ""
+
+#: src/next/Door.tsx:292
+msgid "Join the table ▸"
+msgstr ""
+
+#: src/next/Door.tsx:302
+#: src/ui/Lobby.tsx:429
+#, fuzzy
+msgid "Just watch"
+msgstr "Juste regarder"
+
+#: src/next/Door.tsx:323
+#: src/ui/Lobby.tsx:648
+#, fuzzy
+msgid "A friend online"
+msgstr "Un ami en ligne"
+
+#: src/next/Door.tsx:323
+msgid "You get a link to send. They need nothing installed."
+msgstr ""
+
+#: src/next/Door.tsx:324
+#: src/ui/Lobby.tsx:652
+#, fuzzy
+msgid "Easy, Steady or Sharp."
+msgstr "Facile, Solide ou Redoutable."
+
+#: src/next/Door.tsx:327
+msgid "Both sides, this screen"
+msgstr ""
+
+#: src/next/Door.tsx:329
+msgid "Two sample armies set up; pass the screen each turn."
+msgstr ""
+
+#: src/next/Door.tsx:330
+#: src/ui/Lobby.tsx:659
+#, fuzzy
+msgid "You set up both armies and play both."
+msgstr "Tu installes les deux armées et tu joues les deux."
+
+#: src/next/Door.tsx:333
+msgid "A real table, your models"
+msgstr ""
+
+#: src/next/Door.tsx:333
+msgid "Phones keep the cards, wounds, CP, VP and dice."
+msgstr ""
+
+#: src/next/Door.tsx:341
+msgid "Your last game"
+msgstr ""
+
+#: src/next/Door.tsx:341
+msgid "Resume"
+msgstr ""
+
+#: src/next/Door.tsx:344
+msgid "{game}: the battle is over"
+msgstr ""
+
+#: src/next/Door.tsx:346
+msgid "{game}, round {n}"
+msgstr ""
+
+#: src/next/Door.tsx:347
+msgid "{game}, setting up"
+msgstr ""
+
+#: src/next/Door.tsx:354
+msgid "What are you playing?"
+msgstr ""
+
+#: src/next/Door.tsx:363
+msgid "Fewer games ▴"
+msgstr ""
+
+#: src/next/Door.tsx:364
+msgid "More games: {names} ▸"
+msgstr ""
+
+#: src/next/Door.tsx:367
+msgid "More games"
+msgstr ""
+
+#: src/next/Door.tsx:377
+msgid "Who against?"
+msgstr ""
+
+#: src/next/Door.tsx:387
+msgid "Not for this game yet"
+msgstr ""
+
+#: src/next/Door.tsx:400
+#: src/next/Door.tsx:403
+#: src/ui/Lobby.tsx:687
+#: src/ui/Lobby.tsx:688
+#, fuzzy
+msgid "How hard?"
+msgstr "Quelle difficulté ?"
+
+#: src/next/Door.tsx:406
+msgid "Plays loosely. Good for a first game."
+msgstr ""
+
+#: src/next/Door.tsx:407
+msgid "Plays to win."
+msgstr ""
+
+#: src/next/Door.tsx:408
+msgid "Thinks harder about every move."
+msgstr ""
+
+#: src/next/Door.tsx:435
+msgid "New to it? Learn with a coach ▸"
+msgstr ""
+
+#: src/next/Door.tsx:448
+msgid "Get ready"
+msgstr ""
+
+#: src/next/Door.tsx:457
+#: src/ui/Lobby.tsx:735
+#, fuzzy
+msgid "Phones"
+msgstr "Téléphones"
+
+#: src/next/Door.tsx:460
+msgid "One phone or screen for both of us"
+msgstr ""
+
+#: src/next/Door.tsx:461
+msgid "A phone each: you get a link for the other phone"
+msgstr ""
+
+#: src/next/Door.tsx:489
+msgid "Next: the table opens with a link to send. Your army goes on it there."
+msgstr ""
+
+#: src/next/Door.tsx:492
+msgid "Both armies go on the table and the battle starts. Pass the screen each turn."
+msgstr ""
+
+#: src/next/Door.tsx:493
+#: src/ui/Lobby.tsx:780
+#, fuzzy
+msgid "An empty table: put both armies on it, then start."
+msgstr "Une table vide : place les deux armées, puis commence."
+
+#: src/next/Door.tsx:494
+msgid "No 3D table: your phone keeps count while you play with your models."
+msgstr ""
+
+#: src/next/Door.tsx:508
+msgid "Find an opponent"
+msgstr ""
+
+#: src/next/Door.tsx:512
+msgid "More ways to play ▸"
+msgstr ""
+
+#: src/next/Door.tsx:518
+msgid "Classic layout"
+msgstr ""
+
+#: src/next/Door.tsx:523
+#: src/next/Door.tsx:525
+#: src/ui/Lobby.tsx:884
+#, fuzzy
+msgid "More ways to play"
+msgstr "Autres façons de jouer"
+
+#: src/next/Door.tsx:531
+msgid "Open a Tabletop Simulator save"
+msgstr ""
+
+#: src/next/Door.tsx:532
+msgid "Terrain, armies and decks arrive as one game."
+msgstr ""
+
+#: src/next/Door.tsx:539
+msgid "Your models, packs and storage."
+msgstr ""
+
+#: src/next/Door.tsx:542
+#: src/workshop/Workshop.tsx:271
+#: src/workshop/Workshop.tsx:274
+#, fuzzy
+msgid "Module workshop"
+msgstr "Atelier de modules"
+
+#: src/next/Door.tsx:543
+msgid "Write your own game system."
+msgstr ""
+
+#: src/next/Door.tsx:583
+msgid "Tabletop battles in your browser, between friends. No account."
+msgstr ""
+
+#: src/next/Door.tsx:595
+msgid "Got an invite?"
+msgstr ""
+
+#: src/next/Door.tsx:598
+msgid "Paste the link or code"
+msgstr ""
+
+#: src/next/Door.tsx:602
+#: src/opentables/OpenTables.tsx:615
+#: src/ui/Lobby.tsx:547
+#, fuzzy
+msgid "Join"
+msgstr "Rejoindre"
+
+#: src/next/Door.tsx:605
+#: src/player/PlayerCard.tsx:34
+#: src/player/PlayerCard.tsx:121
+#: src/player/PlayerCard.tsx:303
+#: src/ui/Lobby.tsx:968
+#, fuzzy
+msgid "Your player card"
+msgstr "Ta carte de joueur"
+
+#: src/next/Door.tsx:606
+msgid "Player card"
+msgstr ""
+
+#: src/next/Door.tsx:613
+#: src/ui/Lobby.tsx:526
+#, fuzzy
+msgid "Text size and language"
+msgstr "Taille du texte et langue"
+
+#: src/next/Door.tsx:615
+msgid "Aa"
+msgstr ""
+
+#: src/next/Drawer.tsx:107
+#: src/replay/chapters.ts:50
+#, fuzzy
+msgid "After the battle"
+msgstr "Après la bataille"
+
+#: src/next/Drawer.tsx:110
+#: src/ui/Hud.tsx:270
+#, fuzzy
+msgid "Replay with notes"
+msgstr "Revoir avec des notes"
+
+#: src/next/Drawer.tsx:116
+msgid "Your cards and missions"
+msgstr ""
+
+#: src/next/Drawer.tsx:124
+#: src/ui/Hud.tsx:222
+#: src/ui/Keys.tsx:70
+#, fuzzy
+msgid "Armies"
+msgstr "Armées"
+
+#: src/next/Drawer.tsx:133
+msgid "Roll dice"
+msgstr ""
+
+#: src/next/Drawer.tsx:140
+msgid "How many dice"
+msgstr ""
+
+#: src/next/Drawer.tsx:160
+#: src/share/cards.ts:339
+#, fuzzy
+msgid "What happened"
+msgstr "Ce qui s'est passé"
+
+#: src/next/Drawer.tsx:164
+msgid "Switch to the classic layout"
+msgstr ""
+
+#: src/next/Drawer.tsx:57
+#: src/next/Strip.tsx:54
+msgid "Menu"
+msgstr ""
+
+#: src/next/Drawer.tsx:69
+msgid "View"
+msgstr ""
+
+#: src/next/Drawer.tsx:72
+#: src/ui/Hud.tsx:145
+#: src/ui/TouchLayer.tsx:174
+#, fuzzy
+msgid "3D view"
+msgstr "Vue 3D"
+
+#: src/next/Drawer.tsx:72
+#: src/ui/Hud.tsx:145
+#: src/ui/TouchLayer.tsx:174
+#, fuzzy
+msgid "Top-down view"
+msgstr "Vue de dessus"
+
+#: src/next/Drawer.tsx:76
+#: src/ui/Hud.tsx:153
+#, fuzzy
+msgid "Ruler"
+msgstr "Mètre"
+
+#: src/next/Drawer.tsx:80
+#: src/ui/Hud.tsx:167
+#: src/ui/TouchLayer.tsx:177
+#, fuzzy
+msgid "Reset view"
+msgstr "Réinitialiser la vue"
+
+#: src/next/Drawer.tsx:84
+#: src/ui/Hud.tsx:171
+#, fuzzy
+msgid "Unit names"
+msgstr "Noms des unités"
+
+#: src/next/Drawer.tsx:88
+#: src/ui/Hud.tsx:175
+#, fuzzy
+msgid "X-ray terrain"
+msgstr "Décors en rayons X"
+
+#: src/next/Drawer.tsx:92
+#: src/ui/Hud.tsx:184
+#, fuzzy
+msgid "Follow action"
+msgstr "Suivre l'action"
+
+#: src/next/Drawer.tsx:99
+#: src/ui/Hud.tsx:193
+#: src/ui/TerrainPanel.tsx:162
+#, fuzzy
+msgid "Edit terrain"
+msgstr "Modifier les décors"
+
+#: src/next/Setup.tsx:110
+msgid "You're watching. The battle starts when the players are ready."
+msgstr ""
+
+#: src/next/Setup.tsx:129
+#: src/ui/SetupSteps.tsx:65
+#, fuzzy
+msgid "Invite your opponent"
+msgstr "Invite ton adversaire"
+
+#: src/next/Setup.tsx:132
+#: src/ui/SetupSteps.tsx:80
+#, fuzzy
+msgid "{names} is here"
+msgstr "{names} est là"
+
+#: src/next/Setup.tsx:134
+msgid "Link copied. Waiting for them to open it."
+msgstr ""
+
+#: src/next/Setup.tsx:139
+msgid "Both armies"
+msgstr ""
+
+#: src/next/Setup.tsx:143
+msgid "{names} has no army yet"
+msgstr ""
+
+#: src/next/Setup.tsx:145
+#: src/tts/TtsWholeTable.tsx:148
+#: src/ui/SetupSteps.tsx:89
+#, fuzzy
+msgid "{n} unit on the table"
+msgid_plural "{n} units on the table"
+msgstr[0] "{n} unité sur la table"
+msgstr[1] "{n} unités sur la table"
+
+#: src/next/Setup.tsx:153
+#: src/ui/SetupSteps.tsx:104
+#, fuzzy
+msgid "Table and mission"
+msgstr "Table et mission"
+
+#: src/next/Setup.tsx:156
+#: src/ui/TopBar.tsx:112
+#, fuzzy
+msgid "No mission: you'll score by hand"
+msgstr "Pas de mission : tu comptes les points à la main"
+
+#: src/next/Setup.tsx:160
+#: src/replay/chapters.ts:45
+#: src/ui/PlayPanel.tsx:59
+#: src/ui/TerrainPanel.tsx:353
+#: src/ui/TopBar.tsx:260
+#: src/ui/WhatNow.tsx:46
+#, fuzzy
+msgid "Deployment"
+msgstr "Déploiement"
+
+#: src/next/Setup.tsx:163
+msgid "{n} unit to place"
+msgid_plural "{n} units to place"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/next/Setup.tsx:165
+msgid "Everything placed. Say you're ready."
+msgstr ""
+
+#: src/next/Setup.tsx:167
+#: src/next/step.ts:241
+#: src/ui/Packages.tsx:750
+#: src/ui/TopBar.tsx:380
+#, fuzzy
+msgid "Waiting for {names}"
+msgstr "En attente de {names}"
+
+#: src/next/Setup.tsx:172
+msgid "Who goes first"
+msgstr ""
+
+#: src/next/Setup.tsx:177
+msgid "A tie, {a} each: roll again"
+msgstr ""
+
+#: src/next/Setup.tsx:178
+msgid "Rolled {a} – {b}"
+msgstr ""
+
+#: src/next/Setup.tsx:190
+msgid "Send the invite link to your opponent"
+msgstr ""
+
+#: src/next/Setup.tsx:191
+msgid "They open it in their browser: nothing to install, no account."
+msgstr ""
+
+#: src/next/Setup.tsx:201
+msgid "Put both armies on the table"
+msgstr ""
+
+#: src/next/Setup.tsx:201
+msgid "Pick your army"
+msgstr ""
+
+#: src/next/Setup.tsx:202
+msgid "A sample army, one from your shelf, or import a list (New Recruit, BattleScribe, Yellowscribe)."
+msgstr ""
+
+#: src/next/Setup.tsx:209
+msgid "Use the sample armies"
+msgstr ""
+
+#: src/next/Setup.tsx:209
+msgid "Use the sample army"
+msgstr ""
+
+#: src/next/Setup.tsx:215
+msgid "Table and mission: {mission}"
+msgstr ""
+
+#: src/next/Setup.tsx:215
+#: src/ui/AttackPanel.tsx:377
+#: src/ui/AttackPanel.tsx:386
+#: src/ui/AttackPanel.tsx:523
+#: src/ui/TopBar.tsx:538
+#, fuzzy
+msgid "none"
+msgstr "aucun"
+
+#: src/next/Setup.tsx:216
+msgid "Keep them, or change the table or mission first."
+msgstr ""
+
+#: src/next/Setup.tsx:217
+msgid "Keep these"
+msgstr ""
+
+#: src/next/Setup.tsx:218
+#: src/next/Setup.tsx:326
+#: src/next/Setup.tsx:337
+#: src/ui/AutoAbilities.tsx:604
+#: src/ui/PlayPanel.tsx:453
+#: src/ui/PlayPanel.tsx:502
+#, fuzzy
+msgid "Change"
+msgstr "Modifier"
+
+#: src/next/Setup.tsx:222
+#: src/ui/TopBar.tsx:277
+#, fuzzy
+msgid "Place your units in your zone"
+msgstr "Place tes unités dans ta zone"
+
+#: src/next/Setup.tsx:223
+msgid "Drag each one into the shaded strip. Drop a character on a squad to lead it."
+msgstr ""
+
+#: src/next/Setup.tsx:224
+msgid "Next unit"
+msgstr ""
+
+#: src/next/Setup.tsx:227
+msgid "Ready anyway"
+msgstr ""
+
+#: src/next/Setup.tsx:232
+msgid "Check your deployment, then say you're ready"
+msgstr ""
+
+#: src/next/Setup.tsx:233
+msgid "Characters standing with a squad can lead it: see the list on the left."
+msgstr ""
+
+#: src/next/Setup.tsx:235
+#: src/ui/Room.tsx:258
+#: src/ui/SetupSteps.tsx:121
+#: src/ui/TopBar.tsx:570
+#, fuzzy
+msgid "Ready"
+msgstr "Prêt"
+
+#: src/next/Setup.tsx:241
+msgid "Roll off for the first turn"
+msgstr ""
+
+#: src/next/Setup.tsx:242
+msgid "One die each, both screens see it. The winner chooses who goes first."
+msgstr ""
+
+#: src/next/Setup.tsx:244
+msgid "Roll off"
+msgstr ""
+
+#: src/next/Setup.tsx:252
+msgid "{side} won the roll-off and goes first"
+msgstr ""
+
+#: src/next/Setup.tsx:253
+#: src/next/Setup.tsx:263
+msgid "Start the battle"
+msgstr ""
+
+#: src/next/Setup.tsx:256
+#: src/ui/TopBar.tsx:413
+#, fuzzy
+msgid "Waiting for {names} to be ready"
+msgstr "En attente que {names} soient prêts"
+
+#: src/next/Setup.tsx:259
+msgid "{side} takes the first turn."
+msgstr ""
+
+#: src/next/Setup.tsx:260
+msgid "Nobody has joined yet."
+msgstr ""
+
+#: src/next/Setup.tsx:263
+#: src/ui/TopBar.tsx:450
+#, fuzzy
+msgid "Start anyway"
+msgstr "Lancer quand même"
+
+#: src/next/Setup.tsx:273
+msgid "First turn"
+msgstr ""
+
+#: src/next/Setup.tsx:301
+#: src/next/Setup.tsx:303
+#: src/ui/SetupSteps.tsx:53
+#, fuzzy
+msgid "Before the battle"
+msgstr "Avant la bataille"
+
+#: src/next/Setup.tsx:306
+#: src/ui/SetupSteps.tsx:58
+#, fuzzy
+msgid "{name}'s table · {game}"
+msgstr "Table de {name} · {game}"
+
+#: src/next/Setup.tsx:320
+msgid "{name} chooses"
+msgstr ""
+
+#: src/next/Setup.tsx:349
+#: src/next/StepBar.tsx:100
+msgid "Next step"
+msgstr ""
+
+#: src/next/Setup.tsx:352
+#: src/next/Strip.tsx:124
+#: src/ui/TopBar.tsx:279
+#, fuzzy
+msgid "Joining the game…"
+msgstr "Connexion à la partie…"
+
+#: src/next/StepBar.tsx:104
+#: src/ui/TeachRule.tsx:169
+#, fuzzy
+msgid "Phases"
+msgstr "Phases"
+
+#: src/next/StepBar.tsx:144
+msgid "{label} anyway"
+msgstr ""
+
+#: src/next/StepBar.tsx:147
+#: src/ui/TopBar.tsx:452
+#, fuzzy
+msgid "Not yet"
+msgstr "Pas encore"
+
+#: src/next/Strip.tsx:125
+#: src/next/step.ts:155
+msgid "Setting up"
+msgstr ""
+
+#: src/next/Strip.tsx:127
+#: src/share/clip.ts:266
+#: src/ui/TopBar.tsx:289
+#, fuzzy
+msgid "Battle over"
+msgstr "Bataille terminée"
+
+#: src/next/Strip.tsx:129
+msgid "Round {round} of {rounds}"
+msgstr ""
+
+#: src/next/Strip.tsx:130
+#: src/ui/Showcase.tsx:151
+#, fuzzy
+msgid "Round {round}"
+msgstr "Round {round}"
+
+#: src/next/Strip.tsx:133
+msgid "Watching"
+msgstr ""
+
+#: src/next/Strip.tsx:140
+#: src/ui/TopBar.tsx:497
+#, fuzzy
+msgid "Controls (?)"
+msgstr "Commandes (?)"
+
+#: src/next/Strip.tsx:141
+#: src/ui/Keys.tsx:109
+#: src/ui/Keys.tsx:113
+#, fuzzy
+msgid "Controls"
+msgstr "Commandes"
+
+#: src/next/Strip.tsx:53
+msgid "Everything else: view, log, settings, leave"
+msgstr ""
+
+#: src/next/Strip.tsx:81
+#: src/ui/Room.tsx:109
+#, fuzzy
+msgid "reconnecting…"
+msgstr "reconnexion…"
+
+#: src/next/step.ts:154
+#: src/ui/WhatNow.tsx:43
+#: src/ui/gameLog.ts:110
+#: src/ui/gameLog.ts:112
+#, fuzzy
+msgid "The battle is over"
+msgstr "La bataille est terminée"
+
+#: src/next/step.ts:163
+msgid "An attack is under way"
+msgstr ""
+
+#: src/next/step.ts:164
+msgid "Each player rolls their own dice in the attack panel."
+msgstr ""
+
+#: src/next/step.ts:172
+msgid "A reaction"
+msgstr ""
+
+#: src/next/step.ts:173
+msgid "Answer on the reaction card by the dice."
+msgstr ""
+
+#: src/next/step.ts:192
+msgid "Score {vp} VP"
+msgstr ""
+
+#: src/next/step.ts:198
+#: src/opentables/OpenTables.tsx:1044
+#: src/ranked/RankedGame.tsx:227
+#, fuzzy
+msgid "Not this time"
+msgstr "Pas cette fois"
+
+#: src/next/step.ts:203
+msgid "Score {rule}: {vp} VP"
+msgstr ""
+
+#: src/next/step.ts:226
+msgid "{name}: {phase}, then Done"
+msgstr ""
+
+#: src/next/step.ts:230
+msgid "{phase}: your jobs, then Done"
+msgstr ""
+
+#: src/next/step.ts:232
+msgid "{names} is doing theirs at the same time."
+msgstr ""
+
+#: src/next/step.ts:234
+#: src/ui/AttackPanel.tsx:672
+#: src/ui/Coach.tsx:87
+#: src/ui/ProcedurePanels.tsx:421
+#: src/ui/SetupSteps.tsx:109
+#: src/ui/TerrainPanel.tsx:163
+#, fuzzy
+msgid "Done"
+msgstr "Terminé"
+
+#: src/next/step.ts:241
+msgid "Moving on…"
+msgstr ""
+
+#: src/next/step.ts:242
+msgid "You're done with {phase}."
+msgstr ""
+
+#: src/next/step.ts:245
+#: src/ui/TopBar.tsx:387
+#, fuzzy
+msgid "Not done"
+msgstr "Pas fini"
+
+#: src/next/step.ts:246
+#: src/ui/TopBar.tsx:400
+#: src/ui/TopBar.tsx:450
+#, fuzzy
+msgid "Go on anyway"
+msgstr "Continuer quand même"
+
+#: src/next/step.ts:259
+msgid "Your next activation comes after theirs."
+msgstr ""
+
+#: src/next/step.ts:267
+msgid "Your activation: {unit}"
+msgstr ""
+
+#: src/next/step.ts:268
+msgid "Use its actions from its card, then end the activation."
+msgstr ""
+
+#: src/next/step.ts:271
+#: src/ui/SystemPanels.tsx:548
+#: src/ui/TopBar.tsx:343
+#, fuzzy
+msgid "End activation"
+msgstr "Terminer l'activation"
+
+#: src/next/step.ts:283
+msgid "All your units have had their go"
+msgstr ""
+
+#: src/next/step.ts:284
+msgid "Pass: the other side goes on until they pass too."
+msgstr ""
+
+#: src/next/step.ts:286
+#: src/next/step.ts:299
+#: src/ui/Missions.tsx:191
+#: src/ui/Missions.tsx:206
+#: src/ui/Missions.tsx:345
+#: src/ui/ProcedurePanels.tsx:387
+#, fuzzy
+msgid "Pass"
+msgstr "Passer"
+
+#: src/next/step.ts:291
+msgid "Pick a unit to activate"
+msgstr ""
+
+#: src/next/step.ts:294
+msgid "{n} unit left this round"
+msgid_plural "{n} units left this round"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/next/step.ts:302
+msgid "You have units that haven't gone. Pass anyway?"
+msgstr ""
+
+#: src/next/step.ts:318
+msgid "{player}'s pick to fight"
+msgstr ""
+
+#: src/next/step.ts:319
+msgid "The sides alternate until every engaged unit has fought."
+msgstr ""
+
+#: src/next/step.ts:328
+msgid "Your pick: choose a unit to fight"
+msgstr ""
+
+#: src/next/step.ts:329
+msgid "Pile in, fight, then consolidate, from its card."
+msgstr ""
+
+#: src/next/step.ts:338
+msgid "Units can still fight. Move on anyway?"
+msgstr ""
+
+#: src/next/step.ts:350
+msgid "{side}'s turn: {phase}"
+msgstr ""
+
+#: src/next/step.ts:351
+msgid "Watch the table. Your saves and reactions come to you here."
+msgstr ""
+
+#: src/next/step.ts:366
+msgid "{n} unit can still act. Move on anyway?"
+msgid_plural "{n} units can still act. Move on anyway?"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/next/step.ts:375
+msgid "Drag a unit to move it"
+msgstr ""
+
+#: src/next/step.ts:376
+msgid "Every unit has moved"
+msgstr ""
+
+#: src/next/step.ts:379
+msgid "Pick a unit to shoot with, then click its target"
+msgstr ""
+
+#: src/next/step.ts:380
+msgid "Every unit has shot"
+msgstr ""
+
+#: src/next/step.ts:383
+msgid "Pick a unit to charge with, then drag it onto its target"
+msgstr ""
+
+#: src/next/step.ts:384
+msgid "No unit can charge now"
+msgstr ""
+
+#: src/next/step.ts:386
+msgid "{phase}: pick a unit to act"
+msgstr ""
+
+#: src/next/step.ts:387
+msgid "{phase}: nothing left to do"
+msgstr ""
+
+#: src/next/step.ts:395
+msgid "{n} unit hasn't moved"
+msgid_plural "{n} units haven't moved"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/next/step.ts:396
+msgid "{n} unit can still act"
+msgid_plural "{n} units can still act"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/next/step.ts:91
+msgid "End turn"
+msgstr ""
+
+#: src/next/step.ts:92
+msgid "Done moving"
+msgstr ""
+
+#: src/next/step.ts:93
+msgid "Done shooting"
+msgstr ""
+
+#: src/next/step.ts:94
+msgid "Done charging"
+msgstr ""
+
+#: src/next/step.ts:95
+msgid "Done fighting"
+msgstr ""
+
+#: src/next/step.ts:96
+msgid "Done with {phase}"
+msgstr ""
+
 #: src/opentables/OpenTables.tsx:101
 #, fuzzy
 msgid "in {n} minute"
@@ -4191,12 +5148,6 @@ msgstr "{name} veut jouer cette partie en classée : à la fin, vous signez tous
 #, fuzzy
 msgid "Play ranked"
 msgstr "Jouer en classée"
-
-#: src/opentables/OpenTables.tsx:1044
-#: src/ranked/RankedGame.tsx:227
-#, fuzzy
-msgid "Not this time"
-msgstr "Pas cette fois"
 
 #: src/opentables/OpenTables.tsx:1050
 #: src/opentables/OpenTables.tsx:1105
@@ -4585,12 +5536,6 @@ msgstr "Rejoindre {name}"
 msgid "Your table"
 msgstr "Votre table"
 
-#: src/opentables/OpenTables.tsx:615
-#: src/ui/Lobby.tsx:547
-#, fuzzy
-msgid "Join"
-msgstr "Rejoindre"
-
 #: src/opentables/OpenTables.tsx:626
 #, fuzzy
 msgid "Hide this table"
@@ -4948,14 +5893,6 @@ msgstr "Cote"
 #, fuzzy
 msgid "W–L–D"
 msgstr "V–D–N"
-
-#: src/player/PlayerCard.tsx:34
-#: src/player/PlayerCard.tsx:121
-#: src/player/PlayerCard.tsx:303
-#: src/ui/Lobby.tsx:968
-#, fuzzy
-msgid "Your player card"
-msgstr "Ta carte de joueur"
 
 #: src/player/PlayerCard.tsx:360
 #, fuzzy
@@ -5805,21 +6742,6 @@ msgstr "Masquer"
 #, fuzzy
 msgid "Hide notes and chapters"
 msgstr "Masquer les notes et chapitres"
-
-#: src/replay/chapters.ts:45
-#: src/ui/PlayPanel.tsx:59
-#: src/ui/TerrainPanel.tsx:353
-#: src/ui/TopBar.tsx:260
-#: src/ui/WhatNow.tsx:46
-#: src/ui/gameLog.ts:454
-#, fuzzy
-msgid "Deployment"
-msgstr "Déploiement"
-
-#: src/replay/chapters.ts:50
-#, fuzzy
-msgid "After the battle"
-msgstr "Après la bataille"
 
 #: src/replay/review.ts:186
 #, fuzzy
@@ -6692,17 +7614,6 @@ msgstr "aucune perte"
 msgid "wiped out: {units}"
 msgstr "anéantis : {units}"
 
-#: src/share/cards.ts:339
-#, fuzzy
-msgid "What happened"
-msgstr "Ce qui s'est passé"
-
-#: src/share/clip.ts:266
-#: src/ui/TopBar.tsx:289
-#, fuzzy
-msgid "Battle over"
-msgstr "Bataille terminée"
-
 #: src/share/links.ts:168
 #, fuzzy
 msgid "That magnet link has no torrent in it."
@@ -7558,14 +8469,6 @@ msgid_plural "{n} pieces of terrain"
 msgstr[0] "{n} élément de décor"
 msgstr[1] "{n} éléments de décor"
 
-#: src/tts/TtsWholeTable.tsx:148
-#: src/ui/SetupSteps.tsx:89
-#, fuzzy
-msgid "{n} unit on the table"
-msgid_plural "{n} units on the table"
-msgstr[0] "{n} unité sur la table"
-msgstr[1] "{n} unités sur la table"
-
 #: src/tts/TtsWholeTable.tsx:150
 #, fuzzy
 msgid "{n} still in a bag"
@@ -8364,7 +9267,7 @@ msgid "Hit"
 msgstr "Touche"
 
 #: src/ui/AttackPanel.tsx:343
-#: src/ui/AttackPanel.tsx:516
+#: src/ui/AttackPanel.tsx:519
 #, fuzzy
 msgid "auto"
 msgstr "auto"
@@ -8394,16 +9297,8 @@ msgstr "Blessure critique sur"
 msgid "Devastating"
 msgstr "Dévastatrices"
 
-#: src/ui/AttackPanel.tsx:377
-#: src/ui/AttackPanel.tsx:386
-#: src/ui/AttackPanel.tsx:520
-#: src/ui/TopBar.tsx:538
-#, fuzzy
-msgid "none"
-msgstr "aucun"
-
 #: src/ui/AttackPanel.tsx:381
-#: src/ui/AttackPanel.tsx:741
+#: src/ui/AttackPanel.tsx:751
 #: src/ui/TeachRule.tsx:491
 #, fuzzy
 msgid "Damage"
@@ -8455,12 +9350,12 @@ msgid "Waiting for {name} to roll damage"
 msgstr "En attente du jet de dégâts de {name}"
 
 #: src/ui/AttackPanel.tsx:440
-#: src/ui/AttackPanel.tsx:530
+#: src/ui/AttackPanel.tsx:537
 #, fuzzy
 msgid "Your opponent"
 msgstr "Ton adversaire"
 
-#: src/ui/AttackPanel.tsx:511
+#: src/ui/AttackPanel.tsx:514
 #: src/ui/gameLog.ts:467
 #: src/ui/gameLog.ts:532
 #, fuzzy
@@ -8469,55 +9364,55 @@ msgid_plural "{n} attacks"
 msgstr[0] "{n} attaque"
 msgstr[1] "{n} attaques"
 
-#: src/ui/AttackPanel.tsx:513
+#: src/ui/AttackPanel.tsx:516
 #, fuzzy
 msgid "(rolled {dice})"
 msgstr "({dice} obtenus)"
 
-#: src/ui/AttackPanel.tsx:515
+#: src/ui/AttackPanel.tsx:518
 #, fuzzy
 msgid "hit {value}"
 msgstr "touche {value}"
 
-#: src/ui/AttackPanel.tsx:518
+#: src/ui/AttackPanel.tsx:521
 #, fuzzy
 msgid "wound {value}"
 msgstr "blessure {value}"
 
-#: src/ui/AttackPanel.tsx:519
+#: src/ui/AttackPanel.tsx:522
 #, fuzzy
 msgid "save {value}"
 msgstr "sauvegarde {value}"
 
-#: src/ui/AttackPanel.tsx:522
+#: src/ui/AttackPanel.tsx:525
 #, fuzzy
 msgid "D {value}"
 msgstr "D {value}"
 
-#: src/ui/AttackPanel.tsx:523
+#: src/ui/AttackPanel.tsx:526
 #, fuzzy
 msgid "FNP {value}"
 msgstr "FNP {value}"
 
-#: src/ui/AttackPanel.tsx:529
+#: src/ui/AttackPanel.tsx:532
 #, fuzzy
 msgid "{name} is shooting your {unit} with {n} weapon"
 msgid_plural "{name} is shooting your {unit} with {n} weapons"
 msgstr[0] "{name} tire sur ton unité {unit} avec {n} arme"
 msgstr[1] "{name} tire sur ton unité {unit} avec {n} armes"
 
-#: src/ui/AttackPanel.tsx:536
-#: src/ui/AttackPanel.tsx:583
+#: src/ui/AttackPanel.tsx:544
+#: src/ui/AttackPanel.tsx:591
 #, fuzzy
 msgid "Weapon {i} of {n}"
 msgstr "Arme {i} sur {n}"
 
-#: src/ui/AttackPanel.tsx:542
+#: src/ui/AttackPanel.tsx:550
 #, fuzzy
 msgid "Hits"
 msgstr "Touches"
 
-#: src/ui/AttackPanel.tsx:545
+#: src/ui/AttackPanel.tsx:553
 #: src/ui/gameLog.ts:468
 #: src/ui/gameLog.ts:536
 #, fuzzy
@@ -8526,27 +9421,27 @@ msgid_plural "{n} hits"
 msgstr[0] "{n} touche"
 msgstr[1] "{n} touches"
 
-#: src/ui/AttackPanel.tsx:546
+#: src/ui/AttackPanel.tsx:554
 #, fuzzy
 msgid "{n} critical"
 msgstr "{n} critique(s)"
 
-#: src/ui/AttackPanel.tsx:547
+#: src/ui/AttackPanel.tsx:555
 #, fuzzy
 msgid "{n} auto-wound"
 msgstr "{n} blessure(s) auto"
 
-#: src/ui/AttackPanel.tsx:552
+#: src/ui/AttackPanel.tsx:560
 #, fuzzy
 msgid "Torrent: {n} automatic hits"
 msgstr "Torrent : {n} touches automatiques"
 
-#: src/ui/AttackPanel.tsx:555
+#: src/ui/AttackPanel.tsx:563
 #, fuzzy
 msgid "Wounds"
 msgstr "Blessures"
 
-#: src/ui/AttackPanel.tsx:557
+#: src/ui/AttackPanel.tsx:565
 #: src/ui/gameLog.ts:469
 #: src/ui/gameLog.ts:514
 #: src/ui/gameLog.ts:516
@@ -8557,133 +9452,123 @@ msgid_plural "{n} wounds"
 msgstr[0] "{n} blessure"
 msgstr[1] "{n} blessures"
 
-#: src/ui/AttackPanel.tsx:558
+#: src/ui/AttackPanel.tsx:566
 #, fuzzy
 msgid "{n} skip saves"
 msgstr "{n} sans sauvegarde"
 
-#: src/ui/AttackPanel.tsx:564
+#: src/ui/AttackPanel.tsx:572
 #, fuzzy
 msgid "Saves"
 msgstr "Sauvegardes"
 
-#: src/ui/AttackPanel.tsx:568
+#: src/ui/AttackPanel.tsx:576
 #: src/ui/gameLog.ts:470
 #: src/ui/gameLog.ts:538
 #, fuzzy
 msgid "{n} unsaved"
 msgstr "{n} non sauvegardée(s)"
 
-#: src/ui/AttackPanel.tsx:579
+#: src/ui/AttackPanel.tsx:587
 #: src/ui/ProcedurePanels.tsx:408
 #, fuzzy
 msgid "The computer is rolling…"
 msgstr "L'ordinateur lance les dés…"
 
-#: src/ui/AttackPanel.tsx:586
+#: src/ui/AttackPanel.tsx:594
 #, fuzzy
 msgid "Stop here"
 msgstr "S'arrêter là"
 
-#: src/ui/AttackPanel.tsx:595
+#: src/ui/AttackPanel.tsx:603
 #, fuzzy
 msgid "{name} rolls the saves"
 msgstr "{name} lance les sauvegardes"
 
-#: src/ui/AttackPanel.tsx:598
+#: src/ui/AttackPanel.tsx:606
 #, fuzzy
 msgid "Dice hold no choices, so either player may roll them"
 msgstr "Les dés n'impliquent aucun choix, donc n'importe quel joueur peut les lancer"
 
-#: src/ui/AttackPanel.tsx:602
+#: src/ui/AttackPanel.tsx:610
 #, fuzzy
 msgid "Roll for them"
 msgstr "Lancer pour lui"
 
-#: src/ui/AttackPanel.tsx:621
-#: src/ui/AttackPanel.tsx:626
+#: src/ui/AttackPanel.tsx:629
+#: src/ui/AttackPanel.tsx:634
 #, fuzzy
 msgid "Roll hits and wounds"
 msgstr "Lancer touches et blessures"
 
-#: src/ui/AttackPanel.tsx:626
+#: src/ui/AttackPanel.tsx:634
 #, fuzzy
 msgid "Roll everything"
 msgstr "Tout lancer"
 
-#: src/ui/AttackPanel.tsx:636
+#: src/ui/AttackPanel.tsx:644
 #, fuzzy
 msgid "Always in one go"
 msgstr "Toujours en un seul jet"
 
-#: src/ui/AttackPanel.tsx:646
+#: src/ui/AttackPanel.tsx:654
 #, fuzzy
 msgid "Roll my saves as the wounds land"
 msgstr "Lancer mes sauvegardes dès que les blessures tombent"
 
-#: src/ui/AttackPanel.tsx:664
-#: src/ui/Coach.tsx:87
-#: src/ui/ProcedurePanels.tsx:421
-#: src/ui/SetupSteps.tsx:109
-#: src/ui/TerrainPanel.tsx:163
-#: src/ui/TopBar.tsx:687
-#, fuzzy
-msgid "Done"
-msgstr "Terminé"
-
-#: src/ui/AttackPanel.tsx:722
+#: src/ui/AttackPanel.tsx:732
 #, fuzzy
 msgid "re-rolled from {value}"
 msgstr "relancé depuis {value}"
 
-#: src/ui/AttackPanel.tsx:749
+#: src/ui/AttackPanel.tsx:759
 #, fuzzy
 msgid "re-rolled from {n}"
 msgstr "relancé, avant {n}"
 
-#: src/ui/AttackPanel.tsx:760
+#: src/ui/AttackPanel.tsx:770
 #, fuzzy
 msgid "{lost} wounds lost, {n} model destroyed"
 msgid_plural "{lost} wounds lost, {n} models destroyed"
 msgstr[0] "{lost} PV perdus, {n} figurine détruite"
 msgstr[1] "{lost} PV perdus, {n} figurines détruites"
 
-#: src/ui/AttackPanel.tsx:764
+#: src/ui/AttackPanel.tsx:774
 #, fuzzy
 msgid "{n} ignored by feel no pain"
 msgstr "{n} ignorée(s) par insensible à la douleur"
 
-#: src/ui/AttackPanel.tsx:826
+#: src/ui/AttackPanel.tsx:836
 #, fuzzy
 msgid "Wounds go to"
 msgstr "Les blessures vont à"
 
-#: src/ui/AttackPanel.tsx:836
+#: src/ui/AttackPanel.tsx:846
 #, fuzzy
 msgid "Take wounds on these models first"
 msgstr "Attribuer d'abord les blessures à ces figurines"
 
-#: src/ui/AttackPanel.tsx:845
+#: src/ui/AttackPanel.tsx:855
 #, fuzzy
 msgid "{n} W left"
 msgstr "{n} W restants"
 
-#: src/ui/AttackPanel.tsx:849
+#: src/ui/AttackPanel.tsx:859
 #, fuzzy
 msgid "+{n} more"
 msgstr "+{n} de plus"
 
-#: src/ui/AttackPanel.tsx:853
+#: src/ui/AttackPanel.tsx:863
 #, fuzzy
 msgid "A model that has already lost wounds should take the next one."
 msgstr "Une figurine qui a déjà perdu des PV doit subir la suivante."
 
-#: src/ui/AttackPanel.tsx:857
+#: src/ui/AttackPanel.tsx:867
 #, fuzzy
 msgid "Defender: tap a model to put it first."
 msgstr "Défenseur : touche une figurine pour la mettre en premier."
 
-#: src/ui/AttackPanel.tsx:858
+#: src/ui/AttackPanel.tsx:868
 #, fuzzy
 msgid "Defender: click a model to put it first."
 msgstr "Défenseur : clique sur une figurine pour la placer en premier."
@@ -8810,15 +9695,6 @@ msgstr "Appris :"
 #, fuzzy
 msgid "Automated:"
 msgstr "Automatisé :"
-
-#: src/ui/AutoAbilities.tsx:604
-#: src/ui/PlayPanel.tsx:453
-#: src/ui/PlayPanel.tsx:502
-#: src/ui/SetupSteps.tsx:91
-#: src/workshop/PackPanes.tsx:235
-#, fuzzy
-msgid "Change"
-msgstr "Modifier"
 
 #: src/ui/AutoAbilities.tsx:607
 #: src/ui/TeachRule.tsx:401
@@ -10170,27 +11046,10 @@ msgstr "Hotseat : tu contrôles les deux camps."
 msgid "Spectating."
 msgstr "Spectateur."
 
-#: src/ui/Hud.tsx:145
-#: src/ui/TouchLayer.tsx:174
-#, fuzzy
-msgid "3D view"
-msgstr "Vue 3D"
-
-#: src/ui/Hud.tsx:145
-#: src/ui/TouchLayer.tsx:174
-#, fuzzy
-msgid "Top-down view"
-msgstr "Vue de dessus"
-
 #: src/ui/Hud.tsx:150
 #, fuzzy
 msgid "Drag between models or points to measure; both players see it (M)"
 msgstr "Fais glisser entre des figurines ou des points pour mesurer ; les deux joueurs le voient (M)"
-
-#: src/ui/Hud.tsx:153
-#, fuzzy
-msgid "Ruler"
-msgstr "Mètre"
 
 #: src/ui/Hud.tsx:158
 #, fuzzy
@@ -10214,54 +11073,16 @@ msgstr "Vue ▾"
 msgid "Home"
 msgstr "Home"
 
-#: src/ui/Hud.tsx:167
-#: src/ui/TouchLayer.tsx:177
-#, fuzzy
-msgid "Reset view"
-msgstr "Réinitialiser la vue"
-
-#: src/ui/Hud.tsx:171
-#, fuzzy
-msgid "Unit names"
-msgstr "Noms des unités"
-
-#: src/ui/Hud.tsx:175
-#, fuzzy
-msgid "X-ray terrain"
-msgstr "Décors en rayons X"
-
 #: src/ui/Hud.tsx:180
 #, fuzzy
 msgid "Camera follows the action: moves, shots and charges"
 msgstr "La caméra suit l'action : mouvements, tirs et charges"
-
-#: src/ui/Hud.tsx:184
-#, fuzzy
-msgid "Follow action"
-msgstr "Suivre l'action"
-
-#: src/ui/Hud.tsx:193
-#: src/ui/TerrainPanel.tsx:162
-#, fuzzy
-msgid "Edit terrain"
-msgstr "Modifier les décors"
-
-#: src/ui/Hud.tsx:222
-#: src/ui/Keys.tsx:70
-#, fuzzy
-msgid "Armies"
-msgstr "Armées"
 
 #: src/ui/Hud.tsx:269
 #: src/ui/ReplayBar.tsx:179
 #, fuzzy
 msgid "Open this game as a replay to add notes and marks"
 msgstr "Ouvrir cette partie en replay pour ajouter des notes et des marques"
-
-#: src/ui/Hud.tsx:270
-#, fuzzy
-msgid "Replay with notes"
-msgstr "Revoir avec des notes"
 
 #: src/ui/Hud.tsx:295
 #: src/ui/route.ts:247
@@ -10382,12 +11203,6 @@ msgstr "Cliquer sur une unité"
 #, fuzzy
 msgid "Select it: its card on the right shows what it can do"
 msgstr "La sélectionner : sa carte à droite montre ce qu'elle peut faire"
-
-#: src/ui/Keys.tsx:109
-#: src/ui/Keys.tsx:113
-#, fuzzy
-msgid "Controls"
-msgstr "Commandes"
 
 #: src/ui/Keys.tsx:11
 #, fuzzy
@@ -10852,17 +11667,6 @@ msgstr "{name} {version}"
 msgid "You've been invited to a game. What should the others call you?"
 msgstr "Tu as une invitation à une partie. Comment les autres doivent-ils t'appeler ?"
 
-#: src/ui/Lobby.tsx:412
-#: src/ui/Lobby.tsx:763
-#, fuzzy
-msgid "What should the others call you?"
-msgstr "Comment les autres doivent-ils t'appeler ?"
-
-#: src/ui/Lobby.tsx:429
-#, fuzzy
-msgid "Just watch"
-msgstr "Juste regarder"
-
 #: src/ui/Lobby.tsx:447
 #, fuzzy
 msgid "Our own skirmish game, free to share (CC BY). Four warbands fight over lanterns fallen into a rift. Nothing to import."
@@ -10877,11 +11681,6 @@ msgstr "Notre propre jeu d'escarmouche, libre de partage (CC BY). Des bandes de 
 #, fuzzy
 msgid "Aa ▾"
 msgstr "Aa ▾"
-
-#: src/ui/Lobby.tsx:526
-#, fuzzy
-msgid "Text size and language"
-msgstr "Taille du texte et langue"
 
 #: src/ui/Lobby.tsx:535
 #, fuzzy
@@ -10986,20 +11785,10 @@ msgstr "2. Contre qui, à {game} ?"
 msgid "2. Who against?"
 msgstr "2. Contre qui ?"
 
-#: src/ui/Lobby.tsx:648
-#, fuzzy
-msgid "A friend online"
-msgstr "Un ami en ligne"
-
 #: src/ui/Lobby.tsx:649
 #, fuzzy
 msgid "You get a link to send; whoever opens it joins your table."
 msgstr "Tu obtiens un lien à envoyer ; quiconque l'ouvre rejoint ta table."
-
-#: src/ui/Lobby.tsx:652
-#, fuzzy
-msgid "Easy, Steady or Sharp."
-msgstr "Facile, Solide ou Redoutable."
 
 #: src/ui/Lobby.tsx:656
 #: src/ui/Lobby.tsx:851
@@ -11012,11 +11801,6 @@ msgstr "Les deux camps, sur cet écran"
 #, fuzzy
 msgid "Two sample armies set up; you play both."
 msgstr "Deux armées d'exemple en place ; tu joues les deux."
-
-#: src/ui/Lobby.tsx:659
-#, fuzzy
-msgid "You set up both armies and play both."
-msgstr "Tu installes les deux armées et tu joues les deux."
 
 #: src/ui/Lobby.tsx:665
 #, fuzzy
@@ -11032,12 +11816,6 @@ msgstr "Open Battle tient les cartes, les blessures, les PC, les PV et chaque at
 #, fuzzy
 msgid "No computer player for this game yet"
 msgstr "Pas encore d'adversaire ordinateur pour ce jeu"
-
-#: src/ui/Lobby.tsx:687
-#: src/ui/Lobby.tsx:688
-#, fuzzy
-msgid "How hard?"
-msgstr "Quelle difficulté ?"
 
 #: src/ui/Lobby.tsx:691
 #, fuzzy
@@ -11064,11 +11842,6 @@ msgstr "Nouveau ? Apprends avec un coach"
 msgid "3. Get ready"
 msgstr "3. Prépare-toi"
 
-#: src/ui/Lobby.tsx:735
-#, fuzzy
-msgid "Phones"
-msgstr "Téléphones"
-
 #: src/ui/Lobby.tsx:742
 #, fuzzy
 msgid "One phone for both of us"
@@ -11093,21 +11866,6 @@ msgstr "Ensuite, dans la salle : ton armée et le lien d'invitation à envoyer."
 #, fuzzy
 msgid "Both armies go on the table and the battle starts. Pass the screen at each turn."
 msgstr "Les deux armées vont sur la table et la bataille commence. Passez-vous l'écran à chaque tour."
-
-#: src/ui/Lobby.tsx:780
-#, fuzzy
-msgid "An empty table: put both armies on it, then start."
-msgstr "Une table vide : place les deux armées, puis commence."
-
-#: src/ui/Lobby.tsx:789
-#, fuzzy
-msgid "Set up both sides"
-msgstr "Installer les deux camps"
-
-#: src/ui/Lobby.tsx:789
-#, fuzzy
-msgid "Open the table"
-msgstr "Ouvrir la table"
 
 #: src/ui/Lobby.tsx:797
 #, fuzzy
@@ -11144,11 +11902,6 @@ msgstr "Quatre joueurs en deux équipes ; les équipes partagent les CP et les V
 #, fuzzy
 msgid "At a real table"
 msgstr "Sur une vraie table"
-
-#: src/ui/Lobby.tsx:884
-#, fuzzy
-msgid "More ways to play"
-msgstr "Autres façons de jouer"
 
 #: src/ui/Lobby.tsx:886
 #, fuzzy
@@ -11234,15 +11987,6 @@ msgstr "Scores à confirmer"
 msgctxt "noun"
 msgid "Score"
 msgstr "Score"
-
-#: src/ui/Missions.tsx:191
-#: src/ui/Missions.tsx:206
-#: src/ui/Missions.tsx:345
-#: src/ui/ProcedurePanels.tsx:387
-#: src/ui/TopBar.tsx:355
-#, fuzzy
-msgid "Pass"
-msgstr "Passer"
 
 #: src/ui/Missions.tsx:198
 #, fuzzy
@@ -11867,12 +12611,6 @@ msgstr "mêmes paquets"
 #, fuzzy
 msgid "{names} declined."
 msgstr "{names} a refusé."
-
-#: src/ui/Packages.tsx:750
-#: src/ui/TopBar.tsx:380
-#, fuzzy
-msgid "Waiting for {names}"
-msgstr "En attente de {names}"
 
 #: src/ui/Packages.tsx:76
 #, fuzzy
@@ -12815,11 +13553,6 @@ msgstr "connecté"
 msgid "waiting for someone to take this seat"
 msgstr "en attente de quelqu'un pour prendre cette place"
 
-#: src/ui/Room.tsx:109
-#, fuzzy
-msgid "reconnecting…"
-msgstr "reconnexion…"
-
 #: src/ui/Room.tsx:115
 #, fuzzy
 msgid "(this browser)"
@@ -12931,13 +13664,6 @@ msgstr "Tout placé"
 #, fuzzy
 msgid "Tell the other player you've finished deploying"
 msgstr "Dis à l'autre joueur que tu as fini de te déployer"
-
-#: src/ui/Room.tsx:258
-#: src/ui/SetupSteps.tsx:121
-#: src/ui/TopBar.tsx:570
-#, fuzzy
-msgid "Ready"
-msgstr "Prêt"
 
 #: src/ui/Room.tsx:269
 #, fuzzy
@@ -13145,11 +13871,6 @@ msgstr "(écrit sur un autre appareil)"
 msgid "Reveal"
 msgstr "Révéler"
 
-#: src/ui/SetupSteps.tsx:104
-#, fuzzy
-msgid "Table and mission"
-msgstr "Table et mission"
-
 #: src/ui/SetupSteps.tsx:106
 #, fuzzy
 msgid "No mission yet"
@@ -13175,26 +13896,6 @@ msgstr "Pas encore prêt : {names}"
 msgid "Waiting for your opponent"
 msgstr "En attente de ton adversaire"
 
-#: src/ui/SetupSteps.tsx:53
-#, fuzzy
-msgid "Before the battle"
-msgstr "Avant la bataille"
-
-#: src/ui/SetupSteps.tsx:58
-#, fuzzy
-msgid "{name}'s table · {game}"
-msgstr "Table de {name} · {game}"
-
-#: src/ui/SetupSteps.tsx:65
-#, fuzzy
-msgid "Invite your opponent"
-msgstr "Invite ton adversaire"
-
-#: src/ui/SetupSteps.tsx:80
-#, fuzzy
-msgid "{names} is here"
-msgstr "{names} est là"
-
 #: src/ui/SetupSteps.tsx:86
 #, fuzzy
 msgid "Your armies"
@@ -13204,11 +13905,6 @@ msgstr "Tes armées"
 #, fuzzy
 msgid "Pick it now"
 msgstr "La choisir maintenant"
-
-#: src/ui/Showcase.tsx:151
-#, fuzzy
-msgid "Round {round}"
-msgstr "Round {round}"
 
 #: src/ui/Showcase.tsx:161
 #, fuzzy
@@ -13624,12 +14320,6 @@ msgstr "Activée : {used} actions utilisées sur {budget}."
 msgid "End this activation; the other player goes next"
 msgstr "Terminer cette activation ; c'est au tour de l'autre joueur"
 
-#: src/ui/SystemPanels.tsx:548
-#: src/ui/TopBar.tsx:343
-#, fuzzy
-msgid "End activation"
-msgstr "Terminer l'activation"
-
 #: src/ui/SystemPanels.tsx:561
 #, fuzzy
 msgid "Costs {cost}"
@@ -13987,11 +14677,6 @@ msgstr "Sur quelles unités"
 #, fuzzy
 msgid "any of yours, or a keyword"
 msgstr "n'importe laquelle des vôtres, ou un mot-clé"
-
-#: src/ui/TeachRule.tsx:169
-#, fuzzy
-msgid "Phases"
-msgstr "Phases"
 
 #: src/ui/TeachRule.tsx:187
 #, fuzzy
@@ -14589,11 +15274,6 @@ msgstr "{names} ne sont pas encore prêts"
 msgid "{name} isn't ready yet"
 msgstr "{name} n'est pas encore prêt"
 
-#: src/ui/TopBar.tsx:112
-#, fuzzy
-msgid "No mission: you'll score by hand"
-msgstr "Pas de mission : tu comptes les points à la main"
-
 #: src/ui/TopBar.tsx:152
 #, fuzzy
 msgid "Advance a phase during {side}'s turn?"
@@ -14633,16 +15313,6 @@ msgstr "Phase précédente"
 #, fuzzy
 msgid "First turn:"
 msgstr "Premier tour :"
-
-#: src/ui/TopBar.tsx:277
-#, fuzzy
-msgid "Place your units in your zone"
-msgstr "Place tes unités dans ta zone"
-
-#: src/ui/TopBar.tsx:279
-#, fuzzy
-msgid "Joining the game…"
-msgstr "Connexion à la partie…"
 
 #: src/ui/TopBar.tsx:281
 #, fuzzy
@@ -14709,11 +15379,6 @@ msgstr "Fini ▶"
 msgid "Not done after all"
 msgstr "Pas encore fini, finalement"
 
-#: src/ui/TopBar.tsx:387
-#, fuzzy
-msgid "Not done"
-msgstr "Pas fini"
-
 #: src/ui/TopBar.tsx:395
 #, fuzzy
 msgid "{names} aren't done yet. Go on anyway?"
@@ -14724,17 +15389,6 @@ msgstr "{names} n'ont pas encore fini. Continuer quand même ?"
 msgid "{name} isn't done yet. Go on anyway?"
 msgstr "{name} n'a pas encore fini. Continuer quand même ?"
 
-#: src/ui/TopBar.tsx:400
-#: src/ui/TopBar.tsx:450
-#, fuzzy
-msgid "Go on anyway"
-msgstr "Continuer quand même"
-
-#: src/ui/TopBar.tsx:413
-#, fuzzy
-msgid "Waiting for {names} to be ready"
-msgstr "En attente que {names} soient prêts"
-
 #: src/ui/TopBar.tsx:425
 #, fuzzy
 msgid "Start battle ▶"
@@ -14744,16 +15398,6 @@ msgstr "Lancer la bataille ▶"
 #, fuzzy
 msgid "Pick one"
 msgstr "En choisir une"
-
-#: src/ui/TopBar.tsx:450
-#, fuzzy
-msgid "Start anyway"
-msgstr "Lancer quand même"
-
-#: src/ui/TopBar.tsx:452
-#, fuzzy
-msgid "Not yet"
-msgstr "Pas encore"
 
 #: src/ui/TopBar.tsx:459
 #, fuzzy
@@ -14779,11 +15423,6 @@ msgstr "Avancer leur phase"
 #, fuzzy
 msgid "Back a phase"
 msgstr "Revenir d'une phase"
-
-#: src/ui/TopBar.tsx:497
-#, fuzzy
-msgid "Controls (?)"
-msgstr "Commandes (?)"
 
 #: src/ui/TopBar.tsx:556
 #, fuzzy
@@ -15429,13 +16068,6 @@ msgstr "Que puis-je faire maintenant ?"
 #, fuzzy
 msgid "Nothing to do"
 msgstr "Rien à faire"
-
-#: src/ui/WhatNow.tsx:43
-#: src/ui/gameLog.ts:110
-#: src/ui/gameLog.ts:112
-#, fuzzy
-msgid "The battle is over"
-msgstr "La bataille est terminée"
 
 #: src/ui/WhatNow.tsx:43
 #, fuzzy
@@ -17806,12 +18438,6 @@ msgstr "Enregistré et rechargé sur la table de test."
 #, fuzzy
 msgid "Workshop"
 msgstr "Atelier"
-
-#: src/workshop/Workshop.tsx:271
-#: src/workshop/Workshop.tsx:274
-#, fuzzy
-msgid "Module workshop"
-msgstr "Atelier de modules"
 
 #: src/workshop/Workshop.tsx:277
 #, fuzzy

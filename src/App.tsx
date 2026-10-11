@@ -9,6 +9,7 @@ import { useLibraryOpen } from "./figures/open";
 import { useWorkshopOpen } from "./workshop/open";
 import { useEventOpen, useRunsEvents } from "./events/open";
 import { watchRoute } from "./ui/route";
+import { NEXT } from "./next/flag";
 
 /**
  * The 3D table, three.js and every in-game panel load as their own chunk,
@@ -18,6 +19,8 @@ import { watchRoute } from "./ui/route";
  */
 const loadGame = () => import("./GameScreen");
 const GameScreen = lazy(() => loadGame().then((m) => ({ default: m.GameScreen })));
+/** Open Battle Next (ui-next): the from-scratch UI, on with `?ui=next`, in its own chunk. */
+const NextApp = lazy(() => import("./next/NextApp").then((m) => ({ default: m.NextApp })));
 /** The figure library (#33) loads when it's first opened. */
 const FigureLibrary = lazy(() =>
   import("./figures/FigureLibrary").then((m) => ({ default: m.FigureLibrary })),
@@ -64,10 +67,10 @@ export function App() {
         <Suspense
           fallback={started ? <div className="loading-table">{t("Setting up the table…")}</div> : null}
         >
-          <GameScreen started={started} />
+          {NEXT ? <NextApp started={started} /> : <GameScreen started={started} />}
         </Suspense>
       </CrashGuard>
-      {!started && <Lobby />}
+      {!started && !NEXT && <Lobby />}
       {/* A new version only between games, never mid-battle (#34). */}
       <SavedToast />
       {workshop && (
