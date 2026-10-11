@@ -34,7 +34,7 @@
   font-weight: 600;
 }
 /* An attack's next roll is in its panel: with nothing lit in the bar, the panel's primary is the lit step. */
-.obn-game:has(.obn-bar[data-lit="none"]) .obn-sheet-wrap button.primary,
+.obn-game:has(.obn-bar[data-lit="none"]) :is(.panel.attack, .charge-declare) button.primary,
 .obn .reaction-card button.primary,
 .obn .reroll-card button.primary {
   background: var(--obn-lit);

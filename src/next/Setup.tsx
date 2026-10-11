@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useTtsNote } from "../tts/TtsNote";
+import { openTts } from "../figures/open";
+import { applyLayout } from "../tables/actions";
+import { starterLayout, starters } from "../tables/starters";
 import { sideName, sides, type GameRecord, type Player } from "../core";
 import { formatList, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
@@ -98,8 +101,10 @@ export function Setup() {
   const mission = missionOf(game);
   // A game opened from a TTS save is on the save's table already (UX N3).
   const savedTable = useTtsNote((s) => s.table);
-  const fromSave =
-    !!savedTable && game.tableSource?.key === `table:${savedTable}` && !game.tableSource.changed;
+  const onSave = !!savedTable && game.tableSource?.key === `table:${savedTable}` && !game.tableSource.changed;
+  const fromSave = onSave && game.terrain.length > 0;
+  // Its terrain couldn't load (UX N16): the table isn't done, whatever the checklist assumed.
+  const saveEmpty = onSave && !game.terrain.length;
   const checks = mine.flatMap((p) => deployChecks(record, game, p.id));
   const toPlace = checks.filter((c) => c.untouched || c.outside);
   const readyNeeded = online;
@@ -156,10 +161,11 @@ export function Setup() {
   lines.push({
     id: "table",
     title: t("Table and mission"),
-    done: guest || kept || fromSave,
+    done: guest || fromSave || kept,
     waits: guest && host ? displayName(host.name) : undefined,
     note: [
       ...(fromSave ? [t("From your save")] : []),
+      ...(saveEmpty ? [t("{name}: its terrain couldn't load", { name: game.tableSource?.name ?? "" })] : []),
       mission ? mission.name : t("No mission: you'll score by hand"),
     ].join(" · "),
   });
@@ -220,6 +226,24 @@ export function Setup() {
       }
       break;
     case "table":
+      if (saveEmpty) {
+        say = t("The save's terrain couldn't load");
+        sub = t("Pick your TTS folder so it comes from there, or play on a starter table.");
+        lit = {
+          label: t("Use a starter table"),
+          run: () => {
+            const first = starters()[0];
+            if (first)
+              void applyLayout(starterLayout(game.system, game.table, first.id, 1), {
+                key: `starter:${first.id}`,
+                name: first.name,
+              });
+          },
+        };
+        plain.push({ label: t("Pick your TTS folder"), run: () => openTts() });
+        plain.push({ label: t("Play on the empty table"), run: () => setKept(true) });
+        break;
+      }
       say = t("Table and mission: {mission}", { mission: mission?.name ?? t("none") });
       sub = t("Keep them, or change the table or mission first.");
       lit = { label: t("Keep these"), run: () => setKept(true) };

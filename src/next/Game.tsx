@@ -78,6 +78,14 @@ export function NextGame() {
   const reacting = useStore((s) => !!s.game.pending);
   const view = useStore((s) => s.view);
   const setView = useStore((s) => s.setView);
+  // A finished attack's panel doesn't follow into the next phase (UX N19), nor does the pick: the next unit is lit instead.
+  const phaseKey = useStore((s) => `${s.game.turn.round}/${s.game.turn.phase}/${s.game.turn.activeSeat}`);
+  useEffect(() => {
+    const s = useStore.getState();
+    if (s.game.attack) return;
+    if (s.draft) s.setDraft(null);
+    if (s.selected) s.select(null);
+  }, [phaseKey]);
   useEffect(() => {
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);

@@ -26,15 +26,26 @@ export function pickUnit(id: string): void {
 }
 
 /**
- * The sheet's own next button (the unit card's or the attack panel's
- * primary), watched so the bar can offer the same press where the gold
+ * The attack's or charge's own next button (a roll, or Declare attack once a
+ * target is set), watched so the bar can offer the same press where the gold
  * always is. Interim, until the attack flow lives in the bar.
  */
 function useSheetPrimary(): { el: HTMLButtonElement; label: string } | null {
   const [seen, setSeen] = useState<{ el: HTMLButtonElement; label: string } | null>(null);
   useEffect(() => {
     const find = () => {
-      const b = document.querySelector<HTMLButtonElement>(".obn-sheet-wrap button.primary:not(:disabled)");
+      // The phase's own verb on the unit card counts too (Shoot, Charge, Fight); its other buttons
+      // (Advance, Fall back) are choices, not the step (UX N15).
+      const b =
+        document.querySelector<HTMLButtonElement>(
+          ":is(.obn-sheet-wrap .panel.attack, .obn-sheet-wrap .charge-declare) button.primary:not(:disabled)",
+        ) ??
+        [
+          ...document.querySelectorAll<HTMLButtonElement>(
+            ".obn-sheet-wrap .unitcard button.primary:not(:disabled)",
+          ),
+        ].find((x) => /^(shoot|charge|fight)\b/i.test(x.textContent?.trim() ?? "")) ??
+        null;
       const label = b?.textContent?.trim() ?? "";
       setSeen((old) => (old?.el === b && old?.label === label ? old : b ? { el: b, label } : null));
     };
@@ -102,7 +113,8 @@ export function StepBar() {
       );
     }
   }, [pending, game, dispatch]);
-  const step = stepFor({ game, mine, pending });
+  const draft = useStore((s) => s.draft);
+  const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
   const [asking, setAsking] = useState<StepButton | null>(null);
   // A question asked about one moment doesn't carry over to the next.
@@ -153,7 +165,8 @@ export function StepBar() {
                 <button
                   key={u.id}
                   className={`obn-unit${u.done ? " done" : ""}${u.id === step.next && u.id !== selected ? " obn-lit" : ""}${u.id === selected ? " picked" : ""}`}
-                  onClick={() => pickUnit(u.id)}
+                  // Picked where the camera is: the table stays in view (UX N18).
+                  onClick={() => useStore.getState().select(u.id)}
                 >
                   {u.name}
                 </button>

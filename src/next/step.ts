@@ -14,7 +14,7 @@ import { formatList, gameText, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
 import type { Pending } from "../missions/scoring";
 import { fightOrder } from "../systems/wh40k/fight";
-import { aliveModels, unitDistance, weaponReach } from "../systems/wh40k/rules";
+import { aliveModels, moveAllowance, unitDistance, weaponReach } from "../systems/wh40k/rules";
 
 /** Whether any enemy is within reach of the unit's ranged weapons (true when the game doesn't say ranges). */
 function inReach(game: GameState, unit: Unit): boolean {
@@ -81,6 +81,9 @@ interface StepInput {
   mine: PlayerId[];
   /** Scores waiting to be confirmed (missions/scoring.ts). */
   pending: Pending[];
+  /** The unit picked on this screen, and a shot or fight being set up from it. */
+  selected?: string | null;
+  draft?: { attackerId: string; targetId?: string } | null;
 }
 
 const alive = (game: GameState, u: Unit) =>
@@ -134,13 +137,39 @@ function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
   return out;
 }
 
+/** An attack under way, said as who is rolling now (UX N17). */
+function attackSay(game: GameState, mine: PlayerId[]): { say: string; sub: string } {
+  const a = game.attack;
+  if (!a) return { say: t("A roll is under way"), sub: t("Roll where the dice are.") };
+  const attacker = game.units[a.spec.attackerUnitId];
+  const target = game.units[a.spec.targetUnitId];
+  const say = t("{a} attacks {b}", { a: attacker?.name ?? "", b: target?.name ?? "" });
+  const rollerUnit = a.stage === "save" ? target : attacker;
+  const roller = rollerUnit ? game.players[rollerUnit.owner] : undefined;
+  if (!roller) return { say, sub: "" };
+  const stage =
+    a.stage === "hit"
+      ? t("hits")
+      : a.stage === "wound"
+        ? t("wounds")
+        : a.stage === "save"
+          ? t("saves")
+          : t("damage");
+  return {
+    say,
+    sub: mine.includes(roller.id)
+      ? t("Your roll: {stage}", { stage })
+      : t("{name} rolls {stage}", { name: displayName(roller.name), stage }),
+  };
+}
+
 /** Say "{side}" as the player names it: a person's name for a one-player side. */
 function sideLabel(game: GameState, seat: number): string {
   const players = sidePlayers(game, seat);
   return players.length === 1 ? displayName(players[0]!.name) || sideName(game, seat) : sideName(game, seat);
 }
 
-export function stepFor({ game, mine, pending }: StepInput): Step {
+export function stepFor({ game, mine, pending, selected, draft }: StepInput): Step {
   const seat = game.turn.activeSeat;
   const who = sideLabel(game, seat);
   const view = turnView(game);
@@ -167,8 +196,7 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
       tone: myTurn ? "job" : "wait",
       seat,
       rail,
-      say: t("An attack is under way"),
-      sub: t("Each player rolls their own dice in the attack panel."),
+      ...attackSay(game, mine),
       buttons: [],
     };
   if (game.pending)
@@ -359,9 +387,9 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
       buttons: [],
     };
 
-  // A fight phase with no fight order has nobody engaged: nothing to do.
+  // A fight phase with no one to pick has nobody engaged: nothing to do (UX N6).
   const fighting = /fight/i.test(phase);
-  const units = fighting && !order ? [] : phaseUnits(game, seat, phase);
+  const units = fighting && order && !order.picker ? [] : phaseUnits(game, seat, phase);
   const left = units.filter((u) => !u.done);
   const moving = /move/i.test(phase);
   const done: StepButton = {
@@ -397,6 +425,34 @@ export function stepFor({ game, mine, pending }: StepInput): Step {
           : left.length
             ? t("{phase}: pick a unit to act", { phase: gameText(phase) })
             : t("{phase}: nothing left to do", { phase: gameText(phase) });
+  // A unit picked to move: drag it (UX N15). Its card's buttons (Advance and the like) are choices, not the step.
+  const picked = selected ? game.units[selected] : undefined;
+  if (moving && picked && isMine(picked.owner) && units.some((u) => u.id === picked.id && !u.done)) {
+    const inches = moveAllowance(game, picked);
+    return {
+      tone: "job",
+      seat,
+      rail,
+      say:
+        inches !== null
+          ? t("Drag {unit} · up to {n}″", { unit: picked.name, n: inches })
+          : t("Drag {unit} to move it", { unit: picked.name }),
+      sub: t("Or pick another unit. Advance and the rest are on its card."),
+      units,
+      buttons: [{ ...done, lit: false }],
+    };
+  }
+  // A shot set up with no target yet (UX N17): the target is the step.
+  if (draft && !draft.targetId && game.units[draft.attackerId])
+    return {
+      tone: "job",
+      seat,
+      rail,
+      say: t("Click {unit}'s target on the table", { unit: game.units[draft.attackerId]!.name }),
+      sub: t("Or pick it in the card. Cancel there to choose another unit."),
+      units: units.length ? units : undefined,
+      buttons: [{ ...done, lit: false }],
+    };
   return {
     tone: "job",
     seat,
