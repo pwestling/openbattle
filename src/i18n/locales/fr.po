@@ -1891,7 +1891,7 @@ msgid "Your go"
 msgstr "À vous"
 
 #: src/companion/CompanionScreen.tsx:184
-#: src/next/step.ts:308
+#: src/next/step.ts:313
 #, fuzzy
 msgid "{side}'s go"
 msgstr "Au tour de {side}"
@@ -4765,7 +4765,7 @@ msgid "Everything placed. Say you're ready."
 msgstr ""
 
 #: src/next/Setup.tsx:193
-#: src/next/step.ts:291
+#: src/next/step.ts:296
 #: src/ui/Packages.tsx:750
 #: src/ui/TopBar.tsx:380
 #, fuzzy
@@ -4854,8 +4854,8 @@ msgid "Keep these"
 msgstr ""
 
 #: src/next/Setup.tsx:262
+#: src/next/Setup.tsx:384
 #: src/next/Setup.tsx:395
-#: src/next/Setup.tsx:406
 #: src/ui/AutoAbilities.tsx:604
 #: src/ui/PlayPanel.tsx:453
 #: src/ui/PlayPanel.tsx:502
@@ -4878,42 +4878,42 @@ msgid "Next unit"
 msgstr ""
 
 #: src/next/Setup.tsx:271
-#: src/next/Setup.tsx:301
+#: src/next/Setup.tsx:290
 msgid "Ready anyway"
 msgstr ""
 
-#: src/next/Setup.tsx:286
+#: src/next/Setup.tsx:281
 msgid "{n} character stands with a squad"
 msgid_plural "{n} characters stand with a squad"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/Setup.tsx:288
+#: src/next/Setup.tsx:283
 msgid "{leader} with {unit}"
 msgstr ""
 
-#: src/next/Setup.tsx:291
+#: src/next/Setup.tsx:286
 #: src/ui/Room.tsx:333
 msgid "Lead all {n}"
 msgid_plural "Lead all {n}"
 msgstr[0] "Mener les {n}"
 msgstr[1] "Mener les {n}"
 
-#: src/next/Setup.tsx:291
+#: src/next/Setup.tsx:286
 #: src/ui/Room.tsx:321
 #, fuzzy
 msgid "Lead it"
 msgstr "La mener"
 
-#: src/next/Setup.tsx:303
+#: src/next/Setup.tsx:292
 msgid "Check your deployment, then say you're ready"
 msgstr ""
 
-#: src/next/Setup.tsx:304
+#: src/next/Setup.tsx:293
 msgid "Drag a character onto a squad to lead it."
 msgstr ""
 
-#: src/next/Setup.tsx:305
+#: src/next/Setup.tsx:294
 #: src/ui/Room.tsx:258
 #: src/ui/SetupSteps.tsx:121
 #: src/ui/TopBar.tsx:570
@@ -4921,74 +4921,74 @@ msgstr ""
 msgid "Ready"
 msgstr "Prêt"
 
-#: src/next/Setup.tsx:310
+#: src/next/Setup.tsx:299
 msgid "Roll off for the first turn"
 msgstr ""
 
-#: src/next/Setup.tsx:311
+#: src/next/Setup.tsx:300
 msgid "One die each, both screens see it. The winner chooses who goes first."
 msgstr ""
 
-#: src/next/Setup.tsx:313
+#: src/next/Setup.tsx:302
 msgid "Roll off"
 msgstr ""
 
-#: src/next/Setup.tsx:321
+#: src/next/Setup.tsx:310
 msgid "{side} won the roll-off and goes first"
 msgstr ""
 
-#: src/next/Setup.tsx:322
-#: src/next/Setup.tsx:332
+#: src/next/Setup.tsx:311
+#: src/next/Setup.tsx:321
 msgid "Start the battle"
 msgstr ""
 
-#: src/next/Setup.tsx:325
+#: src/next/Setup.tsx:314
 #: src/ui/TopBar.tsx:413
 #, fuzzy
 msgid "Waiting for {names} to be ready"
 msgstr "En attente que {names} soient prêts"
 
-#: src/next/Setup.tsx:328
+#: src/next/Setup.tsx:317
 msgid "{side} takes the first turn."
 msgstr ""
 
-#: src/next/Setup.tsx:329
+#: src/next/Setup.tsx:318
 msgid "Nobody has joined yet."
 msgstr ""
 
-#: src/next/Setup.tsx:332
+#: src/next/Setup.tsx:321
 #: src/ui/TopBar.tsx:450
 #, fuzzy
 msgid "Start anyway"
 msgstr "Lancer quand même"
 
-#: src/next/Setup.tsx:342
+#: src/next/Setup.tsx:331
 msgid "First turn"
 msgstr ""
 
-#: src/next/Setup.tsx:370
-#: src/next/Setup.tsx:372
+#: src/next/Setup.tsx:359
+#: src/next/Setup.tsx:361
 #: src/ui/SetupSteps.tsx:53
 #, fuzzy
 msgid "Before the battle"
 msgstr "Avant la bataille"
 
-#: src/next/Setup.tsx:375
+#: src/next/Setup.tsx:364
 #: src/ui/SetupSteps.tsx:58
 #, fuzzy
 msgid "{name}'s table · {game}"
 msgstr "Table de {name} · {game}"
 
-#: src/next/Setup.tsx:389
+#: src/next/Setup.tsx:378
 msgid "{name} chooses"
 msgstr ""
 
-#: src/next/Setup.tsx:418
+#: src/next/Setup.tsx:407
 #: src/next/StepBar.tsx:142
 msgid "Next step"
 msgstr ""
 
-#: src/next/Setup.tsx:421
+#: src/next/Setup.tsx:410
 #: src/next/Strip.tsx:124
 #: src/ui/TopBar.tsx:279
 #, fuzzy
@@ -5131,25 +5131,29 @@ msgstr "Pas cette fois"
 msgid "Score {rule}: {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:259
+#: src/next/step.ts:257
+msgid "{ability} on {unit}"
+msgstr ""
+
+#: src/next/step.ts:264
 msgid "To use: {names}"
 msgid_plural "To use: {names}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:270
+#: src/next/step.ts:275
 msgid "{name}: {phase}, then Done"
 msgstr ""
 
-#: src/next/step.ts:274
+#: src/next/step.ts:279
 msgid "{phase}: your jobs, then Done"
 msgstr ""
 
-#: src/next/step.ts:279
+#: src/next/step.ts:284
 msgid "{names} is doing theirs at the same time."
 msgstr ""
 
-#: src/next/step.ts:284
+#: src/next/step.ts:289
 #: src/ui/AttackPanel.tsx:688
 #: src/ui/Coach.tsx:87
 #: src/ui/ProcedurePanels.tsx:421
@@ -5159,56 +5163,56 @@ msgstr ""
 msgid "Done"
 msgstr "Terminé"
 
-#: src/next/step.ts:291
+#: src/next/step.ts:296
 msgid "Moving on…"
 msgstr ""
 
-#: src/next/step.ts:292
+#: src/next/step.ts:297
 msgid "You're done with {phase}."
 msgstr ""
 
-#: src/next/step.ts:295
+#: src/next/step.ts:300
 #: src/ui/TopBar.tsx:387
 #, fuzzy
 msgid "Not done"
 msgstr "Pas fini"
 
-#: src/next/step.ts:296
+#: src/next/step.ts:301
 #: src/ui/TopBar.tsx:400
 #: src/ui/TopBar.tsx:450
 #, fuzzy
 msgid "Go on anyway"
 msgstr "Continuer quand même"
 
-#: src/next/step.ts:309
+#: src/next/step.ts:314
 msgid "Your next activation comes after theirs."
 msgstr ""
 
-#: src/next/step.ts:317
+#: src/next/step.ts:322
 msgid "Your activation: {unit}"
 msgstr ""
 
-#: src/next/step.ts:318
+#: src/next/step.ts:323
 msgid "Use its actions from its card, then end the activation."
 msgstr ""
 
-#: src/next/step.ts:321
+#: src/next/step.ts:326
 #: src/ui/SystemPanels.tsx:548
 #: src/ui/TopBar.tsx:343
 #, fuzzy
 msgid "End activation"
 msgstr "Terminer l'activation"
 
-#: src/next/step.ts:333
+#: src/next/step.ts:338
 msgid "All your units have had their go"
 msgstr ""
 
-#: src/next/step.ts:334
+#: src/next/step.ts:339
 msgid "Pass: the other side goes on until they pass too."
 msgstr ""
 
-#: src/next/step.ts:336
-#: src/next/step.ts:349
+#: src/next/step.ts:341
+#: src/next/step.ts:354
 #: src/ui/Missions.tsx:191
 #: src/ui/Missions.tsx:206
 #: src/ui/Missions.tsx:345
@@ -5217,131 +5221,131 @@ msgstr ""
 msgid "Pass"
 msgstr "Passer"
 
-#: src/next/step.ts:341
+#: src/next/step.ts:346
 msgid "Pick a unit to activate"
 msgstr ""
 
-#: src/next/step.ts:344
+#: src/next/step.ts:349
 msgid "{n} unit left this round"
 msgid_plural "{n} units left this round"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:352
+#: src/next/step.ts:357
 msgid "You have units that haven't gone. Pass anyway?"
 msgstr ""
 
-#: src/next/step.ts:368
+#: src/next/step.ts:373
 msgid "{player}'s pick to fight"
 msgstr ""
 
-#: src/next/step.ts:369
+#: src/next/step.ts:374
 msgid "The sides alternate until every engaged unit has fought."
 msgstr ""
 
-#: src/next/step.ts:378
+#: src/next/step.ts:383
 msgid "Your pick: choose a unit to fight"
 msgstr ""
 
-#: src/next/step.ts:379
+#: src/next/step.ts:384
 msgid "Pile in, fight, then consolidate, from its card."
 msgstr ""
 
-#: src/next/step.ts:388
+#: src/next/step.ts:393
 msgid "Units can still fight. Move on anyway?"
 msgstr ""
 
-#: src/next/step.ts:400
+#: src/next/step.ts:405
 msgid "{side}'s turn: {phase}"
 msgstr ""
 
-#: src/next/step.ts:401
+#: src/next/step.ts:406
 msgid "Watch the table. Your saves and reactions come to you here."
 msgstr ""
 
-#: src/next/step.ts:418
+#: src/next/step.ts:423
 msgid "{n} unit hasn't moved. Done anyway?"
 msgid_plural "{n} units haven't moved. Done anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:419
+#: src/next/step.ts:424
 msgid "{n} unit can still act. Move on anyway?"
 msgid_plural "{n} units can still act. Move on anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:428
+#: src/next/step.ts:433
 msgid "Drag a unit to move it"
 msgstr ""
 
-#: src/next/step.ts:429
+#: src/next/step.ts:434
 msgid "Every unit has moved"
 msgstr ""
 
-#: src/next/step.ts:432
+#: src/next/step.ts:437
 msgid "Pick a unit to shoot with, then click its target"
 msgstr ""
 
-#: src/next/step.ts:433
+#: src/next/step.ts:438
 msgid "Every unit has shot"
 msgstr ""
 
-#: src/next/step.ts:436
+#: src/next/step.ts:441
 msgid "Pick a unit to charge with, then drag it onto its target"
 msgstr ""
 
-#: src/next/step.ts:437
+#: src/next/step.ts:442
 msgid "No unit can charge now"
 msgstr ""
 
-#: src/next/step.ts:439
+#: src/next/step.ts:444
 msgid "No fights this turn"
 msgstr ""
 
-#: src/next/step.ts:441
+#: src/next/step.ts:446
 msgid "{phase}: pick a unit to act"
 msgstr ""
 
-#: src/next/step.ts:442
+#: src/next/step.ts:447
 msgid "{phase}: nothing left to do"
 msgstr ""
 
-#: src/next/step.ts:453
+#: src/next/step.ts:458
 msgid "Drag {unit} · up to {n}″"
 msgstr ""
 
-#: src/next/step.ts:454
+#: src/next/step.ts:459
 msgid "Drag {unit} to move it"
 msgstr ""
 
-#: src/next/step.ts:455
+#: src/next/step.ts:460
 msgid "Or pick another unit. Advance and the rest are on its card."
 msgstr ""
 
-#: src/next/step.ts:466
+#: src/next/step.ts:471
 msgid "{a} at {b}: declare the attack"
 msgstr ""
 
-#: src/next/step.ts:470
+#: src/next/step.ts:475
 msgid "Change the weapon or target in the card first if you like."
 msgstr ""
 
-#: src/next/step.ts:480
+#: src/next/step.ts:485
 msgid "Click {unit}'s target on the table"
 msgstr ""
 
-#: src/next/step.ts:481
+#: src/next/step.ts:486
 msgid "Or pick it in the card. Cancel there to choose another unit."
 msgstr ""
 
-#: src/next/step.ts:492
+#: src/next/step.ts:497
 msgid "{n} unit hasn't moved"
 msgid_plural "{n} units haven't moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:493
+#: src/next/step.ts:498
 msgid "{n} unit can still act"
 msgid_plural "{n} units can still act"
 msgstr[0] ""
@@ -10604,85 +10608,85 @@ msgstr "Pas votre unité"
 msgid "Not this side's go"
 msgstr "Ce n'est pas le tour de ce camp"
 
-#: src/ui/CoreAbilities.tsx:113
+#: src/ui/CoreAbilities.tsx:102
+#, fuzzy
+msgid "Click the table to set it down, more than {distance} from every enemy model. Esc puts it back."
+msgstr "Clique sur la table pour la poser, à plus de {distance} de toute figurine ennemie. Échap la remet en place."
+
+#: src/ui/CoreAbilities.tsx:116
 #, fuzzy
 msgid "Arrive"
 msgstr "Arriver"
 
-#: src/ui/CoreAbilities.tsx:121
+#: src/ui/CoreAbilities.tsx:124
 #, fuzzy
 msgid "Arrived from reserves: within {distance} of an enemy ({actual})."
 msgstr "Arrivée des réserves : à moins de {distance} d'un ennemi ({actual})."
 
-#: src/ui/CoreAbilities.tsx:127
+#: src/ui/CoreAbilities.tsx:130
 #, fuzzy
 msgid "Arrived from reserves: set up more than {distance} from enemies."
 msgstr "Arrivée des réserves : placée à plus de {distance} des ennemis."
 
-#: src/ui/CoreAbilities.tsx:133
+#: src/ui/CoreAbilities.tsx:136
 #, fuzzy
 msgid "Measured from where the unit stands now"
 msgstr "Mesuré depuis la position actuelle de l'unité"
 
-#: src/ui/CoreAbilities.tsx:141
+#: src/ui/CoreAbilities.tsx:144
 #, fuzzy
 msgid "Scout move ({inches}\")"
 msgstr "Mouvement de scout ({inches}\")"
 
-#: src/ui/CoreAbilities.tsx:145
+#: src/ui/CoreAbilities.tsx:148
 #, fuzzy
 msgid "Automatic: {abilities}"
 msgstr "Automatique : {abilities}"
 
-#: src/ui/CoreAbilities.tsx:178
+#: src/ui/CoreAbilities.tsx:170
 #, fuzzy
 msgid "Lead a unit (Leader)…"
 msgstr "Mener une unité (Meneur)…"
 
-#: src/ui/CoreAbilities.tsx:178
+#: src/ui/CoreAbilities.tsx:170
 #, fuzzy
 msgid "Attach to unit (leaders)…"
 msgstr "Rattacher à une unité (meneurs)…"
 
-#: src/ui/CoreAbilities.tsx:182
+#: src/ui/CoreAbilities.tsx:174
 #, fuzzy
 msgid "can lead"
 msgstr "peut mener"
 
-#: src/ui/CoreAbilities.tsx:228
+#: src/ui/CoreAbilities.tsx:195
 #, fuzzy
 msgid "Lead {unit}, which it stands with"
 msgstr "Mener {unit}, avec qui il se tient"
 
-#: src/ui/CoreAbilities.tsx:82
+#: src/ui/CoreAbilities.tsx:85
 #, fuzzy
 msgid "Set up in reserve"
 msgstr "Placer en réserve"
 
-#: src/ui/CoreAbilities.tsx:82
+#: src/ui/CoreAbilities.tsx:85
 #, fuzzy
 msgid "Deep Strike: set up in reserves"
 msgstr "Frappe en profondeur : placer en réserve"
 
-#: src/ui/CoreAbilities.tsx:87
+#: src/ui/CoreAbilities.tsx:90
 #, fuzzy
 msgid "In reserves."
 msgstr "En réserve."
 
-#: src/ui/CoreAbilities.tsx:89
+#: src/ui/CoreAbilities.tsx:92
 #, fuzzy
 msgid "Deploy it as an activation to bring it on."
 msgstr "Déployez-la lors d'une activation pour la faire entrer."
 
-#: src/ui/CoreAbilities.tsx:96
+#: src/ui/CoreAbilities.tsx:99
 #, fuzzy
 msgid "Then drag the unit onto the table, more than {distance} from every enemy model"
 msgstr "Puis faites glisser l'unité sur la table, à plus de {distance} de toute figurine ennemie"
-
-#: src/ui/CoreAbilities.tsx:99
-#, fuzzy
-msgid "Click the table to set it down, more than {distance} from every enemy model. Esc puts it back."
-msgstr "Clique sur la table pour la poser, à plus de {distance} de toute figurine ennemie. Échap la remet en place."
 
 #: src/ui/Crash.tsx:102
 #, fuzzy

@@ -851,17 +851,28 @@ body:has(.obn-game) .table-tag.ok {
   display: none;
 }
 /* CP and VP steppers show on hover or focus: the count is what's read at a glance. */
+/* Collapsed, not removed: Tab still reaches them, and focus opens them. */
 .obn-side .counter > button {
+  width: 0;
+  min-width: 0;
+  padding: 0;
+  border-width: 0;
   opacity: 0;
-  transition: opacity 0.12s;
+  overflow: hidden;
 }
 .obn-side:hover .counter > button,
 .obn-side:focus-within .counter > button,
 .obn-side .counter.open > button {
+  width: auto;
+  padding: revert-layer;
+  border-width: 1px;
   opacity: 1;
 }
 @media (hover: none) {
   .obn-side .counter > button {
+    width: auto;
+    padding: revert-layer;
+    border-width: 1px;
     opacity: 1;
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTtsNote } from "../tts/TtsNote";
 import { openTts } from "../figures/open";
-import { standingWith } from "../ui/CoreAbilities";
+import { leadPairs } from "../ui/leading";
 import { applyLayout } from "../tables/actions";
 import { starterLayout, starters } from "../tables/starters";
 import { sideName, sides, type GameRecord, type Player } from "../core";
@@ -274,12 +274,7 @@ export function Setup() {
           });
       } else {
         // Characters standing with a squad: leading is the step people forget (UX N10).
-        const pairs = mine.flatMap((p) =>
-          unitsOf(p.id).flatMap((u) => {
-            const near = standingWith(game, u);
-            return near ? [{ leader: u, near, as: p.id }] : [];
-          }),
-        );
+        const pairs = mine.flatMap((p) => leadPairs(game, p.id).map((x) => ({ ...x, as: p.id })));
         const ready = () =>
           mine.forEach((p) => dispatch({ type: "player/ready", player: p.id, ready: true }, p.id));
         if (pairs.length) {
@@ -289,14 +284,8 @@ export function Setup() {
           );
           lit = {
             label: pairs.length > 1 ? tn(pairs.length, "Lead all {n}", "Lead all {n}") : t("Lead it"),
-            run: () => {
-              const taken = new Set<string>();
-              for (const x of pairs) {
-                if (taken.has(x.near.id)) continue;
-                taken.add(x.near.id);
-                dispatch({ type: "unit/attach", id: x.leader.id, to: x.near.id }, x.as);
-              }
-            },
+            run: () =>
+              pairs.forEach((x) => dispatch({ type: "unit/attach", id: x.leader.id, to: x.near.id }, x.as)),
           };
           plain.push({ label: t("Ready anyway"), run: ready });
         } else {

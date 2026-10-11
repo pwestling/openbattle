@@ -6,6 +6,9 @@ import type { GameState, Unit } from "../core";
 import { useCanControl, useStore } from "../store";
 import { aliveModels, unitDistance } from "../systems/wh40k/rules";
 import { useGame } from "./hooks";
+import { isLeader, leaderOf, standingWith } from "./leading";
+
+export { isLeader, leaderOf, standingWith };
 import { opposed } from "../core/teams";
 import { useArriving } from "./tableVerbs";
 import { formatNumber, t } from "../i18n";
@@ -148,17 +151,6 @@ export function CoreAbilities({ unit }: { unit: Unit }) {
   );
 }
 
-/** Unit names listed by a Leader ability ("can be attached to the following units: ..."). */
-export function leaderOf(unit: Unit): string[] {
-  const text = unit.sheet?.abilities.find((a) => /^leader\b/i.test(a.name))?.text ?? "";
-  const list = text.split(/following units?:/i)[1];
-  if (!list) return [];
-  return list
-    .split(/[■•\n,]/)
-    .map((s) => s.replace(/\*/g, "").trim())
-    .filter((s) => s && s.length < 60 && !/^this model/i.test(s));
-}
-
 /** Attach a leader to a unit, suggesting the units its Leader ability names. */
 export function AttachSelect({ unit }: { unit: Unit }) {
   const game = useGame();
@@ -184,31 +176,6 @@ export function AttachSelect({ unit }: { unit: Unit }) {
       ))}
     </select>
   );
-}
-
-/** How near (edge to edge) a leader stands to the unit it was set up to lead. */
-const STANDING_WITH = 2;
-
-/** Whether a unit can lead another (a Leader ability on its sheet). */
-export const isLeader = (u: Unit) => !!u.sheet?.abilities.some((a) => /^leader\b/i.test(a.name));
-
-/**
- * Before the battle, the unit a leader stands with (within 2" of it): the one
- * its Leader ability names first, else the nearest. None when it stands alone.
- */
-export function standingWith(game: GameState, unit: Unit): Unit | undefined {
-  if (game.turn.round > 0 || !isLeader(unit) || unit.status?.reserves) return undefined;
-  const names = leaderOf(unit).map((n) => n.toLowerCase());
-  const mine = aliveModels(game, unit);
-  return Object.values(game.units)
-    .filter((u) => u.owner === unit.owner && u.id !== unit.id && !isLeader(u) && !u.status?.reserves)
-    .map((u) => ({ u, d: unitDistance(mine, aliveModels(game, u)) }))
-    .filter((x) => x.d <= STANDING_WITH)
-    .sort(
-      (a, b) =>
-        Number(names.some((n) => b.u.name.toLowerCase().startsWith(n))) -
-          Number(names.some((n) => a.u.name.toLowerCase().startsWith(n))) || a.d - b.d,
-    )[0]?.u;
 }
 
 /**

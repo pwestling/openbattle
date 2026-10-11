@@ -253,7 +253,12 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     const jobs = me
       ? abilityReminders(game)
           .filter((r) => r.owner === me && !r.applied)
-          .map((r) => gameText(r.ability.name))
+          .map((r) =>
+            t("{ability} on {unit}", {
+              ability: gameText(r.ability.name),
+              unit: game.units[r.unitId]?.name ?? "",
+            }),
+          )
       : [];
     const jobLine = jobs.length
       ? tn(jobs.length, "To use: {names}", "To use: {names}", {
