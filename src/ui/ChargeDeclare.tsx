@@ -154,7 +154,8 @@ export function ChargeDeclare({ unit, primary, as }: { unit: Unit; primary: bool
   return (
     <>
       <button
-        className={primary && !inCombat && !outOfReach ? "primary" : ""}
+        // Rolled already: moving in is next, so pressing again (a re-roll) is no longer the step (UX N24).
+        className={primary && !inCombat && !outOfReach && landed === null ? "primary" : ""}
         disabled={inCombat}
         title={inCombat ? t("Already in combat: it can't charge") : undefined}
         onClick={() => {

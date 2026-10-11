@@ -8,14 +8,23 @@ import {
   type Unit,
 } from "../core";
 import { abilityReminders } from "../core/content/player";
+import { findProcedure } from "../core/content/runner";
 import { actingUnits, unitActions } from "../core/content/play";
 import { simultaneousPhase } from "../core/content/simultaneous";
 import { currentSlot, phaseHint, plainActivations, systemOf, turnView } from "../core/content/turn";
 import { formatList, gameText, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
 import type { Pending } from "../missions/scoring";
+import { chargeNeeded } from "../systems/wh40k/charge";
 import { fightOrder } from "../systems/wh40k/fight";
-import { aliveModels, moveAllowance, unitDistance, unitMoved, weaponReach } from "../systems/wh40k/rules";
+import {
+  aliveModels,
+  engagedWith,
+  moveAllowance,
+  unitDistance,
+  unitMoved,
+  weaponReach,
+} from "../systems/wh40k/rules";
 
 /** Whether any enemy is within reach of the unit's ranged weapons (true when the game doesn't say ranges). */
 function inReach(game: GameState, unit: Unit): boolean {
@@ -130,7 +139,7 @@ function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
     const did = !!(/shoot/i.test(phase)
       ? u.status?.shot
       : /charge/i.test(phase)
-        ? u.status?.charged
+        ? u.status?.charged || typeof u.status?.charge === "number"
         : /fight/i.test(phase)
           ? u.status?.fought
           : false);
@@ -139,26 +148,137 @@ function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
   return out;
 }
 
-/** An attack under way, said as who is rolling now (UX N17). */
-function attackSay(game: GameState, mine: PlayerId[]): { say: string; sub: string } {
+/** "{name} rolls hits" or "Your roll: hits": whose dice come next (UX N17). */
+function rollLine(game: GameState, mine: PlayerId[], roller: PlayerId | undefined, stage: string): string {
+  const p = roller ? game.players[roller] : undefined;
+  if (!p) return "";
+  return mine.includes(p.id)
+    ? t("Your roll: {stage}", { stage })
+    : t("{name} rolls {stage}", { name: displayName(p.name), stage });
+}
+
+/** A step's dice, said plainly: "hits", "wounds", "saves" (any other step by its own name). */
+function stageName(id: string): string {
+  return id === "hit" ? t("hits") : id === "wound" ? t("wounds") : id === "save" ? t("saves") : gameText(id);
+}
+
+/** An attack set up in the card: its target is the step (UX N17), then declaring it (UX N21), lit from the panel. */
+function draftSay(game: GameState, draft: StepInput["draft"]): { say: string; sub: string } | null {
+  const attacker = draft ? game.units[draft.attackerId] : undefined;
+  if (!draft || !attacker) return null;
+  const target = draft.targetId ? game.units[draft.targetId] : undefined;
+  if (target)
+    return {
+      say: t("{a} at {b}: declare the attack", { a: attacker.name, b: target.name }),
+      sub: t("Change the weapon or target in the card first if you like."),
+    };
+  return {
+    say: t("Click {unit}'s target on the table", { unit: attacker.name }),
+    sub: t("Or pick it in the card. Cancel there to choose another unit."),
+  };
+}
+
+/** The charge this side just rolled and made, while its unit isn't yet in contact with what it charged. */
+function madeCharge(
+  game: GameState,
+  units: StepUnit[],
+  isMine: (p: PlayerId) => boolean,
+): { n: number; unit: string; targets: string } | null {
+  for (const { id } of units) {
+    const u = game.units[id];
+    const roll = u?.status?.charge;
+    if (!u || !isMine(u.owner) || typeof roll !== "number") continue;
+    const declared = Object.keys(u.status ?? {})
+      .filter((k) => k.startsWith("chargeAt.") && u.status![k])
+      .map((k) => k.slice("chargeAt.".length));
+    if (!declared.length || roll < chargeNeeded(game, u.id, declared)) continue;
+    const touching = engagedWith(game, u);
+    if (declared.some((d) => touching.includes(d))) continue;
+    return { n: roll, unit: u.name, targets: formatList(declared.map((d) => game.units[d]?.name ?? "?")) };
+  }
+  return null;
+}
+
+/** An attack or procedure under way, said as who is rolling now (UX N17, N26), and whether it's this screen's roll. */
+function attackSay(
+  game: GameState,
+  mine: PlayerId[],
+): { say: string; sub: string; mineRoll: boolean; close?: StepButton } {
+  const proc = game.procedure;
+  if (proc) {
+    const actor = game.units[proc.unitId];
+    const target = proc.targetId ? game.units[proc.targetId] : undefined;
+    const say = target
+      ? /fight/i.test(proc.action)
+        ? t("{a} fights {b}", { a: actor?.name ?? "", b: target.name })
+        : t("{a} attacks {b}", { a: actor?.name ?? "", b: target.name })
+      : proc.title;
+    const run = proc.run;
+    // Finished: closing it is the step, for whoever started it (as the panel's Done).
+    if (run.done)
+      return {
+        say,
+        sub: t("Done."),
+        mineRoll: mine.includes(proc.by),
+        ...(mine.includes(proc.by)
+          ? {
+              close: {
+                label: t("Done"),
+                lit: true,
+                as: proc.by,
+                intent: { type: "procedure/clear" } as Intent,
+              },
+            }
+          : {}),
+      };
+    if (run.pending) {
+      const answers = target?.owner;
+      return {
+        say,
+        sub:
+          answers && mine.includes(answers)
+            ? t("Your answer, where the dice are.")
+            : t("Waiting for an answer."),
+        mineRoll: !!answers && mine.includes(answers),
+      };
+    }
+    let next: { id: string; kind: string; roller?: string } | undefined;
+    try {
+      next = findProcedure(systemOf(game), run.procedure).steps[run.next];
+    } catch {
+      next = undefined;
+    }
+    // Rolls go through the attacker; a defender's test (saves) is the defender's (as the procedure panel rolls it).
+    const roller = next?.kind === "test" && next.roller === "defender" ? target?.owner : proc.by;
+    return {
+      say,
+      sub: next ? rollLine(game, mine, roller, stageName(next.id)) : "",
+      mineRoll: !!roller && mine.includes(roller),
+    };
+  }
   const a = game.attack;
-  if (!a) return { say: t("A roll is under way"), sub: t("Roll where the dice are.") };
+  if (!a) return { say: t("A roll is under way"), sub: t("Roll where the dice are."), mineRoll: false };
   const attacker = game.units[a.spec.attackerUnitId];
   const target = game.units[a.spec.targetUnitId];
   const say = t("{a} attacks {b}", { a: attacker?.name ?? "", b: target?.name ?? "" });
   const rollerUnit = a.stage === "save" ? target : attacker;
   const roller = rollerUnit ? game.players[rollerUnit.owner] : undefined;
-  if (!roller) return { say, sub: "" };
-  // Damage is worked out from the dice already rolled: nobody's press (UX N22).
-  if (a.stage === "damage" || a.stage === "done")
-    return { say, sub: t("Then the damage, where the dice are.") };
-  const stage = a.stage === "hit" ? t("hits") : a.stage === "wound" ? t("wounds") : t("saves");
-  return {
-    say,
-    sub: mine.includes(roller.id)
-      ? t("Your roll: {stage}", { stage })
-      : t("{name} rolls {stage}", { name: displayName(roller.name), stage }),
-  };
+  if (!roller) return { say, sub: "", mineRoll: false };
+  const mineRoll = mine.includes(roller.id);
+  if (a.stage === "done") {
+    const by = attacker?.owner;
+    return {
+      say,
+      sub: t("Done."),
+      mineRoll: !!by && mine.includes(by),
+      ...(by && mine.includes(by)
+        ? { close: { label: t("Done"), lit: true, as: by, intent: { type: "attack/clear" } as Intent } }
+        : {}),
+    };
+  }
+  // Damage is worked out from the dice already rolled: nobody's press (UX N22), unless it rolls dice of its own.
+  if (a.stage === "damage") return { say, sub: t("Then the damage, where the dice are."), mineRoll };
+  return { say, sub: rollLine(game, mine, roller.id, stageName(a.stage)), mineRoll };
 }
 
 /** Say "{side}" as the player names it: a person's name for a one-player side. */
@@ -189,14 +309,11 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
   if (game.turn.round === 0) return { tone: "setup", seat, say: t("Setting up"), buttons: [] };
 
   // A roll under way is finished where its dice are; the bar says whose roll it is.
-  if (game.attack || game.procedure)
-    return {
-      tone: myTurn ? "job" : "wait",
-      seat,
-      rail,
-      ...attackSay(game, mine),
-      buttons: [],
-    };
+  if (game.attack || game.procedure) {
+    const { say, sub, mineRoll, close } = attackSay(game, mine);
+    // Your saves in their turn are yours to press: the bar offers the roll (UX N26).
+    return { tone: myTurn || mineRoll ? "job" : "wait", seat, rail, say, sub, buttons: close ? [close] : [] };
+  }
   if (game.pending)
     return {
       tone: "wait",
@@ -376,6 +493,17 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       };
     if (picker) {
       const units = order.eligible.map((id) => ({ id, name: game.units[id]?.name ?? id, done: false }));
+      // A fight set up from the card (UX N26): its target, then declaring it, as with a shot.
+      const drafted = draftSay(game, draft);
+      if (drafted)
+        return {
+          tone: "job",
+          seat: game.players[picker]?.seat ?? seat,
+          rail,
+          ...drafted,
+          units,
+          buttons: [],
+        };
       return {
         tone: "job",
         seat: game.players[picker]?.seat ?? seat,
@@ -462,28 +590,25 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       buttons: [{ ...done, lit: false }],
     };
   }
-  // A shot set up with its target (UX N21): declaring it is the step, lit in the bar from the panel.
-  if (draft?.targetId && game.units[draft.attackerId] && game.units[draft.targetId])
+  // A charge rolled and made (UX N24): moving in is the step, by hand on the table; nothing to press.
+  const charging = /charge/i.test(phase) ? madeCharge(game, units, isMine) : null;
+  if (charging)
     return {
       tone: "job",
       seat,
       rail,
-      say: t("{a} at {b}: declare the attack", {
-        a: game.units[draft.attackerId]!.name,
-        b: game.units[draft.targetId]!.name,
-      }),
-      sub: t("Change the weapon or target in the card first if you like."),
-      units: units.length ? units : undefined,
+      say: t("Charge roll {n}″: drag {unit} into contact with {targets}", charging),
+      sub: t("Then pick the next unit, or move on."),
+      units,
       buttons: [{ ...done, lit: false }],
     };
-  // A shot set up with no target yet (UX N17): the target is the step.
-  if (draft && !draft.targetId && game.units[draft.attackerId])
+  const drafted = draftSay(game, draft);
+  if (drafted)
     return {
       tone: "job",
       seat,
       rail,
-      say: t("Click {unit}'s target on the table", { unit: game.units[draft.attackerId]!.name }),
-      sub: t("Or pick it in the card. Cancel there to choose another unit."),
+      ...drafted,
       units: units.length ? units : undefined,
       buttons: [{ ...done, lit: false }],
     };

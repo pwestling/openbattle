@@ -185,7 +185,8 @@ export function StepBar() {
               )}
             </span>
           )}
-          {step.units && step.units.length > 1 && (
+          {/* One unit left shows too: its chip is the lit step (UX N25). */}
+          {step.units && (step.units.length > 1 || !!step.next) && (
             <div className="obn-left" aria-label={t("Units")}>
               {step.units.map((u) => (
                 <button
