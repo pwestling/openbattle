@@ -50,3 +50,46 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: npx playwright-core install --with-deps chromium
       - run: pnpm smoke
+
+  # Continuous deploy (deploy/craftworld): each push to main that passes `check` is built as a
+  # release and published to the repo's "craftworld" release. Craftworld's openbattle-pull timer
+  # fetches it within a few minutes, health-checks it and rolls back on failure.
+  craftworld:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: craftworld-release
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Build the release
+        run: BUILD_ONLY="$RUNNER_TEMP/release" deploy/craftworld/release.sh
+      - name: Publish it to the craftworld release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rev="$(cat "$RUNNER_TEMP/release/REVISION")"
+          file="openbattle-$rev.tar.gz"
+          tar -czf "$RUNNER_TEMP/$file" -C "$RUNNER_TEMP/release" .
+          sum="$(sha256sum "$RUNNER_TEMP/$file" | cut -d' ' -f1)"
+          jq -n --arg rev "$rev" --arg file "$file" --arg sha256 "$sum" --arg commit "$GITHUB_SHA" \
+            '{rev: $rev, file: $file, sha256: $sha256, commit: $commit}' > "$RUNNER_TEMP/openbattle.json"
+          gh release view craftworld >/dev/null 2>&1 ||
+            gh release create craftworld --prerelease --latest=false --target "$GITHUB_SHA" \
+              --title "Craftworld (continuous deploy)" \
+              --notes "The newest build of main for openbattle.thehivemind5.com. Not a versioned release."
+          # The archive first, then the pointer to it, so the server never sees a pointer to nothing.
+          gh release upload craftworld "$RUNNER_TEMP/$file" --clobber
+          gh release upload craftworld "$RUNNER_TEMP/openbattle.json" --clobber
+          # Keep the three newest archives.
+          gh release view craftworld --json assets \
+            --jq '.assets | map(select(.name | startswith("openbattle-"))) | sort_by(.createdAt) | reverse | .[3:][].name' |
+            while read -r old; do gh release delete-asset craftworld "$old" --yes; done

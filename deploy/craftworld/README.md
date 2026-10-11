@@ -49,6 +49,21 @@ All of this runs from Porter's Mac, where the infra checkout and Tailscale SSH a
 
 ## Later releases
 
-`deploy/craftworld/release.sh` from a clean checkout of main. It builds the committed HEAD,
-uploads it, switches `current` and restarts the three services. Roll back by pointing `current`
-at an older release and restarting them.
+They deploy themselves. Each push to main that passes CI's `check` job is built by the
+`craftworld` job and published to the repo's
+[craftworld release](https://github.com/pwestling/openbattle/releases/tag/craftworld) as
+`openbattle-<rev>.tar.gz` plus `openbattle.json` (its revision and SHA-256). On Craftworld the
+`openbattle-pull` timer looks every two minutes. When it finds a new revision it checks the hash,
+switches `current`, restarts the three services and health-checks them and the page nginx
+serves. If anything fails it switches back, restarts again and skips that revision until a newer
+one arrives. Nothing in GitHub can reach the server: it only downloads from the public repo.
+
+- See what happened: `journalctl -u openbattle-pull` on the server.
+- Deploy now instead of waiting: `systemctl start openbattle-pull`.
+- By hand, from a clean checkout of main: `deploy/craftworld/release.sh` (builds the committed
+  HEAD, uploads it, switches `current` and restarts the services).
+- Roll back by hand: point `current` at an older release in `/srv/openbattle/releases` and
+  restart the three services. The next push to main deploys over it.
+
+Changes to `openbattle.nix` itself (services, nginx, coturn, this timer) still need copying into
+the infra repo and `scripts/deploy.sh`.
