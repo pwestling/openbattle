@@ -63,6 +63,19 @@ function useSheetPrimary(): { el: HTMLButtonElement; label: string } | null {
   return seen;
 }
 
+/** Whether the classic phase panel is folded on the page (its chip is hidden in ui-next: the bar opens it). */
+function usePlayChip(): HTMLButtonElement | null {
+  const [el, setEl] = useState<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const find = () => setEl(document.querySelector<HTMLButtonElement>(".panel.play.collapsed button"));
+    find();
+    const watch = new MutationObserver(find);
+    watch.observe(document.body, { childList: true, subtree: true });
+    return () => watch.disconnect();
+  }, []);
+  return el;
+}
+
 /** The players this screen plays: both sides on one screen (less the computer's), else this browser's own. */
 function useMine(): string[] {
   const game = useStore((s) => s.game);
@@ -116,6 +129,7 @@ export function StepBar() {
   const draft = useStore((s) => s.draft);
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
+  const playChip = usePlayChip();
   const [asking, setAsking] = useState<StepButton | null>(null);
   // A question asked about one moment doesn't carry over to the next.
   const key = `${game.turn.round}/${game.turn.phase}/${game.turn.activeSeat}`;
@@ -158,7 +172,19 @@ export function StepBar() {
       <div className="obn-bar-row">
         <div className="obn-say" role="status" aria-live="polite">
           <strong>{step.say}</strong>
-          {step.sub && <span>{step.sub}</span>}
+          {(step.sub || (playChip && step.tone === "job")) && (
+            <span>
+              {step.sub}
+              {playChip && step.tone === "job" && (
+                <>
+                  {" "}
+                  <button className="obn-link small" onClick={() => playChip.click()}>
+                    {t("Stratagems and abilities ▸")}
+                  </button>
+                </>
+              )}
+            </span>
+          )}
           {step.units && step.units.length > 1 && (
             <div className="obn-left" aria-label={t("Units")}>
               {step.units.map((u) => (

@@ -1,3 +1,4 @@
+import { create } from "zustand";
 import { armSolo } from "../bot/solo";
 import { BROADCAST } from "../broadcast/broadcast";
 import { EXHIBITION, startExhibition } from "../broadcast/exhibition";
@@ -82,6 +83,7 @@ const mode = () => (new URLSearchParams(location.search).get("local") === "1" ? 
 
 /** A friend online: open a room and its invite link. `companion` seats phones at a real table. */
 export async function hostRoom(system: string, name: string, companion = false): Promise<void> {
+  useInviteCopied.setState({ copied: false });
   if (ownGame(system)) await installOwnGame(system);
   remember(name, system);
   const roomId = crypto.randomUUID().slice(0, 8);
@@ -181,3 +183,6 @@ export function autoJoin(saved: SavedGame | null): "name" | null {
   else start({ role: "client", mode: m, roomId, name });
   return null;
 }
+
+/** The invite link was copied for the player already (hosting from a TTS save): the setup's invite step is done. */
+export const useInviteCopied = create<{ copied: boolean }>(() => ({ copied: false }));

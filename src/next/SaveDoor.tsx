@@ -8,7 +8,7 @@ import { openTtsGame } from "../tts/open";
 import { readScriptedUnit } from "../tts/scripted";
 import { scanTable } from "../tts/table";
 import { systemLabel } from "../ui/systemLabels";
-import { NAME_KEY, savedName } from "./start";
+import { NAME_KEY, savedName, useInviteCopied } from "./start";
 
 /**
  * A Tabletop Simulator save opened at the door (ui-next, UX N2): what's in it
@@ -78,7 +78,8 @@ export function SaveDoor({ file, onClose }: { file: File; onClose: () => void })
             { names: brought.lost.slice(0, 4).join(", ") },
           )
         : "";
-      if (how === "online") void hostTtsOnline(brought, lost);
+      if (how === "online")
+        void hostTtsOnline(brought, lost).then((copied) => useInviteCopied.setState({ copied }));
       else openTtsGame(brought, lost);
     } catch {
       setError(t("The save couldn't be brought over."));

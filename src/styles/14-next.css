@@ -880,3 +880,7 @@ body:has(.obn-game) .table-tag.ok {
 .obn.obn-game .replaybar.tucked {
   display: none;
 }
+/* The phase panel's folded chip repeats the bar (UX): the bar's "Stratagems and abilities" opens it. */
+.obn .panel.play.collapsed {
+  display: none;
+}

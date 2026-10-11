@@ -16,6 +16,7 @@ import { MissionPicker, missionOf } from "../ui/Missions";
 import { copyInvite, DeployTray, RoomCard, useRoomWaiting } from "../ui/Room";
 import { gameTitle } from "../ui/systemLabels";
 import { pickUnit } from "./StepBar";
+import { useInviteCopied } from "./start";
 import { systemModule } from "../systems";
 import { systemOf } from "../core/content/turn";
 import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
@@ -86,7 +87,9 @@ export function Setup() {
   const canControl = useCanControl();
   const joining = useJoining();
   const waiting = useRoomWaiting();
-  const [copied, setCopied] = useState(false);
+  const [copiedHere, setCopied] = useState(false);
+  // Hosting from a TTS save copies the link on the way in, and says so (UX N16 follow-up).
+  const copied = useInviteCopied((s) => s.copied) || copiedHere;
   const [kept, setKept] = useState(false);
   const [changing, setChanging] = useState<"army" | "table" | null>(null);
   const seated = Object.values(game.players)
