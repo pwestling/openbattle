@@ -3033,7 +3033,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/figures/pack.ts:103
-#: src/share/links.ts:46
+#: src/share/links.ts:50
 msgid "Figure pack"
 msgstr ""
 
@@ -3925,13 +3925,13 @@ msgid "Use an https:// link to the pack's file."
 msgstr ""
 
 #: src/packages/packPins.ts:85
-#: src/share/links.ts:143
+#: src/share/links.ts:147
 #: src/workshop/Workshop.tsx:463
 msgid "Couldn't fetch that link (it may not allow other sites to read it)."
 msgstr ""
 
 #: src/packages/packPins.ts:87
-#: src/share/links.ts:145
+#: src/share/links.ts:149
 #: src/workshop/Workshop.tsx:465
 msgid "That link answered {status}."
 msgstr ""
@@ -5068,7 +5068,7 @@ msgid "That isn't a file Open Battle saves."
 msgstr ""
 
 #: src/share/OpenFile.tsx:29
-#: src/share/links.ts:187
+#: src/share/links.ts:191
 msgid "That file couldn't be opened."
 msgstr ""
 
@@ -5483,86 +5483,86 @@ msgstr ""
 msgid "Battle over"
 msgstr ""
 
-#: src/share/links.ts:125
+#: src/share/links.ts:129
 msgid "That magnet link has no torrent in it."
 msgstr ""
 
-#: src/share/links.ts:131
-#: src/share/links.ts:147
-#: src/share/links.ts:149
+#: src/share/links.ts:135
+#: src/share/links.ts:151
+#: src/share/links.ts:153
 msgid "That file is too big to open from a link."
 msgstr ""
 
-#: src/share/links.ts:133
+#: src/share/links.ts:137
 msgid "Nobody is sharing that file right now, and no seed node has it."
 msgstr ""
 
-#: src/share/links.ts:134
+#: src/share/links.ts:138
 msgid "That torrent couldn't be fetched."
 msgstr ""
 
-#: src/share/links.ts:138
+#: src/share/links.ts:142
 msgid "Use an https:// link to the file."
 msgstr ""
 
-#: src/share/links.ts:154
+#: src/share/links.ts:158
 msgid "That file is private: open it with the whole share link, which carries its key."
 msgstr ""
 
-#: src/share/links.ts:156
+#: src/share/links.ts:160
 msgid "That key doesn't open this file."
 msgstr ""
 
-#: src/share/links.ts:163
-#: src/share/links.ts:166
+#: src/share/links.ts:167
+#: src/share/links.ts:170
 msgid "That link isn't an Open Battle file."
 msgstr ""
 
-#: src/share/links.ts:173
+#: src/share/links.ts:177
 msgid "a torrent"
 msgstr ""
 
-#: src/share/links.ts:206
+#: src/share/links.ts:210
 msgid "{name}: {added} new, {already} already here."
 msgstr ""
 
-#: src/share/links.ts:217
+#: src/share/links.ts:221
 #: src/tables/TableLibrary.tsx:244
 msgid "{name} is in your table library."
 msgstr ""
 
-#: src/share/links.ts:224
+#: src/share/links.ts:228
 msgid "{name} is on your army shelf."
 msgstr ""
 
-#: src/share/links.ts:233
+#: src/share/links.ts:237
 msgid "That standee couldn't be read."
 msgstr ""
 
-#: src/share/links.ts:234
+#: src/share/links.ts:238
 msgid "{name} is in your figure library."
 msgstr ""
 
-#: src/share/links.ts:250
+#: src/share/links.ts:254
 msgid "Replay opened."
 msgstr ""
 
-#: src/share/links.ts:47
+#: src/share/links.ts:51
 #: src/tables/TableLibrary.tsx:99
 #: src/workshop/Workshop.tsx:297
 msgid "Table"
 msgstr ""
 
-#: src/share/links.ts:48
+#: src/share/links.ts:52
 #: src/workshop/Workshop.tsx:356
 msgid "Army"
 msgstr ""
 
-#: src/share/links.ts:49
+#: src/share/links.ts:53
 msgid "Standee"
 msgstr ""
 
-#: src/share/links.ts:50
+#: src/share/links.ts:54
 msgid "Replay"
 msgstr ""
 
@@ -6080,7 +6080,8 @@ msgstr ""
 
 #: src/tts/ListMerge.tsx:28
 #: src/tts/NoStats.tsx:60
-#: src/ui/shelfActions.ts:160
+#: src/ui/shelfActions.ts:162
+#: src/ui/shelfActions.ts:181
 msgid "No units found in that list."
 msgstr ""
 
@@ -6276,16 +6277,36 @@ msgid "Save it as a file: New Recruit exports JSON, BattleScribe saves .ros or .
 msgstr ""
 
 #: src/ui/ArmyGuide.tsx:100
-msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
+msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:102
-#: src/ui/systemLabels.ts:30
-msgid "units"
+#: src/ui/ArmyGuide.tsx:105
+msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:108
+msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
 msgstr ""
 
 #: src/ui/ArmyGuide.tsx:11
 msgid "Yellowscribe army data (the JSON TTS army tools use) reads in too."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:111
+#: src/ui/Packages.tsx:177
+#: src/ui/Packages.tsx:324
+#: src/ui/Packages.tsx:541
+msgid "Rules packages"
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:113
+msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:115
+#: src/ui/systemLabels.ts:30
+#: src/ui/systemLabels.ts:61
+msgid "units"
 msgstr ""
 
 #: src/ui/ArmyGuide.tsx:12
@@ -6340,27 +6361,33 @@ msgstr ""
 msgid "Each regiment comes in as a block of stands. Fill in any stats the summary marks as missing."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:51
-#: src/ui/ArmyGuide.tsx:55
+#: src/ui/ArmyGuide.tsx:38
+msgid "Start from a sample army, or bring your own list file (JSON or text). It stays on your device."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:39
+msgid "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:42
+msgid "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1))."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:45
+msgid "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:48
+msgid "Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:64
+#: src/ui/ArmyGuide.tsx:68
 msgid "Bring your army"
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:73
+#: src/ui/ArmyGuide.tsx:86
 msgid "Your list"
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:80
-msgid "Your list stays with you: it goes to the people in your game and nowhere else. Open Battle comes with no armies but its made-up samples."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:84
-#: src/ui/ArmyImport.tsx:512
-#: src/ui/FigurePicker.tsx:207
-msgid "Your figures"
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:87
-msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
 msgstr ""
 
 #: src/ui/ArmyGuide.tsx:9
@@ -6368,19 +6395,14 @@ msgstr ""
 msgid "Build your list in New Recruit or BattleScribe."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:92
-msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
+#: src/ui/ArmyGuide.tsx:93
+msgid "Your list stays with you: it goes to the people in your game and nowhere else. Open Battle comes with no armies but its made-up samples."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:95
-msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:98
-#: src/ui/Packages.tsx:177
-#: src/ui/Packages.tsx:324
-#: src/ui/Packages.tsx:541
-msgid "Rules packages"
+#: src/ui/ArmyGuide.tsx:97
+#: src/ui/ArmyImport.tsx:512
+#: src/ui/FigurePicker.tsx:207
+msgid "Your figures"
 msgstr ""
 
 #: src/ui/ArmyImport.tsx:212
@@ -9911,7 +9933,7 @@ msgid "{successes} of {count} succeed"
 msgstr ""
 
 #: src/ui/ProcedurePanels.tsx:491
-#: src/ui/eventText.ts:756
+#: src/ui/eventText.ts:757
 #: src/ui/gameLog.ts:293
 msgid "A unit"
 msgstr ""
@@ -10170,7 +10192,7 @@ msgid "Wheel right"
 msgstr ""
 
 #: src/ui/RegimentPanel.tsx:31
-#: src/ui/eventText.ts:801
+#: src/ui/eventText.ts:802
 msgid "left"
 msgstr ""
 
@@ -10185,7 +10207,7 @@ msgid "Turn left"
 msgstr ""
 
 #: src/ui/RegimentPanel.tsx:32
-#: src/ui/eventText.ts:797
+#: src/ui/eventText.ts:798
 msgid "right"
 msgstr ""
 
@@ -13414,79 +13436,79 @@ msgstr ""
 msgid " with {units}"
 msgstr ""
 
-#: src/ui/eventText.ts:579
-msgid "{unit} activates ({n} action)"
-msgid_plural "{unit} activates ({n} actions)"
-msgstr[0] ""
-msgstr[1] ""
-
 #: src/ui/eventText.ts:58
 msgid "{name} moved models {distance}"
 msgstr ""
 
 #: src/ui/eventText.ts:580
+msgid "{unit} activates ({n} action)"
+msgid_plural "{unit} activates ({n} actions)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/ui/eventText.ts:581
 msgid "{unit} activates"
 msgstr ""
 
-#: src/ui/eventText.ts:584
+#: src/ui/eventText.ts:585
 msgid " at {unit}"
 msgstr ""
 
-#: src/ui/eventText.ts:586
+#: src/ui/eventText.ts:587
 msgid ", waiting on a reaction"
 msgstr ""
 
-#: src/ui/eventText.ts:587
-#: src/ui/eventText.ts:724
+#: src/ui/eventText.ts:588
+#: src/ui/eventText.ts:725
 msgid ", anyway ({why})"
 msgstr ""
 
-#: src/ui/eventText.ts:593
+#: src/ui/eventText.ts:594
 msgid "Reaction over"
 msgstr ""
 
-#: src/ui/eventText.ts:595
+#: src/ui/eventText.ts:596
 msgid "{name} doesn't react"
 msgstr ""
 
-#: src/ui/eventText.ts:598
-msgid "{name} won't be asked to react"
-msgstr ""
-
 #: src/ui/eventText.ts:599
-msgid "{name} will be asked to react"
+msgid "{name} won't be asked to react"
 msgstr ""
 
 #: src/ui/eventText.ts:60
 msgid "{name} moved {unit} {distance}"
 msgstr ""
 
-#: src/ui/eventText.ts:601
+#: src/ui/eventText.ts:600
+msgid "{name} will be asked to react"
+msgstr ""
+
+#: src/ui/eventText.ts:602
 msgid "Roll closed"
 msgstr ""
 
-#: src/ui/eventText.ts:603
+#: src/ui/eventText.ts:604
 msgid "{name} passed"
 msgstr ""
 
-#: src/ui/eventText.ts:606
+#: src/ui/eventText.ts:607
 msgid "{unit} moved and ended its go"
 msgstr ""
 
-#: src/ui/eventText.ts:607
+#: src/ui/eventText.ts:608
 msgid "{name} ended the activation"
 msgstr ""
 
-#: src/ui/eventText.ts:609
+#: src/ui/eventText.ts:610
 msgid "{name} re-rolled or spent dice"
 msgstr ""
 
-#: src/ui/eventText.ts:613
-#: src/ui/eventText.ts:628
+#: src/ui/eventText.ts:614
+#: src/ui/eventText.ts:629
 msgid "a card"
 msgstr ""
 
-#: src/ui/eventText.ts:615
+#: src/ui/eventText.ts:616
 msgid "{name} placed a {face} on {unit}'s {weapon}"
 msgstr ""
 
@@ -13494,12 +13516,8 @@ msgstr ""
 msgid "{name} moved a model of {unit} {distance}"
 msgstr ""
 
-#: src/ui/eventText.ts:621
+#: src/ui/eventText.ts:622
 msgid "{name} placed a die on {unit}'s {weapon}"
-msgstr ""
-
-#: src/ui/eventText.ts:629
-msgid "{name} discarded the dice on {unit}'s {weapon}"
 msgstr ""
 
 #: src/ui/eventText.ts:63
@@ -13508,134 +13526,138 @@ msgid_plural "{name} moved {n} models of {unit} {distance}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/eventText.ts:638
+#: src/ui/eventText.ts:630
+msgid "{name} discarded the dice on {unit}'s {weapon}"
+msgstr ""
+
+#: src/ui/eventText.ts:639
 msgid " {n} secret stayed behind: lock them in again."
 msgid_plural " {n} secrets stayed behind: lock them in again."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/eventText.ts:645
+#: src/ui/eventText.ts:646
 msgid " \"{rule}\" was waiting on a player and didn't carry over."
 msgstr ""
 
-#: src/ui/eventText.ts:648
+#: src/ui/eventText.ts:649
 msgid "What if: from {moment}.{secrets}{rule}"
 msgstr ""
 
-#: src/ui/eventText.ts:657
+#: src/ui/eventText.ts:658
 msgid "{name} drew a card from {deck}"
 msgstr ""
 
-#: src/ui/eventText.ts:658
-#: src/ui/eventText.ts:684
+#: src/ui/eventText.ts:659
+#: src/ui/eventText.ts:685
 msgid "a secret"
 msgstr ""
 
-#: src/ui/eventText.ts:660
+#: src/ui/eventText.ts:661
 msgid "{name} locked in {secret}: {n} cards, face down"
 msgstr ""
 
-#: src/ui/eventText.ts:661
+#: src/ui/eventText.ts:662
 msgid "{name} locked in {secret}"
 msgstr ""
 
-#: src/ui/eventText.ts:668
+#: src/ui/eventText.ts:669
 msgid "{name} showed {card} from {deck}"
 msgstr ""
 
-#: src/ui/eventText.ts:686
+#: src/ui/eventText.ts:687
 msgid "{name} revealed {secret}: {shown}"
 msgstr ""
 
-#: src/ui/eventText.ts:687
+#: src/ui/eventText.ts:688
 msgid "{name} revealed {secret}: {shown} (didn't match what was locked in)"
 msgstr ""
 
-#: src/ui/eventText.ts:695
+#: src/ui/eventText.ts:696
 msgid "{name} discarded {card} ({deck})"
 msgstr ""
 
-#: src/ui/eventText.ts:696
+#: src/ui/eventText.ts:697
 msgid "{name} discarded a card from {deck}, face down"
 msgstr ""
 
-#: src/ui/eventText.ts:699
+#: src/ui/eventText.ts:700
 msgid "{name} shuffled their discards back into {deck}"
 msgstr ""
 
-#: src/ui/eventText.ts:704
+#: src/ui/eventText.ts:705
 msgid "{name} put the {deck} deck away"
 msgstr ""
 
-#: src/ui/eventText.ts:709
+#: src/ui/eventText.ts:710
 msgid "Game: {system}"
 msgstr ""
 
-#: src/ui/eventText.ts:728
+#: src/ui/eventText.ts:729
 msgid "{name} used {action} on {unit} ({spent})"
 msgstr ""
 
-#: src/ui/eventText.ts:729
+#: src/ui/eventText.ts:730
 msgid "{name} used {action} on {unit}"
 msgstr ""
 
-#: src/ui/eventText.ts:731
+#: src/ui/eventText.ts:732
 msgid "{name} used {action} ({spent})"
 msgstr ""
 
-#: src/ui/eventText.ts:731
+#: src/ui/eventText.ts:732
 msgid "{name} used {action}"
 msgstr ""
 
-#: src/ui/eventText.ts:734
+#: src/ui/eventText.ts:735
 msgid "{unit}: {ability} applied"
 msgstr ""
 
-#: src/ui/eventText.ts:738
+#: src/ui/eventText.ts:739
 msgid "{unit} went into reserves"
 msgstr ""
 
-#: src/ui/eventText.ts:740
+#: src/ui/eventText.ts:741
 msgid "{unit} back on the table"
 msgstr ""
 
-#: src/ui/eventText.ts:741
+#: src/ui/eventText.ts:742
 msgid "{unit} arrives from reserves"
 msgstr ""
 
-#: src/ui/eventText.ts:744
+#: src/ui/eventText.ts:745
 msgid "{unit} may move up to {inches}\" ({flag})"
 msgstr ""
 
-#: src/ui/eventText.ts:750
+#: src/ui/eventText.ts:751
 msgid "{name} chose the order their models take wounds"
 msgstr ""
 
-#: src/ui/eventText.ts:758
+#: src/ui/eventText.ts:759
 msgid "{xp} XP"
 msgstr ""
 
-#: src/ui/eventText.ts:759
+#: src/ui/eventText.ts:760
 msgid "honour: {honour}"
 msgstr ""
 
-#: src/ui/eventText.ts:760
+#: src/ui/eventText.ts:761
 msgid "scar: {scar}"
 msgstr ""
 
-#: src/ui/eventText.ts:772
+#: src/ui/eventText.ts:773
 msgid "{unit} is {status}"
 msgstr ""
 
-#: src/ui/eventText.ts:773
+#: src/ui/eventText.ts:774
 msgid "{unit} is no longer {status}"
 msgstr ""
 
-#: src/ui/eventText.ts:776
+#: src/ui/eventText.ts:777
 msgid "{unit} destroyed"
 msgstr ""
 
-#: src/ui/eventText.ts:781
+#: src/ui/eventText.ts:782
 #: src/ui/gameLog.ts:474
 #: src/ui/gameLog.ts:510
 msgid "{n} wound lost"
@@ -13643,27 +13665,27 @@ msgid_plural "{n} wounds lost"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/eventText.ts:798
+#: src/ui/eventText.ts:799
 msgid "bottom-right"
 msgstr ""
 
-#: src/ui/eventText.ts:799
+#: src/ui/eventText.ts:800
 msgid "bottom"
 msgstr ""
 
-#: src/ui/eventText.ts:800
+#: src/ui/eventText.ts:801
 msgid "bottom-left"
 msgstr ""
 
-#: src/ui/eventText.ts:802
+#: src/ui/eventText.ts:803
 msgid "top-left"
 msgstr ""
 
-#: src/ui/eventText.ts:803
+#: src/ui/eventText.ts:804
 msgid "top"
 msgstr ""
 
-#: src/ui/eventText.ts:804
+#: src/ui/eventText.ts:805
 msgid "top-right"
 msgstr ""
 
@@ -13875,8 +13897,8 @@ msgstr ""
 msgid "long range"
 msgstr ""
 
-#: src/ui/shelfActions.ts:155
-#: src/ui/shelfActions.ts:174
+#: src/ui/shelfActions.ts:157
+#: src/ui/shelfActions.ts:195
 msgid "That file isn't an Open Battle army."
 msgstr ""
 
@@ -13947,6 +13969,14 @@ msgstr ""
 
 #: src/ui/systemLabels.ts:47
 msgid "Regiments by hand, a card stack for activations, clash and volley."
+msgstr ""
+
+#: src/ui/systemLabels.ts:55
+msgid "Quality d6"
+msgstr ""
+
+#: src/ui/systemLabels.ts:58
+msgid "Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out."
 msgstr ""
 
 #: src/ui/tableVerbs.ts:102

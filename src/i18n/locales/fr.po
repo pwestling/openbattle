@@ -3686,7 +3686,7 @@ msgstr[0] "{n} n'a pas pu être lue."
 msgstr[1] "{n} n'ont pas pu être lues."
 
 #: src/figures/pack.ts:103
-#: src/share/links.ts:46
+#: src/share/links.ts:50
 #, fuzzy
 msgid "Figure pack"
 msgstr "Pack de figurines"
@@ -4780,14 +4780,14 @@ msgid "Use an https:// link to the pack's file."
 msgstr "Utilise un lien https:// vers le fichier du pack."
 
 #: src/packages/packPins.ts:85
-#: src/share/links.ts:143
+#: src/share/links.ts:147
 #: src/workshop/Workshop.tsx:463
 #, fuzzy
 msgid "Couldn't fetch that link (it may not allow other sites to read it)."
 msgstr "Impossible de récupérer ce lien (il n'autorise peut-être pas d'autres sites à le lire)."
 
 #: src/packages/packPins.ts:87
-#: src/share/links.ts:145
+#: src/share/links.ts:149
 #: src/workshop/Workshop.tsx:465
 #, fuzzy
 msgid "That link answered {status}."
@@ -6188,7 +6188,7 @@ msgid "That isn't a file Open Battle saves."
 msgstr "Ce n'est pas un fichier enregistré par Open Battle."
 
 #: src/share/OpenFile.tsx:29
-#: src/share/links.ts:187
+#: src/share/links.ts:191
 #, fuzzy
 msgid "That file couldn't be opened."
 msgstr "Ce fichier n'a pas pu être ouvert."
@@ -6700,104 +6700,104 @@ msgstr "Ce qui s'est passé"
 msgid "Battle over"
 msgstr "Bataille terminée"
 
-#: src/share/links.ts:125
+#: src/share/links.ts:129
 #, fuzzy
 msgid "That magnet link has no torrent in it."
 msgstr "Ce lien magnet ne contient aucun torrent."
 
-#: src/share/links.ts:131
-#: src/share/links.ts:147
-#: src/share/links.ts:149
+#: src/share/links.ts:135
+#: src/share/links.ts:151
+#: src/share/links.ts:153
 #, fuzzy
 msgid "That file is too big to open from a link."
 msgstr "Ce fichier est trop gros pour être ouvert depuis un lien."
 
-#: src/share/links.ts:133
+#: src/share/links.ts:137
 #, fuzzy
 msgid "Nobody is sharing that file right now, and no seed node has it."
 msgstr "Personne ne partage ce fichier en ce moment, et aucun nœud de partage ne l'a."
 
-#: src/share/links.ts:134
+#: src/share/links.ts:138
 #, fuzzy
 msgid "That torrent couldn't be fetched."
 msgstr "Ce torrent n'a pas pu être récupéré."
 
-#: src/share/links.ts:138
+#: src/share/links.ts:142
 #, fuzzy
 msgid "Use an https:// link to the file."
 msgstr "Utilisez un lien https:// vers le fichier."
 
-#: src/share/links.ts:154
+#: src/share/links.ts:158
 #, fuzzy
 msgid "That file is private: open it with the whole share link, which carries its key."
 msgstr "Ce fichier est privé : ouvrez-le avec le lien de partage complet, qui contient sa clé."
 
-#: src/share/links.ts:156
+#: src/share/links.ts:160
 #, fuzzy
 msgid "That key doesn't open this file."
 msgstr "Cette clé n'ouvre pas ce fichier."
 
-#: src/share/links.ts:163
-#: src/share/links.ts:166
+#: src/share/links.ts:167
+#: src/share/links.ts:170
 #, fuzzy
 msgid "That link isn't an Open Battle file."
 msgstr "Ce lien n'est pas un fichier Open Battle."
 
-#: src/share/links.ts:173
+#: src/share/links.ts:177
 #, fuzzy
 msgid "a torrent"
 msgstr "un torrent"
 
-#: src/share/links.ts:206
+#: src/share/links.ts:210
 #, fuzzy
 msgid "{name}: {added} new, {already} already here."
 msgstr "{name} : {added} nouveaux, {already} déjà présents."
 
-#: src/share/links.ts:217
+#: src/share/links.ts:221
 #: src/tables/TableLibrary.tsx:244
 #, fuzzy
 msgid "{name} is in your table library."
 msgstr "{name} est dans ta bibliothèque de tables."
 
-#: src/share/links.ts:224
+#: src/share/links.ts:228
 #, fuzzy
 msgid "{name} is on your army shelf."
 msgstr "{name} est sur votre étagère d'armées."
 
-#: src/share/links.ts:233
+#: src/share/links.ts:237
 #, fuzzy
 msgid "That standee couldn't be read."
 msgstr "Cette silhouette n'a pas pu être lue."
 
-#: src/share/links.ts:234
+#: src/share/links.ts:238
 #, fuzzy
 msgid "{name} is in your figure library."
 msgstr "{name} est dans votre bibliothèque de figurines."
 
-#: src/share/links.ts:250
+#: src/share/links.ts:254
 #, fuzzy
 msgid "Replay opened."
 msgstr "Rediffusion ouverte."
 
-#: src/share/links.ts:47
+#: src/share/links.ts:51
 #: src/tables/TableLibrary.tsx:99
 #: src/workshop/Workshop.tsx:297
 #, fuzzy
 msgid "Table"
 msgstr "Table"
 
-#: src/share/links.ts:48
+#: src/share/links.ts:52
 #: src/workshop/Workshop.tsx:356
 #, fuzzy
 msgid "Army"
 msgstr "Armée"
 
-#: src/share/links.ts:49
+#: src/share/links.ts:53
 #, fuzzy
 msgid "Standee"
 msgstr "Silhouette"
 
-#: src/share/links.ts:50
+#: src/share/links.ts:54
 #, fuzzy
 msgid "Replay"
 msgstr "Rediffusion"
@@ -7437,7 +7437,8 @@ msgstr "Non merci"
 
 #: src/tts/ListMerge.tsx:28
 #: src/tts/NoStats.tsx:60
-#: src/ui/shelfActions.ts:160
+#: src/ui/shelfActions.ts:162
+#: src/ui/shelfActions.ts:181
 #, fuzzy
 msgid "No units found in that list."
 msgstr "Aucune unité trouvée dans cette liste."
@@ -7675,19 +7676,43 @@ msgstr "Enregistre-la dans un fichier : New Recruit exporte du JSON, BattleScrib
 
 #: src/ui/ArmyGuide.tsx:100
 #, fuzzy
-msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
-msgstr "Un paquet de règles ajoute un jeu, ou des {army} et des règles à un jeu, en un seul fichier. Ajoute-le sous Paquets de règles sur l'écran d'accueil. Chacun dans une partie vérifie qu'il a la même version, et le code d'un paquet ne s'exécute qu'une fois que tu l'as accepté."
+msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
+msgstr "N'importe quel fichier de modèle 3D fonctionne : .glb, .gltf, .stl, .obj ou .ply (un scan, ou le fichier que tu as imprimé)."
 
-#: src/ui/ArmyGuide.tsx:102
-#: src/ui/systemLabels.ts:30
+#: src/ui/ArmyGuide.tsx:105
 #, fuzzy
-msgid "units"
-msgstr "unités"
+msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
+msgstr "Fais glisser le fichier sur une unité sur la table, ou sélectionne l'unité et utilise Figurines sur sa carte."
+
+#: src/ui/ArmyGuide.tsx:108
+#, fuzzy
+msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
+msgstr "Une figurine pour toute l'unité, ou une par type de figurine. Tout le monde dans la partie les voit."
 
 #: src/ui/ArmyGuide.tsx:11
 #, fuzzy
 msgid "Yellowscribe army data (the JSON TTS army tools use) reads in too."
 msgstr "Les données d'armée Yellowscribe (le JSON qu'utilisent les outils d'armée TTS) sont lues aussi."
+
+#: src/ui/ArmyGuide.tsx:111
+#: src/ui/Packages.tsx:177
+#: src/ui/Packages.tsx:324
+#: src/ui/Packages.tsx:541
+#, fuzzy
+msgid "Rules packages"
+msgstr "Paquets de règles"
+
+#: src/ui/ArmyGuide.tsx:113
+#, fuzzy
+msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
+msgstr "Un paquet de règles ajoute un jeu, ou des {army} et des règles à un jeu, en un seul fichier. Ajoute-le sous Paquets de règles sur l'écran d'accueil. Chacun dans une partie vérifie qu'il a la même version, et le code d'un paquet ne s'exécute qu'une fois que tu l'as accepté."
+
+#: src/ui/ArmyGuide.tsx:115
+#: src/ui/systemLabels.ts:30
+#: src/ui/systemLabels.ts:61
+#, fuzzy
+msgid "units"
+msgstr "unités"
 
 #: src/ui/ArmyGuide.tsx:12
 #, fuzzy
@@ -7754,33 +7779,41 @@ msgstr "Exporte-la en JSON ou en .rosz, puis appuie sur Importer une liste dans 
 msgid "Each regiment comes in as a block of stands. Fill in any stats the summary marks as missing."
 msgstr "Chaque régiment arrive en bloc de socles. Remplis les caractéristiques que le récapitulatif signale comme manquantes."
 
-#: src/ui/ArmyGuide.tsx:51
-#: src/ui/ArmyGuide.tsx:55
+#: src/ui/ArmyGuide.tsx:38
+#, fuzzy
+msgid "Start from a sample army, or bring your own list file (JSON or text). It stays on your device."
+msgstr "Commence avec une armée d'exemple, ou apporte ton propre fichier de liste (JSON ou texte). Il reste sur ton appareil."
+
+#: src/ui/ArmyGuide.tsx:39
+#, fuzzy
+msgid "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment."
+msgstr "Les fichiers de liste d'armée (JSON, open-battle/army-list@1) sont lus, tout comme les exports de créateurs d'unités avec la qualité, la défense et l'équipement de chaque unité."
+
+#: src/ui/ArmyGuide.tsx:42
+#, fuzzy
+msgid "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1))."
+msgstr "Les listes texte lisent une unité par ligne, ses armes à la suivante : Wardens [5] Q4+ D4+ | 100pts | Fearless puis 5x Glaive (A2, AP(1))."
+
+#: src/ui/ArmyGuide.tsx:45
+#, fuzzy
+msgid "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file."
+msgstr "En partie, appuie sur Importer une liste dans le panneau de gauche et choisis le fichier, ou ouvre-le depuis un lien ou avec Ouvrir un fichier."
+
+#: src/ui/ArmyGuide.tsx:48
+#, fuzzy
+msgid "Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."
+msgstr "Les règles spéciales que le jeu connaît se jouent seules ; les autres apparaissent comme rappels. Rien n'est deviné."
+
+#: src/ui/ArmyGuide.tsx:64
+#: src/ui/ArmyGuide.tsx:68
 #, fuzzy
 msgid "Bring your army"
 msgstr "Amène ton armée"
 
-#: src/ui/ArmyGuide.tsx:73
+#: src/ui/ArmyGuide.tsx:86
 #, fuzzy
 msgid "Your list"
 msgstr "Ta liste"
-
-#: src/ui/ArmyGuide.tsx:80
-#, fuzzy
-msgid "Your list stays with you: it goes to the people in your game and nowhere else. Open Battle comes with no armies but its made-up samples."
-msgstr "Ta liste reste à toi : elle va aux joueurs de ta partie et nulle part ailleurs. Open Battle ne fournit aucune armée hormis ses exemples inventés."
-
-#: src/ui/ArmyGuide.tsx:84
-#: src/ui/ArmyImport.tsx:512
-#: src/ui/FigurePicker.tsx:207
-#, fuzzy
-msgid "Your figures"
-msgstr "Tes figurines"
-
-#: src/ui/ArmyGuide.tsx:87
-#, fuzzy
-msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
-msgstr "N'importe quel fichier de modèle 3D fonctionne : .glb, .gltf, .stl, .obj ou .ply (un scan, ou le fichier que tu as imprimé)."
 
 #: src/ui/ArmyGuide.tsx:9
 #: src/ui/ArmyGuide.tsx:24
@@ -7788,23 +7821,17 @@ msgstr "N'importe quel fichier de modèle 3D fonctionne : .glb, .gltf, .stl, .ob
 msgid "Build your list in New Recruit or BattleScribe."
 msgstr "Construis ta liste dans New Recruit ou BattleScribe."
 
-#: src/ui/ArmyGuide.tsx:92
+#: src/ui/ArmyGuide.tsx:93
 #, fuzzy
-msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
-msgstr "Fais glisser le fichier sur une unité sur la table, ou sélectionne l'unité et utilise Figurines sur sa carte."
+msgid "Your list stays with you: it goes to the people in your game and nowhere else. Open Battle comes with no armies but its made-up samples."
+msgstr "Ta liste reste à toi : elle va aux joueurs de ta partie et nulle part ailleurs. Open Battle ne fournit aucune armée hormis ses exemples inventés."
 
-#: src/ui/ArmyGuide.tsx:95
+#: src/ui/ArmyGuide.tsx:97
+#: src/ui/ArmyImport.tsx:512
+#: src/ui/FigurePicker.tsx:207
 #, fuzzy
-msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
-msgstr "Une figurine pour toute l'unité, ou une par type de figurine. Tout le monde dans la partie les voit."
-
-#: src/ui/ArmyGuide.tsx:98
-#: src/ui/Packages.tsx:177
-#: src/ui/Packages.tsx:324
-#: src/ui/Packages.tsx:541
-#, fuzzy
-msgid "Rules packages"
-msgstr "Paquets de règles"
+msgid "Your figures"
+msgstr "Tes figurines"
 
 #: src/ui/ArmyImport.tsx:212
 #, fuzzy
@@ -12156,7 +12183,7 @@ msgid "{successes} of {count} succeed"
 msgstr "{successes} sur {count} réussissent"
 
 #: src/ui/ProcedurePanels.tsx:491
-#: src/ui/eventText.ts:756
+#: src/ui/eventText.ts:757
 #: src/ui/gameLog.ts:293
 #, fuzzy
 msgid "A unit"
@@ -12476,7 +12503,7 @@ msgid "Wheel right"
 msgstr "Pivoter à droite"
 
 #: src/ui/RegimentPanel.tsx:31
-#: src/ui/eventText.ts:801
+#: src/ui/eventText.ts:802
 #, fuzzy
 msgid "left"
 msgstr "gauche"
@@ -12494,7 +12521,7 @@ msgid "Turn left"
 msgstr "Tourner à gauche"
 
 #: src/ui/RegimentPanel.tsx:32
-#: src/ui/eventText.ts:797
+#: src/ui/eventText.ts:798
 #, fuzzy
 msgid "right"
 msgstr "droite"
@@ -16505,13 +16532,6 @@ msgstr "Attaque annulée"
 msgid " with {units}"
 msgstr " avec {units}"
 
-#: src/ui/eventText.ts:579
-#, fuzzy
-msgid "{unit} activates ({n} action)"
-msgid_plural "{unit} activates ({n} actions)"
-msgstr[0] "{unit} s’active ({n} action)"
-msgstr[1] "{unit} s’active ({n} actions)"
-
 #: src/ui/eventText.ts:58
 #, fuzzy
 msgid "{name} moved models {distance}"
@@ -16519,82 +16539,89 @@ msgstr "{name} a déplacé des figurines de {distance}"
 
 #: src/ui/eventText.ts:580
 #, fuzzy
+msgid "{unit} activates ({n} action)"
+msgid_plural "{unit} activates ({n} actions)"
+msgstr[0] "{unit} s’active ({n} action)"
+msgstr[1] "{unit} s’active ({n} actions)"
+
+#: src/ui/eventText.ts:581
+#, fuzzy
 msgid "{unit} activates"
 msgstr "{unit} s’active"
 
-#: src/ui/eventText.ts:584
+#: src/ui/eventText.ts:585
 #, fuzzy
 msgid " at {unit}"
 msgstr " sur {unit}"
 
-#: src/ui/eventText.ts:586
+#: src/ui/eventText.ts:587
 #, fuzzy
 msgid ", waiting on a reaction"
 msgstr ", en attente d’une réaction"
 
-#: src/ui/eventText.ts:587
-#: src/ui/eventText.ts:724
+#: src/ui/eventText.ts:588
+#: src/ui/eventText.ts:725
 #, fuzzy
 msgid ", anyway ({why})"
 msgstr ", quand même ({why})"
 
-#: src/ui/eventText.ts:593
+#: src/ui/eventText.ts:594
 #, fuzzy
 msgid "Reaction over"
 msgstr "Réaction terminée"
 
-#: src/ui/eventText.ts:595
+#: src/ui/eventText.ts:596
 #, fuzzy
 msgid "{name} doesn't react"
 msgstr "{name} ne réagit pas"
 
-#: src/ui/eventText.ts:598
+#: src/ui/eventText.ts:599
 #, fuzzy
 msgid "{name} won't be asked to react"
 msgstr "On ne demandera plus à {name} de réagir"
-
-#: src/ui/eventText.ts:599
-#, fuzzy
-msgid "{name} will be asked to react"
-msgstr "On demandera de nouveau à {name} de réagir"
 
 #: src/ui/eventText.ts:60
 #, fuzzy
 msgid "{name} moved {unit} {distance}"
 msgstr "{name} a déplacé {unit} de {distance}"
 
-#: src/ui/eventText.ts:601
+#: src/ui/eventText.ts:600
+#, fuzzy
+msgid "{name} will be asked to react"
+msgstr "On demandera de nouveau à {name} de réagir"
+
+#: src/ui/eventText.ts:602
 #, fuzzy
 msgid "Roll closed"
 msgstr "Jet clos"
 
-#: src/ui/eventText.ts:603
+#: src/ui/eventText.ts:604
 #, fuzzy
 msgid "{name} passed"
 msgstr "{name} a passé"
 
-#: src/ui/eventText.ts:606
+#: src/ui/eventText.ts:607
 #, fuzzy
 msgid "{unit} moved and ended its go"
 msgstr "{unit} a bougé et fini son tour"
 
-#: src/ui/eventText.ts:607
+#: src/ui/eventText.ts:608
 #, fuzzy
 msgid "{name} ended the activation"
 msgstr "{name} a terminé l’activation"
 
-#: src/ui/eventText.ts:609
+#: src/ui/eventText.ts:610
 #, fuzzy
 msgid "{name} re-rolled or spent dice"
 msgstr "{name} a relancé ou dépensé des dés"
 
-#: src/ui/eventText.ts:613
-#: src/ui/eventText.ts:628
+#: src/ui/eventText.ts:614
+#: src/ui/eventText.ts:629
 #, fuzzy
 msgid "a card"
 msgstr "une carte"
 
-#: src/ui/eventText.ts:615
+#: src/ui/eventText.ts:616
 #, fuzzy
 msgid "{name} placed a {face} on {unit}'s {weapon}"
 msgstr "{name} a placé un {face} sur {weapon} de {unit}"
@@ -16604,15 +16631,10 @@ msgstr "{name} a placé un {face} sur {weapon} de {unit}"
 msgid "{name} moved a model of {unit} {distance}"
 msgstr "{name} a déplacé une figurine de {unit} de {distance}"
 
-#: src/ui/eventText.ts:621
+#: src/ui/eventText.ts:622
 #, fuzzy
 msgid "{name} placed a die on {unit}'s {weapon}"
 msgstr "{name} a placé un dé sur {weapon} de {unit}"
-
-#: src/ui/eventText.ts:629
-#, fuzzy
-msgid "{name} discarded the dice on {unit}'s {weapon}"
-msgstr "{name} a défaussé les dés sur {weapon} de {unit}"
 
 #: src/ui/eventText.ts:63
 #, fuzzy
@@ -16621,165 +16643,170 @@ msgid_plural "{name} moved {n} models of {unit} {distance}"
 msgstr[0] "{name} a déplacé {n} figurine de {unit} de {distance}"
 msgstr[1] "{name} a déplacé {n} figurines de {unit} de {distance}"
 
-#: src/ui/eventText.ts:638
+#: src/ui/eventText.ts:630
+#, fuzzy
+msgid "{name} discarded the dice on {unit}'s {weapon}"
+msgstr "{name} a défaussé les dés sur {weapon} de {unit}"
+
+#: src/ui/eventText.ts:639
 #, fuzzy
 msgid " {n} secret stayed behind: lock them in again."
 msgid_plural " {n} secrets stayed behind: lock them in again."
 msgstr[0] " {n} secret est resté en arrière : verrouille-le à nouveau."
 msgstr[1] " {n} secrets sont restés en arrière : verrouille-les à nouveau."
 
-#: src/ui/eventText.ts:645
+#: src/ui/eventText.ts:646
 #, fuzzy
 msgid " \"{rule}\" was waiting on a player and didn't carry over."
 msgstr " « {rule} » attendait un joueur et n’a pas été repris."
 
-#: src/ui/eventText.ts:648
+#: src/ui/eventText.ts:649
 #, fuzzy
 msgid "What if: from {moment}.{secrets}{rule}"
 msgstr "Et si : à partir de {moment}.{secrets}{rule}"
 
-#: src/ui/eventText.ts:657
+#: src/ui/eventText.ts:658
 #, fuzzy
 msgid "{name} drew a card from {deck}"
 msgstr "{name} a pioché une carte de {deck}"
 
-#: src/ui/eventText.ts:658
-#: src/ui/eventText.ts:684
+#: src/ui/eventText.ts:659
+#: src/ui/eventText.ts:685
 #, fuzzy
 msgid "a secret"
 msgstr "un secret"
 
-#: src/ui/eventText.ts:660
+#: src/ui/eventText.ts:661
 #, fuzzy
 msgid "{name} locked in {secret}: {n} cards, face down"
 msgstr "{name} a verrouillé {secret} : {n} cartes, face cachée"
 
-#: src/ui/eventText.ts:661
+#: src/ui/eventText.ts:662
 #, fuzzy
 msgid "{name} locked in {secret}"
 msgstr "{name} a verrouillé {secret}"
 
-#: src/ui/eventText.ts:668
+#: src/ui/eventText.ts:669
 #, fuzzy
 msgid "{name} showed {card} from {deck}"
 msgstr "{name} a montré {card} de {deck}"
 
-#: src/ui/eventText.ts:686
+#: src/ui/eventText.ts:687
 #, fuzzy
 msgid "{name} revealed {secret}: {shown}"
 msgstr "{name} a révélé {secret} : {shown}"
 
-#: src/ui/eventText.ts:687
+#: src/ui/eventText.ts:688
 #, fuzzy
 msgid "{name} revealed {secret}: {shown} (didn't match what was locked in)"
 msgstr "{name} a révélé {secret} : {shown} (ne correspondait pas à ce qui était verrouillé)"
 
-#: src/ui/eventText.ts:695
+#: src/ui/eventText.ts:696
 #, fuzzy
 msgid "{name} discarded {card} ({deck})"
 msgstr "{name} a défaussé {card} ({deck})"
 
-#: src/ui/eventText.ts:696
+#: src/ui/eventText.ts:697
 #, fuzzy
 msgid "{name} discarded a card from {deck}, face down"
 msgstr "{name} a défaussé une carte de {deck}, face cachée"
 
-#: src/ui/eventText.ts:699
+#: src/ui/eventText.ts:700
 #, fuzzy
 msgid "{name} shuffled their discards back into {deck}"
 msgstr "{name} a remélangé sa défausse dans {deck}"
 
-#: src/ui/eventText.ts:704
+#: src/ui/eventText.ts:705
 #, fuzzy
 msgid "{name} put the {deck} deck away"
 msgstr "{name} a rangé le paquet {deck}"
 
-#: src/ui/eventText.ts:709
+#: src/ui/eventText.ts:710
 #, fuzzy
 msgid "Game: {system}"
 msgstr "Jeu : {system}"
 
-#: src/ui/eventText.ts:728
+#: src/ui/eventText.ts:729
 #, fuzzy
 msgid "{name} used {action} on {unit} ({spent})"
 msgstr "{name} a utilisé {action} sur {unit} ({spent})"
 
-#: src/ui/eventText.ts:729
+#: src/ui/eventText.ts:730
 #, fuzzy
 msgid "{name} used {action} on {unit}"
 msgstr "{name} a utilisé {action} sur {unit}"
 
-#: src/ui/eventText.ts:731
+#: src/ui/eventText.ts:732
 #, fuzzy
 msgid "{name} used {action} ({spent})"
 msgstr "{name} a utilisé {action} ({spent})"
 
-#: src/ui/eventText.ts:731
+#: src/ui/eventText.ts:732
 #, fuzzy
 msgid "{name} used {action}"
 msgstr "{name} a utilisé {action}"
 
-#: src/ui/eventText.ts:734
+#: src/ui/eventText.ts:735
 #, fuzzy
 msgid "{unit}: {ability} applied"
 msgstr "{unit} : {ability} appliqué"
 
-#: src/ui/eventText.ts:738
+#: src/ui/eventText.ts:739
 #, fuzzy
 msgid "{unit} went into reserves"
 msgstr "{unit} est passée en réserve"
 
-#: src/ui/eventText.ts:740
+#: src/ui/eventText.ts:741
 #, fuzzy
 msgid "{unit} back on the table"
 msgstr "{unit} est de retour sur la table"
 
-#: src/ui/eventText.ts:741
+#: src/ui/eventText.ts:742
 #, fuzzy
 msgid "{unit} arrives from reserves"
 msgstr "{unit} arrive des réserves"
 
-#: src/ui/eventText.ts:744
+#: src/ui/eventText.ts:745
 #, fuzzy
 msgid "{unit} may move up to {inches}\" ({flag})"
 msgstr "{unit} peut se déplacer de {inches}\" au maximum ({flag})"
 
-#: src/ui/eventText.ts:750
+#: src/ui/eventText.ts:751
 #, fuzzy
 msgid "{name} chose the order their models take wounds"
 msgstr "{name} a choisi l’ordre dans lequel ses figurines subissent les blessures"
 
-#: src/ui/eventText.ts:758
+#: src/ui/eventText.ts:759
 #, fuzzy
 msgid "{xp} XP"
 msgstr "{xp} XP"
 
-#: src/ui/eventText.ts:759
+#: src/ui/eventText.ts:760
 #, fuzzy
 msgid "honour: {honour}"
 msgstr "honneur : {honour}"
 
-#: src/ui/eventText.ts:760
+#: src/ui/eventText.ts:761
 #, fuzzy
 msgid "scar: {scar}"
 msgstr "cicatrice : {scar}"
 
-#: src/ui/eventText.ts:772
+#: src/ui/eventText.ts:773
 #, fuzzy
 msgid "{unit} is {status}"
 msgstr "{unit} est {status}"
 
-#: src/ui/eventText.ts:773
+#: src/ui/eventText.ts:774
 #, fuzzy
 msgid "{unit} is no longer {status}"
 msgstr "{unit} n’est plus {status}"
 
-#: src/ui/eventText.ts:776
+#: src/ui/eventText.ts:777
 #, fuzzy
 msgid "{unit} destroyed"
 msgstr "{unit} détruite"
 
-#: src/ui/eventText.ts:781
+#: src/ui/eventText.ts:782
 #: src/ui/gameLog.ts:474
 #: src/ui/gameLog.ts:510
 #, fuzzy
@@ -16788,32 +16815,32 @@ msgid_plural "{n} wounds lost"
 msgstr[0] "{n} PV perdu"
 msgstr[1] "{n} PV perdus"
 
-#: src/ui/eventText.ts:798
+#: src/ui/eventText.ts:799
 #, fuzzy
 msgid "bottom-right"
 msgstr "le bas à droite"
 
-#: src/ui/eventText.ts:799
+#: src/ui/eventText.ts:800
 #, fuzzy
 msgid "bottom"
 msgstr "le bas"
 
-#: src/ui/eventText.ts:800
+#: src/ui/eventText.ts:801
 #, fuzzy
 msgid "bottom-left"
 msgstr "le bas à gauche"
 
-#: src/ui/eventText.ts:802
+#: src/ui/eventText.ts:803
 #, fuzzy
 msgid "top-left"
 msgstr "le haut à gauche"
 
-#: src/ui/eventText.ts:803
+#: src/ui/eventText.ts:804
 #, fuzzy
 msgid "top"
 msgstr "le haut"
 
-#: src/ui/eventText.ts:804
+#: src/ui/eventText.ts:805
 #, fuzzy
 msgid "top-right"
 msgstr "le haut à droite"
@@ -17070,8 +17097,8 @@ msgstr "hors de portée"
 msgid "long range"
 msgstr "longue portée"
 
-#: src/ui/shelfActions.ts:155
-#: src/ui/shelfActions.ts:174
+#: src/ui/shelfActions.ts:157
+#: src/ui/shelfActions.ts:195
 #, fuzzy
 msgid "That file isn't an Open Battle army."
 msgstr "Ce fichier n’est pas une armée Open Battle."
@@ -17161,6 +17188,16 @@ msgstr "régiments"
 #, fuzzy
 msgid "Regiments by hand, a card stack for activations, clash and volley."
 msgstr "Des régiments à la main, une pile de cartes pour les activations, mêlée et salves."
+
+#: src/ui/systemLabels.ts:55
+#, fuzzy
+msgid "Quality d6"
+msgstr "Quality d6"
+
+#: src/ui/systemLabels.ts:58
+#, fuzzy
+msgid "Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out."
+msgstr "Chaque unité jette sa propre Qualité. Donnez tour à tour un ordre à une unité, puis battez-vous."
 
 #: src/ui/tableVerbs.ts:102
 #, fuzzy
