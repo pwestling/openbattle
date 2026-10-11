@@ -41,38 +41,27 @@ git archive HEAD | tar -x -C "$src"
   pnpm install --frozen-lockfile --ignore-scripts
   # The app reads its relay and TURN logins from the site's /config.json at startup.
   VITE_SITE_CONFIG=config.json pnpm build
-  pnpm build:host
 )
 
 out="$work/release"
 mkdir -p "$out/server"
-cp -R "$src/dist" "$src/dist-host" "$out/"
+cp -R "$src/dist" "$out/"
 cp "$src/deploy/health.html" "$out/health.html"
-cp "$src"/server/{relay,board,mailbox,seeder,host,webrtc}.mjs "$out/server/"
+cp "$src"/server/{relay,board,mailbox,seeder}.mjs "$out/server/"
 
-# Runtime dependencies at the app's pinned versions. node-datachannel's prebuilt library comes
-# as an optional package per platform; ask for linux-x64 (glibc) whatever machine this runs on,
-# so nothing installs or compiles on the host.
+# Runtime dependencies at the app's pinned versions.
 dep() { node -p "const p=require('$src/package.json'); (p.dependencies[process.argv[1]] ?? p.devDependencies[process.argv[1]])" "$1"; }
 cat > "$out/package.json" <<JSON
 { "name": "open-battle-server", "private": true, "type": "module",
   "dependencies": {
-    "@trystero-p2p/ws-relay": "$(dep @trystero-p2p/ws-relay)",
-    "node-datachannel": "$(dep node-datachannel)"
+    "@trystero-p2p/ws-relay": "$(dep @trystero-p2p/ws-relay)"
   } }
 JSON
 (
   cd "$out"
-  npm install --omit=dev --no-package-lock --no-audit --no-fund --ignore-scripts \
-    --os=linux --cpu=x64 --libc=glibc
+  npm install --omit=dev --no-package-lock --no-audit --no-fund --ignore-scripts
 )
-native="$(find "$out/node_modules/@node-datachannel/linux-x64-gnu" -name '*.node' -print -quit 2>/dev/null)"
-[[ -n "$native" ]] || { echo 'node-datachannel has no prebuilt library.' >&2; exit 1; }
-if command -v file >/dev/null && ! file "$native" | grep -q 'ELF 64-bit.*x86-64'; then
-  echo "node-datachannel's library is not linux-x64: $(file "$native")" >&2
-  exit 1
-fi
-[[ -f "$out/dist/index.html" && -f "$out/dist-host/rooms.mjs" ]] || { echo 'Build output missing.' >&2; exit 1; }
+[[ -f "$out/dist/index.html" ]] || { echo 'Build output missing.' >&2; exit 1; }
 if [[ -n "$(find "$out/dist" \( -type l -o -name '.env*' -o -name '*.pem' -o -name '*.key' \) -print -quit)" ]]; then
   echo 'Release contains a symlink or private file; refusing upload.' >&2
   exit 1
@@ -108,7 +97,9 @@ chown -R root:root "$release"
 chmod -R a+rX,go-w "$release"
 ln -sfn "$release" /srv/openbattle/current.new
 mv -Tf /srv/openbattle/current.new /srv/openbattle/current
-units="openbattle-relay openbattle-mailbox openbattle-seeder openbattle-host"
+units="openbattle-relay openbattle-mailbox openbattle-seeder"
+# Games are no longer hosted on the server: stop a host server left by an older module.
+systemctl stop openbattle-host.service 2>/dev/null || true
 if systemctl cat openbattle-relay.service >/dev/null 2>&1; then
   systemctl restart $units
   sleep 3

@@ -65,6 +65,41 @@ describe("shared files by link", () => {
     expect(await fetchShared(LINK, server(served))).toMatchObject({ status: "changed", was: "Ridge line" });
   });
 
+  it("opens an army or a table carried in the link itself, and nothing bigger", async () => {
+    const b64 = (text: string) => btoa(text);
+    const url = (text: string) => `data:application/json;base64,${b64(text)}`;
+    const never = async () => {
+      throw new Error("an inline link fetches nothing");
+    };
+    const offer = await fetchShared(url(table("Inline ridge")), never);
+    if ("error" in offer) throw new Error(offer.error);
+    expect(offer).toMatchObject({ kind: "table", name: "Inline ridge", status: "new" });
+    expect(offer.url).toBe(`data:${offer.hash}`);
+    // base64url, and a + that a query string turned into a space, read the same.
+    const text = table("Ridge line ~~~>>>???");
+    const plain = b64(text);
+    for (const variant of [
+      plain.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+      plain.replace(/\+/g, " "),
+    ]) {
+      expect(await fetchShared(`data:application/json;base64,${variant}`, never)).toMatchObject({
+        kind: "table",
+        name: "Ridge line ~~~>>>???",
+      });
+    }
+    // Only plain data: a replay or a figure pack goes by file.
+    const replay = JSON.stringify({ format: "open-battle/record@1", record: {} });
+    expect(await fetchShared(url(replay), never)).toMatchObject({
+      error: expect.stringContaining("army or a table"),
+    });
+    expect(
+      await fetchShared(url(`{"format":"open-battle/table@1","pad":"${"x".repeat(70_000)}"}`), never),
+    ).toMatchObject({
+      error: expect.stringContaining("too big"),
+    });
+    expect(await fetchShared("data:text/plain,hello", never)).toHaveProperty("error");
+  });
+
   it("makes a share link that carries the file's raw address", () => {
     const here = { origin: "https://play.example", pathname: "/app/" };
     expect(shareLink("https://github.com/someone/files/blob/main/ridge.table.json", undefined, here)).toBe(

@@ -29,7 +29,7 @@ export const SCHEMAS = [
   { name: "manifest", major: 1, path: "src/packages/manifest.ts", type: "Manifest" },
   { name: "faction", major: 1, path: "src/packages/factionFormat.ts", type: "FactionPack" },
   // What peers and servers exchange (docs/protocols/peer-protocol.md, servers.md).
-  { name: "peer-message", major: 1, path: "src/net/transport.ts", type: "NetMessage" },
+  { name: "peer-message", major: 2, path: "src/net/transport.ts", type: "NetMessage" },
   { name: "side-message", major: 1, path: "src/net/transport.ts", type: "SideMessage" },
   { name: "signed-result", major: 1, path: "src/ranked/verify.ts", type: "SignedResult" },
   { name: "table-post", major: 1, path: "src/opentables/post.ts", type: "TablePost" },

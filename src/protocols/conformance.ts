@@ -1,4 +1,5 @@
 import Ajv from "ajv";
+import Ajv2020 from "ajv/dist/2020";
 
 /**
  * The conformance suite's files (conformance/ and schemas/) for the tests
@@ -40,7 +41,9 @@ export function fixtures(): Fixture[] {
   });
 }
 
+// Generated schemas are draft-07; hand-written ones may be 2020-12.
 const ajv = new Ajv({ allErrors: true, strict: false });
+const ajv2020 = new Ajv2020({ allErrors: true, strict: false });
 const compiled = new Map<string, ReturnType<typeof ajv.compile>>();
 
 /** Schema errors for a document, or [] when it conforms. */
@@ -50,7 +53,8 @@ export function schemaErrors(format: string, major: number, data: unknown): stri
   if (!check) {
     const schema = schemaOf(format, major);
     if (!schema) return [`no schema for ${key}`];
-    check = ajv.compile(schema);
+    const draft = (schema as { $schema?: string }).$schema ?? "";
+    check = (draft.includes("2020-12") ? ajv2020 : ajv).compile(schema);
     compiled.set(key, check);
   }
   return check(data) ? [] : (check.errors ?? []).map((e) => `${e.instancePath || "/"} ${e.message ?? ""}`);

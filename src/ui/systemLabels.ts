@@ -50,6 +50,17 @@ export const FRONT: Record<string, { title: string; blurb: string; army: string 
       return t("regiments");
     },
   },
+  "qd6-1": {
+    get title() {
+      return t("Quality d6");
+    },
+    get blurb() {
+      return t("Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out.");
+    },
+    get army() {
+      return t("units");
+    },
+  },
 };
 
 /** A game's name on screen: the front-door title for a built-in game, otherwise its own. */

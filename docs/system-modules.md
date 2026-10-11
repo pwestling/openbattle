@@ -1,6 +1,6 @@
 # Write a system module
 
-A system module teaches Open Battle a whole game: how its turn runs, what its units look like, how far they move, how they fight, what the table looks like and how a sample army plays. The four built-in games are system modules, in `src/systems/`:
+A system module teaches Open Battle a whole game: how its turn runs, what its units look like, how far they move, how they fight, what the table looks like and how a sample army plays. The five built-in games are system modules, in `src/systems/`:
 
 | Folder     | System id       | Shown as                |
 | ---------- | --------------- | ----------------------- |
@@ -8,6 +8,7 @@ A system module teaches Open Battle a whole game: how its turn runs, what its un
 | `tow`      | `tow-hand`      | Rank and flank          |
 | `conquest` | `conquest-hand` | Conquest                |
 | `fsd`      | `fsd-1.7`       | Full Spectrum Dominance |
+| `qd6`      | `qd6-1`         | Quality d6              |
 
 This guide is for adding a game to the repo itself. If you want to add rules to a game that already exists, or ship a game that players load at runtime without a new build, write a rules package instead: see [packages.md](packages.md). Both use the same `GameModule` shape from `src/sdk/index.ts`, and the package guide covers the code side (generator procedures, `ctx`, determinism, secrets, turn hooks) in detail. This page covers what a built-in module adds on top and how the four existing ones fit together.
 
@@ -170,6 +171,8 @@ A `Mission` (`src/sdk/index.ts`) says where the armies deploy, where the objecti
 | Secrets       | Secret objectives                                          | None                                                                                                          | Each command card is a secret until drawn                                                                 | None                                                                                                            |
 
 Full Spectrum Dominance shows how far data alone can go. Rank and flank is the model for a game with complex code rules and its own army import. Conquest is the model for a game with its own panel and hidden information.
+
+**Quality d6 (`qd6`, #82)** is the model for a small generic game with lists players bring. Every unit rolls its own Quality to hit and Defense to save, one order a unit (Hold, Advance, Rush, Charge, or Rally when Shaken), alternating activations that end the round once every unit has gone (`untilAllActivated` on the segment), four rounds on a 72" x 48" table with true line of sight. Shooting is a data procedure; the fight with strike-back and fatigue is a code action (`melee.ts`), morale and routing are code procedures (`morale.ts`), and "whoever finished first goes first" is a pair of turn hooks (`initiative.ts`). Special rules bind by name ("Tough(3)", "Blast(3)"); those it doesn't know stay on the unit card as reminders. Lists come in as [Army list v1](protocols/army-list.md) files, with a unit builder's JSON export and a plain-text list read through adapters into it (`roster.ts`), and the computer player weighs Shaken units with `bot.ts`. Coverage: [rules-coverage/qd6.md](rules-coverage/qd6.md).
 
 ## Add a new system
 

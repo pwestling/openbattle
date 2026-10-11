@@ -3,6 +3,7 @@ import type { Mission } from "../sdk";
 import type { AbilityAuto, GameState, Layout, Table, Unit } from "../core";
 import type { GameSystem } from "../core/content/schema";
 import type { ImportedRoster } from "./wh40k/roster";
+import type { ArmyListV1 } from "../share/armyList";
 
 /**
  * What the app needs from each game system besides its rules data: a table
@@ -12,6 +13,12 @@ import type { ImportedRoster } from "./wh40k/roster";
 export interface SystemModule {
   /** Read an exported army list; 40k's BattleScribe reader when missing. */
   importRoster?(fileName: string, data: Uint8Array): Promise<ImportedRoster>;
+  /**
+   * Read an Army list v1 file (docs/protocols/army-list.md) for this game,
+   * filling in what the game derives (a rule that gives Wounds); read
+   * generically (`armyListRoster`) when missing.
+   */
+  readArmyList?(list: ArmyListV1): ImportedRoster;
   /** Sample army for a seat. */
   sample(seat: 0 | 1): ImportedRoster;
   /** Every sample army players can pick from (one per faction); the two `sample` gives when missing. */

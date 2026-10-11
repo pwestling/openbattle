@@ -10,6 +10,7 @@ import { readManifest } from "../packages/manifest";
 import { readArmy } from "../packages/shelf";
 import { readCardFile } from "../player/card";
 import { checkSigned } from "../ranked/verify";
+import { isArmyList } from "../share/armyList";
 import { sharedKind } from "../share/links";
 import { readStandee } from "../standees/file";
 import { readTable } from "../tables/library";
@@ -70,6 +71,7 @@ const READERS: Record<string, (data: unknown) => boolean | Promise<boolean>> = {
     return typeof file !== "string" && (await signatureOk(file as MailFile));
   },
   "signed-result": async (d) => (await checkSigned(d)) !== null,
+  "army-list": (d) => isArmyList(d) && sharedKind(d) === "army",
 };
 
 /** Documents every reader must turn away: a newer major version, and the wrong type where a field is required. */

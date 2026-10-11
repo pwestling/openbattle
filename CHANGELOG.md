@@ -4,6 +4,8 @@ What changed in each release of Open Battle. The in-app **What's new** on the st
 
 ## Unreleased
 
+- **Formats and protocols with a promise.** Every file, link, peer message, package and server API Open Battle uses now has a versioned spec in [docs/protocols](docs/protocols/README.md), a JSON Schema in `schemas/` generated from the code, and frozen conformance files in `conformance/` that other tools and forks can test against. A file from a newer version says so instead of failing to open.
+- **Version 0.2 can't share a table with 0.1.** Reaction windows and simultaneous phases added new events, so the peer protocol is now 2 ([history](docs/protocols/peer-protocol.md#history)). Both players need the same version.
 - **Ladders keep different rules apart.** A ranked result now records the rules it was played under (the app build and every rules package, by hash), and both players check and sign them. Named seasons in `rulesets.json` share a ladder; any other rules, a house rule or a modded copy of a game, get a ladder of their own. See [docs/compatibility.md](docs/compatibility.md).
 - **Shared dice in ranked games.** No one device decides a roll: the host commits to a secret seed, the opponent adds one, and each round's dice are checked once the host's seed is shown. A result whose dice don't check out can't be signed.
 - **No farming the ladder.** A rating moves only against an opponent who has played five games against three different players.

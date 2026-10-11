@@ -1,6 +1,6 @@
 # Peer protocol
 
-**`PROTOCOL = 1`** (`src/protocol.ts`). Stable. Schemas: [peer-message.v1](../../schemas/peer-message.v1.schema.json) (everything) and [side-message.v1](../../schemas/side-message.v1.schema.json) (the part outside the game log). Code: `src/net/transport.ts` (the messages), `src/net/session.ts` (what a peer does with them).
+**`PROTOCOL = 2`** (`src/protocol.ts`). Stable. Schemas: [peer-message.v2](../../schemas/peer-message.v2.schema.json) (everything) and [side-message.v1](../../schemas/side-message.v1.schema.json) (the part outside the game log). Code: `src/net/transport.ts` (the messages), `src/net/session.ts` (what a peer does with them).
 
 Players' browsers talk directly over WebRTC data channels. This page is what two builds must agree on to share a table. [compatibility.md](../compatibility.md) explains what happens when they don't.
 
@@ -43,7 +43,16 @@ Side messages (`SideMessage`) are never logged or checksummed. Any peer may send
 
 ## Changing the protocol
 
-- **Allowed within `PROTOCOL = 1`:** an optional field on a message or event that older builds can do without, and a new side message type. A peer ignores any message whose `t` it doesn't know or can't read, and any field it doesn't know (`receive` in `src/net/session.ts`, tested in `src/net/session.test.ts`).
-- **Needs `PROTOCOL = 2` and a proposal:** a new event or intent type in the core game (older hosts would reject the intent and older peers can't replay the event), any change to how an existing event changes the table, a new required field, or a change to meeting and authority above.
+- **Allowed within one `PROTOCOL`:** an optional field on a message or event that older builds can do without, and a new side message type. A peer ignores any message whose `t` it doesn't know or can't read, and any field it doesn't know (`receive` in `src/net/session.ts`, tested in `src/net/session.test.ts`).
+- **Needs the next `PROTOCOL` and a proposal:** a new event or intent type in the core game (older hosts would reject the intent and older peers can't replay the event), any change to how an existing event changes the table, a new required field, or a change to meeting and authority above.
 
 The schemas are generated from these types, so any such change also shows up as a schema change in review (`pnpm schemas:check`).
+
+## History
+
+| `PROTOCOL` | Since | What changed                                                                                                                                                                                                                |
+| ---------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2          | 0.2.0 | Reaction windows: the events `reaction/close` and `reaction/mute` and the intent `reaction/pass`. Simultaneous phases: the event `turn/ready`. The table gains `reaction`, `reactionMute`, `reactionAsked` and `turn.ready` |
+| 1          | 0.1.0 | The first protocol                                                                                                                                                                                                          |
+
+A 0.1.0 build and a 0.2.0 build can't share a table: each shows the other's version in the "can't play together" banner.

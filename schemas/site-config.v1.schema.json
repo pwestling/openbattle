@@ -70,9 +70,6 @@
             "type": "string"
           }
         },
-        "hostServer": {
-          "type": "string"
-        },
         "openTables": {
           "type": "boolean"
         }

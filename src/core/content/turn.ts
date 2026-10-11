@@ -43,6 +43,8 @@ export interface TurnSlot {
   hint?: string;
   /** Both sides act at once; it moves on when every seated player is ready (Segment.simultaneous, #81). */
   simultaneous?: boolean;
+  /** Alternating activations whose round ends once every unit has gone (Segment untilAllActivated, #82). */
+  untilAllActivated?: boolean;
 }
 
 const cache = new WeakMap<GameSystem, TurnSlot[]>();
@@ -97,6 +99,7 @@ function flatten(segments: Segment[], playerTurn: boolean): TurnSlot[] {
           ...(seg.actionsPerActivation !== undefined
             ? { actionsPerActivation: seg.actionsPerActivation }
             : {}),
+          ...(seg.untilAllActivated ? { untilAllActivated: true } : {}),
         });
         break;
       }
@@ -534,18 +537,30 @@ export function endActivation(state: GameState, seed = 0): GameState {
   const cleared = clearFlags(state, [...ACTIVATION_FLAGS, ...flags]);
   const next = (state.turn.activeSeat + 1) % SEATS;
   const ended = { ...cleared, pending: null, turn: { ...state.turn, activeSeat: next, passes: 0 } };
-  if (!plainActivations(state)) return ended;
+  const plain = plainActivations(state);
+  if (!plain && !currentSlot(state)?.untilAllActivated) return ended;
   // Every unit has gone: the round is over. A side with none left waits while the other finishes (UX 324).
+  // A unit in reserve has no go to take where data actions activate units (#82).
   const left = (seat: number) =>
     Object.values(ended.units).some(
       (u) =>
         ended.players[u.owner]?.seat === seat &&
         !u.status?.activated &&
+        (plain || !u.status?.reserves) &&
         u.modelIds.some((id) => ended.models[id] && !ended.models[id]!.destroyed),
     );
   if (!left(0) && !left(1)) return advanceTurn(ended, 1, seed);
   if (!left(next)) return { ...ended, turn: { ...ended.turn, activeSeat: state.turn.activeSeat } };
   return ended;
+}
+
+/**
+ * The round's activations end by themselves once every unit has gone: plain
+ * activations, or a slot marked `untilAllActivated` (#82). ▶ would cut the
+ * round short there, so a player with nothing to do passes instead.
+ */
+export function roundEndsItself(state: GameState): boolean {
+  return plainActivations(state) || !!currentSlot(state)?.untilAllActivated;
 }
 
 /**

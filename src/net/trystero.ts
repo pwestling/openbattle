@@ -1,9 +1,10 @@
 import { joinRoom as joinNostr, selfId as nostrSelfId, type JsonValue } from "@trystero-p2p/nostr";
 import { joinRoom as joinWsRelay, selfId as wsSelfId } from "@trystero-p2p/ws-relay";
 import { netConfig, type NetConfig } from "./config";
+import { busyAwarePeerConnection } from "./relayBusy";
 import type { NetMessage, Transport } from "./transport";
 
-export const APP_ID = "open-battle-dev";
+const APP_ID = "open-battle-dev";
 
 /**
  * WebRTC transport. Trystero finds peers through a signalling relay (public
@@ -20,9 +21,21 @@ export function trysteroTransport(
   const rtcConfig: RTCConfiguration | undefined = config.forceTurn
     ? { iceTransportPolicy: "relay" }
     : undefined;
+  // With TURN in play, notice when it turns connections away because it is full.
+  const rtcPolyfill =
+    turnConfig && typeof RTCPeerConnection !== "undefined"
+      ? busyAwarePeerConnection(RTCPeerConnection)
+      : undefined;
   const room = config.signal.length
     ? joinWsRelay(
-        { appId: APP_ID, password, turnConfig, rtcConfig, relayConfig: { urls: config.signal } },
+        {
+          appId: APP_ID,
+          password,
+          turnConfig,
+          rtcConfig,
+          rtcPolyfill,
+          relayConfig: { urls: config.signal },
+        },
         roomId,
       )
     : joinNostr(
@@ -31,6 +44,7 @@ export function trysteroTransport(
           password,
           turnConfig,
           rtcConfig,
+          rtcPolyfill,
           ...(config.nostr.length ? { relayConfig: { urls: config.nostr } } : {}),
         },
         roomId,

@@ -571,7 +571,8 @@ function describeEvent({ by, event }: LoggedEvent, before: GameState, game: Game
         : "";
       // Activation games read as sentences: "Spears activates (2 actions)", "Spears marches" (UX 112).
       // Units it commands are named too: "Lancer activates (2 actions) with Raiders" (dogfood #54).
-      if (def?.activates !== undefined) {
+      // An activating action with a verb of its own reads as it ("Wardens advances", #82).
+      if (def?.activates !== undefined && !def.verb) {
         const n = Number(game.units[event.unitId]?.status?.actionBudget ?? 0);
         const unit = unitName(event.unitId);
         return (

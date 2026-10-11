@@ -511,6 +511,13 @@ export type Segment =
        * it. A number or a `const.` ref.
        */
       actionsPerActivation?: Expr;
+      /**
+       * Each unit activates once a round, and the round ends by itself once
+       * every unit on the table has (as plain activations do): ending an
+       * activation hands the go to the other side only if it has a unit
+       * left to activate (#82). Without it, the round ends when both pass.
+       */
+      untilAllActivated?: boolean;
     }
   /** Secret simultaneous planning, e.g. ordering a command stack. */
   | { kind: "plan"; id: Id; produces: Id; of: "units" | "cards" }

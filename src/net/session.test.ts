@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { GameRecord, GameState } from "../core";
 import { createLoopbackNetwork } from "./loopback";
 import { Session } from "./session";
+import { PROTOCOL } from "../protocol";
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -164,9 +165,12 @@ describe("builds (docs/compatibility.md)", () => {
     await flush();
     expect(host.status.otherBuilds).toEqual([]);
     old.send({ t: "hello", seq: 0, role: "client" }, "host");
-    other.send({ t: "hello", seq: 0, role: "client", v: { protocol: 1, build: "9.9.9+fork" } }, "host");
+    other.send(
+      { t: "hello", seq: 0, role: "client", v: { protocol: PROTOCOL, build: "9.9.9+fork" } },
+      "host",
+    );
     await flush();
-    expect(host.status.otherBuilds).toEqual([{ peer: "other", protocol: 1, build: "9.9.9+fork" }]);
+    expect(host.status.otherBuilds).toEqual([{ peer: "other", protocol: PROTOCOL, build: "9.9.9+fork" }]);
     // The same build is no news.
     const same = new Session({ transport: net.connect("same"), role: "client", onChange: () => {} });
     await flush();

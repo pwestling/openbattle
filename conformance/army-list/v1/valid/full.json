@@ -1,0 +1,42 @@
+{
+  "format": "open-battle/army-list@1",
+  "name": "Mossback Raiders",
+  "system": "qd6-1",
+  "points": 395,
+  "builder": { "name": "Sample Builder", "version": "0.0.1", "url": "https://builder.example/" },
+  "packages": [{ "url": "https://rules.example/mossback.js" }],
+  "futureField": "ignored by v1 readers",
+  "units": [
+    {
+      "name": "Old Grumm",
+      "size": 1,
+      "points": 80,
+      "characteristics": { "Q": "3+", "D": "4+" },
+      "rules": [
+        "Hero",
+        { "name": "Tough", "rating": 3 },
+        { "name": "Glimmerhide", "text": "An invented rule." }
+      ],
+      "base": { "shape": "round", "diameterMm": 40 },
+      "weapons": [{ "name": "Root Maul", "characteristics": { "A": 3, "AP": 1 }, "rules": ["AP(1)"] }]
+    },
+    {
+      "name": "Mossback Slingers",
+      "size": 6,
+      "points": 90,
+      "characteristics": { "Quality": 4, "Defense": 5 },
+      "rules": ["Scout"],
+      "keywords": ["Infantry"],
+      "weapons": [
+        {
+          "name": "Pebble Sling",
+          "count": 6,
+          "range": 18,
+          "characteristics": { "A": 1 },
+          "rules": ["Blast(2)"]
+        },
+        { "name": "Knife", "kind": "melee", "characteristics": { "A": 1 } }
+      ]
+    }
+  ]
+}

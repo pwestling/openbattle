@@ -5,6 +5,8 @@ import { t } from "../i18n";
 import { sha256 } from "../packages/manifest";
 import { rawLink } from "../packages/packPins";
 import { isYellowscribe } from "../systems/wh40k/yellowscribe";
+import { isQualityList } from "../systems/qd6/roster";
+import { ARMY_LIST_FORMAT } from "./armyList";
 import { decrypt, fetchMagnet, isEncrypted, magnetHash, splitKey } from "./torrent";
 
 /**
@@ -22,6 +24,27 @@ export type SharedKind = "figures" | "table" | "army" | "standee" | "replay";
 /** Big enough for a figure pack of a whole army; each model inside still has its own cap. */
 const MAX_SHARED_BYTES = 96 * 1024 * 1024;
 
+/** An inline link (`?open=data:application/json;base64,…`) carries the file itself, so it stays small. */
+const MAX_INLINE_BYTES = 64 * 1024;
+
+/** The only kinds an inline link may carry: plain data, never models or a whole game. */
+const INLINE_KINDS: readonly SharedKind[] = ["army", "table"];
+
+/** The bytes of an inline `data:` link (base64 or base64url), or an error line. */
+function inlineBytes(link: string): Uint8Array | { error: string } {
+  const m = /^data:application\/json;base64,([A-Za-z0-9+/_\- ]*={0,2})$/.exec(link);
+  if (!m) return { error: t("That data link isn't base64 JSON.") };
+  // A + in a query string arrives as a space; base64url uses - and _.
+  const b64 = (m[1] ?? "").replace(/ /g, "+").replace(/-/g, "+").replace(/_/g, "/");
+  if ((b64.length * 3) / 4 > MAX_INLINE_BYTES)
+    return { error: t("That data link is too big; share a file instead.") };
+  try {
+    return Uint8Array.from(atob(b64.padEnd(Math.ceil(b64.length / 4) * 4, "=")), (c) => c.charCodeAt(0));
+  } catch {
+    return { error: t("That data link isn't base64 JSON.") };
+  }
+}
+
 /** What a file is, from its format line; null if Open Battle can't open it from a link. */
 export function sharedKind(data: unknown): SharedKind | null {
   const format = (data as { format?: unknown } | null)?.format;
@@ -32,13 +55,15 @@ export function sharedKind(data: unknown): SharedKind | null {
     case "open-battle/layout@1":
       return "table";
     case "open-battle/army@1":
+    case ARMY_LIST_FORMAT:
       return "army";
     case "open-battle/standee@1":
       return "standee";
     case "open-battle/record@1":
       return "replay";
   }
-  return isYellowscribe(data) ? "army" : null;
+  // Lists from other tools, by their shape: Yellowscribe, and a unit builder's export of Quality d6 units.
+  return isYellowscribe(data) || isQualityList(data) ? "army" : null;
 }
 
 /**
@@ -132,9 +157,14 @@ export async function fetchShared(
 ): Promise<SharedOffer | { error: string }> {
   const { link: bare, key } = splitKey(url.trim());
   const magnet = bare.startsWith("magnet:");
-  const link = magnet ? bare : rawLink(bare);
+  const inline = bare.startsWith("data:");
+  const link = magnet || inline ? bare : rawLink(bare);
   let bytes: Uint8Array;
-  if (magnet) {
+  if (inline) {
+    const got = inlineBytes(link);
+    if ("error" in got) return got;
+    bytes = got;
+  } else if (magnet) {
     if (!magnetHash(link)) return { error: t("That magnet link has no torrent in it.") };
     const got = await fetchMagnet(link, MAX_SHARED_BYTES, onProgress);
     if ("error" in got)
@@ -177,15 +207,17 @@ export async function fetchShared(
   }
   const kind = sharedKind(data);
   if (!kind) return { error: newerFormat(data) ?? t("That link isn't an Open Battle file.") };
+  if (inline && !INLINE_KINDS.includes(kind))
+    return { error: t("A data link can only carry an army or a table.") };
   const hash = await sha256(bytes);
-  const pinKey = magnet ? `magnet:${magnetHash(link)}` : link;
+  const pinKey = magnet ? `magnet:${magnetHash(link)}` : inline ? `data:${hash}` : link;
   const before = useSharedPins.getState().pins[pinKey];
   const status = !before ? "new" : before.hash === hash ? "same" : "changed";
   return {
     url: pinKey,
-    shown: magnet ? t("a torrent") : link,
+    shown: magnet ? t("a torrent") : inline ? t("the link itself") : link,
     kind,
-    name: nameOf(kind, data as Record<string, unknown>, link),
+    name: nameOf(kind, data as Record<string, unknown>, inline ? "" : link),
     hash,
     bytes,
     status,
@@ -287,5 +319,9 @@ export const useOpenLink = create<{ link: string | null }>(() => {
   const key = here.hash.startsWith("#key=") ? here.hash.slice(1) : "";
   if (key) here.hash = "";
   history.replaceState(history.state, "", here);
-  return { link: /^(https:\/\/|magnet:)/.test(link) ? `${link}${key ? `#${key}` : ""}` : null };
+  return {
+    link: /^(https:\/\/|magnet:|data:application\/json;base64,)/.test(link)
+      ? `${link}${key ? `#${key}` : ""}`
+      : null,
+  };
 });

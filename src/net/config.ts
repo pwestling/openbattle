@@ -29,10 +29,6 @@
  *   ?seeders=https://battle.example.com/seed
  *                  seed nodes that keep shared files (server/seeder.mjs)
  *                                          VITE_SEEDERS
- *   ?hostServer=https://battle.example.com/host
- *                  a host server (server/host.mjs) players can open a room on,
- *                  so the game runs there rather than in a browser
- *                                          VITE_HOST_SERVER
  *
  * Open tables posts to the public Nostr relays. A self-hosted site (or a page
  * pointed at a private relay with ?signal=) has it off unless its config.json
@@ -56,8 +52,6 @@ export interface NetConfig {
   trackers: string[];
   /** Seed nodes (server/seeder.mjs) that keep a copy of what's shared; none by default. */
   seeders: string[];
-  /** A host server (server/host.mjs) that can host a game in place of a player's browser. */
-  hostServer?: string;
 }
 
 /** What a site's config.json may say, beyond the relays. */
@@ -102,9 +96,6 @@ export async function loadSiteConfig(
       ...(typeof body.board === "string" && /^https?:\/\//.test(body.board) ? { board: body.board } : {}),
       ...(Array.isArray(body.trackers) && body.trackers.length ? { trackers: body.trackers } : {}),
       ...(Array.isArray(body.seeders) && body.seeders.length ? { seeders: body.seeders } : {}),
-      ...(typeof body.hostServer === "string" && /^https?:\/\//.test(body.hostServer)
-        ? { hostServer: body.hostServer }
-        : {}),
     };
   } catch {
     // An unreachable or malformed config.json is the same as none.
@@ -164,7 +155,6 @@ export function netConfig(search = typeof location === "undefined" ? "" : locati
   const fromUrl = (key: string) => (q.has(key) ? list(q.get(key)) : null);
   const mailbox = q.get("mailbox") ?? site.mailbox ?? (env.VITE_MAILBOX_URL as string | undefined);
   const signal = fromUrl("signal") ?? site.signal ?? list(env.VITE_SIGNAL_URL);
-  const hostServer = q.get("hostServer") ?? site.hostServer ?? (env.VITE_HOST_SERVER as string | undefined);
   // Off when asked, on a self-hosted site that didn't turn it on, or on a private relay.
   const openTables =
     q.get("openTables") === "0" || env.VITE_OPEN_TABLES === "off"
@@ -186,7 +176,6 @@ export function netConfig(search = typeof location === "undefined" ? "" : locati
       site.trackers ??
       (list(env.VITE_TRACKERS).length ? list(env.VITE_TRACKERS) : PUBLIC_TRACKERS),
     seeders: fromUrl("seeders") ?? site.seeders ?? list(env.VITE_SEEDERS),
-    ...(hostServer ? { hostServer } : {}),
     ...(openTables && (q.get("board") ?? (selfHosted ? site.board : undefined))
       ? { board: q.get("board") ?? site.board }
       : {}),
@@ -204,5 +193,4 @@ export const NET_PARAMS = [
   "mailbox",
   "board",
   "openTables",
-  "hostServer",
 ];

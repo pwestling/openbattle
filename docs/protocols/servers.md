@@ -2,7 +2,7 @@
 
 Every server the app talks to is open source and lives in `server/`. Anyone may run one, and the app talks to any server that speaks these APIs, so a fork or a club can run its own. The board's API is stable and has its own page, [board-protocol.md](../board-protocol.md). The others are **provisional**: they follow the [shared rules](README.md#the-rules-every-protocol-keeps) (extra fields are ignored, changes only add), and once someone outside this repository depends on one, a change that breaks it moves the API under a `/v2/` prefix.
 
-All of them allow requests from any origin (CORS `*`), use no cookies or accounts, and answer JSON unless noted. Behind the self-host kit's Caddy they also answer under their prefix (`/relay`, `/mailbox`, `/seed`, `/host`). [self-host.md](../self-host.md) covers running them.
+All of them allow requests from any origin (CORS `*`), use no cookies or accounts, and answer JSON unless noted. Behind the self-host kit's Caddy they also answer under their prefix (`/relay`, `/mailbox`, `/seed`). [self-host.md](../self-host.md) covers running them.
 
 ## Site config.json
 
@@ -20,7 +20,6 @@ A self-hosted build fetches `config.json` from its own site as it opens, to lear
 | `board`      | The site's own board (`…/relay/board`)                                             |
 | `trackers`   | WebTorrent trackers for shared files                                               |
 | `seeders`    | Seed nodes for shared files                                                        |
-| `hostServer` | A host server players can open games on                                            |
 
 Every field is optional. A field the app doesn't know is ignored, and a malformed or missing file is the same as an empty one. The same settings can come from page parameters ([links.md](links.md#other-links)).
 
@@ -53,19 +52,6 @@ A mailbox id is 20 to 64 characters of `A-Za-z0-9_-`. It is the only key, so it 
 | `GET /blob/<sha256>`    | The bytes (`application/octet-stream`, `Range` supported, cacheable for ever)                                                            |
 | `HEAD /blob/<sha256>`   | Whether it's here                                                                                                                        |
 | `DELETE /blob/<sha256>` | With `Authorization: Bearer <admin token>`: drop it and block the hash                                                                   |
-
-## Host server
-
-`server/host.mjs`. Sits in a room as its host from a machine that stays on, for built-in game systems only.
-
-| Request                   | Answer                                                |
-| ------------------------- | ----------------------------------------------------- |
-| `GET /info`               | `{ build, rooms, maxRooms }`                          |
-| `POST /rooms`             | `{ room, system?, teamSize? }`: host a new game there |
-| `GET /rooms/<room>`       | `{ hosted }`                                          |
-| `POST /rooms/<room>/wake` | Come back to a room it left while it stood empty      |
-
-The host server speaks the [peer protocol](peer-protocol.md) like any player's browser, so its `build` must share the players' `PROTOCOL`.
 
 ## TURN logins
 
