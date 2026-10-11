@@ -4,7 +4,7 @@ import { untakenSeat } from "./Branch";
 import type { Player } from "../core";
 import { formatList, t, tn } from "../i18n";
 import { useRelayBusy } from "../net/relayBusy";
-import { serverHost, useCanControl, useHostPowers, useJoining, useStore } from "../store";
+import { useCanControl, useJoining, useStore } from "../store";
 import { isLeader, standingWith } from "./CoreAbilities";
 import { deployChecks } from "./deployment";
 import { useTransfers } from "../packages/share";
@@ -73,8 +73,6 @@ export const copyInvite = () => void navigator.clipboard?.writeText(location.hre
  */
 export function RoomCard() {
   const { roomId, mode, net, session, game, record, review } = useStore();
-  const server = useStore(serverHost);
-  const chair = useHostPowers();
   const [copied, setCopied] = useState(false);
   const joining = useJoining();
   const posted = useOpenTables((s) => s.mine?.post.join === roomId);
@@ -90,8 +88,7 @@ export function RoomCard() {
   const seated = Object.values(game.players)
     .filter((p) => p.seat !== undefined)
     .sort((a, b) => a.seat! - b.seat!);
-  // The site's host server hosts a served room: it is in the room but neither plays nor watches.
-  const peers = (net?.peers ?? []).filter((id) => id !== server);
+  const peers = net?.peers ?? [];
   const untaken = (p: Player) => !peers.includes(p.id) && p.id !== selfId && untakenSeat(record, p.id);
   const waiting = seated.length < 2 || seated.some(untaken);
   // Still receiving the game's rules packages (and not playing without them by choice).
@@ -116,7 +113,6 @@ export function RoomCard() {
         <span className="muted">
           {t("Room")} <code>{roomId}</code>
           {mode === "local" ? ` ${t("(this browser)")}` : ""}
-          {server ? ` · ${t("hosted by this site's server")}` : ""}
         </span>
         {(waiting || copied) && (
           <button
@@ -140,9 +136,11 @@ export function RoomCard() {
         </p>
       )}
       {/* Open tables (#50): the host may put a waiting table on the public board. */}
-      {mode === "online" && chair && !review && game.turn.round === 0 && (waiting || posted) && (
-        <PostTable kind="live" join={roomId} seats={openSeats(game, record)} />
-      )}
+      {mode === "online" &&
+        net?.role === "host" &&
+        !review &&
+        game.turn.round === 0 &&
+        (waiting || posted) && <PostTable kind="live" join={roomId} seats={openSeats(game, record)} />}
       {/* A review room replays a finished game: its players are the record's, not people here (UX 258). */}
       {review ? (
         <p className="muted small">

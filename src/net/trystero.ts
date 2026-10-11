@@ -4,7 +4,7 @@ import { netConfig, type NetConfig } from "./config";
 import { busyAwarePeerConnection } from "./relayBusy";
 import type { NetMessage, Transport } from "./transport";
 
-export const APP_ID = "open-battle-dev";
+const APP_ID = "open-battle-dev";
 
 /**
  * WebRTC transport. Trystero finds peers through a signalling relay (public

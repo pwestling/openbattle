@@ -1,10 +1,10 @@
 # Open Battle (app repo: pwestling/openbattle, deploy/craftworld/openbattle.nix; copy it to the infra
 # repo as hosts/vps-01/apps/openbattle.nix): a peer-to-peer tabletop for miniatures wargames.
-# Public at https://openbattle.thehivemind5.com. nginx serves the built app and routes to four
+# Public at https://openbattle.thehivemind5.com. nginx serves the built app and routes to three
 # small Node services on loopback: the signalling relay (4400, also /config.json with TURN logins
-# and /health.json), the play-by-mail mailbox (4401), the seed node for shared files (4402) and
-# the host server that runs games in place of a player's browser (4403). coturn relays game
-# traffic for players whose networks block a direct link.
+# and /health.json), the play-by-mail mailbox (4401) and the seed node for shared files (4402).
+# Games run in the players' browsers; coturn relays game traffic for players whose networks
+# block a direct link.
 #
 # This mirrors the app repo's docker-compose self-host kit (docs/self-host.md), with nginx in
 # place of Caddy. The services exist only once secrets/openbattle.yaml exists (keys `environment`,
@@ -105,7 +105,7 @@ in
       key = "environment";
       owner = "openbattle";
       mode = "0400";
-      restartUnits = [ "openbattle-relay.service" "openbattle-host.service" ];
+      restartUnits = [ "openbattle-relay.service" ];
     };
     "openbattle/turn-secret" = {
       sopsFile = secretsFile;
@@ -127,7 +127,6 @@ in
         TURN_CHECK = "127.0.0.1:${toString turnPort}";
         MAILBOX_URL = "on";
         SEEDER_URL = "on";
-        HOST_URL = "on";
         OPEN_TABLES = "off";
       };
       serviceConfig = loopbackOnly // {
@@ -177,33 +176,6 @@ in
     };
 
     coturn.serviceConfig.Slice = "apps.slice";
-
-    # Talks WebRTC to players across the internet, so it keeps outbound access. Its own
-    # HTTP port is closed by the host firewall; nginx reaches it on loopback.
-    openbattle-host = service {
-      description = "Open Battle host server";
-      script = "host.mjs";
-      after = [ "openbattle-relay.service" "coturn.service" ];
-      environment = {
-        PORT = "4403";
-        DATA_DIR = "${state}/host";
-        SIGNAL_URL = "ws://127.0.0.1:4400";
-        TURN_URLS = "turn:127.0.0.1:${toString turnPort}?transport=udp,turn:127.0.0.1:${toString turnPort}?transport=tcp";
-        MAX_ROOMS = "50";
-        IDLE_HOURS = "6";
-        KEEP_DAYS = "30";
-        # node-datachannel ships a prebuilt library that needs libstdc++.
-        LD_LIBRARY_PATH = "${pkgs.stdenv.cc.cc.lib}/lib";
-      };
-      serviceConfig = {
-        EnvironmentFile = config.sops.secrets."openbattle/environment".path;
-        StateDirectory = "openbattle/host";
-        StateDirectoryMode = "0700";
-        MemoryHigh = "768M";
-        MemoryMax = "1G";
-        TasksMax = 256;
-      };
-    };
   };
 
   services.coturn = lib.mkIf registered {
@@ -277,7 +249,6 @@ in
       "/seed" = (proxy 4402) // {
         extraConfig = (proxy 4402).extraConfig + "client_max_body_size 97m; proxy_request_buffering off;";
       };
-      "/host/" = proxy 4403;
     };
   };
 }
