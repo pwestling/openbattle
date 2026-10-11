@@ -14,7 +14,7 @@ import { formatList, gameText, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
 import type { Pending } from "../missions/scoring";
 import { fightOrder } from "../systems/wh40k/fight";
-import { aliveModels, moveAllowance, unitDistance, weaponReach } from "../systems/wh40k/rules";
+import { aliveModels, moveAllowance, unitDistance, unitMoved, weaponReach } from "../systems/wh40k/rules";
 
 /** Whether any enemy is within reach of the unit's ranged weapons (true when the game doesn't say ranges). */
 function inReach(game: GameState, unit: Unit): boolean {
@@ -109,7 +109,8 @@ function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
     let can: boolean;
     if (/move/i.test(phase)) {
       const s = u.status ?? {};
-      can = !(s.moved || s.advanced || s.fellBack || s.stayed);
+      // Any model moved counts (UX N20): the engine's flags come only with Advance and the like.
+      can = !(s.moved || s.advanced || s.fellBack || s.stayed) && unitMoved(aliveModels(game, u)) < 0.05;
       out.push({ id: u.id, name: u.name, done: !can });
       continue;
     }
@@ -147,14 +148,9 @@ function attackSay(game: GameState, mine: PlayerId[]): { say: string; sub: strin
   const rollerUnit = a.stage === "save" ? target : attacker;
   const roller = rollerUnit ? game.players[rollerUnit.owner] : undefined;
   if (!roller) return { say, sub: "" };
-  const stage =
-    a.stage === "hit"
-      ? t("hits")
-      : a.stage === "wound"
-        ? t("wounds")
-        : a.stage === "save"
-          ? t("saves")
-          : t("damage");
+  // Damage is worked out from the dice already rolled: nobody's press (UX N22).
+  if (a.stage === "damage" || a.stage === "done") return { say, sub: t("Then the damage, where the dice are.") };
+  const stage = a.stage === "hit" ? t("hits") : a.stage === "wound" ? t("wounds") : t("saves");
   return {
     say,
     sub: mine.includes(roller.id)
@@ -442,6 +438,20 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       buttons: [{ ...done, lit: false }],
     };
   }
+  // A shot set up with its target (UX N21): declaring it is the step, lit in the bar from the panel.
+  if (draft?.targetId && game.units[draft.attackerId] && game.units[draft.targetId])
+    return {
+      tone: "job",
+      seat,
+      rail,
+      say: t("{a} at {b}: declare the attack", {
+        a: game.units[draft.attackerId]!.name,
+        b: game.units[draft.targetId]!.name,
+      }),
+      sub: t("Change the weapon or target in the card first if you like."),
+      units: units.length ? units : undefined,
+      buttons: [{ ...done, lit: false }],
+    };
   // A shot set up with no target yet (UX N17): the target is the step.
   if (draft && !draft.targetId && game.units[draft.attackerId])
     return {
