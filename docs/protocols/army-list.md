@@ -63,6 +63,8 @@ card and never uploads it.
 - **System.** With `system` naming a game this build or a loaded package knows, the list goes on the shelf for that
   game; otherwise for the default game, where the player can move it. A game may read the list its own way (the
   `readArmyList` hook of a system module) to fill in what it derives.
+- **In a package.** A rules package can carry lists as its sample armies, in `export const armies`
+  ([packages.md](packages.md)); each is read exactly as a file would be.
 - **Packages.** `packages` tells the player which rules packages the list expects. Loading one still goes through the
   package's own question and consent ([packages.md](../packages.md)); a list never loads code by itself.
 

@@ -15,7 +15,7 @@ import {
   type LoggedEvent,
 } from "../core";
 import { registerFunctions } from "../core/content/calls";
-import { extendSystem, listSystems, type SystemAdditions } from "../core/content/systems";
+import { extendSystem, getSystem, listSystems, type SystemAdditions } from "../core/content/systems";
 import { currentSlot, systemOf } from "../core/content/turn";
 import {
   gameView,
@@ -27,8 +27,8 @@ import {
 } from "../core/script";
 import { systemMatches } from "../packages/library";
 import { readManifest } from "../packages/manifest";
-import type { CodeAction, GameModule, PackageApp, PackageContents, PanelSpec } from "../sdk";
-import { registerModule, type SystemModule } from "../systems";
+import type { CodeAction, GameModule, Mission, PackageApp, PackageContents, PanelSpec } from "../sdk";
+import { addPackageMissions, registerModule, type SystemModule } from "../systems";
 import { expandLayout } from "../systems/packageLayout";
 import { shapeProblems } from "../core/content/shape";
 import { momentMatches, moments } from "../missions/scoring";
@@ -38,6 +38,7 @@ import {
   type AppState,
   type Loaded,
   type Provided,
+  type ProvidedMission,
   type Resolved,
 } from "./protocol";
 
@@ -52,6 +53,20 @@ function errorText(e: unknown): string {
   for (const m of (e.stack ?? "").matchAll(/((?:blob:|data:)[^\s)]*?):(\d+):(\d+)/g))
     if (m[1] !== own) return `${e.message} (line ${m[2]}, column ${m[3]})`;
   return e.message;
+}
+
+/** A mission as data for the app: its setup for `table`, and its rules and cards less their code. */
+function missionData(mission: Mission, table: { width: number; depth: number }): ProvidedMission {
+  return {
+    id: mission.id,
+    name: mission.name,
+    summary: mission.summary,
+    ...(mission.hand !== undefined ? { hand: mission.hand } : {}),
+    table: { width: table.width, depth: table.depth },
+    setup: mission.setup(table),
+    scoring: mission.scoring.map(({ suggest: _s, ...rule }) => rule),
+    ...(mission.deck ? { deck: mission.deck.map(({ suggest: _s, ...card }) => card) } : {}),
+  };
 }
 
 /** How the engine turns a package's source into its module (a blob import in the worker). */
@@ -71,6 +86,8 @@ export class SandboxEngine {
   private readonly apps = new Map<string, SystemModule & PackageApp>();
   /** Package code actions by system id. */
   private readonly actions = new Map<string, CodeAction[]>();
+  /** Missions extension packages add, by system id (#82b); their code runs here. */
+  private readonly added = new Map<string, Mission[]>();
 
   constructor(private readonly importSource: ImportSource) {}
 
@@ -101,16 +118,7 @@ export class SandboxEngine {
           registerModule(m);
           if (app) this.apps.set(m.system.id, app);
           const table = m.system.defaultTable ?? createInitialState().table;
-          const missions = (app?.missions ?? []).map((mission) => ({
-            id: mission.id,
-            name: mission.name,
-            summary: mission.summary,
-            ...(mission.hand !== undefined ? { hand: mission.hand } : {}),
-            table: { width: table.width, depth: table.depth },
-            setup: mission.setup(table),
-            scoring: mission.scoring.map(({ suggest: _s, ...rule }) => rule),
-            ...(mission.deck ? { deck: mission.deck.map(({ suggest: _s, ...card }) => card) } : {}),
-          }));
+          const missions = (app?.missions ?? []).map((mission) => missionData(mission, table));
           provides = JSON.parse(
             JSON.stringify({
               system: m.system,
@@ -157,6 +165,21 @@ export class SandboxEngine {
           : moduleHooks
             ? hookProcedures(contents.module!.system.id, moduleHooks)
             : null;
+        // Missions an extension adds (#82b): as data for the app, the code staying here.
+        const missions: Record<string, ProvidedMission[]> = {};
+        for (const system of contents.missions?.length ? systems : []) {
+          const table = getSystem(system).defaultTable ?? createInitialState().table;
+          const mine = contents.missions!;
+          missions[system] = JSON.parse(
+            JSON.stringify(mine.map((mission) => missionData(mission, table))),
+          ) as ProvidedMission[];
+          this.added.set(system, [
+            ...(this.added.get(system) ?? []).filter((m) => !mine.some((x) => x.id === m.id)),
+            ...mine,
+          ]);
+          // The computer player here reads the game's missions as the app does.
+          addPackageMissions(system, mine);
+        }
         for (const system of systems) {
           extendSystem(system, data);
           if (hooked) registerCode(system, hooked.procedures);
@@ -176,6 +199,7 @@ export class SandboxEngine {
           actions: actions.map((a) => a.id),
           data,
           hooks: hooked?.table ?? {},
+          ...(Object.keys(missions).length ? { missions } : {}),
           ...(provides ? { provides } : {}),
         });
       } catch (e) {
@@ -221,7 +245,10 @@ export class SandboxEngine {
     // The chosen mission's suggestions, for every scoring moment so far and every card.
     const scores: AppState["scores"] = {};
     const cards: AppState["cards"] = {};
-    const mission = app?.missions?.find((m) => m.id === this.state.mission?.id);
+    // A package game's own missions and the ones extensions add (#82b), whose code is here.
+    const added = this.added.get(system) ?? [];
+    const missions = [...(app?.missions ?? []).filter((m) => !added.some((a) => a.id === m.id)), ...added];
+    const mission = missions.find((m) => m.id === this.state.mission?.id);
     if (mission) {
       for (const moment of moments(this.record))
         for (const rule of mission.scoring) {
@@ -238,7 +265,7 @@ export class SandboxEngine {
     if (this.setupKey !== key) {
       this.setupKey = key;
       this.setups = {};
-      for (const m of app?.missions ?? [])
+      for (const m of missions)
         try {
           this.setups[m.id] = JSON.parse(
             JSON.stringify(m.setup(this.state.table)),
@@ -259,7 +286,7 @@ export class SandboxEngine {
       seq: this.state.seq,
       ready,
       setups: this.setups,
-      table: app?.missions?.length ? { width, depth } : null,
+      table: missions.length ? { width, depth } : null,
       scores: JSON.parse(JSON.stringify(scores)) as AppState["scores"],
       cards: JSON.parse(JSON.stringify(cards)) as AppState["cards"],
       ranks,

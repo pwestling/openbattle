@@ -48,6 +48,8 @@ export interface Loaded {
     data: SystemAdditions;
     /** Turn hooks, by procedure id, for the host to start (core/script.ts). */
     hooks: HookTable;
+    /** Missions an extension adds (#82b), as data, by the system they are added to. */
+    missions?: Record<string, ProvidedMission[]>;
     /** A whole game system the package provides. */
     provides?: Provided;
   }[];

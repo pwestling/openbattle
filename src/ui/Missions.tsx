@@ -45,6 +45,8 @@ function confirmScore(
 export function MissionPicker() {
   const game = useGame();
   const { dispatch } = useStore();
+  // Redrawn as the game's packages start: an extension may add missions (#82b).
+  useSandbox((s) => s.status);
   const missions = systemModule(game.system).missions ?? [];
   if (!missions.length || game.turn.round > 0) return null;
   const chosen = missionOf(game);

@@ -42,6 +42,10 @@ The messages between the app and the sandbox (`src/sandbox/protocol.ts`) are int
 
 A package with `kind: "faction"` also has `export const faction = { … }`, read as data like the manifest. It adds rules to armies **by name**: army rules, unit abilities, detachments with their rules, enhancements and stratagems. It never carries rules text from a publisher. The data is provisional because the shape of an automated ability (`AbilityAuto`) is still growing; changes will stay additive where they can.
 
+## Armies and missions
+
+**Provisional.** An `extension` or `system` package may also `export const armies` (Army list 1 documents, read as data) and give `missions`. Both are additions to module API 1 and need Open Battle 0.2.0. See [package-data.md](package-data.md).
+
 ## Lessons
 
 A `lesson` package has `export const lessons = [ … ]`, read as data and never run (`src/teach/lesson.ts`). Provisional.
