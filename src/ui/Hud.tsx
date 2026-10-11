@@ -291,7 +291,7 @@ export function Hud() {
  * download the replay, report a problem, the invite once everyone is in,
  * and leaving for the lobby.
  */
-function GameMenu({ record }: { record: GameRecord }) {
+export function GameMenu({ record }: { record: GameRecord }) {
   const { roomId, mode, net, session } = useStore();
   const waiting = useRoomWaiting();
   const over = battleOver(useStore.getState().game);

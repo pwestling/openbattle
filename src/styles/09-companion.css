@@ -353,3 +353,10 @@ body:has(.modal-backdrop) .replaybar {
     min-width: 44px;
   }
 }
+
+/* "⋯ Game" (leave, replay, report) at the top right of the companion. */
+.companion-leave {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 4px;
+}

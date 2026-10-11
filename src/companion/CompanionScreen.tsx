@@ -10,7 +10,7 @@ import { ArmyImport } from "../ui/ArmyImport";
 import { CampaignFold } from "../campaign/CampaignUI";
 import { AttackPanel } from "../ui/AttackPanel";
 import { GameSettings } from "../ui/GameSettings";
-import { GameLog, NameCard, UndoButton, downloadReplay } from "../ui/Hud";
+import { GameLog, GameMenu, NameCard, UndoButton, downloadReplay } from "../ui/Hud";
 import { useGame } from "../ui/hooks";
 import { MissionPicker, ScorePanel, SecretMissions, missionOf } from "../ui/Missions";
 import { PlayPanel } from "../ui/PlayPanel";
@@ -44,6 +44,7 @@ export function CompanionScreen() {
   const [tab, setTab] = useState<Tab>("units");
   const unit = selected ? game.units[selected] : undefined;
   const mode = useStore((s) => s.mode);
+  const record = useStore((s) => s.record);
   const selfId = useStore((s) => s.session?.selfId);
   // When the go passes (Done on the last ask), back to all units, the next side's on top (PX).
   const seat = game.turn.activeSeat;
@@ -57,6 +58,10 @@ export function CompanionScreen() {
   return (
     <div className="companion">
       <TopBar />
+      {/* Leave, the replay and a problem report in sight, as on the 3D table (Porter: no way out). */}
+      <div className="companion-leave">
+        <GameMenu record={record} />
+      </div>
       <main className="companion-main">
         <Invite />
         {mode !== "hotseat" && selfId && game.players[selfId] && <NameCard player={game.players[selfId]!} />}

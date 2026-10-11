@@ -55,6 +55,26 @@ player input ─► Intent ─► host: resolveLogged (rolls dice) ─► Logged
 
 Outside `src/`: `games/` holds our own games, Rift Lanterns and Brinewatch, each written as a package. `server/` holds the signalling relay (with the self-hosted Open tables board), the play-by-mail mailbox and the seed node. `scripts/` holds the browser checks (`pnpm smoke`, `pnpm soak:browser`, perf, screenshots). `examples/` holds sample packages, lessons and workshop templates.
 
+## Addresses
+
+The address bar says where the player is ([src/ui/route.ts](../src/ui/route.ts)). Screens are hash routes, so any static host serves them with no fallback, offline included:
+
+| Address                                           | Screen                                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `/`                                               | Front door                                                                                 |
+| `#/play/<game>`                                   | That game's "How hard?" (the old `?play=<game>`)                                           |
+| `#/tables`                                        | Open tables (the old `?tables=1`)                                                          |
+| `#/rules/<game>`                                  | A game's rules page (the old `?rules=<game>`)                                              |
+| `#/workshop`                                      | Module workshop (`?workshop=<url>` still opens a module in it)                             |
+| `#/figures`, `#/figures/storage`, `#/figures/tts` | Figure library                                                                             |
+| `#/player`, `#/ladder[/<game>]`                   | Player card, ladder                                                                        |
+| `#/event/<id>`, `#/event/new`                     | An event's page, running one                                                               |
+| `#/game`                                          | A game on this screen (hotseat, the computer, a lesson); a reload resumes it from its save |
+| `#/replay`                                        | A replay file                                                                              |
+| `?room=<id>`                                      | An online room: its invite link, as before                                                 |
+
+Opening a screen adds a history entry and closing it goes back to the one before. Back out of a game leaves it the way "Leave game" does, asking first in an online game; Forward goes back in (a hotseat game from its save, a room by rejoining). An address with a game nothing can come back into, such as someone else's `#/game`, opens the front door. Hashes that aren't routes (`#mail=`, `#key=`) are left to the screens that read them.
+
 ## Rules that keep it working
 
 - **Everything that changes the game goes through the log.** If peers must agree on it, it's an event. Table talk, camera moves and highlights are not.

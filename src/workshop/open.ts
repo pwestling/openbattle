@@ -6,7 +6,7 @@ import { create } from "zustand";
  * `link` is a module to open from a URL (?workshop=<url>, the gallery's links).
  */
 export const useWorkshopOpen = create<{ open: boolean; folded: boolean; link: string | null }>(() => {
-  const link = new URLSearchParams(location.search).get("workshop");
+  const link = new URLSearchParams(typeof location === "undefined" ? "" : location.search).get("workshop");
   return { open: link !== null, folded: false, link: link && /^https:\/\//.test(link) ? link : null };
 });
 

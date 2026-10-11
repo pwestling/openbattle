@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { enterRoom } from "../ui/route";
 import { create } from "zustand";
 import type { SideMessage } from "../net/transport";
 import { gameId } from "../campaign/book";
@@ -167,7 +168,7 @@ export function startReview(): string {
   const params = new URLSearchParams(location.search);
   const q = new URLSearchParams({ room: roomId, review: "1" });
   for (const k of NET_PARAMS) if (params.get(k)) q.set(k, params.get(k)!);
-  history.replaceState(null, "", `?${q}`);
+  enterRoom(q);
   start({ role: "host", mode: "online", roomId, name: myName() ?? "", record, review: true });
   return location.href;
 }

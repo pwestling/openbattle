@@ -3,6 +3,7 @@ import { useSolo } from "../bot/solo";
 import type { Level } from "../bot/player";
 import { useStore, type SavedGame } from "../store";
 import { useCoach } from "../teach/store";
+import { loadedPath } from "./route";
 
 /**
  * A hotseat game survives a reload (UX 395): while one is on screen, this tab
@@ -51,8 +52,8 @@ export function useHotseatMark(): void {
 /** After a reload, the hotseat game this tab was playing, and who the computer played, if any. */
 export function reloadedInto(saved: SavedGame | null): Mark | null {
   if (!saved || saved.mode !== "hotseat") return null;
-  const nav = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
-  if (nav?.type !== "reload") return null;
+  // The game's own address (#/game, src/ui/route.ts): reloaded, or come back to with Forward.
+  if (loadedPath !== "/game") return null;
   try {
     const mark = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as Mark | null;
     return mark && mark.at === (saved.record.events[0]?.at ?? 0) ? mark : null;

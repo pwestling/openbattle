@@ -1,4 +1,5 @@
 import { sides } from "../core";
+import { enterRoom } from "../ui/route";
 import { NET_PARAMS } from "../net/config";
 import { useLibrary } from "../packages/library";
 import { shelfSystem, useShelf, type SavedArmy } from "../packages/shelf";
@@ -37,7 +38,7 @@ export async function playPairing(event: EventDoc, round: number, pairing: Event
   const here = new URLSearchParams(location.search);
   const q = new URLSearchParams({ room: roomId });
   for (const k of NET_PARAMS) if (here.get(k)) q.set(k, here.get(k)!);
-  history.replaceState(null, "", `?${q}`);
+  enterRoom(q);
   if (ownGame(event.system)) await installOwnGame(event.system);
   closeEvent();
   localStorage.setItem("open-battle:name", me.name);

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { enterRoom } from "./route";
 import { branchRecord, sha256Hex, stateAt, type GameRecord } from "../core";
 import { currentSlot } from "../core/content/turn";
 import { buildLog } from "./gameLog";
@@ -24,7 +25,7 @@ export function branchGame(seq: number, mode: Mode): void {
   const params = new URLSearchParams(location.search);
   const q = new URLSearchParams({ room: roomId });
   for (const k of NET_PARAMS) if (params.get(k)) q.set(k, params.get(k)!);
-  history.replaceState(null, "", `?${q}`);
+  enterRoom(q);
   start({ role: "host", mode, roomId, name, record: branched });
 }
 

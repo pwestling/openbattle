@@ -343,6 +343,90 @@ const checks = {
     await context.close();
   },
 
+  /** Addresses (src/ui/route.ts): screens and games have one, Back and Forward move between them, a reload stays. */
+  async routes() {
+    const { page, context } = await device();
+    const hash = () => page.evaluate(() => location.hash);
+    let step = 0;
+    const want = async (h) => {
+      step++;
+      await page.waitForFunction((h) => location.hash === h, h, { timeout: 10000 }).catch(() => {});
+      if ((await hash()) !== h) throw new Error(`step ${step}: address ${await hash()}, not ${h}`);
+    };
+    await lobby(page);
+    await page.locator("summary", { hasText: "More ways to play" }).click();
+    await page.getByRole("button", { name: /Module workshop/ }).click();
+    await want("#/workshop");
+    await page.goBack();
+    await want("");
+    await page.locator(".workshop").waitFor({ state: "detached" });
+    await page.goForward();
+    await page.locator(".workshop").waitFor();
+    await page.getByRole("button", { name: "Close the workshop" }).click();
+    await want("");
+    // Closing went back to the entry before rather than adding one: Back from here leaves the site.
+    if ((await page.evaluate(() => history.state)) !== null) throw new Error("closing added a history entry");
+    // A game: its address, kept by a reload, left with Back and come back to with Forward.
+    await tryDemo(
+      page,
+      page
+        .locator(".demos .demo")
+        .filter({ has: page.locator(".solo") })
+        .first(),
+    );
+    await page.locator(".topbar").waitFor();
+    await want("#/game");
+    await page.reload();
+    await page.locator(".topbar").waitFor();
+    await want("#/game");
+    await page.goBack();
+    await page.locator(".lobby").waitFor();
+    await want("");
+    await page.goForward();
+    await page.locator(".topbar").waitFor();
+    // The table companion: in sight, a way out, and Back leaves it too (Porter: no way out).
+    for (const out of ["menu", "back"]) {
+      await lobby(page);
+      await page.getByRole("button", { name: "One phone for both of us" }).click();
+      await page.locator(".companion").waitFor();
+      await want("#/game");
+      if (out === "back") await page.goBack();
+      else {
+        await page.locator(".companion-leave").getByRole("button", { name: /Game/ }).click();
+        await page.getByRole("menuitem", { name: "Leave game" }).click();
+      }
+      await page.locator(".lobby").waitFor();
+    }
+    // Old links open their screen at its address.
+    await lobby(page, "?play=rift-lanterns");
+    await page.getByRole("group", { name: "How hard?" }).waitFor();
+    await want("#/play/rift-lanterns");
+    if ((await page.evaluate(() => location.search)) !== "") throw new Error("?play= kept after it was read");
+    // An online room: its ?room= link, Back asks and leaves for the front door, Forward rejoins as host.
+    await lobby(page, `?${SIGNAL}`);
+    await page.locator(".lobby input").first().fill("Ana");
+    await page.getByRole("button", { name: "Host a game", exact: true }).click();
+    await page.locator(".room").waitFor();
+    const room = new URL(page.url()).searchParams.get("room");
+    if (!room) throw new Error("no ?room= in a hosted game's address");
+    let asked = 0;
+    page.on("dialog", () => asked++);
+    await page.goBack();
+    await page.locator(".lobby").waitFor();
+    if (new URL(page.url()).searchParams.has("room")) throw new Error("Back kept the room");
+    if (!asked) throw new Error("Back left an online game without asking");
+    await page.goForward();
+    await page.locator(".room").waitFor();
+    if (new URL(page.url()).searchParams.get("room") !== room) throw new Error("Forward lost the room");
+    // Someone else's game address, with nothing to come back into: the front door.
+    const other = await device();
+    await lobby(other.page, "#/game");
+    await other.page.waitForFunction(() => location.hash === "", null, { timeout: 10000 });
+    for (const p of [page, other.page]) if (p.errors.length) throw new Error(p.errors[0]);
+    await other.context.close();
+    await context.close();
+  },
+
   /** Our own game (#42): Play now, with nothing imported: two warbands of stand-ins, a mission, and actions to take. */
   async "play-now"() {
     const { page, context } = await device();

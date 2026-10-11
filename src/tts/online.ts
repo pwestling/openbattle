@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { enterRoom } from "../ui/route";
 import { NET_PARAMS } from "../net/config";
 import { useStore } from "../store";
 import { applyLayout } from "../tables/actions";
@@ -20,7 +21,7 @@ export function hostTtsOnline(brought: BroughtTable, note = ""): Promise<boolean
   const local = here.get("local") === "1";
   if (local) q.set("local", "1");
   for (const k of NET_PARAMS) if (here.get(k)) q.set(k, here.get(k)!);
-  history.replaceState(null, "", `?${q}`);
+  enterRoom(q);
   const name = localStorage.getItem("open-battle:name") ?? "";
   const system = brought.table.system;
   useStore.getState().start({ role: "host", mode: local ? "local" : "online", roomId, name, system });

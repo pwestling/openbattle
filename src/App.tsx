@@ -8,6 +8,7 @@ import { Lobby } from "./ui/Lobby";
 import { useLibraryOpen } from "./figures/open";
 import { useWorkshopOpen } from "./workshop/open";
 import { useEventOpen, useRunsEvents } from "./events/open";
+import { watchRoute } from "./ui/route";
 
 /**
  * The 3D table, three.js and every in-game panel load as their own chunk,
@@ -36,6 +37,8 @@ export function App() {
   const player = usePlayerOpen((s) => s.view !== null);
   const eventOpen = useEventOpen((s) => s.id !== null || s.running);
   const runsEvents = useRunsEvents((s) => s.on);
+  // The address follows the screens, from here on: the front door has rejoined a reloaded game by now (children's effects run first).
+  useEffect(watchRoute, []);
   useEffect(() => {
     const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
     idle(() => {

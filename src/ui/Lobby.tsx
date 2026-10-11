@@ -1,4 +1,5 @@
 import { openPlayerCard } from "../player/open";
+import { enterRoom } from "./route";
 import { useCard } from "../player/card";
 import { systemOf } from "../core/content/turn";
 import { isPlaceholder } from "../core/content/systems";
@@ -15,6 +16,7 @@ import { ArmyGuide } from "./ArmyGuide";
 import { NetCheck } from "./NetCheck";
 import { presetMission, startDemo } from "./demo";
 import { reloadedInto } from "./resumeHotseat";
+import { useRouteFlag, useRouteParam } from "./route";
 import {
   BRINEWATCH,
   installOwnGame,
@@ -100,14 +102,15 @@ export function Lobby() {
   // Players per side when hosting: 1 (1v1) or 2 (a 2v2 team game, core/teams.ts).
   const [teamSize, setTeamSize] = useState(1);
   const [guide, setGuide] = useState(false);
-  const [rules, setRules] = useState(params.get("rules") === "rift-lanterns");
-  const [brineRules, setBrineRules] = useState(params.get("rules") === BRINEWATCH);
-  const [tables, setTables] = useState(() => {
+  // Screens with an address (src/ui/route.ts): #/rules/<game>, #/tables, #/play/<game>.
+  const [rules, setRules] = useRouteFlag(`/rules/${RIFT_LANTERNS}`);
+  const [brineRules, setBrineRules] = useRouteFlag(`/rules/${BRINEWATCH}`);
+  const [tables, setTables] = useRouteFlag("/tables");
+  useState(() => {
     // Back from a table whose host had gone, or a game that ended under a watcher: the board says so.
     if (params.get("tables") === "gone") useOpenTables.setState({ gone: "table" });
     if (params.get("tables") === "ended")
       useOpenTables.setState({ gone: "game", ended: params.get("ended") ?? null });
-    return ["1", "gone", "ended"].includes(params.get("tables") ?? "");
   });
   // Play the computer (#45): the game whose card asks "How hard?" (UX 350).
   // The front door's Live now strip waits for the page to settle, and only where Open tables is on.
@@ -117,11 +120,9 @@ export function Lobby() {
     const timer = setTimeout(() => setLiveStrip(true), 1500);
     return () => clearTimeout(timer);
   }, []);
-  // `?play=<game>`: a watcher's "Play this yourself" (PX) lands on that game's "How hard?".
-  const [asking, setAsking] = useState<string | null>(() => {
-    const play = params.get("play") ?? "";
-    return FRONT[play] || ownGame(play) ? play : null;
-  });
+  // #/play/<game> (and the old `?play=<game>`, a watcher's "Play this yourself"): that game's "How hard?".
+  const [playing, setAsking] = useRouteParam("play");
+  const asking = playing && (FRONT[playing] || ownGame(playing)) ? playing : null;
   // Built-in games, then whole games from trusted rules packages (their code runs in the sandbox).
   const library = useLibrary((s) => s.packages);
   useEffect(() => {
@@ -180,7 +181,7 @@ export function Lobby() {
     if (sameBrowser) q.set("local", "1");
     // Keep relay settings so an invite link connects the same way.
     for (const k of NET_PARAMS) if (params.get(k)) q.set(k, params.get(k)!);
-    history.replaceState(null, "", `?${q}`);
+    enterRoom(q);
   };
 
   /** A game from a package names that package, so every player gets its code. */
