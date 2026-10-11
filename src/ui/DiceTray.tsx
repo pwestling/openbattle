@@ -300,8 +300,9 @@ class Stage {
     this.queue = this.queue.then(async () => {
       this.waiting--;
       this.active = true;
-      // A backlog (a whole attack rolled at once) plays fast.
-      const fast = this.waiting > 0 || useSound.getState().fast;
+      // A backlog (a whole attack rolled at once) plays fast, and so does any routine roll: only a decisive
+      // one gets the full show (PX principle 2, the quiet-stretch call after #81).
+      const fast = this.waiting > 0 || useSound.getState().fast || (!stakes && !rare);
       let settled = false;
       const settle = () => {
         if (settled) return;

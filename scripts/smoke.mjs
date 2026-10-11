@@ -3226,7 +3226,12 @@ const checks = {
       if (/No hits|0 wounds/.test(await a.locator(".panel.attack").innerText())) break;
       const roll = a.locator(".panel.attack button.attack-roll:enabled");
       const stage = (await roll.count()) ? await roll.first().textContent() : "";
-      if (/hits and wounds/i.test(stage ?? "")) await roll.first().click();
+      // The wounds may already be on their way (the one-go beat), and the button gone with them.
+      if (/hits and wounds/i.test(stage ?? ""))
+        await roll
+          .first()
+          .click({ timeout: 3000 })
+          .catch(() => {});
       // A decisive save (the last model or a character, a real doubt) waits for Ben's own press (PX).
       const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
       if ((await own.count()) && !(await b.getByText("Your saves roll by themselves").count())) {
@@ -3475,6 +3480,14 @@ for (const [name, run] of Object.entries(checks)) {
     console.log(`✗ ${name}: ${e instanceof Error ? e.message.split("\n")[0] : e}`);
     if (process.env.SMOKE_VERBOSE && e instanceof Error)
       console.log(e.message.split("\n").slice(1, 6).join("\n"));
+    // Every screen still open, as it was when the check failed.
+    if (process.env.SMOKE_SHOTS) {
+      const pages = browser.contexts().flatMap((c) => c.pages());
+      for (const [i, page] of pages.entries())
+        await page
+          .screenshot({ path: join(process.env.SMOKE_SHOTS, `${name}-failed-${i}.png`) })
+          .catch(() => {});
+    }
   }
 }
 await browser.close();
