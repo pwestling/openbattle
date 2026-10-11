@@ -266,11 +266,14 @@ function CameraFit() {
   const reset = useStore((s) => s.cameraReset);
   const started = useStore((s) => s.session !== null || s.role === "spectator");
   const [left, setLeft] = useState(0);
+  // The ui-next layout has no side panels beside the table, only a sheet over it.
+  const [next, setNext] = useState(false);
   // The left panel's edge, checked now and then; it changes only when it is hidden or shown.
   useEffect(() => {
     const measure = () => {
       const l = Math.round(document.querySelector(".hud, .obn-setup")?.getBoundingClientRect().right ?? 0);
       setLeft((old) => (Math.abs(old - l) > 40 ? l : old));
+      setNext(!!document.querySelector(".obn-game"));
     };
     measure();
     const t = setInterval(measure, 500);
@@ -285,11 +288,11 @@ function CameraFit() {
       return { zoom: 1, centre: size.width / 2, middle: size.height * 0.36 };
     // On a phone the card is a sheet over the table, so there is no side panel to fit around; a tablet held
     // upright has no room beside the table either, so the card sits over it there too (UX 420).
-    if (size.width < PHONE_WIDTH || size.width < size.height)
+    if (size.width < PHONE_WIDTH || size.width < size.height || (next && !left))
       return { zoom: 1, centre: size.width / 2, middle };
     const gap = Math.max(300, size.width - left - RIGHT_PANEL);
     return { zoom: Math.min(1.6, Math.max(1, (size.width * 0.82) / gap)), centre: left + gap / 2, middle };
-  }, [view, started, size.width, size.height, left, reset]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, started, size.width, size.height, left, next, reset]); // eslint-disable-line react-hooks/exhaustive-deps
   const current = useRef({ zoom: 1, centre: size.width / 2, middle: size.height / 2 });
   useFrame(() => {
     const cam = camera as Object3D & {
