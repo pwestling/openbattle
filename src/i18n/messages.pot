@@ -4481,32 +4481,6 @@ msgstr ""
 msgid "reconnecting…"
 msgstr ""
 
-#: src/next/recap.ts:49
-msgid "Your {unit} hit {target}: {n} slain."
-msgid_plural "Your {unit} hit {target}: {n} slain."
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/next/recap.ts:53
-msgid "Your {unit} attacked {target}: no losses."
-msgstr ""
-
-#: src/next/recap.ts:78
-msgid "{name} moved {n} unit and attacked {targets}."
-msgid_plural "{name} moved {n} units and attacked {targets}."
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/next/recap.ts:89
-msgid "{name} moved {n} unit."
-msgid_plural "{name} moved {n} units."
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/next/recap.ts:91
-msgid "{name} attacked {targets}."
-msgstr ""
-
 #: src/next/step.ts:114
 msgid "Your roll: {stage}"
 msgstr ""
