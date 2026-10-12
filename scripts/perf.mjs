@@ -3,7 +3,7 @@
 //
 //   pnpm perf                  # default scenarios
 //   pnpm perf -- --gpu         # use the machine's GPU instead of SwiftShader
-//   pnpm perf -- --only Conquest  # just the scenarios whose name contains this
+//   pnpm perf -- --only sandbox  # just the scenarios whose name contains this
 //   CHROMIUM=/path/to/chrome pnpm perf
 //
 // Frame times under SwiftShader (software GL, the default so it runs
@@ -72,26 +72,21 @@ try {
     await page.screenshot({ path: process.env.STANDEE_SCREENSHOT });
   // Full detail is slow enough under SwiftShader that a few frames will do.
   await run("no pipeline, 100k sculpts", () => window.openBattlePerf.dress(100_000, true), 3, 1);
-  // A big rank-and-flank game: about 200 models in blocks (The Old World style).
-  await run("Old World, ~200 models, stand-ins", async () => {
-    const perArmyPair = await window.openBattlePerf.setup(1, "tow-hand");
-    const models = await window.openBattlePerf.setup(Math.ceil(200 / perArmyPair), "tow-hand");
+  // A big game: about 200 models.
+  await run("Sci-fi battle, ~200 models, stand-ins", async () => {
+    const perArmyPair = await window.openBattlePerf.setup(1, "forty-k-11");
+    const models = await window.openBattlePerf.setup(Math.ceil(200 / perArmyPair), "forty-k-11");
     return { models };
   });
-  // The rules sandbox on that Old World table, against perf/scripting-budget.md (no frames: call timings).
+  // The rules sandbox on that table, against perf/scripting-budget.md (no frames: call timings).
   if (!only || "rules sandbox".includes(only)) {
-    if (only) await page.evaluate(() => window.openBattlePerf.setup(4, "tow-hand"));
+    if (only) await page.evaluate(() => window.openBattlePerf.setup(4, "forty-k-11"));
     results.push({
       scenario: "rules sandbox",
       ...(await page.evaluate(() => window.openBattlePerf.sandbox())),
     });
     console.error(JSON.stringify(results.at(-1)));
   }
-  // Conquest: regiments of stands, 20 a side, on the table (before reinforcements).
-  await run("Conquest, 40 regiments (148 stands)", async () => {
-    const models = await window.openBattlePerf.setup(4, "conquest-hand");
-    return { models, dispatch: await window.openBattlePerf.dispatchCost() };
-  });
   console.log(JSON.stringify({ when: new Date().toISOString(), gpu, models, results }, null, 2));
 } finally {
   await browser.close();

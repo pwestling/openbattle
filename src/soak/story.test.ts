@@ -19,10 +19,6 @@ import { storyCheck } from "./storyCheck";
 const games: [string, string, { source: string } | undefined, number, 1 | 2, boolean][] = [
   ["40k", "forty-k-11", undefined, 1, 1, false],
   ["40k 2v2", "forty-k-11", undefined, 1, 2, false],
-  ["The Old World", "tow-hand", undefined, 2, 1, false],
-  ["Conquest", "conquest-hand", undefined, 2, 1, true],
-  ["FSD", "fsd-1.7", undefined, 2, 1, false],
-  ["qd6", "qd6-1", undefined, 2, 1, false],
   ["Rift Lanterns", "", { source: riftLanterns }, 2, 1, false],
   ["Brinewatch", "", { source: brinewatch }, 2, 1, true],
   ["arena package", "", { source: arena }, 2, 1, false],

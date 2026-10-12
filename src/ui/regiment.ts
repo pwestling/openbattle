@@ -15,7 +15,6 @@ import { parseDice, type DiceExpr } from "../core/dice";
 import { systemModule } from "../systems";
 import { aliveModels, unitDistance } from "../systems/wh40k/rules";
 import { opposed } from "../core/teams";
-import { hasRule } from "../systems/tow/specialRules";
 
 const SPECIAL = new Set(["charge", "door", "flee", "pursue"]);
 
@@ -81,8 +80,6 @@ export interface MoveBudget {
   /** Nearest enemy that isn't fleeing, for the march check. */
   nearestEnemy: number;
   marchBlock: number;
-  /** Drilled (The Old World): marches near the enemy without a test, and redresses for free before moving. */
-  drilled: boolean;
   /** What a step backwards or sideways costs per inch (2: half rate). */
   slow: number;
   /** Manoeuvres a move may include (The Old World: 1); 0 for no limit. */
@@ -152,7 +149,6 @@ export function moveBudget(game: GameState, unit: Unit): MoveBudget {
     march: move === null ? null : move * constant(game, "marchMultiple", 2),
     nearestEnemy,
     marchBlock: constant(game, "marchBlock", 8),
-    drilled: hasRule(unit, /\bdrilled\b/i),
     slow: constant(game, "slowMoveCost", 1),
     manoeuvreLimit: constant(game, "manoeuvresPerMove", 0),
     slowed,

@@ -21,7 +21,7 @@ const everyMs = Number(arg("--every", 300));
 const out = arg("--out", "soak-browser.jsonl");
 const PORT = 5196;
 const RELAY = 8797;
-const SYSTEMS = arg("--systems", "forty-k-11,tow-hand,conquest-hand,fsd").split(",");
+const SYSTEMS = arg("--systems", "forty-k-11").split(",");
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const until = async (fn, ms) => {
   const end = Date.now() + ms;

@@ -120,7 +120,7 @@ describe("lessons", () => {
   const packages = lessonPackages();
 
   it("every built-in lesson package reads, for a game the app has", () => {
-    expect(packages.length).toBe(4);
+    expect(packages.length).toBe(1);
     for (const p of packages)
       for (const l of p.lessons) {
         expect(lessonSystem(l), l.id).toBeDefined();
@@ -197,18 +197,4 @@ describe("lessons", () => {
         ).toBe(lesson.steps.length);
       }
     }, 120_000);
-
-  it("Break and panic: the slingers break and a friend takes a Panic test, in some games", () => {
-    const lesson = packages.flatMap((p) => p.lessons).find((l) => l.id === "break-and-panic")!;
-    let panicked = 0;
-    for (let seed = 1; seed <= 8; seed++) {
-      const notes = walk(lesson, seed).log.events.flatMap(({ event: e }) =>
-        (e.type === "script/step" ? [e] : e.type === "procedure/clear" && e.script ? [e.script] : []).flatMap(
-          (x) => x.events.flatMap((n) => (n.type === "log/note" ? [n.text] : [])),
-        ),
-      );
-      if (notes.some((n) => /: a Panic test$/.test(n))) panicked++;
-    }
-    expect(panicked).toBeGreaterThan(1);
-  }, 120_000);
 });

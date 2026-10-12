@@ -41,9 +41,6 @@ export function decisionKind(m: BotMove | null): DecisionKind {
  */
 export const TRUSTED: Readonly<Record<string, readonly DecisionKind[]>> = {
   "forty-k-11": ["attack", "move", "charge"],
-  "tow-hand": ["attack", "move", "charge"],
-  "fsd-1.7": ["attack", "move"],
-  "conquest-hand": ["attack", "move", "charge"],
   // Shots and fights: 26 of 30 (87%) over six seeds, a die or two each, so not yet.
   brinewatch: ["move"],
 };

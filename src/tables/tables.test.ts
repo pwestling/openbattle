@@ -18,9 +18,9 @@ describe("table library", () => {
   });
 
   it("generates starter tables that are symmetric, on the table and the same for the same seed", () => {
-    for (const system of [undefined, "fsd-1.7", "tow"]) {
+    for (const system of [undefined, "forty-k-11"]) {
       const s = createInitialState();
-      const table = system === "fsd-1.7" ? { width: 36, depth: 24 } : s.table;
+      const table = s.table;
       for (const { id } of starters()) {
         const a = starterLayout(system, table, id, 3);
         expect(a.terrain.length).toBeGreaterThanOrEqual(2);

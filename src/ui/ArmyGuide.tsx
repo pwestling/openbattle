@@ -15,38 +15,6 @@ const LISTS: Record<string, () => string[]> = {
     ),
     t("Check the summary: bases are guessed from the unit, and you can change any of them. Then deploy."),
   ],
-  "fsd-1.7": () => [
-    t("There is no list app for this one yet: start from Sample army, or a rules package that brings units."),
-    t("Any BattleScribe-style file (.ros, .rosz or New Recruit JSON) with model profiles also reads in."),
-    t("Stats the list leaves out are asked for on the import summary."),
-  ],
-  "tow-hand": () => [
-    t("Build your list in New Recruit or BattleScribe."),
-    t("Export it as JSON from New Recruit, or as .rosz from BattleScribe."),
-    t("In a game, press Import a list in the left panel and pick the file."),
-    t("Each regiment comes in as a block. Set its frontage (models in the front rank) on the summary."),
-    t(
-      "Lists often leave stats out: the summary shows them in yellow for you to fill in. Everyone sees what you typed.",
-    ),
-  ],
-  "conquest-hand": () => [
-    t("Build your list in New Recruit (or BattleScribe, where its data is available)."),
-    t("Export it as JSON or .rosz, then press Import a list in the left panel."),
-    t("Each regiment comes in as a block of stands. Fill in any stats the summary marks as missing."),
-  ],
-  "qd6-1": () => [
-    t("Start from a sample army, or bring your own list file (JSON or text). It stays on your device."),
-    t(
-      "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment.",
-    ),
-    t(
-      "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1)).",
-    ),
-    t(
-      "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file.",
-    ),
-    t("Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."),
-  ],
 };
 
 /**

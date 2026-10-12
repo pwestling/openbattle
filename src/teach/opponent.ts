@@ -6,7 +6,6 @@ import {
   freeMoves,
   legal,
   noteTaken,
-  offTurnMoves,
   unitMoves,
   waitingOn,
   withoutWindow,
@@ -55,8 +54,6 @@ export function opponentMove(
     const first = waiting.moves.find((m) => legal(record, state, m));
     return first && mine.has(first.as) ? first : null;
   }
-  // Secret orders (Conquest's command stack) are locked in whoever's turn it is.
-  for (const m of offTurnMoves(state, ctx, [...mine])) if (legal(record, state, m)) return m;
   // The Fight phase goes by the fight order: it takes its pick, even in the learner's turn (PX #57). It
   // doesn't wait on the learner's pick in its own turn, though: a newcomer may not know it's theirs.
   const pick = fightPick(state, mine);

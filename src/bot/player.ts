@@ -46,8 +46,6 @@ export interface BotOptions {
   deepen?: number;
   /** Passes of the dice for each activation and the enemy's answer, in plain activations. */
   replyPasses?: number;
-  /** Conquest's command stack: units nearest the enemy first or last (Sharp: last, so they answer the enemy's moves); shuffled if unset. */
-  stackOrder?: "near" | "far";
   /**
    * "best": a try played as the game review needs it (#63), unset for play.
    * The game's questions (a charge reaction, a pursuit) are answered as the

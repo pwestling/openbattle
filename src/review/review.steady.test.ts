@@ -62,7 +62,7 @@ describe("what the review finds in Steady's play (#61)", () => {
   // Steady weighs every wound alike, so it spreads its shots (Sharp counts finishing a unit off,
   // evaluate.ts SHARP.finish). The review judges as Sharp does: a shot at a fresh unit, when another
   // was down to its last wound, costs; finishing it off is the best on offer.
-  for (const system of ["forty-k-11", "tow-hand"])
+  for (const system of ["forty-k-11"])
     it(`marks a shot that leaves a unit on its last wound (${system})`, async () => {
       const r = await playMatch({ system, seed: 2, mirror: 0 }, (start) => [
         botPolicy("steady", start, 0, { seed: 2 }),

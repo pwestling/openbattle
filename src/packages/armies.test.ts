@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createInitialState, createRecord, stateAt } from "../core";
-import { isArmyList } from "../share/armyList";
+import { armyListRoster, isArmyList } from "../share/armyList";
 import { addPackageMissions, clearPackageMissions, gameModule, missionFrom } from "../systems";
 import { SandboxEngine } from "../sandbox/engine";
 import valid from "../../conformance/package-armies/v1/valid/one-army.js?raw";
@@ -61,19 +61,21 @@ describe("package armies (export const armies)", () => {
 
   it("offers a package's armies for the games they name, labelled with the package", () => {
     const pkgs = [stored(borderMuster, "a".repeat(64)), stored(mixed, "b".repeat(64))];
-    const here = packageArmiesFor(pkgs, "qd6-1");
+    const here = packageArmiesFor(pkgs, "forty-k-11");
     expect(here.map((a) => `${a.list.name} · ${a.from.name}`)).toEqual([
       "Reedmarsh Wardens · Border Muster",
       "Ashford Levy · Border Muster",
-      // No `system`: it goes to the games the package's manifest names.
+    ]);
+    // No `system`: it goes to the games the package's manifest names.
+    expect(packageArmiesFor(pkgs, "qd6-1").map((a) => `${a.list.name} · ${a.from.name}`)).toEqual([
       "Kept · Fixture Armies (mixed)",
     ]);
-    expect(packageArmiesFor(pkgs, "tow")).toEqual([]);
+    expect(packageArmiesFor(pkgs, "other-game")).toEqual([]);
   });
 
-  it("reads a package army with the game's own Army list reader", () => {
-    const [army] = packageArmiesFor([stored(borderMuster, "c".repeat(64))], "qd6-1");
-    const roster = gameModule("qd6-1")!.app!.readArmyList!(army!.list);
+  it("reads a package army with the Army list reader", () => {
+    const [army] = packageArmiesFor([stored(borderMuster, "c".repeat(64))], "forty-k-11");
+    const roster = armyListRoster(army!.list);
     expect(roster.units.map((u) => u.name)).toEqual(["Warden Captain", "Reed Archers"]);
     expect(roster.units[1]!.models).toHaveLength(5);
   });
@@ -81,23 +83,24 @@ describe("package armies (export const armies)", () => {
 
 describe("package missions (an extension's missions)", () => {
   it("an extension adds its missions to the game it extends, beside the game's own, and scores them in the sandbox", async () => {
+    const own = gameModule("forty-k-11")!.app!.missions!.map((m) => m.id);
     const engine = new SandboxEngine(importSource);
     const loaded = await engine.load([{ hash: "d".repeat(64), source: borderMuster }]);
     expect(loaded.errors).toEqual([]);
-    const missions = loaded.packages[0]!.missions?.["qd6-1"];
+    const missions = loaded.packages[0]!.missions?.["forty-k-11"];
     expect(missions?.map((m) => m.id)).toEqual(["border-muster.fording"]);
     expect(missions![0]!.setup.objectives).toEqual([{ id: "ford", position: { x: 0, y: 0 } }]);
     // Data for the app: its code stays in the sandbox.
     expect(JSON.parse(JSON.stringify(missions))).toEqual(missions);
 
-    // The game's own mission is still there, the extension's after it.
-    const ids = gameModule("qd6-1")!.app!.missions!.map((m) => m.id);
-    expect(ids).toEqual(["hold-fast", "border-muster.fording"]);
+    // The game's own missions are still there, the extension's after them.
+    const ids = gameModule("forty-k-11")!.app!.missions!.map((m) => m.id);
+    expect(ids).toEqual([...own, "border-muster.fording"]);
 
     // Chosen at setup, the sandbox works out its setup for the table played on.
     const record = createRecord({
       ...createInitialState(),
-      system: "qd6-1",
+      system: "forty-k-11",
       table: { ...createInitialState().table, width: 60, depth: 44 },
       mission: { id: "border-muster.fording", name: "The Fording" },
     });
@@ -111,7 +114,7 @@ describe("package missions (an extension's missions)", () => {
   it("an extension's mission scores as written: 2 VP at the end of a round to the side holding the ford", async () => {
     const engine = new SandboxEngine(importSource);
     await engine.load([{ hash: "e".repeat(64), source: borderMuster }]);
-    const fording = gameModule("qd6-1")!.app!.missions!.find((m) => m.id === "border-muster.fording")!;
+    const fording = gameModule("forty-k-11")!.app!.missions!.find((m) => m.id === "border-muster.fording")!;
     const base = createInitialState();
     const model = (id: string, owner: string, x: number) => ({
       id,
@@ -141,14 +144,14 @@ describe("package missions (an extension's missions)", () => {
   });
 
   it("an added mission with a game mission's id replaces it, and clearing puts the game's back", () => {
-    const own = gameModule("qd6-1")!.app!.missions!;
+    const own = gameModule("forty-k-11")!.app!.missions!;
     const stand = { ...own[0]!, name: "Replaced" };
-    addPackageMissions("qd6-1", [stand], "f".repeat(64));
-    expect(gameModule("qd6-1")!.app!.missions!.map((m) => m.name)).toEqual(["Replaced"]);
+    addPackageMissions("forty-k-11", [stand], "f".repeat(64));
+    expect(gameModule("forty-k-11")!.app!.missions!.map((m) => m.name)).toContain("Replaced");
     // The picker says which package it came from.
-    expect(missionFrom("qd6-1", stand.id)).toBe("f".repeat(64));
+    expect(missionFrom("forty-k-11", stand.id)).toBe("f".repeat(64));
     clearPackageMissions();
-    expect(gameModule("qd6-1")!.app!.missions).toBe(own);
-    expect(missionFrom("qd6-1", stand.id)).toBeUndefined();
+    expect(gameModule("forty-k-11")!.app!.missions).toBe(own);
+    expect(missionFrom("forty-k-11", stand.id)).toBeUndefined();
   });
 });

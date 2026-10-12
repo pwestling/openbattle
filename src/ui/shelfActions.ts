@@ -17,7 +17,6 @@ import { t } from "../i18n";
 import { useStore } from "../store";
 import { isYellowscribe, toYellowscribe } from "../systems/wh40k/yellowscribe";
 import { parseRosterFile, type ImportedRoster } from "../systems/wh40k/roster";
-import { builderArmyList, isQualityList } from "../systems/qd6/roster";
 import { armyListRoster, isArmyList } from "../share/armyList";
 import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
 
@@ -172,9 +171,9 @@ export async function importArmyFile(file: File): Promise<SavedArmy | string> {
     useShelf.getState().put(army);
     return army;
   }
-  // An Army list v1 file (docs/protocols/army-list.md), or a unit builder's export mapped into one.
-  if (isArmyList(data) || isQualityList(data)) {
-    const list = isArmyList(data) ? data : builderArmyList(data, file.name.replace(/\..*$/, ""));
+  // An Army list v1 file (docs/protocols/army-list.md).
+  if (isArmyList(data)) {
+    const list = data;
     const { gameModule } = await import("../systems");
     const system = list.system && gameModule(list.system) ? list.system : DEFAULT_SYSTEM;
     const roster = gameModule(system)?.app?.readArmyList?.(list) ?? armyListRoster(list);

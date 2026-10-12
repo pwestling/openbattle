@@ -15,23 +15,22 @@ export const manifest = {
   author: "Open Battle examples",
   api: 1,
   kind: "extension",
-  systems: ["qd6"],
+  systems: ["forty-k"],
   requires: [],
-  adds: "Two invented warbands and a mission, the Fording, for Quality d6.",
+  adds: "Two invented warbands and a mission, the Fording, for the sci-fi battle.",
 };
 
 export const armies = [
   {
     format: "open-battle/army-list@1",
     name: "Reedmarsh Wardens",
-    system: "qd6-1",
+    system: "forty-k-11",
     units: [
       {
         name: "Warden Captain",
         size: 1,
         points: 60,
-        characteristics: { Q: "3+", D: "4+" },
-        rules: ["Hero", { name: "Tough", rating: 3 }],
+        characteristics: { M: "6\"", T: "4", Sv: "3+", W: "3", Ld: "6+", OC: "1" },
         base: { shape: "round", diameterMm: 32 },
         weapons: [{ name: "Reed Glaive", characteristics: { A: 3, AP: 1 } }],
       },
@@ -39,7 +38,7 @@ export const armies = [
         name: "Reed Archers",
         size: 5,
         points: 75,
-        characteristics: { Q: "4+", D: "5+" },
+        characteristics: { M: "6\"", T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "1" },
         weapons: [
           { name: "Longbow", range: 24, characteristics: { A: 1 } },
           { name: "Knife", kind: "melee", characteristics: { A: 1 } },
@@ -50,22 +49,20 @@ export const armies = [
   {
     format: "open-battle/army-list@1",
     name: "Ashford Levy",
-    system: "qd6-1",
+    system: "forty-k-11",
     units: [
       {
         name: "Levy Spears",
         size: 10,
         points: 90,
-        characteristics: { Q: "5+", D: "5+" },
-        rules: ["Fearless"],
+        characteristics: { M: "6\"", T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "2" },
         weapons: [{ name: "Spear", characteristics: { A: 1 } }],
       },
       {
         name: "Ford Riders",
         size: 3,
         points: 80,
-        characteristics: { Q: "4+", D: "4+" },
-        rules: ["Fast", { name: "Impact", rating: 1 }],
+        characteristics: { M: "10\"", T: "4", Sv: "4+", W: "2", Ld: "7+", OC: "1" },
         base: { shape: "oval", widthMm: 60, depthMm: 35 },
         weapons: [{ name: "Lance", characteristics: { A: 2, AP: 1 } }],
       },

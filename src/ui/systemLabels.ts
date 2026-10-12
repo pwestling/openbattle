@@ -21,46 +21,6 @@ export const FRONT: Record<string, { title: string; blurb: string; army: string 
       return t("squads");
     },
   },
-  "fsd-1.7": {
-    title: "Full Spectrum Dominance", // i18n-ignore
-    get blurb() {
-      return t("Fast sci-fi with alternating activations: one unit each, back and forth.");
-    },
-    get army() {
-      return t("units");
-    },
-  },
-  "tow-hand": {
-    get title() {
-      return t("Rank and flank");
-    },
-    get blurb() {
-      return t("Fantasy regiments in blocks: wheel, charge and hold the line. You roll, the table measures.");
-    },
-    get army() {
-      return t("regiments");
-    },
-  },
-  "conquest-hand": {
-    title: "Conquest", // i18n-ignore
-    get blurb() {
-      return t("Regiments by hand, a card stack for activations, clash and volley.");
-    },
-    get army() {
-      return t("regiments");
-    },
-  },
-  "qd6-1": {
-    get title() {
-      return t("Quality d6");
-    },
-    get blurb() {
-      return t("Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out.");
-    },
-    get army() {
-      return t("units");
-    },
-  },
 };
 
 /** A game's name on screen: the front-door title for a built-in game, otherwise its own. */

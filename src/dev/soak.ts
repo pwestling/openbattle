@@ -101,7 +101,7 @@ export const soakBrowser = {
         type: "settings/set",
         settings: { clock: { minutes: 60, roundMinutes: 15, gameMinutes: 150 } },
       });
-    if (role === "host" && system === "tow-hand")
+    if (role === "host" && system === "forty-k-11")
       useStore.getState().dispatch({
         type: "game/packages",
         app: "soak",

@@ -11,7 +11,7 @@ export const manifest = {
   author: "Open Battle examples",
   api: 1,
   kind: "extension",
-  systems: ["forty-k", "tow", "conquest-hand", "fsd"],
+  systems: ["forty-k"],
   requires: [],
   adds: "Campaign rules: experience after each game (1 for surviving, 1 for taking enemies down), Veteran at 3, and a D6 for a scar when a unit is wiped out.",
 };

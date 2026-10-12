@@ -19,7 +19,7 @@ export function soakSuite(system: string, teamSize: 1 | 2 = 1): void {
     it(
       `${system}${teamSize > 1 ? " 2v2" : ""} seed ${seed}`,
       async () => {
-        const r = await soak({ system, seed, teamSize, pkg: { source: secondWind, systems: ["tow-hand"] } });
+        const r = await soak({ system, seed, teamSize, pkg: { source: secondWind, systems: ["forty-k-11"] } });
         if (!r.ok)
           console.error(
             `SOAK FAIL ${system}${teamSize > 1 ? " 2v2" : ""} seed ${seed} (replay: SOAK_FROM=${seed} SOAK_SEEDS=1): ${r.failures.join("; ")}\n  trouble: ${r.trouble.join(", ")}`,

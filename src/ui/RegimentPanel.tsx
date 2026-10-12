@@ -135,9 +135,7 @@ export function RegimentPanel({ unit }: { unit: Unit }) {
   const rearCount = alive - (summary.ranks - 1) * summary.files;
   const cost = (share: number) => (summary.move === null ? 0 : summary.move * share);
   const fighting = game.turn.round > 0;
-  // Drilled: a free redress before the block has moved.
-  const freeRedress = summary.drilled && used < 0.05 && manoeuvres.length === 0;
-  const redressDistance = freeRedress ? 0 : cost(summary.redressCost);
+  const redressDistance = cost(summary.redressCost);
   const slowTitle =
     summary.slow > 1
       ? t("Half rate: costs {distance}", { distance: inchText(ahead * summary.slow) })
@@ -359,19 +357,10 @@ export function RegimentPanel({ unit }: { unit: Unit }) {
               </label>
               {redress && (
                 <button
-                  title={
-                    freeRedress
-                      ? t(
-                          "Add or remove up to {max} models from the front rank; free before moving (Drilled)",
-                          {
-                            max: summary.redressMax,
-                          },
-                        )
-                      : t("Add or remove up to {max} models from the front rank; costs {distance}", {
-                          max: summary.redressMax,
-                          distance: inchText(redressDistance),
-                        })
-                  }
+                  title={t("Add or remove up to {max} models from the front rank; costs {distance}", {
+                    max: summary.redressMax,
+                    distance: inchText(redressDistance),
+                  })}
                   onClick={() => {
                     form(frontage, 0, "redress", redressDistance);
                     setFiles(null);
@@ -428,7 +417,7 @@ function MovedLine({
   const allowed = marching && marchTest !== false ? budget.march : budget.move;
   const over = allowed !== null && used > allowed + 0.05;
   const marchNear =
-    marching && marchTest === null && !budget.drilled && budget.nearestEnemy < budget.marchBlock;
+    marching && marchTest === null && budget.nearestEnemy < budget.marchBlock;
   const tooMany = budget.manoeuvreLimit > 0 && manoeuvres.length > budget.manoeuvreLimit;
   const marchManoeuvre = marching && manoeuvres.length > 0;
   return (

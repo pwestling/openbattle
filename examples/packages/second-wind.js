@@ -1,5 +1,5 @@
 // An example rules package for Open Battle: one invented rule, written as
-// code, added to the built-in hand-played Old World system. It is plain
+// code, added to the built-in sci-fi battle system. It is plain
 // JavaScript with no imports, so it can be loaded as it is (Rules packages
 // → Load a package file). See docs/packages.md for how packages work.
 
@@ -15,9 +15,9 @@ export const manifest = {
   author: "Open Battle examples",
   api: 1,
   kind: "extension",
-  systems: ["tow"],
+  systems: ["forty-k"],
   requires: [],
-  adds: "Second wind: once per battle, in the Strategy phase, a battered unit may roll a D6 for each fallen model; each 6 gets back up.",
+  adds: "Second wind: once per battle, in the Command phase, a battered unit may roll a D6 for each fallen model; each 6 gets back up.",
 };
 
 const used = (unitId) => `secondWind:${unitId}`;
@@ -59,7 +59,7 @@ export default {
       id: "secondWind",
       name: "Second wind",
       by: "unit",
-      phases: ["strategy"],
+      phases: ["command"],
       // Only units that have lost someone see it.
       applies: (view, actor) =>
         view.state.units[actor.unitId].modelIds.some((id) => view.state.models[id].destroyed),

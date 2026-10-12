@@ -31,7 +31,6 @@ import { simultaneousNow, waitingFor } from "../core/content/simultaneous";
 import { gameView } from "../core/script";
 import { pendingScores } from "../missions/scoring";
 import { gameModule, systemModule } from "../systems";
-import { cardKey, nextCard, stackOf } from "../systems/conquest/command";
 import type { CodeAction } from "../sdk";
 import { undoGroup } from "../ui/gameLog";
 
@@ -378,13 +377,6 @@ export function* freeMoves(state: GameState, ctx: BotContext): Generator<BotMove
       yield { intent: { type: "turn/next" }, as: p.id, kind: "next" };
     return;
   }
-
-  // Conquest-style command stacks: lock in an order, then draw from it.
-  yield* commandStack(
-    state,
-    ctx,
-    side.map((p) => p.id),
-  );
 
   // Dice placed on cards ahead of time (FSD), now and then, while placing is open.
   const pool = placeablePool(systemOf(state));
@@ -887,57 +879,6 @@ function nearestEnemy(state: GameState, u: Unit, cx: number, cy: number): { x: n
     if (d < dist) [best, dist] = [{ x, y }, d];
   }
   return best;
-}
-
-/** Moves a side makes outside its own turn: locking in its command stack for the round. */
-export function offTurnMoves(state: GameState, ctx: BotContext, players: PlayerId[]): BotMove[] {
-  return commandStack(state, ctx, players).filter((m) => m.kind === "stack");
-}
-
-/** Conquest's command stack (systems/conquest/command.ts): commit one this round, then draw the top card. */
-export function commandStack(state: GameState, ctx: BotContext, players: PlayerId[]): BotMove[] {
-  if (state.system !== "conquest-hand") return [];
-  const out: BotMove[] = [];
-  for (const p of players) {
-    const stack = stackOf(state, p);
-    if (!stack) {
-      const ids = shuffle(
-        ctx.rng,
-        Object.values(state.units)
-          .filter((u) => u.owner === p && isAlive(state, u))
-          .map((u) => u.id),
-      );
-      if (!ids.length || (!ctx.tidy && ctx.rng() < 0.3)) continue;
-      out.push({
-        intent: {
-          type: "secret/commit",
-          player: p,
-          secrets: ids.map((id, i) => ({ key: cardKey(state.turn.round, i), commitment: keep(ctx, id) })),
-          label: "their command stack",
-        },
-        as: p,
-        kind: "stack",
-      });
-      continue;
-    }
-    // Draw only when the last card drawn has had its turn and nobody is mid-activation.
-    const top = nextCard(state, stack);
-    const k = top && top.unitId === undefined ? ctx.kept.get(top.commitment) : undefined;
-    if (top && k && !actingUnits(state).length)
-      out.push({
-        intent: {
-          type: "secret/reveal",
-          player: p,
-          key: top.key,
-          value: k.value,
-          salt: k.salt,
-          label: "their command card",
-        },
-        as: p,
-        kind: "draw",
-      });
-  }
-  return out;
 }
 
 /** The Undo button: a player takes back their own last move (a whole attack at once), as the panel offers it. */

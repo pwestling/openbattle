@@ -1,4 +1,4 @@
-import { aliveModels, isAlive } from "../core/units";
+import { aliveModels } from "../core/units";
 import { closeDoor, unitGap } from "../core/manoeuvre";
 import { inchesPerUnit } from "../core/content/runtime";
 import {
@@ -23,11 +23,9 @@ import { gameModule } from "../systems";
 import type { CodeAction } from "../sdk";
 import {
   chargeMove,
-  commandStack,
   freeMoves,
   legal,
   noteTaken,
-  offTurnMoves,
   perches,
   phaseKey,
   pointless,
@@ -118,7 +116,6 @@ export class Thinker implements Policy, Analyst {
   private readonly deepen: number;
   /** Sharp, in plain activations: passes of the dice for each activation and the enemy's answer. */
   private readonly replyPasses: number;
-  private readonly stackOrder?: "near" | "far";
   private readonly answers?: "best";
   private readonly weigh: BotContext;
 
@@ -159,7 +156,6 @@ export class Thinker implements Policy, Analyst {
     this.planPasses = opts.planPasses ?? 3;
     this.deepen = opts.deepen ?? (sharp ? 2 : 0);
     this.replyPasses = opts.replyPasses ?? 3;
-    this.stackOrder = opts.stackOrder ?? (sharp ? "far" : undefined);
     if (opts.answers) this.answers = opts.answers;
     this.weigh = { ...ctx, weighing: true };
   }
@@ -365,17 +361,11 @@ export class Thinker implements Policy, Analyst {
         null,
       );
     }
-    // Secret orders (Conquest's command stack) are locked in whoever's turn it is.
-    for (const m of offTurnMoves(state, this.ctx, [...mine]))
-      if (legal(record, state, m)) return this.stacked(state, m);
     const phase = phaseKey(state);
     if (this.done.phase !== phase) this.done = { phase, keys: new Set(), decisions: 0 };
     // The 40k Fight phase in the enemy's turn: our picks in the fight order are ours to make.
     if (state.turn.activeSeat !== this.seat) return this.theirFight(record, state, mine);
     this.done.decisions++;
-    // Drawing the next command card (Conquest): there's nothing to weigh.
-    for (const m of commandStack(state, this.ctx, [...mine]))
-      if (m.kind === "draw" && legal(record, state, m)) return m;
     const onward = this.onward(record, state, mine);
     if (this.done.decisions > 120) return onward;
     let candidates = this.candidates(state, mine).filter((c) => !c.key || !this.done.keys.has(c.key));
@@ -886,30 +876,6 @@ export class Thinker implements Policy, Analyst {
     let best = options[fallback ? 1 : 0]!;
     for (const o of options) if (o.sum > best.sum) best = o;
     return best.move;
-  }
-
-  /** The command stack in the order asked for: the same cards, sorted by how near each unit is to the enemy. */
-  private stacked(state: GameState, m: BotMove): BotMove {
-    const i = m.intent as { secrets?: { key: string; commitment: string }[] };
-    if (!this.stackOrder || !i.secrets) return m;
-    const gap = (id: string): number => {
-      const u = state.units[id];
-      let best = Infinity;
-      if (u)
-        for (const e of Object.values(state.units))
-          if (e.owner !== u.owner && isAlive(state, e)) best = Math.min(best, unitGap(state, u, e));
-      return best;
-    };
-    const cards = i.secrets.map((c) => ({ c, gap: gap(String(this.ctx.kept.get(c.commitment)?.value)) }));
-    const sign = this.stackOrder === "far" ? -1 : 1;
-    const sorted = [...cards].sort((a, b) => sign * (a.gap - b.gap));
-    return {
-      ...m,
-      intent: {
-        ...m.intent,
-        secrets: i.secrets.map((c, n) => ({ key: c.key, commitment: sorted[n]!.c.commitment })),
-      },
-    } as BotMove;
   }
 
   /** A side's acting unit's activation played to its end: its best next action while one helps, then ending it. */

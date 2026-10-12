@@ -5,7 +5,6 @@ import { t } from "../i18n";
 import { sha256 } from "../packages/manifest";
 import { rawLink } from "../packages/packPins";
 import { isYellowscribe } from "../systems/wh40k/yellowscribe";
-import { isQualityList } from "../systems/qd6/roster";
 import { ARMY_LIST_FORMAT } from "./armyList";
 import { decrypt, fetchMagnet, isEncrypted, magnetHash, splitKey } from "./torrent";
 
@@ -62,8 +61,8 @@ export function sharedKind(data: unknown): SharedKind | null {
     case "open-battle/record@1":
       return "replay";
   }
-  // Lists from other tools, by their shape: Yellowscribe, and a unit builder's export of Quality d6 units.
-  return isYellowscribe(data) || isQualityList(data) ? "army" : null;
+  // Lists from other tools, by their shape: Yellowscribe.
+  return isYellowscribe(data) ? "army" : null;
 }
 
 /**

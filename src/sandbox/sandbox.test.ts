@@ -14,8 +14,7 @@ import { evalCtx } from "../core/content/play";
 import { getSystem, restoreSystems } from "../core/content/systems";
 import { currentSlot, systemOf } from "../core/content/turn";
 import "../systems";
-import { conquestModule } from "../systems/conquest/module";
-import { towModule } from "../systems/tow/module";
+import { wh40kModule } from "../systems/wh40k/module";
 import { spawnIntents } from "../systems/wh40k/deploy";
 import { SandboxEngine } from "./engine";
 import { seededRng } from "./protocol";
@@ -79,45 +78,14 @@ function table(system: string, sample: (seat: 0 | 1) => { units: Parameters<type
 }
 
 describe("the package sandbox", () => {
-  it("resolves every built-in code procedure exactly as the app does (parity)", () => {
-    let ran = 0;
-    for (const mod of [towModule, conquestModule]) {
-      const ids = [...Object.keys(mod.procedures ?? {}), ...(mod.actions ?? []).map((a) => a.id)];
-      const t = table(mod.system.id, (seat) => mod.app!.sample(seat));
-      const mine = Object.values(t.state.units).filter((u) => u.owner === "p1");
-      const theirs = Object.values(t.state.units).filter((u) => u.owner === "p2");
-      for (let round = 0; round < 3; round++) {
-        if (round) t.play({ type: "turn/next" }, "p1");
-        for (const id of ids) {
-          const args = {
-            unit: mine[0]!.id,
-            target: theirs[0]!.id,
-            player: "p1",
-            order: "march",
-            first: "p1",
-          };
-          t.play({ type: "script/start", procedure: id, args }, "p1");
-          // Answer every question with each option in turn until the procedure ends.
-          for (let q = 0; t.state.script?.waiting && q < 10; q++) {
-            const w = t.state.script.waiting;
-            t.play({ type: "script/answer", answer: w.options[q % w.options.length]!.id }, w.player);
-          }
-          if (t.state.script) throw new Error(`${id} didn't finish`);
-          ran++;
-        }
-      }
-    }
-    expect(ran).toBeGreaterThan(10);
-  });
-
   it("runs a package's code: the example Second Wind brings fallen models back", async () => {
-    const t = table("tow-hand", (seat) => towModule.app!.sample(seat));
+    const t = table("forty-k-11", (seat) => wh40kModule.app!.sample(seat));
     const loaded = await t.sandbox.load([{ hash: "h", source: secondWind }]);
     expect(loaded.errors).toEqual([]);
-    expect(loaded.packages[0]).toMatchObject({ systems: ["tow-hand"], actions: ["secondWind"] });
+    expect(loaded.packages[0]).toMatchObject({ systems: ["forty-k-11"], actions: ["secondWind"] });
 
     const unit = Object.values(t.state.units).find((u) => u.owner === "p1" && u.modelIds.length >= 10)!;
-    for (let r = 0; r < 4 && (t.state.turn.round === 0 || currentSlot(t.state)?.id !== "strategy"); r++)
+    for (let r = 0; r < 4 && (t.state.turn.round === 0 || currentSlot(t.state)?.id !== "command"); r++)
       t.play({ type: "turn/next" }, "p1");
     // Not offered while nobody has fallen.
     expect(t.sandbox.unitActions(unit.id, "p1")).toEqual([]);
@@ -149,7 +117,7 @@ describe("the package sandbox", () => {
   });
 
   it("loads campaign rules: the example Battle Scars hooks before and after a game", async () => {
-    const t = table("tow-hand", (seat) => towModule.app!.sample(seat));
+    const t = table("forty-k-11", (seat) => wh40kModule.app!.sample(seat));
     const loaded = await t.sandbox.load([{ hash: "bs0123456789", source: battleScars }]);
     expect(loaded.errors).toEqual([]);
     expect(loaded.packages[0]!.hooks).toEqual({
@@ -183,31 +151,31 @@ describe("the package sandbox", () => {
   });
 
   it("loads a package's data rules, functions and turn hooks", async () => {
-    const t = table("tow-hand", (seat) => towModule.app!.sample(seat));
-    const source = `export const manifest = { id: "t.data", name: "Data", version: "1.0.0", api: 1, kind: "extension", systems: ["tow"], requires: [] };
+    const t = table("forty-k-11", (seat) => wh40kModule.app!.sample(seat));
+    const source = `export const manifest = { id: "t.data", name: "Data", version: "1.0.0", api: 1, kind: "extension", systems: ["forty-k"], requires: [] };
       export default {
         rules: [{ id: "steady", name: "Steady", effects: [] }],
         functions: { twice: (view, n) => n * 2 },
-        hooks: { phaseStart: { strategy: function* (ctx) { yield ctx.note("strategy hook"); } } },
+        hooks: { phaseStart: { command: function* (ctx) { yield ctx.note("command hook"); } } },
       };`;
     const loaded = await t.sandbox.load([{ hash: "abcdef0123", source }]);
     expect(loaded.errors).toEqual([]);
     const pkg = loaded.packages[0]!;
     expect(pkg.data.rules?.map((r) => r.id)).toEqual(["steady"]);
-    expect(pkg.hooks).toEqual({ phaseStart: { strategy: ["hook:abcdef01:phaseStart:strategy"] } });
-    expect(pkg.procedures).toContain("hook:abcdef01:phaseStart:strategy");
-    expect(getSystem("tow-hand").rules.some((r) => r.id === "steady")).toBe(true);
+    expect(pkg.hooks).toEqual({ phaseStart: { command: ["hook:abcdef01:phaseStart:command"] } });
+    expect(pkg.procedures).toContain("hook:abcdef01:phaseStart:command");
+    expect(getSystem("forty-k-11").rules.some((r) => r.id === "steady")).toBe(true);
     const state = t.state;
     expect(evaluate({ call: "twice", args: [21] }, evalCtx(state, systemOf(state), {}))).toBe(42);
     // The hook runs as the procedure it was registered under.
-    t.playBoxed({ type: "script/start", procedure: pkg.hooks.phaseStart!.strategy![0]!, args: {} }, "p1");
+    t.playBoxed({ type: "script/start", procedure: pkg.hooks.phaseStart!.command![0]!, args: {} }, "p1");
     const last = t.record.events.at(-1)!.event;
     expect(
       last.type === "script/step" &&
-        last.events.some((e) => e.type === "log/note" && e.text === "strategy hook"),
+        last.events.some((e) => e.type === "log/note" && e.text === "command hook"),
     ).toBe(true);
     restoreSystems();
-    expect(getSystem("tow-hand").rules.some((r) => r.id === "steady")).toBe(false);
+    expect(getSystem("forty-k-11").rules.some((r) => r.id === "steady")).toBe(false);
   });
 
   it("loads a whole game from a package: its system, samples, code and hooks", async () => {

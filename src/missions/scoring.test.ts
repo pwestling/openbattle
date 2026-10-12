@@ -13,7 +13,6 @@ import {
 import { systemOf } from "../core/content/turn";
 import { spawnIntents } from "../systems/wh40k/deploy";
 import { wh40kModule } from "../systems/wh40k/module";
-import { towModule } from "../systems/tow/module";
 import type { Mission } from "../sdk";
 import { momentMatches, pendingScores, vpByRound } from "./scoring";
 import { commitmentOf } from "../core/secrets";
@@ -111,27 +110,6 @@ describe("missions and scoring", () => {
       ),
     ).toBeNull();
     expect(stateAt(r).resources.p1?.VP).toBe(5);
-  });
-
-  it("scores the Old World mission once, at the end of the battle", () => {
-    const mission = towModule.app!.missions![0]!;
-    let r = game(towModule, mission);
-    const rounds = systemOf(stateAt(r)).turn.rounds as number;
-    // Ben's whole army is destroyed before the end.
-    const ben = Object.values(stateAt(r).units).filter((u) => u.owner === "p2");
-    for (let i = 0; i < 200 && stateAt(r).turn.round <= rounds; i++) {
-      expect(pendingScores(r, stateAt(r), mission)).toEqual([]);
-      r = host(r, { type: "turn/next" }, "p1");
-      if (stateAt(r).turn.round === 1 && ben.length) {
-        for (const u of ben.splice(0))
-          for (const id of u.modelIds)
-            r = host(r, { type: "model/wounds", id, woundsLost: 1, destroyed: true }, "p2");
-      }
-    }
-    const pending = pendingScores(r, stateAt(r), mission);
-    expect(pending.map((p) => p.key)).toEqual([`victory:${rounds}:0`, `victory:${rounds}:1`]);
-    expect(pending[0]!.vp).toBeGreaterThan(0);
-    expect(pending[1]!.vp).toBe(0);
   });
 
   it("scores a card revealed in play, not one turned up after the battle, and logs both by name", () => {

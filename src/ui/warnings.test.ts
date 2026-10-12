@@ -87,7 +87,7 @@ describe("tableWarnings", () => {
     expect(tableWarnings(beside.state).some((w) => w.checkId === "throughEnemies")).toBe(false);
   });
 
-  for (const system of ["forty-k-11", "fsd-1.7"]) {
+  for (const system of ["forty-k-11"]) {
     it(`${system}: quiet on a fresh table, then flags a stray model`, () => {
       const s = setup(system);
       expect(tableWarnings(s)).toEqual([]);
