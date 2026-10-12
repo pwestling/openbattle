@@ -81,7 +81,7 @@ import {
   MoveLabel,
   SimpleLabel,
 } from "./boardLabels";
-import { InchGrid, ZoneShape, Terrain, ObjectiveMarker } from "./TablePieces";
+import { feltTexture, InchGrid, ZoneShape, Terrain, ObjectiveMarker } from "./TablePieces";
 import { Ring, Ghost, ModelOverlay, faded } from "./ModelOverlay";
 
 /**
@@ -103,8 +103,35 @@ export function Board() {
       }}
     >
       <color attach="background" args={["#111318"]} />
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[20, 40, 10]} intensity={1.3} castShadow shadow-mapSize={[2048, 2048]} />
+      {NEXT ? (
+        // One warm key light with soft shadows over the whole table, and a sky fill (Jobs review: light it).
+        <>
+          <hemisphereLight args={["#fff2df", "#1d2216", 0.6]} />
+          <ambientLight intensity={0.2} />
+          <directionalLight
+            position={[-18, 46, 24]}
+            color="#ffe3bd"
+            intensity={2}
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+            shadow-camera-left={-45}
+            shadow-camera-right={45}
+            shadow-camera-top={35}
+            shadow-camera-bottom={-35}
+            shadow-bias={-0.0004}
+          />
+        </>
+      ) : (
+        <>
+          <ambientLight intensity={0.7} />
+          <directionalLight
+            position={[20, 40, 10]}
+            intensity={1.3}
+            castShadow
+            shadow-mapSize={[2048, 2048]}
+          />
+        </>
+      )}
       <Cameras />
       <CameraFit />
       <Scene />
@@ -283,7 +310,11 @@ function CameraFit() {
   }, [reset]);
   const target = useMemo(() => {
     const middle = size.height / 2;
-    if (view === "eye" || !started) return { zoom: 1, centre: size.width / 2, middle };
+    if (view === "eye") return { zoom: 1, centre: size.width / 2, middle };
+    // The new layout's game: the table fills the frame between the strip and the step bar (Jobs review).
+    if (next && !left && size.width >= PHONE_WIDTH && size.width >= size.height)
+      return { zoom: 0.92, centre: size.width / 2, middle: size.height * 0.44 };
+    if (!started) return { zoom: 1, centre: size.width / 2, middle };
     // An upright phone's unit card is a sheet over the lower half, right where your own units stand: the
     // table sits in the upper part instead, so a selected unit can still be dragged (dogfood round 2).
     if (size.width < PHONE_WIDTH && size.width < size.height)
@@ -1690,9 +1721,14 @@ function Scene() {
         }}
       >
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color="#4b5a3a" />
+        {NEXT ? (
+          <meshStandardMaterial color="#62744a" map={feltTexture(width, depth)} roughness={0.95} />
+        ) : (
+          <meshStandardMaterial color="#4b5a3a" />
+        )}
       </mesh>
-      <InchGrid width={width} depth={depth} />
+      {/* The new layout keeps the grid to top-down (Jobs review): the felt reads as a table, not graph paper. */}
+      {(!NEXT || view === "top") && <InchGrid width={width} depth={depth} />}
       {(editing || game.turn.round === 0) && <Sightlines game={game} />}
       {/* In a team game each teammate's share of the side's zone shows in their own colour. */}
       {game.zones.flatMap((z) => {

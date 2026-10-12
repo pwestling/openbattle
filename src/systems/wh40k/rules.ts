@@ -108,7 +108,7 @@ export function weaponReach(weapon: {
   kind: "ranged" | "melee";
   chars: Record<string, string>;
 }): number | null {
-  if (weapon.kind === "melee") return 1;
+  if (weapon.kind === "melee") return ENGAGEMENT_RANGE;
   const n = parseFloat(weapon.chars.RANGE ?? "");
   return Number.isFinite(n) ? n : null;
 }

@@ -4,7 +4,6 @@ import { aliveModels, suggestAttack } from "../systems/wh40k/rules";
 import { useStore } from "../store";
 import { t } from "../i18n";
 import { sendVolley } from "../talk/talk";
-import { NEXT } from "../next/flag";
 
 /**
  * "Shoot everything at…" (UX 398): a unit's ranged weapons, one attack each,
@@ -28,14 +27,7 @@ try {
   // Blocked storage has nothing to clear.
 }
 
-/**
- * `roll`: the new layout's Shoot press rolls the attack it declares, every stage (Jobs review: "Tap the
- * enemy. Press Shoot. Watch."). Each next weapon of a volley rolls on the press that clears the last.
- */
-export const useVolley = create<{ queue: Volley | null; roll: boolean }>(() => ({
-  queue: null,
-  roll: false,
-}));
+export const useVolley = create<{ queue: Volley | null }>(() => ({ queue: null }));
 
 /**
  * The unit's ranged weapons against the target: those that can fire now (models in range and in
@@ -73,7 +65,7 @@ export function fireNext(): void {
     const s = suggestAttack(game, q.attackerId, next!, q.targetId);
     if (!s || s.inRange === 0) continue;
     // Kept with none left while the last one fires, so it reads "Weapon 3 of 3"; it ends when that's done.
-    useVolley.setState({ queue: { ...q, weapons: more }, roll: NEXT });
+    useVolley.setState({ queue: { ...q, weapons: more } });
     dispatch({ type: "attack/declare", spec: s.spec }, attacker.owner);
     return;
   }

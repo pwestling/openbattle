@@ -147,9 +147,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 6px 5px 12px;
-  border: 1px dashed var(--obn-line);
-  border-radius: 10px;
 }
 .obn-invite label {
   display: flex;
@@ -158,7 +155,7 @@
   color: var(--obn-muted);
 }
 .obn-invite input {
-  width: 15rem;
+  width: 12rem;
   background: var(--obn-felt);
   padding: 6px 10px;
 }
@@ -986,4 +983,10 @@ body:has(.obn-game) .table-tag.ok {
   cursor: pointer;
   color: var(--obn-muted);
   margin: 6px 0 2px;
+}
+
+/* The table under a soft vignette (Jobs review: light it). The canvas fades to the page at its edges. */
+.obn-game > div:first-child canvas {
+  -webkit-mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 62%, rgb(0 0 0 / 55%) 100%);
+  mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 62%, rgb(0 0 0 / 55%) 100%);
 }

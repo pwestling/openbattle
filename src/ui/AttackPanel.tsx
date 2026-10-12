@@ -15,6 +15,7 @@ import {
 import {
   aliveModels,
   carriers,
+  engagedWith,
   mainWeapon,
   suggestAttack,
   unitDistance,
@@ -37,7 +38,6 @@ import { TableAttackSetup } from "../companion/TableAttack";
 import { fireNext, useVolley, volleyWeapons } from "./volley";
 import { useTalk } from "../talk/talk";
 import { NEXT } from "../next/flag";
-import { useReactionHeld } from "./reactionHold";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
 
 /**
@@ -65,6 +65,12 @@ function BoardAttackSetup({ draft }: { draft: AttackDraft }) {
   const game = useGame();
   const { setDraft, dispatch } = useStore();
   const attacker = game.units[draft.attackerId];
+  // A fight with one enemy in reach fights it: nothing to ask (Jobs review). Two or more, the player picks.
+  useEffect(() => {
+    if (!NEXT || draft.kind !== "melee" || draft.targetId || !attacker) return;
+    const foes = engagedWith(game, attacker);
+    if (foes.length === 1) setDraft({ ...draft, targetId: foes[0], picking: false });
+  }, [draft, attacker, game, setDraft]);
   if (!attacker) return null;
   const weapons = Object.values(attacker.sheet?.weapons ?? {})
     .filter((w) => w.kind === draft.kind)
@@ -188,7 +194,6 @@ function BoardAttackSetup({ draft }: { draft: AttackDraft }) {
           key={`${weaponId}|${draft.targetId}`}
           suggestion={suggestion}
           onDeclare={(spec) => {
-            if (NEXT) useVolley.setState({ roll: true });
             dispatch({ type: "attack/declare", spec }, attacker.owner);
             setDraft(null);
             focusSoon(".panel.attack .attack-roll");
@@ -457,28 +462,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
     const count = savesTheirs ? (attack.stage === "hit" ? 2 : 1) : remaining;
     for (let i = 0; i < count; i++) dispatch({ type: "attack/roll" }, roller);
   };
-  // The press that declared this attack rolls it too, in the new layout (one press per shot), unless
-  // the other player may react first (#80).
-  const held = useReactionHeld();
-  // The dice still landing on screen after one press rolled them: nothing more to press yet.
-  const landing = useStore((s) => s.game.attack?.stage) !== attack.stage;
-  const rollsNow =
-    NEXT &&
-    !held &&
-    canAct &&
-    !botRolls &&
-    !theirs &&
-    !waiting &&
-    !ownDice &&
-    !shake &&
-    attack.stage !== "done";
-  useEffect(() => {
-    if (!useVolley.getState().roll) return;
-    useVolley.setState({ roll: false });
-    if (rollsNow) rollAll();
-    // Only on the attack's first showing: later stages roll on their own press.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
   // Shot at by a person (#81): what's coming. Your dice roll only when you press Roll (Porter, 2026-10-12).
   const defending =
     live &&
@@ -622,19 +605,10 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
                   roll={() => dispatch({ type: "attack/roll" }, roller)}
                 />
               )}
-              {NEXT && !ownDice && !shake ? (
-                // One press rolls the rest of it, stopping only for another person's saves.
-                !landing && (
-                  <button className="primary attack-roll" disabled={held} onClick={rollAll}>
-                    {savesTheirs ? t("Roll hits and wounds") : t("Roll the dice")}
-                  </button>
-                )
-              ) : (
-                <RollButton className="primary attack-roll" intent={{ type: "attack/roll" }} as={roller}>
-                  {stageLabel(attack.stage)}
-                </RollButton>
-              )}
-              {!NEXT && !botAttacks && !ownDice && (
+              <RollButton className="primary attack-roll" intent={{ type: "attack/roll" }} as={roller}>
+                {stageLabel(attack.stage)}
+              </RollButton>
+              {!botAttacks && !ownDice && (
                 <button onClick={rollAll}>
                   {savesTheirs ? t("Roll hits and wounds") : t("Roll everything")}
                 </button>
