@@ -1,0 +1,2847 @@
+<title>Open Battle Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+/>
+<style>
+  /* Layout concept: a drafting table. One diagram per level, ruled like a plan; a notes column
+     under it says what the level is for, what to open first and what must stay true. */
+  :root {
+    --bg: #e9edf2;
+    --surface: #fafbfc;
+    --fill: #ffffff;
+    --fill-zoom: #eaf1fb;
+    --ink: #16202c;
+    --muted: #556272;
+    --line: #8795a6;
+    --rule: #cdd5de;
+    --accent: #1e5cb8;
+    --warn: #9a5200;
+    --warn-bg: #fbf0e0;
+    --plan-bg: #eef3ff;
+    --sel: #ffe9a8;
+    --font: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e141b;
+      --surface: #151d27;
+      --fill: #1a2431;
+      --fill-zoom: #1b2b42;
+      --ink: #e5ebf2;
+      --muted: #98a5b5;
+      --line: #607082;
+      --rule: #2a3544;
+      --accent: #7db0ff;
+      --warn: #e6a653;
+      --warn-bg: #2b2112;
+      --plan-bg: #182640;
+      --sel: #5a4a14;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e141b;
+    --surface: #151d27;
+    --fill: #1a2431;
+    --fill-zoom: #1b2b42;
+    --ink: #e5ebf2;
+    --muted: #98a5b5;
+    --line: #607082;
+    --rule: #2a3544;
+    --accent: #7db0ff;
+    --warn: #e6a653;
+    --warn-bg: #2b2112;
+    --plan-bg: #182640;
+    --sel: #5a4a14;
+    color-scheme: dark;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    padding-inline: 16px;
+    padding-block: 16px 40px;
+  }
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    display: grid;
+    gap: 14px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  header p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    max-width: 70ch;
+  }
+  .bar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--bg);
+    padding-block: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    border-bottom: 1px solid var(--rule);
+  }
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+  }
+  .crumbs button,
+  .btn {
+    font: inherit;
+    font-size: 0.86rem;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 3px 9px;
+    cursor: pointer;
+  }
+  .crumbs button[aria-current="page"] {
+    border-color: var(--ink);
+    font-weight: 600;
+  }
+  .crumbs .sep {
+    color: var(--muted);
+  }
+  .btn.primary {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+  button:focus-visible,
+  g[tabindex]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .stage {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 10px;
+    min-width: 0;
+  }
+  .stage h2 {
+    margin: 0 0 2px;
+    font-size: 1.05rem;
+  }
+  .stage .lede {
+    margin: 0 0 8px;
+    color: var(--muted);
+    max-width: 78ch;
+  }
+  .scroll {
+    overflow-x: auto;
+  }
+  .hint {
+    display: none;
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  @media (max-width: 820px) {
+    .hint {
+      display: block;
+    }
+  }
+  svg.diagram {
+    display: block;
+    width: 100%;
+    min-width: 760px;
+    height: auto;
+    font-family: var(--font);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .legend svg {
+    width: 26px;
+    height: 14px;
+  }
+  .cols {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 14px;
+  }
+  @media (max-width: 820px) {
+    .cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 14px;
+    min-width: 0;
+  }
+  .panel h3 {
+    margin: 0;
+    font-size: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .panel h4 {
+    margin: 12px 0 2px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+  .panel p {
+    margin: 4px 0 0;
+    max-width: 72ch;
+  }
+  .panel ul {
+    margin: 2px 0 0;
+    padding-left: 18px;
+  }
+  .panel li {
+    margin: 2px 0;
+  }
+  code,
+  .file {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+  .file {
+    display: block;
+    overflow-wrap: anywhere;
+    padding: 1px 0;
+  }
+  .pill {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 1px 8px;
+    color: var(--muted);
+  }
+  .pill.planned {
+    color: var(--accent);
+    border-color: var(--accent);
+    border-style: dashed;
+  }
+  .pill.leftover {
+    color: var(--warn);
+    border-color: var(--warn);
+    background: var(--warn-bg);
+  }
+  .list {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+  .list button {
+    text-align: left;
+    font: inherit;
+    color: var(--ink);
+    background: var(--fill);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 6px 9px;
+    cursor: pointer;
+    display: grid;
+    gap: 1px;
+  }
+  .list button[aria-pressed="true"] {
+    border-color: var(--ink);
+    background: var(--sel);
+  }
+  .list .name {
+    font-weight: 600;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .list .one {
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .list .zoomhint {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+  .rules {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding-left: 18px;
+  }
+  footer {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer details {
+    margin-top: 6px;
+  }
+  footer summary {
+    cursor: pointer;
+    color: var(--ink);
+  }
+  footer table {
+    border-collapse: collapse;
+    margin-top: 6px;
+    width: 100%;
+    font-size: 0.8rem;
+  }
+  footer td,
+  footer th {
+    text-align: left;
+    vertical-align: top;
+    padding: 3px 10px 3px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .scroll.tbl {
+    overflow-x: auto;
+  }
+
+  /* Diagram parts */
+  .node rect.box {
+    fill: var(--fill);
+    stroke: var(--ink);
+    stroke-width: 1.4;
+  }
+  .node.zoomable rect.box {
+    fill: var(--fill-zoom);
+  }
+  .node.planned rect.box {
+    stroke: var(--accent);
+    stroke-dasharray: 6 4;
+    fill: var(--plan-bg);
+  }
+  .node.leftover rect.box {
+    stroke: var(--warn);
+    stroke-dasharray: 2 3;
+    fill: var(--warn-bg);
+  }
+  .node.selected rect.box {
+    stroke-width: 3;
+    fill: var(--sel);
+  }
+  .node {
+    cursor: pointer;
+  }
+  .node:hover rect.box {
+    stroke-width: 2.4;
+  }
+  .node text.label {
+    font-size: 15px;
+    font-weight: 600;
+    fill: var(--ink);
+  }
+  .node text.sub {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    fill: var(--muted);
+  }
+  .node text.open {
+    font-size: 11.5px;
+    font-weight: 600;
+    fill: var(--accent);
+  }
+  path.edge {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  path.edge.dashed {
+    stroke-dasharray: 5 4;
+  }
+  text.elabel {
+    font-size: 11.5px;
+    fill: var(--muted);
+    paint-order: stroke;
+    stroke: var(--surface);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    text-anchor: middle;
+  }
+  .lane line {
+    stroke: var(--rule);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 5;
+  }
+  .lane rect {
+    fill: var(--fill);
+    stroke: var(--ink);
+    stroke-width: 1.2;
+  }
+  .lane text.label {
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--ink);
+    text-anchor: middle;
+  }
+  .lane text.sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--muted);
+    text-anchor: middle;
+  }
+  .step {
+    cursor: pointer;
+  }
+  .step path.arrow {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.6;
+  }
+  .step circle {
+    fill: var(--ink);
+  }
+  .step text.n {
+    font-size: 11.5px;
+    font-weight: 700;
+    fill: var(--bg);
+    text-anchor: middle;
+  }
+  .step text.say {
+    font-size: 12.5px;
+    fill: var(--ink);
+    paint-order: stroke;
+    stroke: var(--surface);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+  .step.selected path.arrow {
+    stroke: var(--accent);
+    stroke-width: 3;
+  }
+  .step.selected circle {
+    fill: var(--accent);
+  }
+  .step rect.hit {
+    fill: transparent;
+  }
+  .step.selected rect.hit {
+    fill: var(--sel);
+    opacity: 0.55;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .node rect.box,
+    .step path.arrow {
+      transition: stroke-width 0.12s;
+    }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Open Battle architecture</h1>
+    <p>
+      A peer-to-peer tabletop engine. After the minimal cut it is the network, the core, the package sandbox
+      and a bare debug page. Click a box to zoom into it; every level says what it is for and when to look
+      deeper.
+    </p>
+  </header>
+
+  <nav class="bar" aria-label="Where you are">
+    <div class="crumbs" id="crumbs"></div>
+    <button class="btn" id="up" type="button">Up a level</button>
+    <button class="btn primary" id="flowbtn" type="button">Follow one intent</button>
+  </nav>
+
+  <section class="stage">
+    <h2 id="vtitle"></h2>
+    <p class="lede" id="vlede"></p>
+    <div class="scroll"><div id="diagram"></div></div>
+    <p class="hint">Swipe the diagram sideways to see all of it; the list below has every box.</p>
+    <div class="legend" aria-label="Legend">
+      <span>
+        <svg viewBox="0 0 26 14" aria-hidden="true">
+          <rect
+            x="1"
+            y="1"
+            width="24"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+        </svg>
+        kept, in use
+      </span>
+      <span>
+        <svg viewBox="0 0 26 14" aria-hidden="true">
+          <rect
+            x="1"
+            y="1"
+            width="24"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="var(--accent)"
+            stroke-width="1.5"
+            stroke-dasharray="4 3"
+          />
+        </svg>
+        planned, not built yet
+      </span>
+      <span>
+        <svg viewBox="0 0 26 14" aria-hidden="true">
+          <rect
+            x="1"
+            y="1"
+            width="24"
+            height="12"
+            rx="2"
+            fill="none"
+            stroke="var(--warn)"
+            stroke-width="1.5"
+            stroke-dasharray="2 3"
+          />
+        </svg>
+        leftover, nothing live calls it
+      </span>
+      <span>
+        <svg viewBox="0 0 26 14" aria-hidden="true">
+          <rect
+            x="1"
+            y="1"
+            width="24"
+            height="12"
+            rx="2"
+            fill="var(--fill-zoom)"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+        </svg>
+        tinted: click to zoom in
+      </span>
+    </div>
+  </section>
+
+  <div class="cols">
+    <section class="panel" id="detail" aria-live="polite"></section>
+    <section class="panel">
+      <h3 id="listtitle">At this level</h3>
+      <div class="list" id="list"></div>
+    </section>
+  </div>
+
+  <footer>
+    <p>
+      Source of truth: <code>docs/architecture.html</code> in the repo. Reflects the repo after the stage 1
+      cut (network, core, sandbox, packages, bare debug page). Git tag <code>pre-minimal-cut</code> has
+      everything that was removed.
+    </p>
+    <details>
+      <summary>Keeping this page current</summary>
+      <div class="scroll tbl">
+        <table>
+          <thead>
+            <tr>
+              <th>When you change</th>
+              <th>Update this view</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Intent or event types, the reducer, log format</td>
+              <td>Core, Follow one intent</td>
+            </tr>
+            <tr>
+              <td>Rules-as-data schema, procedure runner, turn structure</td>
+              <td>Rules as data</td>
+            </tr>
+            <tr>
+              <td>Session messages, host election, a transport, relay config</td>
+              <td>Network, Servers</td>
+            </tr>
+            <tr>
+              <td>Sandbox messages, worker, how packages load or resolve</td>
+              <td>Sandbox, Follow one intent</td>
+            </tr>
+            <tr>
+              <td>Package library, manifest, package transfer between peers</td>
+              <td>Packages</td>
+            </tr>
+            <tr>
+              <td><code>src/sdk/index.ts</code>, <code>MODULE_API</code></td>
+              <td>SDK</td>
+            </tr>
+            <tr>
+              <td>System registries, <code>systems/</code></td>
+              <td>Systems registry</td>
+            </tr>
+            <tr>
+              <td><code>store.ts</code>, <code>App.tsx</code>, any new UI</td>
+              <td>Shell and store, top level</td>
+            </tr>
+            <tr>
+              <td>Anything added or deleted that has a box here</td>
+              <td>Status of that box, and the top level</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </footer>
+</div>
+
+<script>
+  "use strict";
+
+  /* ---------------------------------------------------------------- data ---- */
+
+  const RULES = [
+    "Core is deterministic. No Math.random, Date, timers or DOM; dice come from the rng passed in. Peers fold the same log and must land on the same state.",
+    "Everything peers must agree on is an event in the log. Undo, replay, late joining, what-if branches and the desync check all depend on it.",
+    "The host is authoritative. Clients send intents; only the host resolves them, rolls dice and numbers the events.",
+    "Rules are advisory. A check is a warning the player can override. Only malformed requests are rejected.",
+    "A game is a package. No game is built in. Package code runs only in the sandbox and never inside the reducer.",
+  ];
+
+  const VIEWS = {
+    /* ------------------------------------------------------------- top ---- */
+    top: {
+      title: "The whole app",
+      parent: null,
+      lede: "Everything that survived the cut, and what is planned. Browser pages talk to each other through the network layer; the core decides what a legal log looks like; games arrive as packages that run in a sandbox.",
+      W: 960,
+      H: 520,
+      nodes: [
+        {
+          id: "ui",
+          label: "Debug page",
+          sub: ["App.tsx · main.tsx"],
+          x: 330,
+          y: 14,
+          w: 300,
+          h: 62,
+          status: "kept",
+          zoom: "store",
+          blurb: "The barest UI that can start, join and inspect a game.",
+          summary:
+            "A single page: connect (hotseat, tabs, or WebRTC), load a rules package, send raw intents, read the event log, state and hidden values.",
+          owns: [
+            "Connect form, intent box, event log, state viewer",
+            "Mounts the sandbox and package-sharing hooks",
+          ],
+          talks: [
+            "Store (reads game, record, net; calls dispatch)",
+            "Package library (loads a file, trusts it)",
+          ],
+          files: ["src/App.tsx", "src/main.tsx"],
+          look: "Open it to see what the page can verify. Anything a rebuild needs to check by hand goes here first.",
+        },
+        {
+          id: "table",
+          label: "Table view (3D)",
+          sub: ["planned · stage 2"],
+          x: 700,
+          y: 14,
+          w: 240,
+          h: 62,
+          status: "planned",
+          blurb: "The three.js table returns, trimmed to the table only.",
+          summary:
+            "Not built yet. The old table lived in src/render and was removed with the old UI; stage 2 brings it back without the panels. It will read game and record from the store and send intents through dispatch like the debug page does.",
+          owns: ["Drawing terrain, models, objectives", "Picking and dragging, turned into intents"],
+          talks: ["Store (read state, dispatch intents)"],
+          files: ["git tag pre-minimal-cut: src/render/"],
+          look: "Nothing to read yet. When it lands it gets its own zoomed view.",
+        },
+        {
+          id: "store",
+          label: "Store",
+          sub: ["store.ts"],
+          x: 330,
+          y: 128,
+          w: 300,
+          h: 62,
+          status: "kept",
+          zoom: "store",
+          blurb: "Wires a Session to React state.",
+          summary:
+            "A zustand store that holds the current game, the record, the session and net status, and starts a session over the right transport for the mode.",
+          owns: [
+            "start, leave, dispatch",
+            "Seating a joining player",
+            "Remembering the room across a reload",
+          ],
+          talks: ["Net (creates the Session)", "Packages (waits for a game's packages before sitting down)"],
+          files: ["src/store.ts"],
+          look: "Look deeper to see how a player ends up seated, and what the page may assume about session state.",
+        },
+        {
+          id: "net",
+          label: "Network",
+          sub: ["src/net/"],
+          x: 30,
+          y: 262,
+          w: 168,
+          h: 84,
+          status: "kept",
+          zoom: "net",
+          blurb: "Session, transports, host election, desync checks.",
+          summary:
+            "Keeps every peer's copy of the log the same. Clients send intents to the host; the host sends back numbered events.",
+          owns: ["Session (roles, election, catch-up, checksums)", "Transports: WebRTC, tabs, in-memory"],
+          talks: [
+            "Core (resolve and apply)",
+            "Sandbox (intent router)",
+            "Servers (signalling, TURN)",
+            "Packages (side channel)",
+          ],
+          files: ["src/net/session.ts", "src/net/transport.ts"],
+          look: "Look deeper for anything about connecting, hosts leaving, missed events or desync.",
+        },
+        {
+          id: "core",
+          label: "Core",
+          sub: ["src/core/"],
+          x: 260,
+          y: 262,
+          w: 168,
+          h: 84,
+          status: "kept",
+          zoom: "core",
+          blurb: "State, intents, events, reducer, rules engine. Pure.",
+          summary:
+            "The deterministic heart. It turns intents into events and folds events into state, the same way on every peer.",
+          owns: [
+            "GameState, Intent, GameEvent",
+            "Reducer and record",
+            "Rules-as-data engine",
+            "Secrets, shared dice, checksums",
+          ],
+          talks: ["Used by Net (host and peers) and by the Sandbox worker"],
+          files: ["src/core/types.ts", "src/core/actions.ts", "src/core/reducer.ts", "src/core/log.ts"],
+          look: "Look deeper before changing any event shape or anything the reducer does.",
+        },
+        {
+          id: "sandbox",
+          label: "Sandbox",
+          sub: ["src/sandbox/"],
+          x: 490,
+          y: 262,
+          w: 168,
+          h: 84,
+          status: "kept",
+          zoom: "sandbox",
+          blurb: "Runs package code in an isolated worker.",
+          summary:
+            "An iframe with no network and an opaque origin hosts a worker. Packages load there, register their rules, and resolve intents for package games.",
+          owns: [
+            "Sandbox host (iframe, watchdog)",
+            "Worker and engine",
+            "App-side runtime that registers what loads",
+          ],
+          talks: [
+            "Packages (source text)",
+            "Core (same resolver)",
+            "Net (intent router)",
+            "Systems registry",
+          ],
+          files: ["src/sandbox/runtime.ts", "src/sandbox/engine.ts", "src/sandbox/host.ts"],
+          look: "Look deeper to see exactly how a package becomes a playable game.",
+        },
+        {
+          id: "packages",
+          label: "Packages",
+          sub: ["src/packages/"],
+          x: 720,
+          y: 262,
+          w: 168,
+          h: 84,
+          status: "kept",
+          zoom: "packages",
+          blurb: "Library, manifest reader, peer transfer.",
+          summary:
+            "A package is one JavaScript file known by the SHA-256 of its bytes. The library stores them and tracks trust; peers send each other the ones a game names.",
+          owns: [
+            "IndexedDB library keyed by hash",
+            "Manifest read without running code",
+            "Package transfer over the side channel",
+          ],
+          talks: ["Sandbox (trusted sources)", "Net (package/* messages)"],
+          files: ["src/packages/library.ts", "src/packages/manifest.ts", "src/packages/share.ts"],
+          look: "Look deeper for trust, hashing, or why a peer can't join a game.",
+        },
+        {
+          id: "servers",
+          label: "Servers",
+          sub: ["server/ · .github/"],
+          x: 30,
+          y: 410,
+          w: 168,
+          h: 70,
+          status: "kept",
+          zoom: "servers",
+          blurb: "Signalling relay, TURN logins, deploy.",
+          summary:
+            "Small, optional services. Games do not run on them: they only help browsers find each other.",
+          owns: ["relay.mjs", "turn-worker.mjs", "Deploy workflows"],
+          talks: ["Net (config.json, signalling, TURN)"],
+          files: ["server/relay.mjs", "server/turn-worker.mjs"],
+          look: "Look deeper when connections fail or when self-hosting.",
+        },
+        {
+          id: "systems",
+          label: "Systems registry",
+          sub: ["src/systems/ · content/systems.ts"],
+          x: 290,
+          y: 410,
+          w: 240,
+          h: 70,
+          status: "kept",
+          zoom: "systems",
+          blurb: "Where loaded games are registered. Nothing is built in.",
+          summary:
+            "Two registries: the rules data the engine reads (GameSystem) and the app glue for a game (SystemModule). Both start empty.",
+          owns: [
+            "BUILT_IN is empty",
+            "registerPackageSystem, extendSystem",
+            "Stand-in system for an unloaded game",
+          ],
+          talks: ["Sandbox runtime (registers what loads)", "Core (reads the rules data)"],
+          files: ["src/systems/index.ts", "src/core/content/systems.ts"],
+          look: "Look deeper to see what a game must provide besides rules data.",
+        },
+        {
+          id: "gamepkg",
+          label: "Game packages",
+          sub: ["40k first · planned"],
+          x: 565,
+          y: 410,
+          w: 170,
+          h: 70,
+          status: "planned",
+          blurb: "40k, rebuilt a piece at a time as a package.",
+          summary:
+            "The point of the cut. Each game is a package written against the SDK and loaded through the sandbox. examples/packages/arena.js is a small whole game to verify with.",
+          owns: ["Rules data and code for one game"],
+          talks: ["SDK (the contract)", "Packages (loaded as files)"],
+          files: ["examples/packages/arena.js", "examples/workshop/skirmish.js"],
+          look: "Nothing here yet. Start from arena.js for a working shape.",
+        },
+        {
+          id: "sdk",
+          label: "SDK",
+          sub: ["src/sdk/index.ts"],
+          x: 790,
+          y: 410,
+          w: 140,
+          h: 70,
+          status: "kept",
+          zoom: "sdk",
+          blurb: "The contract a package is written against.",
+          summary:
+            "Types for what a package exports and what its code may do. Authors (agents) write to this.",
+          owns: ["PackageContents, GameModule", "Ctx commands, GameView"],
+          talks: ["Read by package authors; implemented by Sandbox and Core"],
+          files: ["src/sdk/index.ts"],
+          look: "Look deeper before changing anything a package can see: it is a compatibility promise (MODULE_API).",
+        },
+      ],
+      edges: [
+        { from: "ui", to: "store", label: "dispatch · read" },
+        {
+          from: "table",
+          to: "store",
+          dashed: true,
+          via: [[820, 159]],
+          label: "read · dispatch",
+          at: [830, 120],
+        },
+        { from: "store", to: "net", via: [[130, 159]], label: "Session.start · dispatch", at: [200, 150] },
+        { from: "net", to: "core", label: "resolve" },
+        { from: "sandbox", to: "core", label: "resolver" },
+        {
+          from: "sandbox",
+          to: "net",
+          via: [
+            [574, 236],
+            [190, 236],
+          ],
+          label: "intent router",
+          at: [390, 230],
+        },
+        { from: "packages", to: "sandbox", label: "source" },
+        {
+          from: "packages",
+          to: "net",
+          dashed: true,
+          via: [
+            [804, 380],
+            [175, 380],
+          ],
+          label: "package/* (side channel)",
+          at: [255, 374],
+        },
+        { from: "net", to: "servers", label: "signalling · TURN", at: [100, 396] },
+        { from: "sandbox", to: "systems", label: "registers" },
+        { from: "systems", to: "core", label: "rules data" },
+        { from: "gamepkg", to: "packages", dashed: true, label: "loaded as files" },
+        { from: "gamepkg", to: "sdk", dashed: true },
+        { from: "sdk", to: "packages", label: "contract" },
+      ],
+      about: {
+        summary:
+          "Read left to right along the middle row: a peer's page reaches the Network, which uses the Core to decide what is true, and package code arrives through Packages and runs in the Sandbox. The Store and debug page sit above; servers and registries below.",
+        files: ["CLAUDE.md", "docs/compatibility.md"],
+        watch: RULES,
+        look: "Pick the box nearest to what you are changing. If a change crosses boxes, follow one intent first: it shows who touches what, in order.",
+      },
+    },
+
+    /* ----------------------------------------------------------- store ---- */
+    store: {
+      title: "Shell and store",
+      parent: "top",
+      lede: "The page and the one store that connects it to the network. The page only reads state and calls dispatch; the store owns the session.",
+      W: 960,
+      H: 430,
+      nodes: [
+        {
+          id: "main",
+          label: "main.tsx",
+          sub: ["entry"],
+          x: 40,
+          y: 20,
+          w: 240,
+          h: 66,
+          status: "kept",
+          blurb: "Loads site config, mounts the page, exposes the store on window.",
+          summary:
+            "Loads TURN logins and the site's config.json (relay and TURN), then renders App. Puts the store on window.openBattle and the core on window.openBattleCore for console poking.",
+          files: ["src/main.tsx"],
+          talks: ["net/config.ts (loadSiteConfig, loadTurnLogins)"],
+          look: "Only when startup order matters: config is fetched before the first render.",
+        },
+        {
+          id: "app",
+          label: "App.tsx",
+          sub: ["debug page"],
+          x: 360,
+          y: 20,
+          w: 240,
+          h: 66,
+          status: "kept",
+          blurb: "Connect form, intent box, log, state, hidden values, package transfer.",
+          summary:
+            "Everything the page does. It calls usePackageSandbox() and usePackageSharing() so packages run and transfer. Sends intents through store.dispatch, in hotseat optionally as a chosen player.",
+          owns: [
+            "Start or join a game with a chosen package",
+            "Raw intent JSON box and three quick intents",
+            "Event log (newest 150), state, net status",
+            "Commit and reveal hidden values on this device",
+          ],
+          files: ["src/App.tsx"],
+          talks: ["Store", "Package library and sharing", "secrets/local.ts (keeps hidden values)"],
+          look: "Read it first: it is the shortest tour of every public call a UI makes.",
+        },
+        {
+          id: "store",
+          label: "store.ts",
+          sub: ["zustand"],
+          x: 360,
+          y: 150,
+          w: 240,
+          h: 78,
+          status: "kept",
+          blurb: "game, record, session, role, mode, roomId, net · start, leave, dispatch.",
+          summary:
+            "Holds what the page reads and creates the Session. Session callbacks (onChange, onNet) write back into the store, so every render follows the session.",
+          owns: [
+            "game: the folded state",
+            "record: the whole log",
+            "session, role, mode, roomId, net status",
+          ],
+          watch: [
+            "Callbacks from a replaced session are ignored (get().session !== session).",
+            "A joining peer sits down only when the game's packages are in its library.",
+          ],
+          files: ["src/store.ts"],
+          look: "Look here when a player is not seated, a reload loses the room, or hotseat sends as the wrong player.",
+        },
+        {
+          id: "start",
+          label: "start(options)",
+          sub: ["role · mode · room"],
+          x: 40,
+          y: 330,
+          w: 230,
+          h: 70,
+          status: "kept",
+          blurb: "Picks the transport, builds the Session, seats the host.",
+          summary:
+            "hotseat → in-memory loopback with two screen players. local → BroadcastChannel between tabs. online → WebRTC (Trystero, loaded on demand). A host dispatches player/join, game/system and layout/set.",
+          files: ["src/store.ts"],
+          talks: ["net/loopback, broadcast, trystero", "systems/index.ts (the game's starting layout)"],
+          look: "To add a transport mode or change what a fresh game starts with.",
+        },
+        {
+          id: "seat",
+          label: "takeSeat()",
+          sub: ["clients & resumed hosts"],
+          x: 365,
+          y: 330,
+          w: 230,
+          h: 70,
+          status: "kept",
+          blurb: "Reclaims an old seat or joins an open one.",
+          summary:
+            "Waits for a host and a non-empty game, then for the game's rules packages to be in the library. Prefers this tab's seat, then this browser's, then a free seat on the emptier side.",
+          files: ["src/store.ts"],
+          talks: ["packages/library.ts"],
+          look: "When a reconnect gives the wrong seat or a joiner sits too early.",
+        },
+        {
+          id: "room",
+          label: "Room memory",
+          sub: ["sessionStorage · localStorage"],
+          x: 690,
+          y: 330,
+          w: 230,
+          h: 70,
+          status: "kept",
+          blurb: "The log and seat kept per room, so a reload rejoins.",
+          summary:
+            "sessionStorage keeps the record, role and player id per room (per tab). localStorage keeps the seat per room (per browser) so a new tab on the same invite finds its player.",
+          files: ["src/store.ts"],
+          look: "When rejoining misbehaves. There is no whole-game save file anymore.",
+        },
+        {
+          id: "sessionbox",
+          label: "Session",
+          sub: ["net/session.ts"],
+          x: 690,
+          y: 150,
+          w: 230,
+          h: 78,
+          status: "kept",
+          zoom: "net",
+          blurb: "Does the actual networking and resolving.",
+          summary: "The store only creates it, forwards dispatch, and reacts to its callbacks.",
+          files: ["src/net/session.ts"],
+          look: "Zoom in for everything about connecting, hosts and checksums.",
+        },
+        {
+          id: "libbox",
+          label: "Package library",
+          sub: ["packages/library.ts"],
+          x: 40,
+          y: 150,
+          w: 240,
+          h: 78,
+          status: "kept",
+          zoom: "packages",
+          blurb: "Which packages this device has and trusts.",
+          summary: "Used by the page to load a file, and by the store to decide a peer is ready to sit.",
+          files: ["src/packages/library.ts"],
+          look: "Zoom in for trust and hashing.",
+        },
+      ],
+      edges: [
+        { from: "main", to: "app", label: "renders" },
+        { from: "app", to: "store", label: "reads · dispatch" },
+        { from: "store", to: "sessionbox", label: "creates" },
+        { from: "store", to: "libbox", label: "ready?" },
+        { from: "store", to: "start" },
+        { from: "store", to: "seat" },
+        { from: "store", to: "room" },
+      ],
+      about: {
+        summary:
+          "The page is deliberately thin so a rebuilt UI has little to unlearn: it reads game and record, calls dispatch, and mounts two hooks.",
+        files: ["src/App.tsx", "src/store.ts", "src/main.tsx"],
+        watch: [
+          "The page must never change state directly. It sends intents; state changes only when the session says so.",
+          "In hotseat the store sends as the active player unless told otherwise.",
+        ],
+        look: "Look deeper here when adding any UI: the store's shape is the interface a new table view will use.",
+      },
+    },
+
+    /* ------------------------------------------------------------ flow ---- */
+    flow: {
+      title: "Follow one intent",
+      parent: "top",
+      type: "sequence",
+      lede: "What happens when a player does something, from the click to every peer's screen. Click a step for the detail. A host's own intent skips step 2; steps 4 and 5 happen only for package games, otherwise the host resolves the intent itself in core.",
+      W: 960,
+      lanes: [
+        { id: "page", label: "Page", sub: "App.tsx · store.ts" },
+        { id: "peer", label: "This peer's Session", sub: "net/session.ts" },
+        { id: "host", label: "Host Session", sub: "net/session.ts · core" },
+        { id: "box", label: "Sandbox", sub: "package games only" },
+      ],
+      steps: [
+        {
+          from: "page",
+          to: "peer",
+          label: ["store.dispatch(intent)"],
+          title: "The page dispatches an intent",
+          summary:
+            "An intent is a request, such as unit/move or dice/roll. In hotseat the store picks the active player as sender unless the caller names one.",
+          files: ["src/store.ts: dispatch", "src/core/actions.ts: Intent"],
+          watch: ["The page never edits state. It only asks."],
+        },
+        {
+          from: "peer",
+          to: "host",
+          label: ['{ t: "intent" } to the host'],
+          title: "A client sends the intent to the host",
+          summary:
+            "A client sends it as a peer message. With no host yet (the room is choosing one) the intent waits in a queue and goes to the new host. A host dispatching for itself skips this step.",
+          files: ["src/net/session.ts: dispatch, receive"],
+          watch: ["Peers on another protocol number are parked and ignored."],
+        },
+        {
+          from: "host",
+          to: "host",
+          label: ["hostApply: one at a time"],
+          title: "The host takes it, one intent at a time",
+          summary:
+            "Intents are serialised (a second waits while the first resolves). If shared dice are active the host uses the committed seeds for its rng. Only the host may send dice/commit and dice/reveal.",
+          files: ["src/net/session.ts: hostApply, sharedDiceFor"],
+        },
+        {
+          from: "host",
+          to: "box",
+          label: ["router: resolve in sandbox", "(seed from host rng)"],
+          title: "Package games resolve in the sandbox",
+          summary:
+            "If the game's system has package code, the intent router returns a resolver. The sandbox keeps a replica of the record and resolves with a seeded rng so its dice are the host's.",
+          files: ["src/sandbox/runtime.ts: setIntentRouter", "src/sandbox/engine.ts: resolve"],
+          watch: ["No answer in 250 ms stops the sandbox and turns package rules off."],
+        },
+        {
+          from: "box",
+          to: "host",
+          label: ["event, or null"],
+          title: "The resolved event comes back",
+          summary:
+            "The sandbox returns the event, or null for a malformed intent. Without package code the host does this itself: resolveLogged calls resolveIntent in core, the one place intents become events and dice get rolled. The sandbox calls the same function, so both paths agree. Only the host runs it for the log.",
+          files: ["src/core/log.ts: resolveLogged", "src/core/actions.ts: resolveIntent"],
+          watch: ["Rules are advisory: an illegal-looking move still becomes an event."],
+        },
+        {
+          from: "host",
+          to: "host",
+          label: ["hostLog: number, append, fold"],
+          title: "The host logs the event",
+          summary:
+            "It stamps the host id, appends to the record, and folds the event into state with applyEvent (an undo rebuilds from the record). Every so often it keeps a checkpoint and hashes the state. Turn hooks that the event set off are queued as new intents.",
+          files: [
+            "src/net/session.ts: hostLog, append, checkpoint",
+            "src/core/reducer.ts: applyEvent",
+            "src/core/checksum.ts",
+          ],
+        },
+        {
+          from: "host",
+          to: "peer",
+          label: ['{ t: "event", logged, check? }', "to every peer"],
+          title: "The event goes to every peer",
+          summary:
+            "The message carries the previous checkpoint's hash. Spectators with a delay get it later; peers on an unreadable protocol are held back.",
+          files: ["src/net/transport.ts: NetMessage"],
+        },
+        {
+          from: "peer",
+          to: "peer",
+          label: ["take · applyEvent · verify"],
+          title: "Each peer folds it and checks itself",
+          summary:
+            "A peer appends events only in order; a gap makes it ask the host for what it missed. It applies the same pure reducer, then compares its checkpoint hash with the host's. A mismatch is a desync: the status says so and a resync fetches the whole record.",
+          files: ["src/net/session.ts: take, verify, resync"],
+          watch: ["A desync means the reducer or a package is not deterministic. Treat it as a bug."],
+        },
+        {
+          from: "peer",
+          to: "page",
+          label: ["onChange → store.set → render"],
+          title: "The page renders the new state",
+          summary:
+            "The session's onChange writes game and record into the store, and React re-renders. The same path will feed the 3D table when it returns.",
+          files: ["src/store.ts: onChange"],
+        },
+      ],
+      about: {
+        summary:
+          "One path for every action, whether it comes from a click, a script or a package: intent in, one numbered event out, the same fold everywhere.",
+        files: ["src/net/session.ts", "src/core/log.ts", "src/core/reducer.ts", "src/sandbox/runtime.ts"],
+        watch: RULES.slice(0, 4),
+        look: "Use this view to find where a bug lives: wrong event (steps 3–5), peers disagreeing (7–8), or the page not updating (9).",
+      },
+    },
+
+    /* ------------------------------------------------------------- net ---- */
+    net: {
+      title: "Network",
+      parent: "top",
+      lede: "How peers keep one log. The Session is the logic; transports are interchangeable pipes underneath it.",
+      W: 960,
+      H: 600,
+      nodes: [
+        {
+          id: "session",
+          label: "Session",
+          sub: ["net/session.ts · 811 lines", "host · client · spectator", "election · catch-up · verify"],
+          x: 330,
+          y: 30,
+          w: 300,
+          h: 120,
+          status: "kept",
+          blurb: "Roles, election, catch-up, resolve, verify.",
+          summary:
+            "One per peer per game. A host resolves intents and sends numbered events. Clients and spectators fold them. When the host leaves, peers wait a grace period, then elect the one with the longest log.",
+          owns: [
+            "Host authority: hostApply, hostLog, turn hooks",
+            "Election: longer log wins, then a resumed host, then the lower peer id; peers missing a game's packages never win",
+            "Catch-up: send only the events a peer lacks, or the whole record",
+            "Checksums: checkpoint hashes ride on events; mismatch = desync",
+            "Side channel for non-game traffic",
+          ],
+          talks: [
+            "Transport (any)",
+            "Core (resolveLogged, applyEvent, stateAt)",
+            "Sandbox (setIntentRouter)",
+            "Packages (listenSide, key 'packages')",
+          ],
+          files: ["src/net/session.ts"],
+          watch: [
+            "The host never trusts a client's state, only its intents.",
+            "A host that resumes a saved log takes the room back only if its log is at least as long.",
+          ],
+          look: "Almost any multiplayer bug ends here. Start at receive() and hostApply().",
+        },
+        {
+          id: "transport",
+          label: "Transport interface",
+          sub: ["net/transport.ts"],
+          x: 330,
+          y: 210,
+          w: 300,
+          h: 80,
+          status: "kept",
+          blurb: "send · onMessage · onPeerJoin · onPeerLeave · leave.",
+          summary: "The only thing the Session knows about the wire. Also defines every message type.",
+          owns: [
+            "NetMessage: hello, delay, sync, intent, host, yield, record, events, event",
+            "SideMessage: package/want, part, status",
+          ],
+          files: ["src/net/transport.ts"],
+          watch: ["A message this build can't read is ignored, never an error."],
+          look: "Add a message here and handle it in Session.receive.",
+        },
+        {
+          id: "legacy",
+          label: "Legacy side messages",
+          sub: ["talk/ asset/ campaign/", "review/ army/"],
+          x: 690,
+          y: 30,
+          w: 240,
+          h: 80,
+          status: "leftover",
+          blurb: "Types for features that were removed.",
+          summary:
+            "SideMessage still lists table talk, assets, campaigns, review rooms and army offers, and Session still routes those prefixes to side listeners. Nothing sends or listens now.",
+          files: ["src/net/transport.ts", "src/net/session.ts: receive"],
+          look: "Candidate for deletion; touching it is a protocol question.",
+        },
+        {
+          id: "protocol",
+          label: "Protocol gate",
+          sub: ["src/protocol.ts"],
+          x: 30,
+          y: 60,
+          w: 220,
+          h: 60,
+          status: "kept",
+          blurb: "PROTOCOL = 2. hello and host carry it.",
+          summary:
+            "Peers on a different protocol number are parked: not followed as host, not sent events. Build ids are shown in net status.",
+          files: ["src/protocol.ts"],
+          watch: ["Bump PROTOCOL when event, intent or message shapes stop being compatible."],
+          look: "Before changing any wire or log shape.",
+        },
+        {
+          id: "loop",
+          label: "loopback",
+          sub: ["net/loopback.ts"],
+          x: 50,
+          y: 400,
+          w: 230,
+          h: 76,
+          status: "kept",
+          blurb: "In-memory network. Hotseat and tests.",
+          summary: "Synchronous, deep-copied delivery, so peers never share object references.",
+          files: ["src/net/loopback.ts"],
+          look: "Cheapest way to run two sessions in one page.",
+        },
+        {
+          id: "bc",
+          label: "broadcast",
+          sub: ["net/broadcast.ts"],
+          x: 365,
+          y: 400,
+          w: 230,
+          h: 76,
+          status: "kept",
+          blurb: "BroadcastChannel between tabs.",
+          summary: "Open the same room in two tabs of one browser and they play each other with no network.",
+          files: ["src/net/broadcast.ts"],
+          look: "The easiest manual test of host and client behaviour.",
+        },
+        {
+          id: "rtc",
+          label: "trystero",
+          sub: ["net/trystero.ts"],
+          x: 680,
+          y: 400,
+          w: 250,
+          h: 76,
+          status: "kept",
+          blurb: "WebRTC. Peers found through relays.",
+          summary:
+            "Trystero joins a room; signalling goes through public Nostr relays or a self-hosted WebSocket relay. Game data then flows directly between browsers, with TURN as a fallback.",
+          files: ["src/net/trystero.ts", "src/net/relayBusy.ts"],
+          talks: ["config.ts", "Servers"],
+          look: "When connecting fails or only works on some networks.",
+        },
+        {
+          id: "config",
+          label: "config.ts",
+          sub: ["relays · TURN"],
+          x: 680,
+          y: 520,
+          w: 250,
+          h: 66,
+          status: "kept",
+          blurb: "Where to signal and which TURN logins to use.",
+          summary:
+            "From the page URL (?signal, ?nostr, ?turn, ?forceTurn), then the site's config.json, then build env. Also fetches fresh TURN logins from a login service before they expire.",
+          files: ["src/net/config.ts"],
+          talks: ["Servers (config.json, turn-worker)"],
+          look: "When pointing a build at your own relay.",
+        },
+        {
+          id: "busy",
+          label: "relayBusy",
+          sub: ["net/relayBusy.ts"],
+          x: 365,
+          y: 520,
+          w: 230,
+          h: 56,
+          status: "kept",
+          blurb: "Notices when the TURN server is full.",
+          summary:
+            "Watches ICE errors 486 and 508 from TURN and records when it happened, so the UI can say the relay is busy. Nothing displays it yet.",
+          files: ["src/net/relayBusy.ts"],
+          look: "Only if you add a connection-status display.",
+        },
+      ],
+      edges: [
+        { from: "session", to: "transport", label: "uses" },
+        { from: "protocol", to: "session", label: "gate" },
+        {
+          from: "loop",
+          to: "transport",
+          via: [
+            [165, 350],
+            [420, 350],
+          ],
+          label: "implements",
+          at: [270, 342],
+        },
+        { from: "bc", to: "transport" },
+        {
+          from: "rtc",
+          to: "transport",
+          via: [
+            [805, 350],
+            [560, 350],
+          ],
+        },
+        { from: "config", to: "rtc", label: "settings" },
+        { from: "busy", to: "rtc", dashed: true, label: "reports" },
+        { from: "legacy", to: "transport", dashed: true, label: "types only", at: [740, 190] },
+      ],
+      about: {
+        summary:
+          "Messages are small and few. Intents go up to the host, numbered events come down, and a hello/sync/host exchange handles joining and elections. Everything else (packages) uses a side channel the Session only relays.",
+        files: [
+          "src/net/session.ts",
+          "src/net/transport.ts",
+          "docs/compatibility.md",
+          "docs/protocols/ (message specs)",
+        ],
+        watch: RULES.slice(2, 3).concat([
+          "Events are applied strictly in seq order. A gap triggers catch-up.",
+          "Spectators fold the same events and never send intents.",
+        ]),
+        look: "Look deeper when a peer lags, a host leaves, two peers disagree, or you add a transport.",
+      },
+    },
+
+    /* ------------------------------------------------------------ core ---- */
+    core: {
+      title: "Core",
+      parent: "top",
+      lede: "Pure TypeScript with no DOM and no network. The same code folds the log on every peer and runs again inside the sandbox.",
+      W: 960,
+      H: 540,
+      nodes: [
+        {
+          id: "state",
+          label: "State and events",
+          sub: ["types · actions · reducer · log"],
+          x: 330,
+          y: 205,
+          w: 300,
+          h: 120,
+          status: "kept",
+          blurb: "GameState, Intent, GameEvent, applyEvent, GameRecord.",
+          summary:
+            "A GameState is plain data. An Intent is a request; the host's resolveIntent turns it into one GameEvent (rolling dice). applyEvent folds events into state. A GameRecord is the starting state plus numbered events; stateAt rebuilds any moment and honours undo.",
+          owns: [
+            "Intent and GameEvent unions (about 100 event types)",
+            "Reducer: applyEvent",
+            "Record, undo, stateAt, resolveLogged",
+          ],
+          files: ["src/core/types.ts", "src/core/actions.ts", "src/core/reducer.ts", "src/core/log.ts"],
+          watch: [
+            "The reducer never runs package code; code procedures arrive as ordinary events.",
+            "Adding or changing an event is a protocol question: see Protocol gate in Network.",
+          ],
+          look: "Start here for any change to what can happen in a game.",
+        },
+        {
+          id: "content",
+          label: "Rules as data",
+          sub: ["core/content/"],
+          x: 30,
+          y: 40,
+          w: 250,
+          h: 100,
+          status: "kept",
+          zoom: "content",
+          blurb: "GameSystem schema, turns, actions, procedures, expressions.",
+          summary:
+            "A game's rules are mostly data in a schema the engine interprets: characteristics, dice, actions, a turn structure, and dice pipelines. This is what a package's `system` fills in.",
+          files: ["src/core/content/schema.ts", "src/core/content/turn.ts", "src/core/content/runner.ts"],
+          look: "Zoom in to see how a rule written as JSON becomes events.",
+        },
+        {
+          id: "script",
+          label: "Code procedures",
+          sub: ["core/script.ts"],
+          x: 680,
+          y: 40,
+          w: 250,
+          h: 100,
+          status: "kept",
+          blurb: "Rules written as generators, run only by the host.",
+          summary:
+            "A procedure yields commands (roll, ask, emit, set, secret, reveal) and gets results back. To resume after a question or a host change, the host replays it from the start against recorded results; a different command sequence stops it as nondeterministic.",
+          files: ["src/core/script.ts", "src/sdk/index.ts: Ctx"],
+          watch: ["Must be deterministic: read the game through ctx.view, roll with ctx.roll."],
+          look: "When a package rule asks a player something or behaves differently after a reconnect.",
+        },
+        {
+          id: "hidden",
+          label: "Hidden info and fair dice",
+          sub: ["secrets · cards · sharedDice · dice"],
+          x: 30,
+          y: 400,
+          w: 290,
+          h: 100,
+          status: "kept",
+          blurb: "Commitments, decks, commit-reveal dice.",
+          summary:
+            "A secret's value stays on its owner's device; the log holds only a SHA-256 commitment, and every peer's reducer checks a reveal against it. Shared dice: the host commits to a seed, the other player answers, and each event's dice derive from both and the event number. Dice faces can also be told to an intent.",
+          files: [
+            "src/core/secrets.ts",
+            "src/core/cards.ts",
+            "src/core/sharedDice.ts",
+            "src/core/dice.ts",
+            "src/secrets/local.ts",
+            "src/secrets/diceSecrets.ts",
+          ],
+          watch: [
+            "Real-dice entry (told dice, LoggedEvent.told) has no UI now but the core still accepts it.",
+          ],
+          look: "Before building anything with hidden hands, objectives, or ranked dice.",
+        },
+        {
+          id: "integrity",
+          label: "Integrity and history",
+          sub: ["checksum · branch · clock"],
+          x: 670,
+          y: 400,
+          w: 260,
+          h: 100,
+          status: "kept",
+          blurb: "State hashes, what-if branches, clocks from the log.",
+          summary:
+            "stateHash fingerprints a canonical form of the state (cyrb53, floats rounded) for desync detection. branch starts a new game from any point of another log. Clocks are worked out from event times; nothing is enforced.",
+          files: ["src/core/checksum.ts", "src/core/branch.ts", "src/core/clock.ts"],
+          look: "When two peers disagree, or you add undo-like features.",
+        },
+        {
+          id: "geometry",
+          label: "Table geometry",
+          sub: ["geometry · los · terrain · path …"],
+          x: 30,
+          y: 215,
+          w: 250,
+          h: 100,
+          status: "kept",
+          blurb: "Distances, line of sight, terrain, movement, formations.",
+          summary:
+            "Measuring helpers the rules ask about (distance between bases, sight across terrain, regiments, manoeuvres, templates, rulers) and the unit and team helpers.",
+          files: [
+            "src/core/geometry.ts",
+            "src/core/los.ts",
+            "src/core/terrain.ts",
+            "src/core/path.ts",
+            "src/core/units.ts",
+            "src/core/teams.ts",
+          ],
+          look: "When a rule needs a measurement, or the table view needs the same math.",
+        },
+        {
+          id: "attacks",
+          label: "Attacks and rolls",
+          sub: ["attack · rolls · odds · rare"],
+          x: 680,
+          y: 215,
+          w: 250,
+          h: 100,
+          status: "kept",
+          blurb: "The attack state machine and what dice a change rolled.",
+          summary:
+            "An attack moves through declare, roll, allocate stages as events. rolls.ts derives the dice a change produced (for a tray to show); odds.ts and rare.ts judge how likely or lucky a result was.",
+          files: ["src/core/attack.ts", "src/core/rolls.ts", "src/core/odds.ts", "src/core/rare.ts"],
+          look: "When rebuilding combat as a package: much of this may be replaced by data procedures.",
+        },
+        {
+          id: "ranked",
+          label: "Ranked events",
+          sub: ["core/ranked.ts"],
+          x: 360,
+          y: 410,
+          w: 240,
+          h: 80,
+          status: "leftover",
+          blurb: "Result and signature events with no checker.",
+          summary:
+            "The log still carries ranked/* events and Session still ends a battle on them, but the code that verified signatures and built ratings was removed with the old UI.",
+          files: ["src/core/ranked.ts"],
+          look: "Decide to keep it as protocol or remove it.",
+        },
+      ],
+      edges: [
+        { from: "state", to: "content", label: "data procedures" },
+        { from: "state", to: "script", label: "script/step events" },
+        { from: "state", to: "hidden", label: "secret/* · dice/*" },
+        { from: "state", to: "integrity", label: "hash · branch" },
+        { from: "content", to: "geometry", label: "GeoQuery" },
+        { from: "attacks", to: "state", label: "events" },
+        { from: "ranked", to: "state", dashed: true, label: "events only" },
+      ],
+      about: {
+        summary:
+          "Core is the contract everyone relies on. It holds no game: the rules come from a loaded system's data and code. The reducer is one big pure function; the interesting design is in what counts as an event.",
+        files: ["src/core/index.ts (what is exported)", "src/core/types.ts", "CLAUDE.md"],
+        watch: RULES.slice(0, 2).concat(["Floats are rounded for hashing only; state is not rounded."]),
+        look: "Look deeper before changing an event, adding a field to GameState, or anything a package can observe.",
+      },
+    },
+
+    /* --------------------------------------------------------- content ---- */
+    content: {
+      title: "Rules as data",
+      parent: "core",
+      lede: "How a game's rules written as JSON become playable. A GameSystem is registered, the turn structure is flattened into slots, actions and procedures are interpreted against the state, and expressions read the table through a small runtime.",
+      W: 960,
+      H: 520,
+      nodes: [
+        {
+          id: "schema",
+          label: "schema.ts",
+          sub: ["GameSystem · Expr · Effect"],
+          x: 30,
+          y: 30,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "The shape of a system and its expression language.",
+          summary:
+            "Types only. A GameSystem lists characteristics, dice, weapon kinds, terrain, rules, procedures, actions, turn, reaction windows. Expressions are JSON trees.",
+          files: ["src/core/content/schema.ts"],
+          look: "Read first: it is the vocabulary every other file here uses.",
+        },
+        {
+          id: "shape",
+          label: "shape.ts",
+          sub: ["shapeProblems"],
+          x: 355,
+          y: 30,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Checks a hand-written system before it registers.",
+          summary:
+            "Names the path of each wrong key or value, so a typo in a package is reported instead of breaking play.",
+          files: ["src/core/content/shape.ts"],
+          talks: ["Sandbox engine (calls it on load)"],
+          look: "When a package fails to load with a confusing error.",
+        },
+        {
+          id: "systems",
+          label: "systems.ts",
+          sub: ["registry"],
+          x: 680,
+          y: 30,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Registered systems; stand-in for an unloaded one.",
+          summary:
+            "A map of GameSystem by id. getSystem returns a placeholder for an id whose package isn't loaded, so the log still folds. extendSystem and restoreSystems add and take back an extension package's rules. DEFAULT_SYSTEM is 'none'.",
+          files: ["src/core/content/systems.ts"],
+          look: "When a game shows as its 'package isn't loaded' stand-in.",
+        },
+        {
+          id: "turn",
+          label: "turn.ts",
+          sub: ["schedule · slots"],
+          x: 30,
+          y: 190,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Flattens the turn structure into slots to step through.",
+          summary:
+            "Phases, steps, player turns and alternating activations become one schedule. Handles passing, ending an activation and action points.",
+          files: ["src/core/content/turn.ts", "src/core/content/simultaneous.ts"],
+          look: "When a game's phases, rounds or activation order are wrong.",
+        },
+        {
+          id: "play",
+          label: "play.ts",
+          sub: ["actions in play"],
+          x: 355,
+          y: 190,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Which actions a unit can take, what they cost, what they do.",
+          summary:
+            "Works from data for any system: lists a phase's actions, checks costs, applies results. Also placed dice and acting units.",
+          files: ["src/core/content/play.ts", "src/core/content/player.ts"],
+          look: "When an action is offered at the wrong time or costs the wrong amount.",
+        },
+        {
+          id: "react",
+          label: "reactions.ts",
+          sub: ["reaction windows"],
+          x: 680,
+          y: 190,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Moments the other side may respond.",
+          summary:
+            "A window is a moment in a procedure (a charge declared, a hit rolled) where the opposed player may play a reaction or pass.",
+          files: ["src/core/content/reactions.ts", "docs/reactions.md"],
+          look: "When building an interrupt-style rule.",
+        },
+        {
+          id: "runner",
+          label: "runner.ts",
+          sub: ["procedure runner"],
+          x: 30,
+          y: 350,
+          w: 250,
+          h: 90,
+          status: "kept",
+          blurb: "Runs dice pipelines step by step.",
+          summary:
+            "A run is plain JSON so it can live in state and replay. The host advances it with its rng and pauses before each rolling step, so every stage is one visible, undoable event.",
+          files: ["src/core/content/runner.ts (the largest file here)"],
+          look: "To change how attack sequences, tests or saves resolve.",
+        },
+        {
+          id: "expr",
+          label: "expr.ts · calls.ts",
+          sub: ["pure evaluation"],
+          x: 355,
+          y: 350,
+          w: 250,
+          h: 90,
+          status: "kept",
+          blurb: "Evaluates the JSON expressions; calls pure module functions.",
+          summary:
+            "Pure: geometry and randomness enter through the context. A module's pure functions are callable from data as { call: id }.",
+          files: ["src/core/content/expr.ts", "src/core/content/calls.ts"],
+          look: "When an expression gives a surprising number.",
+        },
+        {
+          id: "rt",
+          label: "runtime.ts",
+          sub: ["unit & model views"],
+          x: 680,
+          y: 350,
+          w: 250,
+          h: 90,
+          status: "kept",
+          blurb: "What expressions can see of the table.",
+          summary:
+            "Builds UnitView, ModelView and geometry queries (distances, within, sight) from GameState for the evaluator and for code procedures' ctx.view.",
+          files: ["src/core/content/runtime.ts"],
+          talks: ["Table geometry"],
+          look: "When a rule needs a new thing to ask about the table.",
+        },
+      ],
+      edges: [
+        { from: "schema", to: "shape", label: "defines" },
+        { from: "shape", to: "systems", label: "register" },
+        {
+          from: "systems",
+          to: "turn",
+          via: [
+            [805, 150],
+            [155, 150],
+          ],
+          label: "reads",
+          at: [480, 144],
+        },
+        { from: "turn", to: "play", label: "actions" },
+        { from: "play", to: "react", label: "windows" },
+        {
+          from: "play",
+          to: "runner",
+          via: [
+            [480, 310],
+            [155, 310],
+          ],
+          label: "starts a run",
+          at: [300, 304],
+        },
+        { from: "runner", to: "expr", label: "evaluates" },
+        { from: "expr", to: "rt", label: "table" },
+      ],
+      about: {
+        summary:
+          "Most of a game should be data here, with code (code procedures) only where data cannot say it. That keeps the engine small and package code short and checkable.",
+        files: ["src/core/content/schema.ts", "docs/reactions.md", "docs/simultaneous.md"],
+        watch: [
+          "Everything here is pure: peers must compute the same answer from the same state.",
+          "player.ts and some schema fields still carry 40k-shaped ideas (stratagems, abilities). Expect them to be reshaped as 40k is rebuilt.",
+        ],
+        look: "Look deeper when you write or debug a game's data, or decide whether a rule is data or code.",
+      },
+    },
+
+    /* --------------------------------------------------------- sandbox ---- */
+    sandbox: {
+      title: "Sandbox: from package to playable game",
+      parent: "top",
+      type: "sequence",
+      lede: "How a package file becomes a registered system and starts resolving intents. Only trusted packages ever run, and only here.",
+      W: 960,
+      lanes: [
+        { id: "lib", label: "Library", sub: "packages/library.ts" },
+        { id: "rt", label: "App runtime", sub: "sandbox/runtime.ts" },
+        { id: "w", label: "Sandbox worker", sub: "engine.ts · worker.ts" },
+        { id: "reg", label: "Registries", sub: "systems/ · content/" },
+        { id: "host", label: "Host Session", sub: "net/session.ts" },
+      ],
+      steps: [
+        {
+          from: "lib",
+          to: "rt",
+          label: ["game names packages;", "trusted ones are chosen"],
+          title: "The game names its packages",
+          summary:
+            "The game/packages event lists exact hashes. usePackageSandbox keeps the ones that are in the library and trusted, and restarts when that set changes.",
+          files: ["src/sandbox/runtime.ts: usePackageSandbox"],
+          watch: ["Trust is per hash: new bytes need a new yes."],
+        },
+        {
+          from: "rt",
+          to: "w",
+          label: ["start iframe + worker"],
+          title: "A sandbox is started",
+          summary:
+            "A hidden iframe with sandbox=\"allow-scripts\" (no same-origin) and a CSP of default-src 'none' hosts a blob worker. The worker script is a build-time virtual module. Package code cannot touch the page, its storage or the network.",
+          files: ["src/sandbox/host.ts: FRAME, Sandbox.start"],
+          watch: ["Startup calls get 5 s (and the first 15 s are generous); ordinary calls get 250 ms."],
+        },
+        {
+          from: "rt",
+          to: "w",
+          label: ["load { packages }"],
+          title: "The packages are sent to load",
+          summary: "One message with each hash and its source text.",
+          files: ["src/sandbox/protocol.ts: ToSandbox", "src/sandbox/worker.ts"],
+        },
+        {
+          from: "w",
+          to: "w",
+          label: ["read manifest · import · check"],
+          title: "The worker reads and imports each package",
+          summary:
+            "readManifest parses the manifest literal as data first. The source is imported through a blob URL. Its default export is PackageContents. A whole game's system is shape-checked.",
+          files: [
+            "src/sandbox/engine.ts: load",
+            "src/packages/manifest.ts: readManifest",
+            "src/core/content/shape.ts",
+          ],
+        },
+        {
+          from: "w",
+          to: "w",
+          label: ["registerModule / extend system"],
+          title: "The worker registers the code",
+          summary:
+            "A whole game (contents.module) is registered in the worker as a built-in would be: rules, procedures, actions, hooks, functions. Extension packages add data to an existing system and register their code and hooks.",
+          files: ["src/sandbox/engine.ts: load", "src/systems/index.ts: registerModule"],
+        },
+        {
+          from: "w",
+          to: "rt",
+          label: ["Loaded: data, ids, hooks,", "'provides' (system + app glue)"],
+          title: "The worker reports what it holds",
+          summary:
+            "Plain JSON only: each package's systems, procedure and action ids, data additions, hook ids, and for a whole game its system data plus samples, layout, missions and which optional glue exists. The code itself stays in the worker.",
+          files: ["src/sandbox/protocol.ts: Loaded, Provided"],
+        },
+        {
+          from: "rt",
+          to: "reg",
+          label: ["registerPackageSystem · extendSystem", "registerHooks · addPackageMissions"],
+          title: "The app registers the game on its side",
+          summary:
+            "provide() registers the system and its app glue; extension data is merged into the system; hooks are registered. The session then refolds the log, since earlier events were folded with a stand-in system. A fresh host game takes the real system's table and layout.",
+          files: ["src/sandbox/runtime.ts: provide, start", "src/core/content/systems.ts: extendSystem"],
+        },
+        {
+          from: "rt",
+          to: "host",
+          label: ["setIntentRouter(…)"],
+          title: "The intent router is installed",
+          summary:
+            "From now on, while the game's system has package code, the host's resolver for every intent is the sandbox. Before each call the runtime syncs the worker's replica of the record (init, then new events).",
+          files: ["src/sandbox/runtime.ts", "src/net/session.ts: setIntentRouter"],
+        },
+        {
+          from: "host",
+          to: "w",
+          label: ["resolve { intent, from, seed }"],
+          title: "The host asks the sandbox to resolve",
+          summary:
+            "The worker runs the same resolveLogged as the host would, with a seeded rng, and returns the event (or null). The host logs it like any other event. A call that takes longer than the watchdog stops the sandbox; trusted packages get one restart before their rules are turned off.",
+          files: ["src/sandbox/engine.ts: resolve", "src/sandbox/host.ts: WATCHDOG_MS"],
+          watch: ["Procedures must stay deterministic: the host replays them from the start to resume."],
+        },
+      ],
+      about: {
+        summary:
+          "The sandbox exists so that game rules written by anyone (in practice, agents) can be loaded without trusting them. It never decides what is true: it proposes events the host logs.",
+        files: [
+          "src/sandbox/runtime.ts",
+          "src/sandbox/engine.ts",
+          "src/sandbox/host.ts",
+          "src/sandbox/protocol.ts",
+          "docs/packages.md",
+        ],
+        watch: [
+          "Package code is never run by the reducer. Only the host's resolve path and the sandbox ever execute it.",
+          "The worker is a replica: it must see the same events in the same order as the app.",
+        ],
+        look: "Look deeper when a package loads but rules don't apply, a game shows its stand-in system, or intents time out.",
+      },
+    },
+
+    /* -------------------------------------------------------- packages ---- */
+    packages: {
+      title: "Packages",
+      parent: "top",
+      lede: "A package is one JavaScript file known by the SHA-256 of its exact bytes. Storing, trusting and moving them is separate from running them.",
+      W: 960,
+      H: 460,
+      nodes: [
+        {
+          id: "lib",
+          label: "Library",
+          sub: ["packages/library.ts"],
+          x: 330,
+          y: 170,
+          w: 300,
+          h: 100,
+          status: "kept",
+          blurb: "Device storage and trust, keyed by hash.",
+          summary:
+            "IndexedDB database 'open-battle-packages'. add() hashes the bytes (optionally against an expected hash), reads the manifest, and stores the source. Several versions live side by side; each game uses exactly the hashes its log names. Trust is per hash.",
+          owns: ["add, load, trust, remove", "systemMatches: 'forty-k' covers 'forty-k-11' (prefix)"],
+          files: ["src/packages/library.ts"],
+          watch: ["Code runs only after the player trusts those exact bytes."],
+          look: "When a package won't load, won't run, or runs the wrong version.",
+        },
+        {
+          id: "manifest",
+          label: "Manifest",
+          sub: ["packages/manifest.ts"],
+          x: 30,
+          y: 170,
+          w: 250,
+          h: 100,
+          status: "kept",
+          blurb: "export const manifest = { … } read as data.",
+          summary:
+            "A small parser reads the top literal without executing anything. It must be a plain literal: no variables, calls or templates. Gives id, name, version, api, kind, the systems it targets, requires.",
+          files: ["src/packages/manifest.ts"],
+          watch: ["Kinds 'lesson' and 'faction' are still accepted, but nothing reads them now."],
+          look: "When writing a manifest, or deciding what a package may declare.",
+        },
+        {
+          id: "share",
+          label: "Peer transfer",
+          sub: ["packages/share.ts"],
+          x: 680,
+          y: 170,
+          w: 250,
+          h: 100,
+          status: "kept",
+          blurb: "package/want · part · status over the side channel.",
+          summary:
+            "A peer missing a hash asks the room. Whoever has it sends base64 chunks (48 KB each, up to 4 MB). The receiver verifies the hash before keeping it. Peers also say what they are missing, so a room knows who can't host yet.",
+          files: ["src/packages/share.ts"],
+          watch: ["Bigger packages load from a file.", "A stalled transfer (15 s) can be asked for again."],
+          look: "When a friend 'can't join' or sits on 'getting rules'.",
+        },
+        {
+          id: "event",
+          label: "game/packages",
+          sub: ["event in core"],
+          x: 330,
+          y: 20,
+          w: 300,
+          h: 80,
+          status: "kept",
+          blurb: "The log names the exact packages a game uses.",
+          summary:
+            "state.packages holds the hashes, system and app build. A host can propose, accept, decline or withdraw changes mid-game.",
+          files: ["src/core/types.ts: GamePackages", "src/core/actions.ts: game/packages, packages/*"],
+          look: "To understand why peers must hold identical bytes.",
+        },
+        {
+          id: "ready",
+          label: "Ready check",
+          sub: ["Session ready()"],
+          x: 30,
+          y: 330,
+          w: 270,
+          h: 80,
+          status: "kept",
+          blurb: "Peers without the packages can't host.",
+          summary:
+            "The store passes ready(state) to the Session: true only when the library holds every package the game names. Such a peer never wins a host election and won't sit down as a player.",
+          files: ["src/store.ts", "src/net/session.ts: elect"],
+          look: "When a host leaves and the room picks a surprising new one.",
+        },
+        {
+          id: "sandboxbox",
+          label: "Sandbox runtime",
+          sub: ["consumer"],
+          x: 680,
+          y: 330,
+          w: 250,
+          h: 80,
+          status: "kept",
+          zoom: "sandbox",
+          blurb: "Takes trusted sources and runs them.",
+          summary: "Reads sources from the library and starts the worker.",
+          files: ["src/sandbox/runtime.ts"],
+          look: "Zoom in for how packages become games.",
+        },
+      ],
+      edges: [
+        { from: "manifest", to: "lib" },
+        { from: "share", to: "lib" },
+        { from: "event", to: "lib", label: "names hashes" },
+        {
+          from: "lib",
+          to: "sandboxbox",
+          via: [
+            [480, 310],
+            [805, 310],
+          ],
+          label: "trusted source",
+          at: [660, 304],
+        },
+        {
+          from: "lib",
+          to: "ready",
+          via: [
+            [480, 310],
+            [165, 310],
+          ],
+          label: "has them all?",
+          at: [300, 304],
+        },
+      ],
+      about: {
+        summary:
+          "The package layer answers: which bytes does this game use, does this device have them, does the player trust them, and how does a friend get them. Running them is the sandbox's job.",
+        files: [
+          "src/packages/library.ts",
+          "src/packages/manifest.ts",
+          "src/packages/share.ts",
+          "docs/packages.md",
+          "examples/packages/",
+        ],
+        watch: ["The library is per browser. Another device starts empty."],
+        look: "Look deeper when any hash, trust or transfer problem appears.",
+      },
+    },
+
+    /* ------------------------------------------------------------- sdk ---- */
+    sdk: {
+      title: "SDK",
+      parent: "top",
+      lede: "The contract between a package author and the engine. Types only. A package is a file with a manifest literal and a default export of PackageContents.",
+      W: 960,
+      H: 520,
+      nodes: [
+        {
+          id: "contents",
+          label: "PackageContents",
+          sub: ["default export"],
+          x: 30,
+          y: 30,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "What a package adds.",
+          summary:
+            "Optional parts: rules, actions (data or code), procedures, functions, hooks, abilityTimings, reactionWindows, missions, and `module` (a whole game). definePackage() is an identity helper for typing.",
+          files: ["src/sdk/index.ts: PackageContents"],
+          look: "The first thing to read when writing a package.",
+        },
+        {
+          id: "module",
+          label: "GameModule",
+          sub: ["a whole game"],
+          x: 345,
+          y: 30,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "system data + app glue + code.",
+          summary:
+            "id, version, api (MODULE_API = 1), `system` (rules data), `app` (layout, samples, armies, missions), and optional actions, procedures, hooks, functions, checks.",
+          files: ["src/sdk/index.ts: GameModule"],
+          watch: ["MODULE_API is a compatibility promise to every existing package."],
+          look: "Before changing anything a package must supply.",
+        },
+        {
+          id: "app",
+          label: "PackageApp",
+          sub: ["glue the app reads"],
+          x: 660,
+          y: 30,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Layout, sample armies, missions, roster import.",
+          summary:
+            "What the app needs from a game besides rules: a starting table, sample armies, missions with scoring, an army list reader, side panel data.",
+          files: ["src/sdk/index.ts: PackageApp, Mission", "src/systems/app.ts"],
+          look: "To see what a new game must provide to be startable.",
+        },
+        {
+          id: "action",
+          label: "CodeAction · CodeProcedure",
+          sub: ["generators"],
+          x: 30,
+          y: 215,
+          w: 300,
+          h: 100,
+          status: "kept",
+          blurb: "A rule as a generator yielding commands.",
+          summary:
+            "A CodeAction is something a unit or player can take (applies, available, targets, cost, run). A CodeProcedure is the generator body. Both must be deterministic.",
+          files: ["src/sdk/index.ts: CodeAction, CodeProcedure", "src/core/script.ts"],
+          look: "When a rule needs branching or a question to a player.",
+        },
+        {
+          id: "ctx",
+          label: "Ctx commands",
+          sub: ["roll note ask run emit set secret reveal"],
+          x: 380,
+          y: 215,
+          w: 330,
+          h: 100,
+          status: "kept",
+          blurb: "Everything code may do to the game.",
+          summary:
+            "roll: host dice. ask: choose among options. run: execute a data procedure. emit: change the table with a GameEvent. set: keep lasting state. secret and reveal: hidden choices with commitments. note: a log line.",
+          files: ["src/sdk/index.ts: Ctx, Command"],
+          watch: ["Code reads the game only through ctx.view."],
+          look: "The whole write-side surface for a package.",
+        },
+        {
+          id: "view",
+          label: "GameView",
+          sub: ["read-only"],
+          x: 760,
+          y: 215,
+          w: 170,
+          h: 100,
+          status: "kept",
+          blurb: "State plus geometry queries.",
+          summary: "What code and checks can read.",
+          files: ["src/sdk/index.ts: GameView"],
+          look: "When a rule needs to measure.",
+        },
+        {
+          id: "hooks",
+          label: "TurnHooks",
+          sub: ["phaseStart · …"],
+          x: 30,
+          y: 395,
+          w: 250,
+          h: 80,
+          status: "kept",
+          blurb: "Code that runs when a phase or round changes.",
+          summary:
+            "Hook ids are reported to the host, which turns an event into hook intents (hookIntents) run one at a time.",
+          files: ["src/sdk/index.ts: TurnHooks", "src/core/script.ts: hookIntents"],
+          look: "For start-of-phase rules.",
+        },
+        {
+          id: "bot",
+          label: "BotTuning · checks · Rulebook",
+          sub: ["bot?, checks?, rulebook?"],
+          x: 330,
+          y: 395,
+          w: 320,
+          h: 80,
+          status: "leftover",
+          blurb: "Fields for features that were removed.",
+          summary:
+            "The computer opponent, the table-warnings panel and the printable rulebook no longer exist. These optional fields remain in the types.",
+          files: ["src/sdk/index.ts"],
+          look: "Delete or repurpose when those features come back.",
+        },
+        {
+          id: "examples",
+          label: "Examples",
+          sub: ["examples/packages · workshop"],
+          x: 690,
+          y: 395,
+          w: 240,
+          h: 80,
+          status: "kept",
+          blurb: "arena.js is a whole small game.",
+          summary:
+            "arena.js: rules data, samples, layout, code, a hook, an army reader, a side panel. The workshop folder has starter games (skirmish, ranked, activations).",
+          files: ["examples/packages/arena.js", "examples/workshop/skirmish.js"],
+          look: "Copy arena.js to see a complete working shape.",
+        },
+      ],
+      edges: [
+        { from: "contents", to: "module" },
+        { from: "module", to: "app" },
+        { from: "contents", to: "action", label: "actions" },
+        { from: "action", to: "ctx", label: "yields" },
+        { from: "ctx", to: "view", label: "reads" },
+        { from: "action", to: "hooks", via: [[155, 355]], dashed: true },
+      ],
+      about: {
+        summary:
+          "Authors write plain JavaScript against these types. The engine interprets the data parts and runs the code parts in the sandbox. The surface is small on purpose: roll, ask, emit, set, secret, reveal.",
+        files: ["src/sdk/index.ts", "docs/packages.md", "examples/packages/arena.js"],
+        watch: [
+          "Code must be deterministic: the host may replay it from the start.",
+          "Package data and code are checked before use (shape, manifest), but trust is the player's decision.",
+        ],
+        look: "Look deeper before changing a type a package can see; check docs/compatibility.md for MODULE_API rules.",
+      },
+    },
+
+    /* --------------------------------------------------------- systems ---- */
+    systems: {
+      title: "Systems registry",
+      parent: "top",
+      lede: "No game is built in. Two registries start empty and fill when a package loads: the rules data the engine reads, and the app glue the page uses.",
+      W: 960,
+      H: 440,
+      nodes: [
+        {
+          id: "index",
+          label: "systems/index.ts",
+          sub: ["module registry"],
+          x: 30,
+          y: 40,
+          w: 280,
+          h: 110,
+          status: "kept",
+          blurb: "BUILT_IN is empty. registerPackageSystem fills it.",
+          summary:
+            "Maps system id to GameModule. registerModule (used inside the sandbox) also registers code, functions, actions and hooks. registerPackageSystem (used by the app) records only data and app glue; the code stays in the sandbox. addPackageMissions layers an extension's missions on a system. systemModule(id) falls back to an empty module.",
+          files: ["src/systems/index.ts"],
+          look: "When a game starts without a layout or samples.",
+        },
+        {
+          id: "app",
+          label: "systems/app.ts",
+          sub: ["SystemModule"],
+          x: 345,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "The app-side interface of a game.",
+          summary:
+            "layout, sample, armies, readArmyList, importRoster, missions, templates, rank rules, panels and more. The sandbox runtime fills these from what a package provides.",
+          files: ["src/systems/app.ts", "src/systems/packageLayout.ts"],
+          look: "To see everything the app may ask of a game.",
+        },
+        {
+          id: "content",
+          label: "content/systems.ts",
+          sub: ["rules data registry"],
+          x: 650,
+          y: 40,
+          w: 280,
+          h: 110,
+          status: "kept",
+          blurb: "GameSystem by id; stand-in when missing.",
+          summary:
+            "getSystem never fails: an unknown id gets an empty skirmish-shaped placeholder so the log folds while a package arrives. isPlaceholder tells them apart. extendSystem merges an extension's data and restoreSystems takes it back.",
+          files: ["src/core/content/systems.ts"],
+          watch: [
+            "Folding a log before its system loads gives a different state: the runtime refolds after registering.",
+          ],
+          look: "When state looks wrong until a package loads.",
+        },
+        {
+          id: "layout",
+          label: "packageLayout",
+          sub: ["expandLayout"],
+          x: 345,
+          y: 230,
+          w: 270,
+          h: 80,
+          status: "kept",
+          blurb: "Fills missing terrain, objectives and zones with empty lists.",
+          summary: "Terrain templates are gone; a package lists its pieces and solids directly.",
+          files: ["src/systems/packageLayout.ts"],
+          look: "When a package's layout isn't applied.",
+        },
+        {
+          id: "missions",
+          label: "missions/scoring.ts",
+          sub: ["scoring moments"],
+          x: 30,
+          y: 230,
+          w: 280,
+          h: 80,
+          status: "kept",
+          blurb: "Turns a mission's rules into pending scores.",
+          summary:
+            "Matches scoring rules to moments in the log (round end, phase end) and lists what is owed. Used by the sandbox to work out suggested scores.",
+          files: ["src/missions/scoring.ts"],
+          look: "When building a mission.",
+        },
+        {
+          id: "code",
+          label: "Code registries",
+          sub: ["core/script.ts"],
+          x: 650,
+          y: 230,
+          w: 280,
+          h: 80,
+          status: "kept",
+          blurb: "registerCode, registerCodeActions, registerHooks.",
+          summary:
+            "Where procedures, actions and hooks live so the host can start them by id. Filled inside the sandbox worker; the app side only keeps ids and hook tables.",
+          files: ["src/core/script.ts"],
+          look: "When a procedure id is 'not found'.",
+        },
+      ],
+      edges: [
+        { from: "index", to: "app" },
+        {
+          from: "index",
+          to: "content",
+          via: [
+            [170, 190],
+            [790, 190],
+          ],
+          label: "registerSystem",
+          at: [480, 184],
+        },
+        { from: "layout", to: "app", label: "layout()" },
+        { from: "missions", to: "app", label: "missions" },
+      ],
+      about: {
+        summary:
+          "The split is what lets code stay in the sandbox: the app keeps data and plain-JSON glue; the worker keeps the functions.",
+        files: ["src/systems/index.ts", "src/core/content/systems.ts", "src/systems/app.ts"],
+        watch: [
+          "Stand-in systems exist so the log always folds. A game's real rules arriving later forces a refold.",
+        ],
+        look: "Look deeper when a game starts empty, or a package's app glue isn't seen.",
+      },
+    },
+
+    /* --------------------------------------------------------- servers ---- */
+    servers: {
+      title: "Servers and deploy",
+      parent: "top",
+      lede: "Optional, small, and never part of the game. They help browsers find each other and ship the site.",
+      W: 960,
+      H: 440,
+      nodes: [
+        {
+          id: "relay",
+          label: "relay.mjs",
+          sub: ["signalling relay"],
+          x: 40,
+          y: 40,
+          w: 290,
+          h: 110,
+          status: "kept",
+          blurb: "WebSocket relay for the WebRTC handshake.",
+          summary:
+            "Runs the Trystero ws-relay server so peers can find each other without public Nostr relays. Also answers GET /config.json (signalling URL and fresh TURN logins) and GET /health.json (is the relay up, does TURN answer a STUN ping). Settings: PORT, PUBLIC_URL, SIGNAL_URL, TURN_URLS, TURN_SECRET, TURN_TTL, TURN_CHECK.",
+          files: ["server/relay.mjs", "docs/self-host.md"],
+          watch: ["TURN_SECRET signs logins: use a long random value."],
+          look: "When self-hosting or when public relays are unreliable.",
+        },
+        {
+          id: "turn",
+          label: "turn-worker.mjs",
+          sub: ["Cloudflare Worker"],
+          x: 335,
+          y: 40,
+          w: 290,
+          h: 110,
+          status: "kept",
+          blurb: "Mints short-lived TURN logins.",
+          summary:
+            "GET / returns { turn, ttl } in the shape config.json uses. The API token stays a Worker secret. ALLOWED_ORIGINS limits which pages may ask.",
+          files: ["server/turn-worker.mjs", "docs/cloudflare-turn.md"],
+          look: "When players on strict networks can't connect.",
+        },
+        {
+          id: "nostr",
+          label: "Public Nostr relays",
+          sub: ["default signalling"],
+          x: 650,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Used when no relay is configured.",
+          summary: "Only the handshake goes through them. Game data flows directly between browsers.",
+          files: ["src/net/trystero.ts"],
+          look: "Not ours: if connecting is flaky, point at relay.mjs.",
+        },
+        {
+          id: "deploy",
+          label: "Deploy workflows",
+          sub: [".github/workflows/"],
+          x: 40,
+          y: 250,
+          w: 580,
+          h: 130,
+          status: "kept",
+          blurb: "No CI. These only build and publish.",
+          summary:
+            "craftworld.yml builds a release on every push to main and publishes it to the repo's craftworld release, which the craftworld server pulls. pages.yml publishes the built site to gh-pages. release.yml makes a GitHub release from a version tag. turn-worker.yml deploys the Worker by hand. Nothing runs checks before a deploy.",
+          files: [".github/workflows/craftworld.yml", "deploy/craftworld/", ".github/workflows/pages.yml"],
+          watch: ["Every push to main deploys. There is no test or check gate."],
+          look: "Before relying on main being deployable.",
+        },
+        {
+          id: "net",
+          label: "net/config.ts",
+          sub: ["client side"],
+          x: 670,
+          y: 250,
+          w: 250,
+          h: 100,
+          status: "kept",
+          zoom: "net",
+          blurb: "Reads config.json and TURN logins.",
+          summary: "The page reads the relay and TURN settings these servers hand out.",
+          files: ["src/net/config.ts"],
+          look: "Zoom in for the Network view.",
+        },
+      ],
+      edges: [
+        {
+          from: "relay",
+          to: "net",
+          via: [
+            [185, 215],
+            [730, 215],
+          ],
+          label: "config.json · signalling",
+          at: [440, 209],
+        },
+        {
+          from: "turn",
+          to: "net",
+          via: [
+            [480, 175],
+            [760, 175],
+          ],
+          label: "TURN logins",
+          at: [620, 169],
+          dashed: true,
+        },
+        { from: "nostr", to: "net", label: "handshake" },
+      ],
+      about: {
+        summary:
+          "Games run entirely between browsers. If every server here disappeared, two players on a friendly network could still play over public Nostr relays, or in two tabs with no network at all.",
+        files: ["server/relay.mjs", "server/turn-worker.mjs", "docs/self-host.md", "docs/cloudflare-turn.md"],
+        watch: ["The old mailbox, seeder and Open tables board servers were removed with their features."],
+        look: "Look deeper when connections fail, or when changing how the site is deployed.",
+      },
+    },
+  };
+
+  /* ------------------------------------------------------------ helpers ---- */
+
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  const STATUS_LABEL = { kept: "kept", planned: "planned", leftover: "leftover" };
+
+  function svgEl(tag, attrs, parent, text) {
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text !== undefined) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function h(tag, props, ...kids) {
+    const e = document.createElement(tag);
+    for (const k in props || {}) {
+      if (k === "class") e.className = props[k];
+      else if (k.startsWith("on")) e.addEventListener(k.slice(2), props[k]);
+      else e.setAttribute(k, props[k]);
+    }
+    for (const kid of kids) if (kid != null) e.append(kid.nodeType ? kid : document.createTextNode(kid));
+    return e;
+  }
+
+  /** Where the line from rect's centre toward `to` leaves the rect. */
+  function edgePoint(n, to) {
+    const cx = n.x + n.w / 2,
+      cy = n.y + n.h / 2;
+    const dx = to[0] - cx,
+      dy = to[1] - cy;
+    if (dx === 0 && dy === 0) return [cx, cy];
+    const sx = dx === 0 ? Infinity : n.w / 2 / Math.abs(dx);
+    const sy = dy === 0 ? Infinity : n.h / 2 / Math.abs(dy);
+    const s = Math.min(sx, sy);
+    return [cx + dx * s, cy + dy * s];
+  }
+  const centre = (n) => [n.x + n.w / 2, n.y + n.h / 2];
+
+  /* ------------------------------------------------------------ renderers -- */
+
+  let current = "top";
+  let selected = null; // node or step id within the view, or null for "about"
+
+  function renderDiagram(view) {
+    const svg = svgEl("svg", {
+      class: "diagram",
+      viewBox: `0 0 ${view.W} ${view.H}`,
+      role: "group",
+      "aria-label": view.title + " diagram",
+    });
+    const defs = svgEl("defs", {}, svg);
+    const marker = svgEl(
+      "marker",
+      {
+        id: "arr",
+        viewBox: "0 0 10 10",
+        refX: "9",
+        refY: "5",
+        markerWidth: "8",
+        markerHeight: "8",
+        orient: "auto-start-reverse",
+      },
+      defs,
+    );
+    svgEl("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--line)" }, marker);
+    const byId = Object.fromEntries(view.nodes.map((n) => [n.id, n]));
+
+    for (const e of view.edges) {
+      const a = byId[e.from],
+        b = byId[e.to];
+      if (!a || !b) continue;
+      const via = e.via || [];
+      const startToward = via.length ? via[0] : centre(b);
+      const endFrom = via.length ? via[via.length - 1] : centre(a);
+      const p0 = edgePoint(a, startToward);
+      const p1 = edgePoint(b, endFrom);
+      const pts = [p0, ...via, p1];
+      const d = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" ");
+      svgEl("path", { class: "edge" + (e.dashed ? " dashed" : ""), d, "marker-end": "url(#arr)" }, svg);
+      if (e.label) {
+        let at = e.at;
+        if (!at) {
+          // midpoint of the polyline's longest segment
+          let best = 0,
+            bi = 0;
+          for (let i = 0; i < pts.length - 1; i++) {
+            const len = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]);
+            if (len > best) {
+              best = len;
+              bi = i;
+            }
+          }
+          at = [(pts[bi][0] + pts[bi + 1][0]) / 2, (pts[bi][1] + pts[bi + 1][1]) / 2];
+        }
+        svgEl("text", { class: "elabel", x: at[0], y: at[1] - 4 }, svg, e.label);
+      }
+    }
+
+    for (const n of view.nodes) {
+      const cls = ["node", n.status, n.zoom ? "zoomable" : "", selected === n.id ? "selected" : ""]
+        .filter(Boolean)
+        .join(" ");
+      const g = svgEl(
+        "g",
+        {
+          class: cls,
+          tabindex: "0",
+          role: "button",
+          "aria-label": n.label + (n.zoom ? ", open" : ", details"),
+          "data-id": n.id,
+        },
+        svg,
+      );
+      svgEl("rect", { class: "box", x: n.x, y: n.y, width: n.w, height: n.h, rx: 6 }, g);
+      svgEl("text", { class: "label", x: n.x + 12, y: n.y + 24 }, g, n.label);
+      (n.sub || []).forEach((line, i) =>
+        svgEl("text", { class: "sub", x: n.x + 12, y: n.y + 43 + i * 15 }, g, line),
+      );
+      if (n.zoom)
+        svgEl(
+          "text",
+          { class: "open", x: n.x + n.w - 12, y: n.y + n.h - 10, "text-anchor": "end" },
+          g,
+          "open ▸",
+        );
+      const act = () => (n.zoom ? go(n.zoom) : select(n.id));
+      g.addEventListener("click", act);
+      g.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          act();
+        }
+      });
+    }
+    return svg;
+  }
+
+  function renderSequence(view) {
+    const lanes = view.lanes;
+    const gapX = (view.W - 200) / (lanes.length - 1);
+    const lx = Object.fromEntries(lanes.map((l, i) => [l.id, 100 + i * gapX]));
+    const top = 64,
+      stepH = 70;
+    const H = top + view.steps.length * stepH + 24;
+    const svg = svgEl("svg", {
+      class: "diagram",
+      viewBox: `0 0 ${view.W} ${H}`,
+      role: "group",
+      "aria-label": view.title + " sequence",
+    });
+    const defs = svgEl("defs", {}, svg);
+    const marker = svgEl(
+      "marker",
+      {
+        id: "arr2",
+        viewBox: "0 0 10 10",
+        refX: "9",
+        refY: "5",
+        markerWidth: "8",
+        markerHeight: "8",
+        orient: "auto",
+      },
+      defs,
+    );
+    svgEl("path", { d: "M0,0 L10,5 L0,10 z", fill: "var(--ink)" }, marker);
+    for (const l of lanes) {
+      const g = svgEl("g", { class: "lane" }, svg);
+      svgEl("line", { x1: lx[l.id], y1: 50, x2: lx[l.id], y2: H - 8 }, g);
+      svgEl("rect", { x: lx[l.id] - 76, y: 6, width: 152, height: 44, rx: 6 }, g);
+      svgEl("text", { class: "label", x: lx[l.id], y: 24 }, g, l.label);
+      svgEl("text", { class: "sub", x: lx[l.id], y: 40 }, g, l.sub);
+    }
+    view.steps.forEach((s, i) => {
+      const id = "s" + (i + 1);
+      const ay = top + i * stepH + 44;
+      const g = svgEl(
+        "g",
+        {
+          class: "step" + (selected === id ? " selected" : ""),
+          tabindex: "0",
+          role: "button",
+          "aria-label": "Step " + (i + 1) + ": " + s.title,
+          "data-id": id,
+        },
+        svg,
+      );
+      svgEl("rect", { class: "hit", x: 8, y: ay - 40, width: view.W - 16, height: stepH - 4, rx: 6 }, g);
+      const x1 = lx[s.from],
+        x2 = lx[s.to];
+      const self = s.from === s.to;
+      svgEl(
+        "path",
+        {
+          class: "arrow",
+          d: self ? `M${x1} ${ay - 12} h54 v24 h-54` : `M${x1} ${ay} L${x2} ${ay}`,
+          "marker-end": "url(#arr2)",
+        },
+        g,
+      );
+      const nx = self ? x1 - 20 : x1 + (x2 > x1 ? 18 : -18);
+      svgEl("circle", { cx: nx, cy: ay, r: 10 }, g);
+      svgEl("text", { class: "n", x: nx, y: ay + 4 }, g, String(i + 1));
+      s.label.forEach((line, k) => {
+        if (self)
+          svgEl("text", { class: "say", x: x1 + 66, y: ay - 4 + k * 15 - (s.label.length - 1) * 7 }, g, line);
+        else {
+          const t = svgEl(
+            "text",
+            { class: "say", x: (x1 + x2) / 2, y: ay - 9 - (s.label.length - 1 - k) * 15 },
+            g,
+            line,
+          );
+          t.setAttribute("text-anchor", "middle");
+        }
+      });
+      const act = () => select(id);
+      g.addEventListener("click", act);
+      g.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          act();
+        }
+      });
+    });
+    return svg;
+  }
+
+  /* ---------------------------------------------------------------- detail -- */
+
+  function section(title, items, asFiles) {
+    if (!items || !items.length) return null;
+    const box = h("div", {}, h("h4", {}, title));
+    if (asFiles) items.forEach((f) => box.append(h("span", { class: "file" }, f)));
+    else {
+      const ul = h("ul", {});
+      items.forEach((t) => ul.append(h("li", {}, t)));
+      box.append(ul);
+    }
+    return box;
+  }
+
+  function renderDetail(view) {
+    const box = $("detail");
+    box.replaceChildren();
+    let item = null;
+    if (selected) {
+      item =
+        view.type === "sequence"
+          ? (() => {
+              const i = Number(selected.slice(1)) - 1;
+              const s = view.steps[i];
+              return s && { ...s, label: "Step " + (i + 1) + ": " + s.title };
+            })()
+          : view.nodes.find((n) => n.id === selected);
+    }
+    if (!item) {
+      const a = view.about;
+      box.append(
+        h("h3", {}, "About this level"),
+        h("p", {}, a.summary),
+        section("Open first", a.files, true),
+        section("Must stay true", a.watch),
+        a.look ? h("div", {}, h("h4", {}, "Why look deeper"), h("p", {}, a.look)) : null,
+      );
+      return;
+    }
+    const title = item.label;
+    box.append(
+      h(
+        "h3",
+        {},
+        title,
+        item.status ? h("span", { class: "pill " + item.status }, STATUS_LABEL[item.status]) : null,
+      ),
+      h("p", {}, item.summary || item.blurb || ""),
+      section("Owns", item.owns),
+      section("Talks to", item.talks),
+      section("Open first", item.files, true),
+      section("Watch out for", item.watch),
+      item.look ? h("div", {}, h("h4", {}, "Look deeper when"), h("p", {}, item.look)) : null,
+    );
+    if (item.zoom)
+      box.append(
+        h(
+          "p",
+          {},
+          h("button", { class: "btn primary", type: "button", onclick: () => go(item.zoom) }, "Zoom in"),
+        ),
+      );
+    box.append(
+      h(
+        "p",
+        {},
+        h(
+          "button",
+          { class: "btn", type: "button", onclick: () => select(null) },
+          "Back to this level's summary",
+        ),
+      ),
+    );
+  }
+
+  function renderList(view) {
+    const list = $("list");
+    list.replaceChildren();
+    $("listtitle").textContent = view.type === "sequence" ? "Steps" : "At this level";
+    const items =
+      view.type === "sequence"
+        ? view.steps.map((s, i) => ({ id: "s" + (i + 1), name: i + 1 + ". " + s.title, one: "" }))
+        : view.nodes.map((n) => ({ id: n.id, name: n.label, one: n.blurb, status: n.status, zoom: n.zoom }));
+    for (const it of items) {
+      const b = h("button", {
+        type: "button",
+        "aria-pressed": String(selected === it.id),
+        onclick: () => (selected === it.id && it.zoom ? go(it.zoom) : select(it.id)),
+      });
+      const name = h("span", { class: "name" }, it.name);
+      if (it.status && it.status !== "kept")
+        name.append(h("span", { class: "pill " + it.status }, STATUS_LABEL[it.status]));
+      if (it.zoom) name.append(h("span", { class: "zoomhint" }, "tap again to zoom"));
+      b.append(name);
+      if (it.one) b.append(h("span", { class: "one" }, it.one));
+      list.append(b);
+    }
+  }
+
+  function renderCrumbs() {
+    const c = $("crumbs");
+    c.replaceChildren();
+    const chain = [];
+    for (let id = current; id; id = VIEWS[id].parent) chain.unshift(id);
+    chain.forEach((id, i) => {
+      if (i) c.append(h("span", { class: "sep", "aria-hidden": "true" }, "›"));
+      const b = h(
+        "button",
+        { type: "button", onclick: () => go(id) },
+        id === "top" ? "Whole app" : VIEWS[id].title.split(":")[0],
+      );
+      if (id === current) b.setAttribute("aria-current", "page");
+      c.append(b);
+    });
+    $("up").hidden = !VIEWS[current].parent;
+    $("flowbtn").hidden = current === "flow";
+  }
+
+  function render() {
+    const view = VIEWS[current];
+    $("vtitle").textContent = view.title;
+    $("vlede").textContent = view.lede;
+    const d = $("diagram");
+    d.replaceChildren(view.type === "sequence" ? renderSequence(view) : renderDiagram(view));
+    renderDetail(view);
+    renderList(view);
+    renderCrumbs();
+    document.title =
+      current === "top" ? "Open Battle Architecture" : "Open Battle Architecture · " + view.title;
+  }
+
+  function select(id) {
+    selected = id;
+    render();
+    const det = $("detail");
+    if (id && window.matchMedia("(max-width: 820px)").matches)
+      det.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  function go(id, fromHash) {
+    if (!VIEWS[id]) id = "top";
+    current = id;
+    selected = null;
+    if (!fromHash) {
+      try {
+        if (location.hash.slice(1) !== id) location.hash = id;
+      } catch (e) {
+        /* hash not available here */
+      }
+    }
+    render();
+    window.scrollTo({ top: 0 });
+  }
+
+  $("up").addEventListener("click", () => go(VIEWS[current].parent || "top"));
+  $("flowbtn").addEventListener("click", () => go("flow"));
+  window.addEventListener("hashchange", () => {
+    const id = location.hash.slice(1);
+    if (id !== current && VIEWS[id]) go(id, true);
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && VIEWS[current].parent) go(VIEWS[current].parent);
+  });
+
+  const start = location.hash.slice(1);
+  go(VIEWS[start] ? start : "top", true);
+</script>
