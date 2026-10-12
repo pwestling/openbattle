@@ -15,6 +15,7 @@ import { currentSlot } from "../../core/content/turn";
 import { spawnIntents } from "./deploy";
 import { fightOrder } from "./fight";
 import { rollerSeat } from "../../core";
+import { botPolicy } from "../../bot/player";
 import { wh40kModule } from "./module";
 
 describe("40k charge", () => {
@@ -264,6 +265,9 @@ describe("40k shooting after an Advance", () => {
     host({ type: "turn/next" }, "a");
     // My charger fought; now the other side fights back in my turn.
     host({ type: "unit/status", id: mine.id, key: "fought", value: true }, "a");
+    // The computer's pick, thought out again and again as the game moves on, is never lost (UX N40b).
+    const policy = botPolicy("steady", stateAt(r), 1, { seed: 1 });
+    for (let i = 0; i < 4; i++) expect(policy.move(r, stateAt(r), { seat: 1, player: "b" })).toBeTruthy();
     const weapon = Object.entries(enemy.sheet!.weapons).find(([, w]) => w.kind === "melee")![0];
     host({ type: "action/take", unitId: enemy.id, action: "fight", weapon, targetId: mine.id }, "b");
     const st = stateAt(r);
@@ -271,6 +275,20 @@ describe("40k shooting after an Advance", () => {
     // The turn is mine, but its hits are theirs to roll: the computer must not wait on me for them.
     expect(st.turn.activeSeat).toBe(0);
     expect(rollerSeat(st)).toBe(1);
+    // Rolled through, the finished attack is theirs to clear too, not mine (UX N40b).
+    for (let i = 0; i < 40; i++) {
+      const now = stateAt(r);
+      const done = now.attack ? now.attack.stage === "done" : !!now.procedure?.run.done;
+      if (done || (!now.attack && !now.procedure)) break;
+      const seat = rollerSeat(now);
+      const by = Object.values(now.players).find((p) => p.seat === seat)!.id;
+      host(now.attack ? { type: "attack/roll" } : { type: "procedure/roll" }, by);
+    }
+    const end = stateAt(r);
+    expect(end.attack?.stage === "done" || !!end.procedure?.run.done).toBe(true);
+    expect(rollerSeat(end)).toBe(1);
+    host(end.attack ? { type: "attack/clear" } : { type: "procedure/clear" }, "b");
+    expect(stateAt(r).attack ?? stateAt(r).procedure).toBeFalsy();
   });
 
   it("a charge dragged further than its roll still charged once in contact (UX N34)", () => {

@@ -102,6 +102,12 @@ export class Thinker implements Policy, Analyst {
   /** Sharp: how many of the best moves are judged with what could follow them. */
   private readonly beam: number;
   private done = { phase: "", keys: new Set<string>(), decisions: 0 };
+  /**
+   * Fight picks in the enemy's turn that were actually logged (seen), by key, and the last one
+   * offered: a pick thrown away because the game moved on while it was thought out isn't a fight.
+   */
+  private fought = { phase: "", keys: new Set<string>() };
+  private offered: { sig: string; key: string } | null = null;
   /** Sharp, in games where a side takes its whole turn (#51): ms per decision to play out the rest of the turn. */
   private readonly planMs: number;
   private readonly planWidth: number;
@@ -320,6 +326,12 @@ export class Thinker implements Policy, Analyst {
   }
 
   saw(state: GameState, move: BotMove): void {
+    if (this.offered && this.offered.sig === moveSig(move)) {
+      const phase = phaseKey(state);
+      if (this.fought.phase !== phase) this.fought = { phase, keys: new Set() };
+      this.fought.keys.add(this.offered.key);
+      this.offered = null;
+    }
     noteProgress(
       this.ctx,
       state,
@@ -428,15 +440,29 @@ export class Thinker implements Policy, Analyst {
     if (!order) return null;
     // What it already did this phase goes first: a unit that has fought every weapon must not hold up
     // the next pick as "the unit fighting now" (UX N35: its engaged unit then never fought).
-    const left = this.candidates(state, mine).filter((c) => !c.key || !this.done.keys.has(c.key));
-    const fights = inOrder(state, order, left, mine);
-    if (fights === "wait") return null;
-    const options = fights.filter((c) => c.must && legal(record, state, c.move));
-    if (!options.length) return null;
-    const pick = this.best(state, options, null);
-    const chosen = options.find((c) => c.move === pick);
-    if (chosen?.key) this.done.keys.add(chosen.key);
-    return pick;
+    // A pick offered but thrown away (the game moved on while it was thought out) didn't fight: if
+    // nothing is left once it's set aside, only the picks actually seen are (UX N40b: it never picked).
+    const all = this.candidates(state, mine);
+    const seen = this.fought.phase === phaseKey(state) ? this.fought.keys : new Set<string>();
+    for (const done of [this.done.keys, seen]) {
+      const fights = inOrder(
+        state,
+        order,
+        all.filter((c) => !c.key || !done.has(c.key)),
+        mine,
+      );
+      if (fights === "wait") continue;
+      const options = fights.filter((c) => c.must && legal(record, state, c.move));
+      if (!options.length) continue;
+      const pick = this.best(state, options, null);
+      const chosen = options.find((c) => c.move === pick);
+      if (chosen?.key) {
+        this.done.keys.add(chosen.key);
+        if (pick) this.offered = { sig: moveSig(pick), key: chosen.key };
+      }
+      return pick;
+    }
+    return null;
   }
 
   /**
@@ -1429,4 +1455,9 @@ export class Thinker implements Policy, Analyst {
     }
     return out;
   }
+}
+
+/** A move as logged, to tell it again when it comes back from the table (or from the worker). */
+function moveSig(move: BotMove): string {
+  return JSON.stringify([move.as, move.intent]);
 }

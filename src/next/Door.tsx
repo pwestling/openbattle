@@ -163,6 +163,24 @@ export function Door() {
       return null;
     }
   })();
+  // A return visit reopens the last game and opponent, with Start lit: coming back is Enter, Enter (UX N42).
+  const reopen =
+    !flow.game && !invite && !!lastSystem && all.some((g) => g.id === lastSystem) ? lastSystem : null;
+  const reopenWho =
+    reopen &&
+    lastWho &&
+    WHOS.includes(lastWho) &&
+    (lastWho !== "computer" || !!FRONT[reopen] || ownGame(reopen))
+      ? lastWho
+      : null;
+  useEffect(() => {
+    if (!reopen) return;
+    flow.go(reopen, reopenWho);
+    if (!reopenWho) focusInto("obn-who");
+    else requestAnimationFrame(() => document.querySelector<HTMLElement>("#obn-ready .obn-lit")?.focus());
+    // Once, as the door opens: a later visit to the bare door is the player's own choice.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const system = flow.game && all.some((g) => g.id === flow.game) ? flow.game : null;
   const who = system && WHOS.includes(flow.who as Who) ? (flow.who as Who) : null;
   const picked = all.find((g) => g.id === system);

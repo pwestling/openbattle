@@ -64,8 +64,8 @@ export function actingSeat(state: GameState): number | null {
 
 /**
  * The seat whose press a roll waits on: as actingSeat, but a step of the attacker's goes to the
- * attacker's side, not the side whose turn it is (a 40k fight on the other player's turn). Who
- * rolls, for the computer to know whose dice it may throw.
+ * attacker's side, not the side whose turn it is (a 40k fight on the other player's turn), and so
+ * does clearing a finished attack (UX N40b). Who rolls, for the computer to know whose dice it may throw.
  */
 export function rollerSeat(state: GameState): number | null {
   return seatActing(state, true);
@@ -92,6 +92,7 @@ function seatActing(state: GameState, byAttacker: boolean): number | null {
       return seatOf(attack.spec.targetUnitId) ?? state.turn.activeSeat;
     if (byAttacker) return seatOf(attack.spec.attackerUnitId) ?? state.turn.activeSeat;
   }
+  if (attack && byAttacker) return seatOf(attack.spec.attackerUnitId) ?? state.turn.activeSeat;
   const proc = state.procedure;
   if (proc && !proc.run.done) {
     try {
@@ -102,6 +103,7 @@ function seatActing(state: GameState, byAttacker: boolean): number | null {
     }
     if (byAttacker) return state.players[proc.by]?.seat ?? state.turn.activeSeat;
   }
+  if (proc && byAttacker) return state.players[proc.by]?.seat ?? state.turn.activeSeat;
   return state.turn.activeSeat;
 }
 

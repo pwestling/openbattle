@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { soloPlays, useSolo } from "../bot/solo";
-import { aliveModels, sidePlayers } from "../core";
+import { aliveModels, rollerSeat, sidePlayers, type Intent } from "../core";
 import { gameText, t } from "../i18n";
 import { displayName } from "../i18n/names";
 import { pendingScores } from "../missions/scoring";
@@ -130,6 +130,7 @@ export function StepBar() {
     }
   }, [pending, game, dispatch]);
   const draft = useStore((s) => s.draft);
+  const stuck = useStuckFinish();
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
   const playChip = usePlayChip();
@@ -155,7 +156,14 @@ export function StepBar() {
   const bot = sidePlayers(game, game.turn.activeSeat).find((p) => soloPlays(game, p.id));
   const letGo = !!bot && !!order?.picker && mine.includes(order.picker) && !game.attack && !game.procedure;
   const own = step.next ? step.next !== selected : step.buttons.some((b) => b.lit);
-  const echo = !own && step.tone === "job" && mirror ? mirror : null;
+  // While dice are rolling, only this screen's own roll is echoed: never a declare button (Fight,
+  // Shoot) during the computer's or the other player's attack (UX N41).
+  const rolling = !!(game.attack || game.procedure);
+  const rollsHere =
+    !rolling ||
+    (sidePlayers(game, rollerSeat(game) ?? -1).some((p) => mine.includes(p.id)) &&
+      !!mirror?.el.closest(".panel.attack"));
+  const echo = !own && step.tone === "job" && mirror && rollsHere ? mirror : null;
   const lit = own || !!echo;
   return (
     <section
@@ -236,6 +244,11 @@ export function StepBar() {
                 {t("Let {name} fight on", { name: displayName(bot!.name) })}
               </button>
             )}
+            {stuck && (
+              <button className="obn-plain" onClick={() => dispatch(stuck.intent, stuck.as)}>
+                {t("Go on")} ▸
+              </button>
+            )}
             {echo && (
               <button className="obn-lit" onClick={() => echo.el.click()}>
                 {echo.label} ▸
@@ -256,4 +269,29 @@ export function StepBar() {
       </div>
     </section>
   );
+}
+
+/**
+ * The computer's finished attack still on the table a few seconds on: a backstop so the game can
+ * never sit at "Done." with nothing to press (UX N40b). The computer normally clears it itself.
+ */
+function useStuckFinish(): { intent: Intent; as: string } | null {
+  const game = useGame();
+  const events = useStore((s) => s.record.events.length);
+  const proc = game.procedure;
+  const attack = game.attack;
+  const by = proc?.run.done
+    ? proc.by
+    : attack?.stage === "done"
+      ? game.units[attack.spec.attackerUnitId]?.owner
+      : undefined;
+  const finished = by && soloPlays(game, by) ? by : null;
+  const [late, setLate] = useState<number | null>(null);
+  useEffect(() => {
+    if (!finished) return;
+    const timer = window.setTimeout(() => setLate(events), 3000);
+    return () => window.clearTimeout(timer);
+  }, [finished, events]);
+  if (!finished || late !== events) return null;
+  return { intent: { type: proc ? "procedure/clear" : "attack/clear" }, as: finished };
 }
