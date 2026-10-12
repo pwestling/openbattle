@@ -15,7 +15,6 @@ import { battleOver } from "../ui/StatsScreen";
 import { TemplateTools } from "../ui/TemplateTools";
 import { TextSizePicker } from "../ui/TextSizePicker";
 import { switchUi } from "./flag";
-import { RollsMineToggle } from "../bot/SelfRoll";
 
 /**
  * ⋯ (ui-next): everything that isn't the next step, in one place. The view,
@@ -154,8 +153,6 @@ export function Drawer({ onClose }: { onClose: () => void }) {
       )}
       <section>
         <h3 className="obn-label">{t("Game")}</h3>
-        {/* Rolls go only on your press, unless you choose this (Porter, 2026-10-12). */}
-        <RollsMineToggle />
         <GameSettings />
         <RankedOffer />
       </section>

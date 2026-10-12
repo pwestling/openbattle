@@ -18,39 +18,13 @@ interface Volley {
   total: number;
 }
 
-/** This screen's shooting habits (#81), remembered: saves rolled for you, hits and wounds in one go. */
-interface ShotHabits {
-  /**
-   * Defending: your saves roll as soon as the wounds land, against a person or the computer. Only
-   * when chosen: otherwise a roll waits for your press, for as long as it takes (Porter, 2026-10-12).
-   */
-  rollSaves: boolean;
-  /** Attacking a person: one roll button does the hits and then the wounds. */
-  oneGo: boolean;
-}
-const HABITS_KEY = "open-battle:shot-habits";
-function loadHabits(): ShotHabits {
-  const habits = { rollSaves: false, oneGo: false };
-  try {
-    const saved = JSON.parse(localStorage.getItem(HABITS_KEY) ?? "{}") as Partial<ShotHabits>;
-    // The old "saves as they land" was on unless unticked, so it isn't carried over as a choice; the
-    // old "Roll my saves for me" against the computer was ticked by hand, so it is.
-    if (typeof saved.rollSaves === "boolean") habits.rollSaves = saved.rollSaves;
-    else if (localStorage.getItem("open-battle:bot-rolls-mine") === "1") habits.rollSaves = true;
-    if (typeof saved.oneGo === "boolean") habits.oneGo = saved.oneGo;
-  } catch {
-    // Private windows and blocked storage keep the defaults.
-  }
-  return habits;
-}
-export const useShotHabits = create<ShotHabits>(loadHabits);
-export function setShotHabit(habit: Partial<ShotHabits>): void {
-  useShotHabits.setState(habit);
-  try {
-    localStorage.setItem(HABITS_KEY, JSON.stringify(useShotHabits.getState()));
-  } catch {
-    // Kept for this visit only.
-  }
+// The old "Roll my saves for me" and "Always in one go" are gone (Porter, 2026-10-12): a player's dice
+// roll only when they press Roll. Their stored choices are cleared once.
+try {
+  localStorage.removeItem("open-battle:shot-habits");
+  localStorage.removeItem("open-battle:bot-rolls-mine");
+} catch {
+  // Blocked storage has nothing to clear.
 }
 
 export const useVolley = create<{ queue: Volley | null }>(() => ({ queue: null }));

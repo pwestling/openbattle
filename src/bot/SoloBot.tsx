@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { useShotHabits } from "../ui/volley";
 import { workOrder } from "../core/content/nextWork";
 import { noteReason } from "./reasons";
 import { useHold } from "../ui/hold";
@@ -43,9 +42,7 @@ export function SoloBot() {
   const tray = useHold((s) => s.held !== null || s.busy);
   const wasTray = useRef(false);
   const on = !!level && !paused && mine === session && !!session;
-  // A roll that is the player's (their saves) waits for their press, however long it takes, unless they
-  // chose "Roll my saves for me" (Porter, 2026-10-12: never a roll on a timer).
-  const rollsMine = useShotHabits((s) => s.rollSaves);
+  // A roll that is the player's (their saves) waits for their press, however long it takes (Porter, 2026-10-12).
   const letGo = useSolo((s) => s.letGo);
 
   useEffect(() => {
@@ -58,12 +55,11 @@ export function SoloBot() {
     if (!on || scrub !== null || timer.current !== null) return;
     const rolling = !!(game.attack || game.procedure || game.script?.waiting);
     const acting = rolling ? rollerSeat(game) : null;
-    // The player's own roll: theirs to press (nothing to save, or rolled for them if they chose that).
+    // The player's own roll: theirs to press (unless there's nothing in it to roll).
     const theirs =
       acting !== null &&
       acting !== useSolo.getState().seat &&
       !useSolo.getState().both &&
-      !rollsMine &&
       !nothingToRoll(game);
     if (theirs) return;
     const landed = wasTray.current;
@@ -75,7 +71,7 @@ export function SoloBot() {
       },
       landed ? AFTER_DICE : rolling ? ROLL_PACE : glided(game) ? GLIDE_MS + BOT_PACE : BOT_PACE,
     );
-  }, [on, game, scrub, tray, rollsMine, letGo]);
+  }, [on, game, scrub, tray, letGo]);
 
   useEffect(
     () => () => {
@@ -164,11 +160,8 @@ async function play(): Promise<void> {
     solo.letGo !== record.events.length
   )
     return;
-  // The player's own roll (their saves): rolled for them only when they chose that, or with no dice in it.
-  const yours =
-    solo.both || useShotHabits.getState().rollSaves || nothingToRoll(game)
-      ? rollTheirs(game, solo.seat)
-      : null;
+  // The player's own roll (their saves): rolled for them only with no dice in it, or in a both-sides game.
+  const yours = solo.both || nothingToRoll(game) ? rollTheirs(game, solo.seat) : null;
   if (yours) return dispatch(yours.intent, yours.as);
   if (rollTheirs(game, solo.seat)) return;
   let move: BotMove | null;

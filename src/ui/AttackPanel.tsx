@@ -1,5 +1,4 @@
 import { becauseText, damageValue, stepValue } from "./autoText";
-import { RollsMineToggle } from "../bot/SelfRoll";
 import { touch } from "./touch";
 import { playerName } from "../i18n/names";
 import { useCoach, computerPlays } from "../teach/store";
@@ -35,11 +34,8 @@ import { t, tn } from "../i18n";
 import { RollButton, useRealDice, useShakeDice } from "../companion/RealDice";
 import { WaitingDice } from "../companion/Shake";
 import { TableAttackSetup } from "../companion/TableAttack";
-import { fireNext, setShotHabit, useShotHabits, useVolley, volleyWeapons } from "./volley";
+import { fireNext, useVolley, volleyWeapons } from "./volley";
 import { useTalk } from "../talk/talk";
-import { reactionHeldNow, useReactionHeld } from "./reactionHold";
-import { decisiveSave } from "./stakes";
-import { quietClicks } from "./hold";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
 
 /**
@@ -443,8 +439,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
   // In a lesson the computer rolls its own dice: the learner only sees them land.
   const botRolls = computerPlays(game, roller);
   const botAttacks = computerPlays(game, attacker?.owner);
-  // The computer's attack, your saves: yours to roll, or rolled for you if you chose that.
-  const yourSaves = botAttacks && !botRolls && attack.stage === "save";
   // Rolling real dice (#37, any game since UX 501) goes a stage at a time, so each batch is asked for.
   const ownDice = useRealDice();
   // Rolling it yourself (UX 501): your dice wait in the tray for the roll in front of you, your saves included.
@@ -460,18 +454,7 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
     const count = savesTheirs ? (attack.stage === "hit" ? 2 : 1) : remaining;
     for (let i = 0; i < count; i++) dispatch({ type: "attack/roll" }, roller);
   };
-  const habits = useShotHabits();
-  // Hits and wounds in one go (#81, opt-in): the hits land, then a beat later the wounds, so both read.
-  const oneGo = savesTheirs && habits.oneGo && !ownDice && attack.stage === "hit";
-  const thenWounds = () => {
-    if (!oneGo) return;
-    window.setTimeout(() => {
-      const now = useStore.getState().game.attack;
-      if (now?.stage === "wound" && sameAttack(now.spec, spec) && !reactionHeldNow())
-        useStore.getState().dispatch({ type: "attack/roll" }, roller);
-    }, ONE_GO_BEAT);
-  };
-  // Shot at by a person (#81): what's coming, and the saves rolled as soon as the wounds land.
+  // Shot at by a person (#81): what's coming. Your dice roll only when you press Roll (Porter, 2026-10-12).
   const defending =
     live &&
     !!target &&
@@ -486,30 +469,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
     defending && talkVolley?.attacker === attacker?.id && talkVolley?.target === target?.id
       ? talkVolley
       : null;
-  // A decisive save (the last model or a character, 1-3 dice, a real doubt) waits for the defender's own press.
-  const decisive =
-    attack.stage === "save" &&
-    !!target &&
-    spec.save !== null &&
-    decisiveSave(
-      game,
-      target.id,
-      (attack.wounds ?? 0) - (attack.unsavable ?? 0),
-      spec.save - Math.max(-1, Math.min(1, spec.saveMod ?? 0)),
-    );
-  const autoSaves = defending && habits.rollSaves && !ownDice && !shake && !decisive;
-  const held = useReactionHeld();
-  const savesComing = autoSaves && attack.stage === "save" && !held;
-  useEffect(() => {
-    if (!savesComing || !target) return;
-    const timer = window.setTimeout(() => {
-      const now = useStore.getState().game.attack;
-      if (now?.stage !== "save" || !sameAttack(now.spec, spec)) return;
-      quietClicks.until = performance.now() + LATE_PRESS_MS;
-      dispatch({ type: "attack/roll" }, target.owner);
-    }, SAVES_BEAT);
-    return () => window.clearTimeout(timer);
-  }, [savesComing, attack, target, spec, dispatch]);
   // After the last roll its button goes: focus moves on to Done rather than dropping to the page (UX 199).
   const done = useRef<HTMLButtonElement>(null);
   const finished = attack.stage === "done";
@@ -635,33 +594,13 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
                   roll={() => dispatch({ type: "attack/roll" }, roller)}
                 />
               )}
-              <RollButton
-                className="primary attack-roll"
-                intent={{ type: "attack/roll" }}
-                as={roller}
-                onRolled={thenWounds}
-              >
-                {oneGo ? t("Roll hits and wounds") : savesComing ? t("Roll now") : stageLabel(attack.stage)}
+              <RollButton className="primary attack-roll" intent={{ type: "attack/roll" }} as={roller}>
+                {stageLabel(attack.stage)}
               </RollButton>
-              {savesComing && <span className="muted small">{t("Your saves roll by themselves")}</span>}
-              {!botAttacks && !ownDice && !oneGo && (
+              {!botAttacks && !ownDice && (
                 <button onClick={rollAll}>
                   {savesTheirs ? t("Roll hits and wounds") : t("Roll everything")}
                 </button>
-              )}
-              {savesTheirs && !botAttacks && !ownDice && attack.stage === "hit" && (
-                <label className="one-go small muted">
-                  <input
-                    type="checkbox"
-                    checked={habits.oneGo}
-                    onChange={(e) => setShotHabit({ oneGo: e.target.checked })}
-                  />{" "}
-                  {t("Always in one go")}
-                </label>
-              )}
-              {/* One setting for saves, against a person or the computer (Porter: no timed rolls). */}
-              {((defending && attack.stage === "save" && !ownDice && !shake) || yourSaves) && (
-                <RollsMineToggle />
               )}
             </>
           )}
@@ -683,19 +622,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
         </div>
       )}
     </div>
-  );
-}
-
-/** How long the wounds stay on screen before the defender's saves roll themselves, and the hits before the wounds. */
-const SAVES_BEAT = 1200;
-/** A press this soon after the saves rolled by themselves was meant for "Roll now": it's ignored (PX S1). */
-const LATE_PRESS_MS = 600;
-const ONE_GO_BEAT = 900;
-
-/** The same weapon's attack, whatever copy of it this screen holds (events come back over the wire). */
-function sameAttack(a: AttackSpec, b: AttackSpec): boolean {
-  return (
-    a.attackerUnitId === b.attackerUnitId && a.targetUnitId === b.targetUnitId && a.weaponId === b.weaponId
   );
 }
 

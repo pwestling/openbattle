@@ -836,8 +836,8 @@ const checks = {
   },
 
   /**
-   * Solo saves (#56, UX 404): in the computer's turn your save roll counts down on its button
-   * ("rolls itself in 8…"), then the computer rolls it for you, even at Easy.
+   * Solo saves (#56): in the computer's turn your save roll waits for your press, however long you
+   * leave it (Porter, 2026-10-12: no roll goes by itself), then the attack goes on.
    */
   async "solo-saves"() {
     const { page, context } = await device();
@@ -849,6 +849,7 @@ const checks = {
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     // Pass through your turn, phase by phase, until the computer shoots at you.
+    const saves = page.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
     const deadline = Date.now() + 150000;
     for (;;) {
       if (Date.now() > deadline) {
@@ -856,15 +857,18 @@ const checks = {
           await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "solo-saves-none.png") });
         throw new Error("the computer never shot at you in its first turn");
       }
-      if (await page.locator(".self-roll-note").count()) break;
+      if (await saves.count()) break;
       const anyway = page.locator(".topbar .ask button.primary");
       const next = page.locator('.topbar button[title="Next phase"]');
       if (await anyway.count()) await anyway.click().catch(() => {});
       else if (await next.count()) await next.click().catch(() => {});
       await page.waitForTimeout(500);
     }
-    // Left alone, the roll is made for you, and the attack goes on.
-    await page.locator(".self-roll-note").waitFor({ state: "detached", timeout: 15000 });
+    // Left alone, the roll waits; pressed, the attack goes on.
+    await page.waitForTimeout(10000);
+    if (!(await saves.count())) throw new Error("your saves rolled without your press");
+    await saves.first().click();
+    await saves.waitFor({ state: "detached", timeout: 15000 });
     // Resume names the computer's level from the saved game, not its side's name (UX 439).
     await lobby(page);
     await page.locator(".resume-top").getByText("Against the computer (Easy)").waitFor();
@@ -3147,8 +3151,8 @@ const checks = {
   },
 
   // #81: Ben plans his turn on Ana's (a ghost move, nothing logged, Ana sees only that he's planning), then moves as planned.
-  // #81: Ana shoots several weapons at Ben's unit. Ben is told what's coming, his saves roll as the wounds land,
-  // and Ana can roll hits and wounds in one go.
+  // #81: Ana shoots several weapons at Ben's unit. Ben is told what's coming, and rolls his own saves when
+  // he presses Roll (Porter, 2026-10-12: no roll goes by itself).
   async volley() {
     const { host, guest } = await twoAt40k();
     const a = host.page;
@@ -3211,44 +3215,33 @@ const checks = {
         hasText: new RegExp(`Ana is shooting your .+ with ${n} weapons?`),
       })
       .waitFor({ timeout: 10_000 });
-    // Ana: hits and wounds in one go, from now on.
-    await a.locator(".panel.attack .one-go input").check();
-    await a.locator(".panel.attack button.attack-roll", { hasText: "Roll hits and wounds" }).waitFor();
     if (process.env.SMOKE_SHOTS) {
       await a.screenshot({ path: join(process.env.SMOKE_SHOTS, "volley-attacker.png") });
       await b.screenshot({ path: join(process.env.SMOKE_SHOTS, "volley-defender.png") });
     }
-    // Through the first weapon: Ana rolls once for hits and wounds, Ben never presses a roll.
+    // Through the first weapon: Ana presses for hits and wounds, Ben presses for his saves.
     const saved = a.locator(".panel.attack", { hasText: /unsaved/ });
-    let decisive = false;
+    let pressed = false;
     for (let i = 0; i < 40 && !(await saved.count()); i++) {
       await answer();
       if (/No hits|0 wounds/.test(await a.locator(".panel.attack").innerText())) break;
-      const roll = a.locator(".panel.attack button.attack-roll:enabled");
-      const stage = (await roll.count()) ? await roll.first().textContent() : "";
-      // The wounds may already be on their way (the one-go beat), and the button gone with them.
-      if (/hits and wounds/i.test(stage ?? ""))
+      const roll = a.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll (hits|wounds)/ });
+      if (await roll.count())
         await roll
           .first()
           .click({ timeout: 3000 })
           .catch(() => {});
-      // A decisive save (the last model or a character, a real doubt) waits for Ben's own press (PX).
       const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
-      if ((await own.count()) && !(await b.getByText("Your saves roll by themselves").count())) {
-        await b.waitForTimeout(2000);
-        if ((await own.count()) && !(await b.getByText("Your saves roll by themselves").count())) {
-          await own.first().click();
-          decisive = true;
-        }
+      if (await own.count()) {
+        await own.first().click();
+        pressed = true;
       }
       await a.waitForTimeout(500);
     }
     const text = await a.locator(".panel.attack").innerText();
     if (!(await saved.count()) && !/0 wounds|0 hits/.test(text))
       throw new Error(`Ben's saves never rolled: ${text.replace(/\s+/g, " ").slice(0, 300)}`);
-    console.log(
-      `  volley: Ben's saves ${decisive ? "were decisive and waited for him" : "rolled by themselves"}`,
-    );
+    console.log(`  volley: Ben ${pressed ? "pressed for his saves" : "had no saves to roll"}`);
     await host.context.close();
     await guest.context.close();
     return [...a.errors, ...b.errors];

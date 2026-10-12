@@ -606,9 +606,3 @@ p.odds {
   background: color-mix(in srgb, var(--accent, #e0a040) 12%, transparent);
   font-weight: 600;
 }
-.panel.attack .one-go,
-.panel.attack .saves-land {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}

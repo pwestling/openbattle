@@ -105,15 +105,9 @@ export function stakesOf(roll: TrayRoll, before: GameState, after: GameState): S
 
 /**
  * A save worth holding your breath for: the unit's last model or a character, 1-3 dice, a real doubt. The
- * defender rolls it themselves, with no timer (PX, #81); the chance only picks it and is never shown.
+ * chance only picks it and is never shown.
  */
-export function decisiveSave(
-  state: GameState,
-  targetId: string,
-  n: number,
-  need: number,
-  sides = 6,
-): boolean {
+function decisiveSave(state: GameState, targetId: string, n: number, need: number, sides = 6): boolean {
   const unit = state.units[targetId];
   if (!unit || n < 1 || n > 3) return false;
   const last = aliveModels(state, unit).length <= 1;

@@ -1,6 +1,5 @@
 import { touch } from "./touch";
 import { PoolPicker, usesFaces } from "./SystemPanels";
-import { RollsMineToggle } from "../bot/SelfRoll";
 import { RollButton } from "../companion/RealDice";
 import { useMemo, useState } from "react";
 import {
@@ -329,8 +328,6 @@ export function ProcedurePanel() {
   const botRolls = computerPlays(game, roller);
   const botAnswers = computerPlays(game, defender);
   const botActs = computerPlays(game, proc.by);
-  // The computer's action, your roll (saves): yours to press, or rolled for you if you chose that.
-  const yours = botActs && !botRolls && !run.done;
   const notes = run.outcomes.filter((o) => o.kind === "note" || o.kind === "reminder");
   const actor = game.units[proc.unitId];
   const weapon = proc.weapon ? actor?.sheet?.weapons[proc.weapon] : undefined;
@@ -414,7 +411,6 @@ export function ProcedurePanel() {
               {t("Roll {step}", { step: stepName(next.id, run.tokens.length) })}
             </RollButton>
           )}
-          {yours && next && !run.pending && <RollsMineToggle />}
           {!botActs && (
             <button onClick={() => dispatch({ type: "procedure/clear" }, proc.by)}>
               {run.done ? t("Done") : t("Cancel")}
