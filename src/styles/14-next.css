@@ -194,8 +194,9 @@
 .obn-cols {
   display: flex;
   align-items: flex-start;
-  flex: 1;
-  min-height: 0;
+  /* Fills the door but never shrinks under its columns: on a 1024×768 tablet with More games open, the
+     footer sat over the last game cards and swallowed their taps. */
+  flex: 1 0 auto;
 }
 .obn-col {
   width: 24rem;
