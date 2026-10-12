@@ -11,6 +11,8 @@ import { unitGap } from "../../core/manoeuvre";
 import { opposed } from "../../core/teams";
 import { maxWounds, woundsRemaining } from "../../core/attack";
 import { engagedWith } from "./rules";
+import { fightOrder } from "./fight";
+import { registerWorkOrder } from "../../core/content/nextWork";
 
 /** Inches, base to base, from a unit to the nearest enemy unit still standing (Infinity if none). */
 function enemyGap(view: { state: GameState }, unitId: unknown): number {
@@ -102,3 +104,6 @@ export const wh40kModule: GameModule<SystemModule> = {
     recognizeAbility: recognize,
   },
 };
+
+/** The fight order is the engine's "whose pick" in the Fight phase (core/content/nextWork.ts). */
+registerWorkOrder(DEFAULT_SYSTEM, fightOrder);

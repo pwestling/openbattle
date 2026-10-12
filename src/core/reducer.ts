@@ -35,7 +35,7 @@ import { transformPositions } from "./formation";
 import { baseSizeInches } from "./geometry";
 import { facingOf } from "./manoeuvre";
 import { applyEventRef } from "./script";
-import type { GameState, Model, Player, TerrainPiece, Unit, UnitSheet, Vec2 } from "./types";
+import type { GameState, Model, Player, PlayerId, TerrainPiece, Unit, UnitSheet, Vec2 } from "./types";
 
 /**
  * Apply one event's effect on the table. Pure: returns a new state and never
@@ -757,14 +757,41 @@ function claimPlayer(state: GameState, from: string, to: string): GameState {
   const { [from]: _gone, [to]: _new, ...players } = state.players;
   const { [from]: res, ...resources } = state.resources;
   const units: Record<string, Unit> = {};
-  for (const [id, u] of Object.entries(state.units)) units[id] = u.owner === from ? { ...u, owner: to } : u;
+  // Characters joined to a unit (`joined`) are theirs too: when one leaves, it is the new id's (#84).
+  const own = (u: Unit): Unit => {
+    const joined = u.joined?.some((j) => j.owner === from) ? u.joined.map(own) : u.joined;
+    return u.owner === from || joined !== u.joined
+      ? { ...u, ...(u.owner === from ? { owner: to } : {}), ...(joined ? { joined } : {}) }
+      : u;
+  };
+  for (const [id, u] of Object.entries(state.units)) units[id] = own(u);
   const models: Record<string, Model> = {};
   for (const [id, m] of Object.entries(state.models)) models[id] = m.owner === from ? { ...m, owner: to } : m;
   // A player's committed secrets follow them to their new id (their device still holds the values).
   const { [from]: mine, ...secrets } = state.secrets ?? {};
   const { [from]: pool, ...pools } = state.pools ?? {};
+  // What the game waits on from them waits on their new id: a roll they started, a rule's
+  // question, their Done in a simultaneous phase (#84: a finished roll nobody could close).
+  const who = (p: PlayerId) => (p === from ? to : p);
+  const proc = state.procedure;
+  const script = state.script;
+  const ready = state.turn.ready;
   return {
     ...state,
+    ...(proc?.by === from ? { procedure: { ...proc, by: to } } : {}),
+    ...(script && (script.by === from || script.waiting?.player === from)
+      ? {
+          script: {
+            ...script,
+            by: who(script.by),
+            ...(script.waiting ? { waiting: { ...script.waiting, player: who(script.waiting.player) } } : {}),
+          },
+        }
+      : {}),
+    ...(state.pending?.trigger.by === from
+      ? { pending: { ...state.pending, trigger: { ...state.pending.trigger, by: to } } }
+      : {}),
+    ...(ready?.includes(from) ? { turn: { ...state.turn, ready: ready.map(who) } } : {}),
     players: { ...players, [to]: { ...old, id: to } },
     resources: { ...resources, [to]: res ?? initialResources(state) },
     units,

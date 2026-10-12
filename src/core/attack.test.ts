@@ -155,4 +155,44 @@ describe("turn sequence", () => {
     expect(s.units.t?.owner).toBe("new");
     expect(s.models.m1?.owner).toBe("new");
   });
+
+  it("hands what the game waits on from a reconnecting player to their new id (#84)", () => {
+    let s = withTarget([trooper("m1", 0)]);
+    s = applyEvent(s, { type: "player/join", player: { id: "p2", name: "B", color: "#f00", seat: 1 } });
+    s = {
+      ...s,
+      procedure: { run: {} as never, title: "a roll", unitId: "t", action: "shoot", by: "p2" },
+      script: {
+        system: "x",
+        procedure: "y",
+        args: {},
+        by: "p2",
+        startSeq: 0,
+        results: [],
+        waiting: { player: "p2", question: "Which?", options: [{ id: "a", label: "A" }] },
+      },
+      turn: { ...s.turn, ready: ["p1", "p2"] },
+    };
+    s = applyEvent(s, { type: "player/claim", player: "p2", by: "new" });
+    // A finished roll they started is theirs to close, a rule's question theirs to answer.
+    expect(s.procedure?.by).toBe("new");
+    expect(s.script?.by).toBe("new");
+    expect(s.script?.waiting?.player).toBe("new");
+    expect(s.turn.ready).toEqual(["p1", "new"]);
+  });
+
+  it("hands a character joined to a unit to the reconnecting player too, so it is theirs when it leaves", () => {
+    let s = withTarget([trooper("m1", 0)]);
+    s = applyEvent(s, {
+      type: "unit/add",
+      unit: { id: "l", owner: "p2", name: "Leader", modelIds: [], formation: { kind: "skirmish" } },
+      models: [trooper("boss", 1, "4")],
+    });
+    s = applyEvent(s, { type: "unit/attach", id: "l", to: "t" });
+    s = applyEvent(s, { type: "player/join", player: { id: "p2", name: "B", color: "#f00", seat: 1 } });
+    s = applyEvent(s, { type: "player/claim", player: "p2", by: "new" });
+    s = applyEvent(s, { type: "unit/detach", id: "t", unit: "l" });
+    expect(s.units.l?.owner).toBe("new");
+    expect(s.units.t?.owner).toBe("new");
+  });
 });
