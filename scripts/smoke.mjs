@@ -326,7 +326,7 @@ async function hostOnline(page, name, title = "Sci-fi battle") {
 /** Open tables: the new door's footer, or the classic door's A friend online (UX 513). */
 async function openTables(page) {
   if (page.ui !== "classic")
-    return page.locator(".obn-foot").getByRole("button", { name: "Find an opponent" }).click();
+    return (await footer(page)).getByRole("button", { name: "Find an opponent" }).click();
   await pickGame(page, "Sci-fi battle");
   await who(page, "friend");
   await page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
@@ -337,13 +337,16 @@ const atGame = (page, timeout = 30_000) =>
   page.locator(page.ui === "classic" ? ".topbar" : ".obn-strip").waitFor({ timeout });
 
 /** The front door's other ways to play, opened, in either UI. */
+/** The front door's footer (files, Open tables, more ways to play): the new door shows it once a game is picked. */
+async function footer(page) {
+  if (page.ui === "classic") return page.locator(".lobby");
+  if (!(await page.locator("#obn-game [aria-checked=true]").count())) await pickGame(page, "Sci-fi battle");
+  return page.locator(".obn-foot");
+}
+
 async function moreWays(page) {
   if (page.ui === "classic") await page.locator("summary", { hasText: "More ways to play" }).click();
-  else
-    await page
-      .locator(".obn-foot")
-      .getByRole("button", { name: /More ways to play/ })
-      .click();
+  else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
 }
 
 /** The battle's first round has begun, in either UI. */
@@ -542,18 +545,24 @@ const checks = {
       if ((await hash()) !== h) throw new Error(`step ${step}: address ${await hash()}, not ${h}`);
     };
     await lobby(page);
+    // The new door shows its other ways to play once a game is picked: that's the address to come back to.
+    if (page.ui !== "classic") await pickGame(page, "Sci-fi battle");
+    const door = page.ui === "classic" ? "" : "#/play/forty-k-11";
+    await want(door);
+    const doorState = JSON.stringify(await page.evaluate(() => history.state));
     await moreWays(page);
     await page.getByRole("button", { name: /Module workshop/ }).click();
     await want("#/workshop");
     await page.goBack();
-    await want("");
+    await want(door);
     await page.locator(".workshop").waitFor({ state: "detached" });
     await page.goForward();
     await page.locator(".workshop").waitFor();
     await page.getByRole("button", { name: "Close the workshop" }).click();
-    await want("");
-    // Closing went back to the entry before rather than adding one: Back from here leaves the site.
-    if ((await page.evaluate(() => history.state)) !== null) throw new Error("closing added a history entry");
+    await want(door);
+    // Closing went back to the entry before rather than adding one.
+    if (JSON.stringify(await page.evaluate(() => history.state)) !== doorState)
+      throw new Error("closing added a history entry");
     // A game: its address, kept by a reload, left with Back and come back to with Forward.
     await tryDemo(page, "Sci-fi battle");
     await atGame(page);
@@ -771,7 +780,12 @@ const checks = {
     const path = join(files, "clip.json");
     await (await download).saveAs(path);
     await lobby(page);
-    await page.locator("label.file", { hasText: "Open a file…" }).locator("input").setInputFiles(path);
+    await (
+      await footer(page)
+    )
+      .locator("label.file", { hasText: "Open a file…" })
+      .locator("input")
+      .setInputFiles(path);
     await page.getByRole("button", { name: "Share…" }).click();
     const cut = page.locator(".share-options label", { hasText: "The whole battle, cut down" });
     const about = Number((await cut.innerText()).match(/about (\d+) s/)?.[1]);
@@ -2032,7 +2046,12 @@ const checks = {
     if (!existsSync(path)) throw new Error("no replay saved (the hotseat check makes it)");
     const { page, context } = await device();
     await lobby(page);
-    await page.locator("label.file", { hasText: "Open a file…" }).locator("input").setInputFiles(path);
+    await (
+      await footer(page)
+    )
+      .locator("label.file", { hasText: "Open a file…" })
+      .locator("input")
+      .setInputFiles(path);
     await page.locator(".replaybar").waitFor();
     await context.close();
     return page.errors;
@@ -2106,7 +2125,12 @@ const checks = {
     const path = join(files, "tts-open.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.locator("label.file", { hasText: "Open a file…" }).locator("input").setInputFiles(path);
+    await (
+      await footer(page)
+    )
+      .locator("label.file", { hasText: "Open a file…" })
+      .locator("input")
+      .setInputFiles(path);
     await page
       .locator(page.ui === "classic" ? ".tts-import .tts-table" : "#obn-save-h")
       .waitFor({ timeout: 10_000 });
