@@ -128,10 +128,13 @@ export function StepBar() {
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
   // An empty phase moves on by itself after a beat, so the rail ticks past it (Jobs review). Not straight
-  // after an Undo, which would only step forward again, nor in a lesson, which walks every phase.
+  // after an Undo, which would only step forward again, nor in a lesson, which walks every phase, nor
+  // online, where a peer still loading the game's rules would disagree with the step.
+  const online = useStore((s) => !!s.roomId && s.mode !== "hotseat");
   const skip = step.tone === "job" && step.empty ? step.buttons.find((b) => b.lit && b.intent) : undefined;
   const skipKey =
     skip &&
+    !online &&
     !draft &&
     !game.attack &&
     !game.procedure &&
