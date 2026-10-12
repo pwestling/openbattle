@@ -16,7 +16,7 @@ import { formatList, gameText, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
 import type { Pending } from "../missions/scoring";
 import { chargeNeeded } from "../systems/wh40k/charge";
-import { fightOrder } from "../systems/wh40k/fight";
+import { workOrder } from "../core/content/nextWork";
 import {
   aliveModels,
   engagedWith,
@@ -332,14 +332,64 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     // Your saves in their turn are yours to press: the bar offers the roll (UX N26).
     return { tone: myTurn || mineRoll ? "job" : "wait", seat, rail, say, sub, buttons: close ? [close] : [] };
   }
-  if (game.pending)
+  // A rule's question (The Old World's charge reaction, a Brinewatch guard): its player answers here (#84).
+  const asked = game.script?.waiting;
+  if (asked) {
+    const by = game.players[asked.player];
+    if (isMine(asked.player)) {
+      const plain = asked.secret === undefined && asked.reveal === undefined;
+      return {
+        tone: "job",
+        seat: by?.seat ?? seat,
+        rail,
+        say: gameText(asked.question),
+        sub: plain ? t("Pick your answer.") : t("Answer on the card by the dice."),
+        buttons: plain
+          ? asked.options.map((o) => ({
+              label: gameText(o.label),
+              as: asked.player,
+              intent: { type: "script/answer", answer: o.id } as Intent,
+            }))
+          : [],
+      };
+    }
     return {
       tone: "wait",
-      seat,
+      seat: by?.seat ?? seat,
       rail,
-      say: t("A reaction"),
-      sub: t("Answer on the reaction card by the dice."),
+      say: t("Waiting for {name}", { name: displayName(by?.name ?? "") }),
+      sub: gameText(asked.question),
       buttons: [],
+    };
+  }
+  // A held action (FSD): the reacting side answers it, with a unit's reaction from its card or Pass (#84).
+  if (game.pending) {
+    const reactor = sidePlayers(game, game.pending.seat).find((p) => isMine(p.id));
+    return {
+      tone: reactor ? "job" : "wait",
+      seat: game.pending.seat,
+      rail,
+      say: reactor ? t("Your reaction") : t("A reaction"),
+      sub: reactor
+        ? t("React with a unit from its card, or pass.")
+        : t("Answer on the reaction card by the dice."),
+      buttons: reactor
+        ? [{ label: t("Pass"), lit: true, as: reactor.id, intent: { type: "reaction/pass" } }]
+        : [],
+    };
+  }
+  // An engine reaction window (#80) never blocks, but it is the reacting side's to answer (#84).
+  // Its card by the dice holds the gold (a re-roll offered on your failed dice); Pass here is plain.
+  const open = game.reaction;
+  const reacting = open ? sidePlayers(game, open.seat).find((p) => isMine(p.id)) : undefined;
+  if (open && reacting)
+    return {
+      tone: "job",
+      seat: open.seat,
+      rail,
+      say: t("You may react"),
+      sub: t("Play a reaction from the card by the dice, or pass."),
+      buttons: [{ label: t("Pass"), as: reacting.id, intent: { type: "reaction/pass" } }],
     };
 
   // A score to confirm comes first: walking past it is how games ended 0-0 (PX A3).
@@ -497,7 +547,8 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
 
   // Player turns, phase by phase.
   const last = !!rail && rail.current === rail.names.length - 1;
-  const order = /fight/i.test(phase) ? fightOrder(game) : null;
+  // The system's own order of picks (40k's fight order), from the engine (#84).
+  const order = workOrder(game);
   if (order) {
     const picker = order.picker;
     if (picker && !isMine(picker))

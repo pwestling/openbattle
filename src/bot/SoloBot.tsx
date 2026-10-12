@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useShotHabits } from "../ui/volley";
-import { fightOrder } from "../systems/wh40k/fight";
+import { workOrder } from "../core/content/nextWork";
 import { noteReason } from "./reasons";
 import { useHold } from "../ui/hold";
 import { actingSeat, sidePlayers, type GameState, type Intent, type Unit } from "../core";
@@ -154,7 +154,7 @@ async function play(): Promise<void> {
   }
   // In its own turn, the player's pick in the fight order is theirs to make: it waits for it (UX N29),
   // until they pick or let it go on.
-  const order = solo.both ? null : fightOrder(game);
+  const order = solo.both ? null : workOrder(game);
   if (
     order?.picker &&
     game.players[order.picker]?.seat !== solo.seat &&

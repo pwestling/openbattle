@@ -49,36 +49,7 @@ interface Seen {
  * w84-step.diff, see docs/next-work.md). Each names the finding it lets
  * through; the UI thread removes an entry when step.ts takes the fix.
  */
-const ALLOWED: { id: string; why: string; allows: (d: DeadEnd, s: Seen) => boolean }[] = [
-  {
-    // Proposal 1: step.ts reads `game.reaction` (an engine window, #80) and gives the reacting
-    // side's screen a job ("You may react: …", Pass lit) instead of "X's turn".
-    id: "reaction window not on the step bar",
-    why: "stepFor ignores game.reaction: the reacting side's screen says wait",
-    allows: (d, s) =>
-      d.rule === "unseenWork" && !!s.state.reaction && s.works.get(d.screen)?.kind === "reaction",
-  },
-  {
-    // Proposal 2: step.ts gives FSD's held action (`game.pending`) to the reacting side as a job
-    // (its units' reactions, Pass lit) instead of "wait" on every screen.
-    id: "held action not on the step bar",
-    why: "stepFor says wait on every screen while game.pending waits on the reacting side",
-    allows: (d, s) =>
-      !!s.state.pending &&
-      !s.state.procedure &&
-      !s.state.attack &&
-      (d.rule === "noStep" || (d.rule === "unseenWork" && s.works.get(d.screen)?.kind === "reaction")),
-  },
-  {
-    // Proposal 3: step.ts gives a rule's question (`game.script.waiting`, a guard's shot in
-    // Brinewatch, a charge reaction in The Old World) to its player as a job, its options as buttons.
-    id: "question not on the step bar",
-    why: "stepFor ignores game.script: the asked player's screen says wait",
-    allows: (d, s) =>
-      !!s.state.script?.waiting &&
-      (d.rule === "noStep" || (d.rule === "unseenWork" && s.works.get(d.screen)?.kind === "question")),
-  },
-];
+const ALLOWED: { id: string; why: string; allows: (d: DeadEnd, s: Seen) => boolean }[] = [];
 
 const ENDS = new Set(["turn/next", "turn/ready", "turn/pass", "turn/endActivation"]);
 

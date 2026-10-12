@@ -1888,7 +1888,7 @@ msgid "Your go"
 msgstr "Du bist dran"
 
 #: src/companion/CompanionScreen.tsx:184
-#: src/next/step.ts:448
+#: src/next/step.ts:498
 #, fuzzy
 msgid "{side}'s go"
 msgstr "{side} ist dran"
@@ -3842,6 +3842,7 @@ msgid "Send to {name}"
 msgstr "An {name} senden"
 
 #: src/mail/MailBar.tsx:211
+#: src/next/step.ts:360
 #, fuzzy
 msgid "Waiting for {name}"
 msgstr "Warte auf {name}"
@@ -4800,7 +4801,7 @@ msgid "Everything placed. Say you're ready."
 msgstr ""
 
 #: src/next/Setup.tsx:196
-#: src/next/step.ts:431
+#: src/next/step.ts:481
 #: src/ui/Packages.tsx:750
 #: src/ui/TopBar.tsx:380
 #, fuzzy
@@ -5179,7 +5180,7 @@ msgstr ""
 
 #: src/next/step.ts:244
 #: src/next/step.ts:293
-#: src/next/step.ts:424
+#: src/next/step.ts:474
 #: src/ui/AttackPanel.tsx:680
 #: src/ui/Coach.tsx:87
 #: src/ui/ProcedurePanels.tsx:420
@@ -5207,246 +5208,272 @@ msgstr ""
 msgid "Then the damage, where the dice are."
 msgstr ""
 
-#: src/next/step.ts:340
+#: src/next/step.ts:346
+msgid "Pick your answer."
+msgstr ""
+
+#: src/next/step.ts:346
+msgid "Answer on the card by the dice."
+msgstr ""
+
+#: src/next/step.ts:372
+msgid "Your reaction"
+msgstr ""
+
+#: src/next/step.ts:372
 msgid "A reaction"
 msgstr ""
 
-#: src/next/step.ts:341
+#: src/next/step.ts:374
+msgid "React with a unit from its card, or pass."
+msgstr ""
+
+#: src/next/step.ts:375
 msgid "Answer on the reaction card by the dice."
 msgstr ""
 
-#: src/next/step.ts:360
+#: src/next/step.ts:377
+#: src/next/step.ts:392
+#: src/next/step.ts:526
+#: src/next/step.ts:539
+#: src/ui/Missions.tsx:191
+#: src/ui/Missions.tsx:206
+#, fuzzy
+msgid "Pass"
+msgstr "Passen"
+
+#: src/next/step.ts:390
+#: src/ui/ReactionCard.tsx:65
+#, fuzzy
+msgid "You may react"
+msgstr "Du kannst reagieren"
+
+#: src/next/step.ts:391
+msgid "Play a reaction from the card by the dice, or pass."
+msgstr ""
+
+#: src/next/step.ts:410
 msgid "Score {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:366
+#: src/next/step.ts:416
 #: src/opentables/OpenTables.tsx:1044
 #: src/ranked/RankedGame.tsx:227
 #, fuzzy
 msgid "Not this time"
 msgstr "Diesmal nicht"
 
-#: src/next/step.ts:371
+#: src/next/step.ts:421
 msgid "Score {rule}: {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:392
+#: src/next/step.ts:442
 msgid "{ability} on {unit}"
 msgstr ""
 
-#: src/next/step.ts:399
+#: src/next/step.ts:449
 msgid "To use: {names}"
 msgid_plural "To use: {names}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:410
+#: src/next/step.ts:460
 msgid "{name}: {phase}, then Done"
 msgstr ""
 
-#: src/next/step.ts:414
+#: src/next/step.ts:464
 msgid "{phase}: your jobs, then Done"
 msgstr ""
 
-#: src/next/step.ts:419
+#: src/next/step.ts:469
 msgid "{names} is doing theirs at the same time."
 msgstr ""
 
-#: src/next/step.ts:431
+#: src/next/step.ts:481
 msgid "Moving on…"
 msgstr ""
 
-#: src/next/step.ts:432
+#: src/next/step.ts:482
 msgid "You're done with {phase}."
 msgstr ""
 
-#: src/next/step.ts:435
+#: src/next/step.ts:485
 #: src/ui/TopBar.tsx:387
 #, fuzzy
 msgid "Not done"
 msgstr "Nicht fertig"
 
-#: src/next/step.ts:436
+#: src/next/step.ts:486
 #: src/ui/TopBar.tsx:400
 #: src/ui/TopBar.tsx:450
 #, fuzzy
 msgid "Go on anyway"
 msgstr "Trotzdem weiter"
 
-#: src/next/step.ts:449
+#: src/next/step.ts:499
 msgid "Your next activation comes after theirs."
 msgstr ""
 
-#: src/next/step.ts:457
+#: src/next/step.ts:507
 msgid "Your activation: {unit}"
 msgstr ""
 
-#: src/next/step.ts:458
+#: src/next/step.ts:508
 msgid "Use its actions from its card, then end the activation."
 msgstr ""
 
-#: src/next/step.ts:461
+#: src/next/step.ts:511
 #: src/ui/SystemPanels.tsx:548
 #: src/ui/TopBar.tsx:343
 #, fuzzy
 msgid "End activation"
 msgstr "Aktivierung beenden"
 
-#: src/next/step.ts:473
+#: src/next/step.ts:523
 msgid "All your units have had their go"
 msgstr ""
 
-#: src/next/step.ts:474
+#: src/next/step.ts:524
 msgid "Pass: the other side goes on until they pass too."
 msgstr ""
 
-#: src/next/step.ts:476
-#: src/next/step.ts:489
-#: src/ui/Missions.tsx:191
-#: src/ui/Missions.tsx:206
-#: src/ui/Missions.tsx:345
-#: src/ui/ProcedurePanels.tsx:387
-#, fuzzy
-msgid "Pass"
-msgstr "Passen"
-
-#: src/next/step.ts:481
+#: src/next/step.ts:531
 msgid "Pick a unit to activate"
 msgstr ""
 
-#: src/next/step.ts:484
+#: src/next/step.ts:534
 msgid "{n} unit left this round"
 msgid_plural "{n} units left this round"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:492
+#: src/next/step.ts:542
 msgid "You have units that haven't gone. Pass anyway?"
 msgstr ""
 
-#: src/next/step.ts:508
+#: src/next/step.ts:559
 msgid "{player}'s pick to fight"
 msgstr ""
 
-#: src/next/step.ts:509
+#: src/next/step.ts:560
 msgid "The sides alternate until every engaged unit has fought."
 msgstr ""
 
-#: src/next/step.ts:517
+#: src/next/step.ts:568
 msgid "{player} hasn't picked yet. Move on anyway?"
 msgstr ""
 
-#: src/next/step.ts:541
+#: src/next/step.ts:592
 msgid "Your pick: choose a unit to fight"
 msgstr ""
 
-#: src/next/step.ts:542
+#: src/next/step.ts:593
 msgid "Pile in, fight, then consolidate, from its card."
 msgstr ""
 
-#: src/next/step.ts:551
+#: src/next/step.ts:602
 msgid "Units can still fight. Move on anyway?"
 msgstr ""
 
-#: src/next/step.ts:563
+#: src/next/step.ts:614
 msgid "{side}'s turn: {phase}"
 msgstr ""
 
-#: src/next/step.ts:564
+#: src/next/step.ts:615
 msgid "Watch the table. Your saves and reactions come to you here."
 msgstr ""
 
-#: src/next/step.ts:581
+#: src/next/step.ts:632
 msgid "{n} unit hasn't moved. Done anyway?"
 msgid_plural "{n} units haven't moved. Done anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:582
+#: src/next/step.ts:633
 msgid "{n} unit can still act. Move on anyway?"
 msgid_plural "{n} units can still act. Move on anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:591
+#: src/next/step.ts:642
 msgid "Drag a unit to move it"
 msgstr ""
 
-#: src/next/step.ts:592
+#: src/next/step.ts:643
 msgid "Every unit has moved"
 msgstr ""
 
-#: src/next/step.ts:595
+#: src/next/step.ts:646
 msgid "Pick a unit to shoot with, then click its target"
 msgstr ""
 
-#: src/next/step.ts:596
+#: src/next/step.ts:647
 msgid "Every unit has shot"
 msgstr ""
 
-#: src/next/step.ts:599
+#: src/next/step.ts:650
 msgid "Pick a unit to charge with, then drag it onto its target"
 msgstr ""
 
-#: src/next/step.ts:600
+#: src/next/step.ts:651
 msgid "No unit can charge now"
 msgstr ""
 
-#: src/next/step.ts:602
+#: src/next/step.ts:653
 msgid "No fights this turn"
 msgstr ""
 
-#: src/next/step.ts:604
+#: src/next/step.ts:655
 msgid "{phase}: pick a unit to act"
 msgstr ""
 
-#: src/next/step.ts:605
+#: src/next/step.ts:656
 msgid "{phase}: nothing left to do"
 msgstr ""
 
-#: src/next/step.ts:616
+#: src/next/step.ts:667
 msgid "Drag {unit} · up to {n}″"
 msgstr ""
 
-#: src/next/step.ts:617
+#: src/next/step.ts:668
 msgid "Drag {unit} to move it"
 msgstr ""
 
-#: src/next/step.ts:618
+#: src/next/step.ts:669
 msgid "Or pick another unit. Advance and the rest are on its card."
 msgstr ""
 
-#: src/next/step.ts:631
+#: src/next/step.ts:682
 msgid "{unit} moved {moved}″ on a charge roll of {n}″"
 msgstr ""
 
-#: src/next/step.ts:632
+#: src/next/step.ts:683
 msgid "Snap it back to the roll, or charge anyway."
 msgstr ""
 
-#: src/next/step.ts:635
+#: src/next/step.ts:686
 msgid "Snap back to {n}\""
 msgstr ""
 
-#: src/next/step.ts:636
+#: src/next/step.ts:687
 msgid "{unit} went further than its roll. Charge anyway?"
 msgstr ""
 
-#: src/next/step.ts:646
+#: src/next/step.ts:697
 msgid "Charge roll {n}″: drag {unit} into contact with {targets}"
 msgstr ""
 
-#: src/next/step.ts:647
+#: src/next/step.ts:698
 msgid "Then pick the next unit, or move on."
 msgstr ""
 
-#: src/next/step.ts:668
+#: src/next/step.ts:719
 msgid "{n} unit hasn't moved"
 msgid_plural "{n} units haven't moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:669
+#: src/next/step.ts:720
 msgid "{n} unit can still act"
 msgid_plural "{n} units can still act"
 msgstr[0] ""
@@ -8439,7 +8466,7 @@ msgstr ""
 msgid "Out of order: it's {player}'s pick."
 msgstr "Außer der Reihe: {player} wählt gerade."
 
-#: src/systems/wh40k/module.ts:100
+#: src/systems/wh40k/module.ts:102
 #, fuzzy
 msgctxt "game"
 msgid "Secret objectives"
@@ -13474,11 +13501,6 @@ msgstr "{unit} hat sich bewegt"
 #, fuzzy
 msgid "Their moves are done"
 msgstr "Die Bewegungen sind fertig"
-
-#: src/ui/ReactionCard.tsx:65
-#, fuzzy
-msgid "You may react"
-msgstr "Du kannst reagieren"
 
 #: src/ui/RegimentPanel.tsx:123
 #, fuzzy
