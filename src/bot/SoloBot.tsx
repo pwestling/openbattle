@@ -3,7 +3,7 @@ import { useShotHabits } from "../ui/volley";
 import { workOrder } from "../core/content/nextWork";
 import { noteReason } from "./reasons";
 import { useHold } from "../ui/hold";
-import { actingSeat, sidePlayers, type GameState, type Intent, type Unit } from "../core";
+import { rollerSeat, sidePlayers, type GameState, type Intent, type Unit } from "../core";
 import { clearDrawings, hear } from "../talk/talk";
 import { explain } from "./explain";
 import { pendingScores } from "../missions/scoring";
@@ -57,7 +57,7 @@ export function SoloBot() {
     }
     if (!on || scrub !== null || timer.current !== null) return;
     const rolling = !!(game.attack || game.procedure || game.script?.waiting);
-    const acting = rolling ? actingSeat(game) : null;
+    const acting = rolling ? rollerSeat(game) : null;
     // The player's own roll: theirs to press (nothing to save, or rolled for them if they chose that).
     const theirs =
       acting !== null &&
@@ -92,7 +92,7 @@ export function SoloBot() {
 function rollTheirs(game: GameState, seat: number): { intent: Intent; as: string } | null {
   const rolling = game.attack ? game.attack.stage !== "done" : game.procedure && !game.procedure.run.done;
   if (!rolling || game.procedure?.run.pending || game.script?.waiting || game.pending) return null;
-  const acting = actingSeat(game);
+  const acting = rollerSeat(game);
   const as = acting !== null && acting !== seat ? sidePlayers(game, acting)[0]?.id : undefined;
   if (!as) return null;
   return { intent: game.attack ? { type: "attack/roll" } : { type: "procedure/roll" }, as };
@@ -210,7 +210,7 @@ async function play(): Promise<void> {
   if (move.then) {
     const after = useStore.getState();
     // Never straight on into the player's own roll: that waits for them.
-    const acting = after.game.attack || after.game.procedure ? actingSeat(after.game) : null;
+    const acting = after.game.attack || after.game.procedure ? rollerSeat(after.game) : null;
     const theirs = acting !== null && acting !== solo.seat;
     if (!theirs && (remote || legal(after.record, after.game, move.then)))
       dispatch(move.then.intent, move.then.as);

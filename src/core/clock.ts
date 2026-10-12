@@ -59,6 +59,19 @@ function stepSide(step: unknown): "attacker" | "defender" | null {
  * else the side whose turn it is.
  */
 export function actingSeat(state: GameState): number | null {
+  return seatActing(state, false);
+}
+
+/**
+ * The seat whose press a roll waits on: as actingSeat, but a step of the attacker's goes to the
+ * attacker's side, not the side whose turn it is (a 40k fight on the other player's turn). Who
+ * rolls, for the computer to know whose dice it may throw.
+ */
+export function rollerSeat(state: GameState): number | null {
+  return seatActing(state, true);
+}
+
+function seatActing(state: GameState, byAttacker: boolean): number | null {
   if (state.pending) return state.pending.seat;
   const seatOf = (unitId: string | undefined) => {
     const owner = unitId ? state.units[unitId]?.owner : undefined;
@@ -77,6 +90,7 @@ export function actingSeat(state: GameState): number | null {
     // Past the wound roll, the target's side rolls saves group by group, each group's damage with it.
     if (side === "defender" || attack.stage === "save" || attack.stage === "damage")
       return seatOf(attack.spec.targetUnitId) ?? state.turn.activeSeat;
+    if (byAttacker) return seatOf(attack.spec.attackerUnitId) ?? state.turn.activeSeat;
   }
   const proc = state.procedure;
   if (proc && !proc.run.done) {
@@ -86,6 +100,7 @@ export function actingSeat(state: GameState): number | null {
     } catch {
       // A procedure this table can't find: the turn's side.
     }
+    if (byAttacker) return state.players[proc.by]?.seat ?? state.turn.activeSeat;
   }
   return state.turn.activeSeat;
 }
