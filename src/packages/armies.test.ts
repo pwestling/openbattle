@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createInitialState, createRecord, stateAt } from "../core";
 import { isArmyList } from "../share/armyList";
-import { addPackageMissions, clearPackageMissions, gameModule } from "../systems";
+import { addPackageMissions, clearPackageMissions, gameModule, missionFrom } from "../systems";
 import { SandboxEngine } from "../sandbox/engine";
 import valid from "../../conformance/package-armies/v1/valid/one-army.js?raw";
 import mixed from "../../conformance/package-armies/v1/valid/with-bad-entries.js?raw";
@@ -143,9 +143,12 @@ describe("package missions (an extension's missions)", () => {
   it("an added mission with a game mission's id replaces it, and clearing puts the game's back", () => {
     const own = gameModule("qd6-1")!.app!.missions!;
     const stand = { ...own[0]!, name: "Replaced" };
-    addPackageMissions("qd6-1", [stand]);
+    addPackageMissions("qd6-1", [stand], "f".repeat(64));
     expect(gameModule("qd6-1")!.app!.missions!.map((m) => m.name)).toEqual(["Replaced"]);
+    // The picker says which package it came from.
+    expect(missionFrom("qd6-1", stand.id)).toBe("f".repeat(64));
     clearPackageMissions();
     expect(gameModule("qd6-1")!.app!.missions).toBe(own);
+    expect(missionFrom("qd6-1", stand.id)).toBeUndefined();
   });
 });

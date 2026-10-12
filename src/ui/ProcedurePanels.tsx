@@ -4,6 +4,7 @@ import { RollButton } from "../companion/RealDice";
 import { useMemo, useState } from "react";
 import {
   actionTargets,
+  allocationChoice,
   findProcedure,
   inchesPerUnit,
   previewRun,
@@ -364,6 +365,7 @@ export function ProcedurePanel() {
         .map((r, i) => (
           <RecordRow key={i} record={r} why={whyNone(r)} />
         ))}
+      {live && <ModelPick />}
       {run.pending && !botAnswers && (
         <div className="stage">
           <span className="label">{label(run.pending.step)}</span>
@@ -418,6 +420,51 @@ export function ProcedurePanel() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * A weapon whose shooter picks the model hit (a sniper): the shooter picks it
+ * here, before the damage is rolled. Hits go to that model first, then the
+ * rest as usual.
+ */
+function ModelPick() {
+  const game = useGame();
+  const dispatch = useStore((s) => s.dispatch);
+  const canControl = useCanControl();
+  const proc = game.procedure;
+  const choice = useMemo(() => (proc ? allocationChoice(procedureEnv(game), proc.run) : null), [game, proc]);
+  if (!proc || !choice || choice.chooser !== "attacker" || !canControl(proc.by)) return null;
+  const ref = proc.run.roles[choice.unit];
+  const unit = ref && "unit" in ref ? game.units[ref.unit] : undefined;
+  if (!unit) return null;
+  const models = choice.order.flatMap((id) => game.models[id] ?? []);
+  if (models.length < 2) return null;
+  return (
+    <div className="stage model-pick">
+      <label className="row">
+        <span className="label">{t("Pick the model hit")}</span>
+        <select
+          value={models[0]!.id}
+          onChange={(e) =>
+            dispatch(
+              {
+                type: "procedure/allocate",
+                order: [e.target.value, ...choice.order.filter((id) => id !== e.target.value)],
+              },
+              proc.by,
+            )
+          }
+        >
+          {models.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.profile?.name && m.profile.name !== unit.name ? `${m.label} (${m.profile.name})` : m.label}
+              {(m.woundsLost ?? 0) > 0 ? ` · ${t("wounded")}` : ""}
+            </option>
+          ))}
+        </select>
+      </label>
     </div>
   );
 }

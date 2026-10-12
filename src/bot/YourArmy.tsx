@@ -11,6 +11,7 @@ import type { Level } from "./player";
 import { characterName, levelName } from "./solo";
 import { matchPoints, pointsOf } from "./matchPoints";
 import { startSolo } from "./startSolo";
+import { packageArmyLabel, packageArmyRoster, packageOf, useLibraryArmies } from "../ui/PackageArmies";
 
 /**
  * "Your army" (#56, PX dogfood 1): after How hard?, the army the player
@@ -29,6 +30,8 @@ export function YourArmy({ system, level, onBack }: { system: string; level: Lev
   useEffect(() => {
     void load();
   }, [load]);
+  // Armies the packages this device trusts bring for the game (#82b): their package comes on with them.
+  const fromPackages = useLibraryArmies(system);
   const shelf = Object.values(armies)
     // The default game's armies are shelved with no system named.
     .filter((a) => (a.system || DEFAULT_SYSTEM) === system)
@@ -163,6 +166,23 @@ export function YourArmy({ system, level, onBack }: { system: string; level: Lev
           >
             {a.name} {pts ? <span className="muted small">{t("{points} pts", { points: pts })}</span> : null}
             {far && <span className="muted small"> · {far}</span>}
+          </button>
+        );
+      })}
+      {fromPackages.map((a, i) => {
+        const pkg = packageOf(a);
+        return (
+          <button
+            key={`${a.from.hash}:${i}`}
+            className="small"
+            onClick={() =>
+              startSolo(system, level, {
+                roster: packageArmyRoster(a, system),
+                ...(pkg ? { packages: [pkg] } : {}),
+              })
+            }
+          >
+            {packageArmyLabel(a)}
           </button>
         );
       })}

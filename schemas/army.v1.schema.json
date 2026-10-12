@@ -110,6 +110,23 @@
         "army": {
           "$ref": "#/definitions/Army"
         },
+        "named": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url"
+            ]
+          }
+        },
         "warnings": {
           "type": "array",
           "items": {

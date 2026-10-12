@@ -13,6 +13,8 @@ import { qd6Bot } from "./bot";
 import { holdFast } from "./mission";
 import { importQd6List } from "./roster";
 import { qd6 } from "./system";
+import { fightLine, lastFight } from "./ui/RoundPanel";
+import { qd6Orders } from "./ui/Qd6Card";
 import {
   alive,
   dice,
@@ -97,6 +99,14 @@ describe("Quality d6: orders and the round", () => {
     expect(ok).toEqual(expect.arrayContaining(["hold", "advance", "rush"]));
     const thorns = unitNamed(s, "Thornlings");
     expect(unitActions(s, thorns.id).find((o) => o.def.id === "hold")?.why).toBe("Not your turn");
+    // The unit card's order picker (ui/Qd6Card.tsx): no Rally while steady; Shaken, Rally is the one to take.
+    expect(qd6Orders(s, riflemen).map((o) => o.def.id)).toEqual(["hold", "advance", "rush", "charge"]);
+    const shaken = status(s, riflemen.id, "shaken", true);
+    expect(
+      qd6Orders(shaken, shaken.units[riflemen.id]!)
+        .filter((o) => o.ok)
+        .map((o) => o.def.id),
+    ).toEqual(["rally"]);
     s = play(s, { type: "action/take", unitId: riflemen.id, action: "advance" }, "p1");
     expect(s.units[riflemen.id]?.status?.allowance).toBe(6);
     expect(s.units[riflemen.id]?.status?.advancing).toBe(true);
@@ -203,6 +213,33 @@ describe("Quality d6: shooting", () => {
       const t = withWeaponRules(s, riflemen, "long-rifle", [r]);
       expect(plan(t, riflemen, "long-rifle", thorns, "hit").target).toBe(2);
     }
+  });
+
+  it("Sniper: the shooter picks the model hit, before the damage", () => {
+    const { s, riflemen, thorns } = duel();
+    const aim = (t: GameState) => {
+      t = play(t, { type: "action/take", unitId: riflemen, action: "hold" }, "p1");
+      return play(
+        t,
+        { type: "action/take", unitId: riflemen, action: "shoot", weapon: "long-rifle", targetId: thorns },
+        "p1",
+      );
+    };
+    const last = s.units[thorns]!.modelIds.at(-1)!;
+    const pick = { type: "procedure/allocate" as const, order: [last] };
+    // Not a sniper: only the defender orders the wounds.
+    const plain = aim(s);
+    expect(() => play(plain, pick, "p1")).toThrow(/Rejected/);
+    expect(play(plain, pick, "p2").procedure?.run.overrides?.allocate?.order).toEqual([last]);
+    // A sniper: the shooter picks, the defender can't, and every hit goes to that model first.
+    const sniped = aim(withWeaponRules(s, riflemen, "long-rifle", ["Sniper"]));
+    expect(() => play(sniped, pick, "p2")).toThrow(/Rejected/);
+    let t = play(sniped, pick, "p1");
+    for (let i = 0; i < 20 && t.procedure && !t.procedure.run.done; i++)
+      // One hit (a 6 and nine 1s), then its Defense roll fails.
+      t = play(t, { type: "procedure/roll" }, "p1", i === 0 ? dice(6, ...Array(9).fill(1)) : dice(1));
+    expect(t.models[last]?.destroyed).toBe(true);
+    expect(alive(t, thorns)).toBe(s.units[thorns]!.modelIds.length - 1);
   });
 
   it("Stealth is -1 to be hit by shooting, not by Lock-On", () => {
@@ -390,6 +427,14 @@ describe("Quality d6: melee", () => {
     expect(after.units[thorns]?.status?.fatigued).toBe(true);
     expect(lastNotes()).toContain("Breacher Squad caused 0 wounds, Thornlings 0");
     expect(after.units[thorns]?.status?.shaken).toBeFalsy();
+    // The round panel's summary (ui/RoundPanel.tsx).
+    expect(lastFight(after)).toMatchObject({
+      unit: breachers,
+      foe: thorns,
+      dealt: 0,
+      taken: 0,
+      morale: "tie",
+    });
   });
 
   it("strike-back and fatigue are the game's constants: 0 turns either off", () => {
@@ -426,12 +471,15 @@ describe("Quality d6: melee", () => {
     const after = fight(calm, breachers, thorns, dice(6, 6, 6, 6, 6, 1));
     expect(lastNotes()).toContain("Thornlings routs");
     expect(alive(after, thorns)).toBe(0);
+    expect(lastFight(after)).toMatchObject({ dealt: 5, taken: 0, loser: thorns, morale: "routed" });
+    expect(fightLine(lastFight(after)!)).toBe("Thornlings lost and routed.");
     // Not yet at half (two wounds each): Shaken instead.
     const sturdy = withChars(calm, thorns, { W: "2" });
     const shaken = fight(sturdy, breachers, thorns, dice(6, 6, 6, 6, 6, 1));
     // Five wounds on two-wound models: the wounded one takes the next, so two fall and one is hurt.
     expect(alive(shaken, thorns)).toBe(8);
     expect(shaken.units[thorns]?.status?.shaken).toBe(true);
+    expect(lastFight(shaken)?.morale).toBe("shaken");
   });
 
   it("a unit in melee can't shoot", () => {

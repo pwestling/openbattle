@@ -149,10 +149,28 @@ export function armyListRoster(list: ArmyListV1): ImportedRoster {
   });
   const points =
     typeof list.points === "number" ? list.points : units.reduce((n, u) => n + (u.sheet.points ?? 0), 0);
+  // The packages it names: https links only, each once.
+  const named = (Array.isArray(list.packages) ? list.packages : []).filter(
+    (p, i, all) =>
+      isObj(p) &&
+      typeof p.url === "string" &&
+      /^https:\/\//i.test(p.url) &&
+      all.findIndex((q) => isObj(q) && q.url === p.url) === i,
+  );
   return {
     name: typeof list.name === "string" && list.name.trim() ? list.name.trim() : "Army list",
     ...(points ? { points } : {}),
     units,
+    ...(named.length
+      ? {
+          named: named.map((p) => ({
+            url: p.url,
+            ...(typeof p.sha256 === "string" && /^[0-9a-f]{64}$/i.test(p.sha256)
+              ? { sha256: p.sha256.toLowerCase() }
+              : {}),
+          })),
+        }
+      : {}),
     warnings,
   };
 }

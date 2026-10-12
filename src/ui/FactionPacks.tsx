@@ -13,6 +13,7 @@ import {
   fetchPack,
   packRef,
   pinnedFor,
+  rawLink,
   unpin,
   usePins,
   type PackOffer,
@@ -29,6 +30,16 @@ import { t, tn } from "../i18n";
  * link" with the consent sheet; and the packs an army was made with that
  * aren't here. The app hosts and lists no packs: links are the player's.
  */
+/** Where a link points, short: its host and file name. */
+function linkPlace(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.host}/…/${u.pathname.split("/").pop() ?? ""}`;
+  } catch {
+    return url;
+  }
+}
+
 export function FactionPacks({
   roster,
   setRoster,
@@ -68,13 +79,27 @@ export function FactionPacks({
         : t("{pack}: nothing in this army has a name it knows.", { pack: o.ref.name }),
     );
   };
-  const load = async (link: string) => {
+  // Packages the list itself names (Army list v1), not yet pinned here: offered by their link.
+  const named = (roster.named ?? []).filter(
+    (n) => !pinned.some((x) => x.pin.url === rawLink(n.url)) && !onArmy.some((p) => p.url === n.url),
+  );
+  const load = async (link: string, sha256?: string) => {
     setBusy(true);
     setError(null);
     setNote(null);
     const got = await fetchPack(link);
     setBusy(false);
     if ("error" in got) return setError(got.error);
+    // The list said which file it was written with: different bytes at the link are worth a word first.
+    if (sha256 && got.pkg.hash !== sha256)
+      setNote(
+        t(
+          "The file at that link isn't the one the list was written with ({fp}); check it before saying yes.",
+          {
+            fp: fingerprint(sha256),
+          },
+        ),
+      );
     if (!got.manifest.systems.some((s) => systemMatches(s, systemId)))
       setError(t("That pack is for {systems}, not this game.", { systems: got.manifest.systems.join(", ") }));
     else if (got.ask) setOffer(got);
@@ -82,7 +107,10 @@ export function FactionPacks({
   };
 
   return (
-    <details className="auto-abilities faction-packs" open={pinned.length > 0 || elsewhere.length > 0}>
+    <details
+      className="auto-abilities faction-packs"
+      open={pinned.length > 0 || elsewhere.length > 0 || named.length > 0}
+    >
       <summary>
         {pinned.length ? tn(pinned.length, "Faction pack ({n})", "Faction packs ({n})") : t("Faction packs")}
       </summary>
@@ -134,6 +162,14 @@ export function FactionPacks({
           })}
         </ul>
       )}
+      {named.map((n) => (
+        <p key={n.url} className="small list-names-pack">
+          {t("The list was written for a pack at {where}.", { where: linkPlace(n.url) })}{" "}
+          <button className="primary small" disabled={busy} onClick={() => void load(n.url, n.sha256)}>
+            {t("Load it")}
+          </button>
+        </p>
+      ))}
       {elsewhere.map((p) => (
         <p key={p.hash} className="small">
           {t("This army was made with {pack} {version} ({fp}).", {

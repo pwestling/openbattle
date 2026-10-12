@@ -63,6 +63,8 @@ export interface ImportedRoster {
   units: ImportedUnit[];
   /** The detachment, its rules and stratagems (#49); none when the roster names none. */
   army?: Army;
+  /** Packages the list says it was written for (Army list v1 `packages`): offered before playing. */
+  named?: { url: string; sha256?: string }[];
   warnings: string[];
 }
 

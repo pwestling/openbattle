@@ -79,7 +79,8 @@ export async function playOwnGame(system: string, mine?: OwnArmy, seated?: () =>
     type: "game/packages",
     app: APP_BUILD,
     system: { id: system, builtIn: false },
-    packages: [refOf(pkg)],
+    // An army from another rules package plays with that package's rules too (#82b).
+    packages: [refOf(pkg), ...(mine?.packages ?? []).filter((p) => p.hash !== pkg.hash).map(refOf)],
   });
   // Wait for the rules however long they take (a slow device, a retry): never give up silently, as
   // long as this is still the game Play now started (PX playtest item 7). The notice offers a Retry.

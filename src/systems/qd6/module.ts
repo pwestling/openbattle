@@ -1,3 +1,4 @@
+import { lazy } from "react";
 import type { GameModule } from "../../sdk";
 import type { SystemModule } from "../app";
 import { qd6Bot } from "./bot";
@@ -31,5 +32,13 @@ export const qd6Module: GameModule<SystemModule> = {
     layout: (t) => qd6Layout(t.width, t.depth),
     templateCategory: QD6_CATEGORIES,
     missions: [holdFast()],
+    // Orders, Shaken and Fatigued, the list's rules, Hero and Ambush on the unit card (ui/Qd6Card.tsx).
+    // Units to go, who goes first next round, and the last fight (ui/RoundPanel.tsx).
+    panel: lazy(() => import("./ui/RoundPanel").then((m) => ({ default: m.Qd6RoundPanel }))),
+    unitCard: {
+      part: lazy(() => import("./ui/Qd6Card").then((m) => ({ default: m.Qd6Card }))),
+      starts: true,
+      statuses: true,
+    },
   },
 };

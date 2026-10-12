@@ -345,6 +345,33 @@ export function respond(env: RunEnv, run: ProcedureRun, answer: Id): ProcedureRu
 }
 
 /** The step a run is waiting on, or null when it is done. */
+/**
+ * Who may still declare the order the run's hits go to models in: the
+ * allocate step's chooser (the attacker when its `attackerPicks` holds), up
+ * until the damage after it is rolled. Null once that has happened, or when
+ * the procedure allocates nothing.
+ */
+export function allocationChoice(
+  env: RunEnv,
+  run: ProcedureRun,
+): { step: Id; chooser: "attacker" | "defender"; unit: string; order: string[] } | null {
+  const steps = findProcedure(env.system, run.procedure).steps;
+  const at = steps.findIndex((s) => s.kind === "allocate");
+  const step = steps[at];
+  if (run.done || !step || step.kind !== "allocate") return null;
+  const damage = steps.findIndex((s, i) => i > at && s.kind === "damage");
+  if (run.next > (damage < 0 ? at : damage)) return null;
+  const scope = buildScope(env, run);
+  const chooser =
+    step.attackerPicks !== undefined && safeOnly(step.attackerPicks, ctxFor(env, scope))
+      ? "attacker"
+      : step.chooser;
+  const order = allocationOrder(env, scope, step, undefined, run.overrides?.[step.id]?.order).map(
+    (m) => m.id,
+  );
+  return { step: step.id, chooser, unit: step.unit ?? "target", order };
+}
+
 export function nextStep(system: GameSystem, run: ProcedureRun): Step | null {
   if (run.done) return null;
   return findProcedure(system, run.procedure).steps[run.next] ?? null;

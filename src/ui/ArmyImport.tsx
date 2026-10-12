@@ -32,7 +32,7 @@ import { ImportAutomation } from "./AutoAbilities";
 import { FactionPacks, PackChecks, packsToGame } from "./FactionPacks";
 import { withPinnedPacks } from "../packages/packPins";
 import { ListMerge } from "../tts/ListMerge";
-import { PackageArmiesToShelf, PackageArmySelect } from "./PackageArmies";
+import { ArmyPicker, PackageArmiesToShelf } from "./PackageArmies";
 import { addSpells, importedWizard, parseSpellList } from "../systems/tow/spells";
 
 /** Common base sizes, so a player can fix a guessed base in one click. */
@@ -248,38 +248,15 @@ export function ArmyImport({ players }: { players: { id: PlayerId; name: string;
               onChange={(e) => e.target.files?.[0] && load(e.target.files[0])}
             />
           </label>
-          {/* A game with factions offers each one's sample army; others, the side's own. */}
-          {systemModule(game.system).armies?.length ? (
-            <select
-              aria-label={t("Sample army")}
-              value=""
-              onChange={(e) => {
-                const army = systemModule(game.system).armies?.[Number(e.target.value)];
-                if (!army) return;
-                setFromShelf(null);
-                setRoster(withPinnedPacks(army, game.system ?? DEFAULT_SYSTEM, systemOf(game)));
-              }}
-            >
-              <option value="">{t("Sample army…")}</option>
-              {systemModule(game.system).armies!.map((a, i) => (
-                <option key={i} value={i}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <button
-              onClick={() => {
-                setFromShelf(null);
-                setRoster(systemModule(game.system).sample(ownerSeat === 1 ? 1 : 0));
-              }}
-            >
-              {t("Sample army")}
-            </button>
-          )}
-          {/* Armies the game's rules packages bring (#82b). */}
-          <PackageArmySelect
+          {/* One picker: a game with factions offers each one's sample army, others the side's own,
+              then the armies the game's rules packages bring (#82b). */}
+          <ArmyPicker
             system={game.system ?? DEFAULT_SYSTEM}
+            samples={
+              systemModule(game.system).armies?.length
+                ? systemModule(game.system).armies!
+                : [systemModule(game.system).sample(ownerSeat === 1 ? 1 : 0)]
+            }
             onPick={(army) => {
               setFromShelf(null);
               setRoster(withPinnedPacks(army, game.system ?? DEFAULT_SYSTEM, systemOf(game)));

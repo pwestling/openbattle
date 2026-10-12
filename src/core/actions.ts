@@ -35,7 +35,7 @@ import {
   unitActions,
   type ActionTaken,
 } from "./content/play";
-import { advance, respond, type Outcome, type ProcedureRun } from "./content/runner";
+import { advance, allocationChoice, respond, type Outcome, type ProcedureRun } from "./content/runner";
 import { playerActions, poolUsed, type PlayerActionTaken } from "./content/player";
 import { playableReactions } from "./content/reactions";
 import { isReady, simultaneousNow, waitingFor } from "./content/simultaneous";
@@ -276,6 +276,8 @@ export type Intent =
   | { type: "procedure/roll" }
   /** Answer the procedure's open window with an option id or "pass". */
   | { type: "procedure/respond"; answer: string }
+  /** The order the procedure's hits go to models in, by whoever its allocate step lets choose (a sniper's shooter). */
+  | { type: "procedure/allocate"; order: string[] }
   | { type: "procedure/clear" }
   /** Use a player action (a stratagem). Custom ones carry a name and cost. */
   | {
@@ -1113,6 +1115,24 @@ export function resolveIntent(
       const run = state?.procedure?.run;
       if (!state || !run?.pending) return null;
       return { type: "procedure/set", run: respond(procedureEnv(state, rng), run, intent.answer) };
+    }
+    case "procedure/allocate": {
+      const proc = state?.procedure;
+      if (!state || !proc || !Array.isArray(intent.order)) return null;
+      const choice = allocationChoice(procedureEnv(state), proc.run);
+      const ref = choice && proc.run.roles[choice.unit];
+      const unit = ref && "unit" in ref ? state.units[ref.unit] : undefined;
+      if (!choice || !unit) return null;
+      const chooser = choice.chooser === "attacker" ? proc.by : unit.owner;
+      if (chooser !== from) return null;
+      const own = new Set(unit.modelIds);
+      const order = intent.order.filter((id) => typeof id === "string" && own.has(id));
+      if (!order.length) return null;
+      const overrides = {
+        ...proc.run.overrides,
+        [choice.step]: { ...proc.run.overrides?.[choice.step], order },
+      };
+      return { type: "procedure/set", run: { ...proc.run, overrides } };
     }
     case "procedure/clear": {
       if (!state?.procedure) return null;

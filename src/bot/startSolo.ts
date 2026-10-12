@@ -1,4 +1,5 @@
 import { ownGame, playOwnGame } from "../games/riftLanterns";
+import type { StoredPackage } from "../packages/library";
 import type { SavedArmy } from "../packages/shelf";
 import type { ImportedRoster } from "../systems/wh40k/roster";
 import { startDemo } from "../ui/demo";
@@ -11,6 +12,8 @@ export interface OwnArmy {
   shelf?: SavedArmy;
   /** The computer's army instead of its sample (Match my points). */
   theirs?: ImportedRoster;
+  /** The rules packages the army came from (#82b): turned on in the game with it. */
+  packages?: StoredPackage[];
 }
 
 /**

@@ -57,4 +57,23 @@ describe("Army list v1", () => {
     expect(roster.units[0]!.models).toHaveLength(1);
     expect(roster.units[0]!.base).toEqual({ shape: "round", diameterMm: 25 });
   });
+
+  it("keeps the packages a list names, https links only, to offer before playing", () => {
+    const hash = "a".repeat(64);
+    const roster = armyListRoster({
+      ...minimal,
+      format: ARMY_LIST_FORMAT,
+      packages: [
+        { url: "https://example.org/packs/wardens.json", sha256: hash.toUpperCase() },
+        { url: "https://example.org/packs/wardens.json" },
+        { url: "http://example.org/plain.json" },
+        { url: "https://example.org/other.json", sha256: "not a hash" },
+      ],
+    });
+    expect(roster.named).toEqual([
+      { url: "https://example.org/packs/wardens.json", sha256: hash },
+      { url: "https://example.org/other.json" },
+    ]);
+    expect(armyListRoster({ ...minimal, format: ARMY_LIST_FORMAT }).named).toBeUndefined();
+  });
 });
