@@ -1187,7 +1187,7 @@ msgstr "Spiele"
 
 #: src/campaign/CampaignUI.tsx:572
 #: src/companion/CompanionScreen.tsx:98
-#: src/next/StepBar.tsx:203
+#: src/next/StepBar.tsx:206
 #: src/ui/StatsScreen.tsx:157
 #, fuzzy
 msgid "Units"
@@ -4968,7 +4968,7 @@ msgid "{name} chooses"
 msgstr ""
 
 #: src/next/Setup.tsx:417
-#: src/next/StepBar.tsx:180
+#: src/next/StepBar.tsx:183
 msgid "Next step"
 msgstr ""
 
@@ -4979,17 +4979,17 @@ msgstr ""
 msgid "Joining the game…"
 msgstr "Trete dem Spiel bei…"
 
-#: src/next/StepBar.tsx:184
+#: src/next/StepBar.tsx:187
 #: src/ui/TeachRule.tsx:169
 #, fuzzy
 msgid "Phases"
 msgstr "Phasen"
 
-#: src/next/StepBar.tsx:224
+#: src/next/StepBar.tsx:227
 msgid "Let {name} fight on"
 msgstr ""
 
-#: src/next/StepBar.tsx:229
+#: src/next/StepBar.tsx:232
 #: src/ui/ReactionCard.tsx:214
 #, fuzzy
 msgid "Go on"
