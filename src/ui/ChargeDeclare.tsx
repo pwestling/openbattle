@@ -5,6 +5,7 @@ import { actionTargets, unitActions } from "../core/content/play";
 import { formatList, t } from "../i18n";
 import { RollButton } from "../companion/RealDice";
 import { useGame } from "./hooks";
+import { NEXT } from "../next/flag";
 import { engagedWith } from "../systems/wh40k/rules";
 import { chargeNeeded } from "../systems/wh40k/charge";
 
@@ -151,6 +152,8 @@ export function ChargeDeclare({ unit, primary, as }: { unit: Unit; primary: bool
   // Nothing within 12": the button says so, and pressing it asks "Charge anyway?" (UX 434).
   const outOfReach =
     !inCombat && !declared.length && !actionTargets(game, unit.id, "charge").some((x) => x.ok);
+  // The new layout has no charge out of reach: nothing in 12" means nothing to charge (Jobs review).
+  if (NEXT && outOfReach) return null;
   return (
     <>
       <button

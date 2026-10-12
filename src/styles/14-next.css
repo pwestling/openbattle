@@ -566,11 +566,6 @@
   color: var(--obn-muted);
   font-size: 0.9rem;
 }
-/* What just happened out of your hands, until you do the next thing (naive players 6). */
-.obn-say > .obn-recap {
-  font-size: 0.85rem;
-  font-style: italic;
-}
 .obn-left {
   display: flex;
   flex-wrap: wrap;

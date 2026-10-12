@@ -408,7 +408,7 @@ msgid "Blocking: no sight"
 msgstr ""
 
 #: src/GameScreen.tsx:383
-#: src/next/Game.tsx:172
+#: src/next/Game.tsx:170
 msgid "Leave model's eye view (Esc)"
 msgstr ""
 
@@ -428,7 +428,6 @@ msgid "Round {n}"
 msgstr ""
 
 #: src/bot/BestMoment.tsx:46
-#: src/bot/solo.ts:111
 msgid "{name} ({level})"
 msgstr ""
 
@@ -611,7 +610,7 @@ msgstr ""
 msgid "Steady"
 msgstr ""
 
-#: src/bot/solo.ts:112
+#: src/bot/solo.ts:110
 #: src/review/ReviewPanel.tsx:204
 #: src/review/ReviewPanel.tsx:204
 #: src/share/cards.ts:292
@@ -982,7 +981,7 @@ msgstr ""
 
 #: src/campaign/CampaignUI.tsx:572
 #: src/companion/CompanionScreen.tsx:98
-#: src/next/StepBar.tsx:207
+#: src/next/StepBar.tsx:181
 #: src/ui/StatsScreen.tsx:157
 msgid "Units"
 msgstr ""
@@ -1552,7 +1551,7 @@ msgid "Your go"
 msgstr ""
 
 #: src/companion/CompanionScreen.tsx:184
-#: src/next/step.ts:419
+#: src/next/step.ts:418
 msgid "{side}'s go"
 msgstr ""
 
@@ -1613,7 +1612,7 @@ msgid "Roll"
 msgstr ""
 
 #: src/companion/CompanionScreen.tsx:315
-#: src/ui/Hud.tsx:556
+#: src/ui/Hud.tsx:558
 msgid "Stats"
 msgstr ""
 
@@ -3876,32 +3875,28 @@ msgstr ""
 msgid "Score all {n} as suggested"
 msgstr ""
 
-#: src/next/Help.tsx:37
-#: src/next/Help.tsx:41
+#: src/next/Help.tsx:34
+#: src/next/Help.tsx:38
 msgid "How to play"
 msgstr ""
 
-#: src/next/Help.tsx:41
-msgid "{phase}: how to play"
-msgstr ""
-
-#: src/next/Help.tsx:49
+#: src/next/Help.tsx:46
 msgid "Drag a unit's base to move it. One finger on the table slides the view; two pinch and turn it."
 msgstr ""
 
-#: src/next/Help.tsx:52
+#: src/next/Help.tsx:49
 msgid "Drag a unit's base to move it. Drag the table to turn the view; the wheel zooms."
 msgstr ""
 
-#: src/next/Help.tsx:54
+#: src/next/Help.tsx:51
 msgid "Tap an enemy to shoot, charge or fight it with the unit the bar lights."
 msgstr ""
 
-#: src/next/Help.tsx:56
+#: src/next/Help.tsx:53
 msgid "The gold button in the bar is always the next thing to press. Done ends the phase, and Undo takes back the last thing you did."
 msgstr ""
 
-#: src/next/Help.tsx:63
+#: src/next/Help.tsx:60
 msgid "Every key ▸"
 msgstr ""
 
@@ -4048,7 +4043,7 @@ msgid "Everything placed. Say you're ready."
 msgstr ""
 
 #: src/next/Setup.tsx:196
-#: src/next/step.ts:402
+#: src/next/step.ts:401
 #: src/ui/Packages.tsx:753
 #: src/ui/TopBar.tsx:380
 msgid "Waiting for {names}"
@@ -4257,7 +4252,7 @@ msgid "{name} chooses"
 msgstr ""
 
 #: src/next/Setup.tsx:410
-#: src/next/StepBar.tsx:172
+#: src/next/StepBar.tsx:158
 msgid "Next step"
 msgstr ""
 
@@ -4267,20 +4262,16 @@ msgstr ""
 msgid "Joining the game…"
 msgstr ""
 
-#: src/next/StepBar.tsx:176
+#: src/next/StepBar.tsx:162
 #: src/ui/TeachRule.tsx:169
 msgid "Phases"
 msgstr ""
 
-#: src/next/StepBar.tsx:199
-msgid "Stratagems and abilities ▸"
-msgstr ""
-
-#: src/next/StepBar.tsx:228
+#: src/next/StepBar.tsx:202
 msgid "Let {name} fight on"
 msgstr ""
 
-#: src/next/StepBar.tsx:233
+#: src/next/StepBar.tsx:207
 #: src/ui/ReactionCard.tsx:214
 msgid "Go on"
 msgstr ""
@@ -4407,7 +4398,7 @@ msgstr ""
 
 #: src/next/step.ts:186
 #: src/next/step.ts:235
-#: src/next/step.ts:395
+#: src/next/step.ts:394
 #: src/ui/AttackPanel.tsx:623
 #: src/ui/Coach.tsx:87
 #: src/ui/ProcedurePanels.tsx:418
@@ -4460,8 +4451,8 @@ msgstr ""
 
 #: src/next/step.ts:319
 #: src/next/step.ts:334
-#: src/next/step.ts:447
-#: src/next/step.ts:460
+#: src/next/step.ts:446
+#: src/next/step.ts:459
 #: src/ui/Missions.tsx:198
 #: src/ui/Missions.tsx:213
 msgid "Pass"
@@ -4480,178 +4471,172 @@ msgstr ""
 msgid "Score {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:358
-#: src/opentables/OpenTables.tsx:1044
-#: src/ranked/RankedGame.tsx:227
-msgid "Not this time"
-msgstr ""
-
-#: src/next/step.ts:363
+#: src/next/step.ts:362
 msgid "Score {rule}: {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:386
+#: src/next/step.ts:385
 msgid "{name}: {phase}, then Done"
 msgstr ""
 
-#: src/next/step.ts:390
+#: src/next/step.ts:389
 msgid "{phase}: Done when you're ready"
 msgstr ""
 
-#: src/next/step.ts:393
+#: src/next/step.ts:392
 msgid "{names} is doing theirs at the same time."
 msgstr ""
 
-#: src/next/step.ts:402
+#: src/next/step.ts:401
 msgid "Moving on…"
 msgstr ""
 
-#: src/next/step.ts:403
+#: src/next/step.ts:402
 msgid "You're done with {phase}."
 msgstr ""
 
-#: src/next/step.ts:406
+#: src/next/step.ts:405
 #: src/ui/TopBar.tsx:387
 msgid "Not done"
 msgstr ""
 
-#: src/next/step.ts:407
+#: src/next/step.ts:406
 #: src/ui/TopBar.tsx:400
 #: src/ui/TopBar.tsx:450
 msgid "Go on anyway"
 msgstr ""
 
-#: src/next/step.ts:420
+#: src/next/step.ts:419
 msgid "Your next activation comes after theirs."
 msgstr ""
 
-#: src/next/step.ts:428
+#: src/next/step.ts:427
 msgid "Your activation: {unit}"
 msgstr ""
 
-#: src/next/step.ts:429
+#: src/next/step.ts:428
 msgid "Use its actions from its card, then end the activation."
 msgstr ""
 
-#: src/next/step.ts:432
+#: src/next/step.ts:431
 #: src/ui/SystemPanels.tsx:574
 #: src/ui/TopBar.tsx:343
 msgid "End activation"
 msgstr ""
 
-#: src/next/step.ts:444
+#: src/next/step.ts:443
 msgid "All your units have had their go"
 msgstr ""
 
-#: src/next/step.ts:445
+#: src/next/step.ts:444
 msgid "Pass: the other side goes on until they pass too."
 msgstr ""
 
-#: src/next/step.ts:452
+#: src/next/step.ts:451
 msgid "Pick a unit to activate"
 msgstr ""
 
-#: src/next/step.ts:455
+#: src/next/step.ts:454
 msgid "{n} unit left this round"
 msgid_plural "{n} units left this round"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:479
+#: src/next/step.ts:478
 msgid "{player}'s pick to fight"
 msgstr ""
 
-#: src/next/step.ts:480
+#: src/next/step.ts:479
 msgid "The sides alternate until every engaged unit has fought."
 msgstr ""
 
-#: src/next/step.ts:509
+#: src/next/step.ts:508
 msgid "Your pick: choose a unit to fight"
 msgstr ""
 
-#: src/next/step.ts:510
+#: src/next/step.ts:509
 msgid "Pile in, fight, then consolidate, from its card."
 msgstr ""
 
-#: src/next/step.ts:530
+#: src/next/step.ts:529
 msgid "{side}'s turn: {phase}"
 msgstr ""
 
-#: src/next/step.ts:531
+#: src/next/step.ts:530
 msgid "Watch the table. Your saves and reactions come to you here."
 msgstr ""
 
-#: src/next/step.ts:552
+#: src/next/step.ts:551
 msgid "Drag {unit}'s base to move it"
 msgstr ""
 
-#: src/next/step.ts:553
+#: src/next/step.ts:552
 msgid "Every unit has moved"
 msgstr ""
 
-#: src/next/step.ts:556
+#: src/next/step.ts:555
 msgid "Tap an enemy for {unit} to shoot"
 msgstr ""
 
-#: src/next/step.ts:557
+#: src/next/step.ts:556
 msgid "Every unit has shot"
 msgstr ""
 
-#: src/next/step.ts:560
+#: src/next/step.ts:559
 msgid "Tap an enemy for {unit} to charge"
 msgstr ""
 
-#: src/next/step.ts:561
+#: src/next/step.ts:560
 msgid "No unit can charge now"
 msgstr ""
 
-#: src/next/step.ts:563
-msgid "No fights this turn"
+#: src/next/step.ts:562
+msgid "Fights over"
 msgstr ""
 
-#: src/next/step.ts:565
+#: src/next/step.ts:564
 msgid "{phase}: pick a unit to act"
 msgstr ""
 
-#: src/next/step.ts:566
+#: src/next/step.ts:565
 msgid "{phase}: nothing left to do"
 msgstr ""
 
-#: src/next/step.ts:577
+#: src/next/step.ts:576
 msgid "Drag {unit} · up to {n}″"
 msgstr ""
 
-#: src/next/step.ts:578
+#: src/next/step.ts:577
 msgid "Drag {unit} to move it"
 msgstr ""
 
-#: src/next/step.ts:579
+#: src/next/step.ts:578
 msgid "Or pick another unit. Advance and the rest are on its card."
 msgstr ""
 
-#: src/next/step.ts:592
+#: src/next/step.ts:591
 msgid "{unit} moved {moved}″ of its {n}″ charge roll"
 msgstr ""
 
-#: src/next/step.ts:593
+#: src/next/step.ts:592
 msgid "Undo takes the move back. Done charges anyway."
 msgstr ""
 
-#: src/next/step.ts:604
+#: src/next/step.ts:603
 msgid "Charge roll {n}″: drag {unit} into contact with {targets}"
 msgstr ""
 
-#: src/next/step.ts:605
+#: src/next/step.ts:604
 msgid "Then pick the next unit, or move on."
 msgstr ""
 
-#: src/next/step.ts:626
+#: src/next/step.ts:625
 msgid "{n} unit hasn't moved"
 msgid_plural "{n} units haven't moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:627
+#: src/next/step.ts:626
 msgid "{n} unit can still act"
 msgid_plural "{n} units can still act"
 msgstr[0] ""
@@ -4698,6 +4683,11 @@ msgstr ""
 #: src/opentables/OpenTables.tsx:1041
 #: src/ranked/RankedGame.tsx:225
 msgid "Play ranked"
+msgstr ""
+
+#: src/opentables/OpenTables.tsx:1044
+#: src/ranked/RankedGame.tsx:227
+msgid "Not this time"
 msgstr ""
 
 #: src/opentables/OpenTables.tsx:1050
@@ -4838,7 +4828,7 @@ msgstr ""
 
 #: src/opentables/OpenTables.tsx:357
 #: src/opentables/OpenTables.tsx:425
-#: src/ui/Hud.tsx:546
+#: src/ui/Hud.tsx:548
 #: src/ui/Lobby.tsx:555
 msgid "Watch"
 msgstr ""
@@ -5989,7 +5979,7 @@ msgstr ""
 #: src/systems/qd6/ui/RoundPanel.tsx:79
 #: src/ui/Hud.tsx:116
 #: src/ui/PlayPanel.tsx:85
-#: src/ui/TableWarnings.tsx:108
+#: src/ui/TableWarnings.tsx:111
 msgid "Hide"
 msgstr ""
 
@@ -6900,7 +6890,7 @@ msgid "Undo the last stroke (Ctrl+Z)"
 msgstr ""
 
 #: src/standees/StandeeMaker.tsx:446
-#: src/ui/Hud.tsx:362
+#: src/ui/Hud.tsx:364
 msgid "Undo"
 msgstr ""
 
@@ -8761,44 +8751,44 @@ msgstr ""
 msgid "Cards"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:111
+#: src/ui/ChargeDeclare.tsx:112
 msgid "No enemy unit can be charged from here."
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:115
+#: src/ui/ChargeDeclare.tsx:116
 msgid "Nearest enemy {distance}\" away: no charge possible"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:131
+#: src/ui/ChargeDeclare.tsx:132
 msgid "Roll charge (2D6): {n} needed"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:147
+#: src/ui/ChargeDeclare.tsx:148
 msgid "Charge made: move up to {n}\" into {units}"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:148
+#: src/ui/ChargeDeclare.tsx:149
 msgid "Charge fails: needed {n}"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:160
-#: src/ui/ChargeDeclare.tsx:170
+#: src/ui/ChargeDeclare.tsx:163
+#: src/ui/ChargeDeclare.tsx:173
 msgid "Already in combat: it can't charge"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:168
+#: src/ui/ChargeDeclare.tsx:171
 msgid "Charge: no enemy within 12\""
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:168
+#: src/ui/ChargeDeclare.tsx:171
 msgid "Charge (2D6)"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:51
+#: src/ui/ChargeDeclare.tsx:52
 msgid "Charge which unit(s)?"
 msgstr ""
 
-#: src/ui/ChargeDeclare.tsx:84
+#: src/ui/ChargeDeclare.tsx:85
 msgid "Charge anyway?"
 msgstr ""
 
@@ -9735,82 +9725,82 @@ msgstr ""
 msgid "Download the replay, report a problem, leave"
 msgstr ""
 
-#: src/ui/Hud.tsx:316
+#: src/ui/Hud.tsx:317
 msgid "Switch to the new layout"
 msgstr ""
 
-#: src/ui/Hud.tsx:320
+#: src/ui/Hud.tsx:322
 msgid "Leave game"
 msgstr ""
 
-#: src/ui/Hud.tsx:349
+#: src/ui/Hud.tsx:351
 msgid "Take back {what}"
 msgstr ""
 
-#: src/ui/Hud.tsx:350
+#: src/ui/Hud.tsx:352
 msgid "Take back your last action"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "three"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "four"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "five"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "six"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "seven"
 msgstr ""
 
-#: src/ui/Hud.tsx:417
+#: src/ui/Hud.tsx:419
 msgid "eight"
 msgstr ""
 
-#: src/ui/Hud.tsx:420
+#: src/ui/Hud.tsx:422
 msgid "Both players are here."
 msgstr ""
 
-#: src/ui/Hud.tsx:421
+#: src/ui/Hud.tsx:423
 msgid "All {count} seats are taken."
 msgstr ""
 
-#: src/ui/Hud.tsx:458
+#: src/ui/Hud.tsx:460
 msgid "You're {name}. What should the others call you?"
 msgstr ""
 
-#: src/ui/Hud.tsx:468
-#: src/ui/Hud.tsx:505
+#: src/ui/Hud.tsx:470
+#: src/ui/Hud.tsx:507
 #: src/ui/Lobby.tsx:429
 msgid "Use this name"
 msgstr ""
 
-#: src/ui/Hud.tsx:483
+#: src/ui/Hud.tsx:485
 msgid "Connecting to the table as {name}…"
 msgstr ""
 
-#: src/ui/Hud.tsx:495
+#: src/ui/Hud.tsx:497
 msgid "Connecting to the table… What should the others call you?"
 msgstr ""
 
-#: src/ui/Hud.tsx:532
+#: src/ui/Hud.tsx:534
 msgid "This game is already under way. Rejoining?"
 msgstr ""
 
-#: src/ui/Hud.tsx:539
+#: src/ui/Hud.tsx:541
 msgid "Rejoin as {name}"
 msgstr ""
 
-#: src/ui/Hud.tsx:568
-#: src/ui/Hud.tsx:568
+#: src/ui/Hud.tsx:570
+#: src/ui/Hud.tsx:570
 msgid "Review ready"
 msgstr ""
 
@@ -12153,19 +12143,19 @@ msgstr ""
 msgid "Battle stats"
 msgstr ""
 
-#: src/ui/StatusMenu.tsx:31
+#: src/ui/StatusMenu.tsx:33
 msgid "Change {unit}'s status"
 msgstr ""
 
-#: src/ui/StatusMenu.tsx:31
+#: src/ui/StatusMenu.tsx:33
 msgid "Change a status"
 msgstr ""
 
-#: src/ui/StatusMenu.tsx:45
+#: src/ui/StatusMenu.tsx:47
 msgid "Clear {status}"
 msgstr ""
 
-#: src/ui/StatusMenu.tsx:46
+#: src/ui/StatusMenu.tsx:48
 msgid "Mark {status}"
 msgstr ""
 
@@ -12500,40 +12490,40 @@ msgstr ""
 msgid "Let go to charge anyway"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:100
+#: src/ui/TableWarnings.tsx:103
 msgid "It's fine (tell everyone)"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:105
+#: src/ui/TableWarnings.tsx:108
 msgid "Hide it on this screen"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:120
+#: src/ui/TableWarnings.tsx:123
 msgid "Warnings for this unit"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:164
 #: src/ui/TableWarnings.tsx:167
+#: src/ui/TableWarnings.tsx:170
 msgid "Table warnings"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:173
+#: src/ui/TableWarnings.tsx:176
 msgid "Nothing to flag on the table right now."
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:181
+#: src/ui/TableWarnings.tsx:184
 msgid "Advisory: the rules never block a move. Players decide."
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:46
+#: src/ui/TableWarnings.tsx:47
 msgid "Table warnings: rules the table may be breaking"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:77
+#: src/ui/TableWarnings.tsx:80
 msgid "Show this unit"
 msgstr ""
 
-#: src/ui/TableWarnings.tsx:87
+#: src/ui/TableWarnings.tsx:90
 msgid "Clear this for everyone until the unit moves again (the log notes it)"
 msgstr ""
 

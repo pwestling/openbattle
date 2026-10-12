@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { currentSlot } from "../core/content/turn";
-import { gameText, t } from "../i18n";
-import { useStore } from "../store";
+import { t } from "../i18n";
 import { useHelp } from "../ui/help";
 import { KeysSheet } from "../ui/Keys";
 import { touch } from "../ui/touch";
@@ -12,7 +10,6 @@ import { touch } from "../ui/touch";
  */
 export function NextHelp() {
   const open = useHelp((s) => s.keys);
-  const phase = useStore((s) => currentSlot(s.game)?.name ?? "");
   const [keys, setKeys] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -38,7 +35,7 @@ export function NextHelp() {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="row spread">
-          <h2>{phase ? t("{phase}: how to play", { phase: gameText(phase) }) : t("How to play")}</h2>
+          <h2>{t("How to play")}</h2>
           <button className="quiet" aria-label={t("Close")} onClick={close}>
             ✕
           </button>

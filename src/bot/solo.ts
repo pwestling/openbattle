@@ -105,11 +105,9 @@ export function levelName(level: Level): string {
   return level === "random" ? t("Easy") : level === "sharp" ? t("Sharp") : t("Steady");
 }
 
-/** What a side is called in a game against the computer (UX 349, PX 4): "You" and "The Warden of Ash (Steady)". */
+/** What a side is called in a game against the computer (UX 349, PX 4): "You" and "The Warden of Ash". The header says the level (Jobs review). */
 export function soloSideName(level: Level, botSeat: number, seat: number): string {
-  return seat === botSeat
-    ? t("{name} ({level})", { name: characterName(level), level: levelName(level) })
-    : t("You");
+  return seat === botSeat ? characterName(level) : t("You");
 }
 
 /** The sides named before anything is deployed, so the log and showcase say who from the start (UX 409). */

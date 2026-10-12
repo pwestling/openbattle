@@ -355,7 +355,6 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
             intent: { ...base, vp: score.vp, why },
           },
         ];
-    buttons.push({ label: t("Not this time"), as: by, intent: { ...base, vp: 0, why, skipped: true } });
     return {
       tone: "job",
       seat: score.seat,
@@ -559,8 +558,8 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
         ? left.length
           ? t("Tap an enemy for {unit} to charge", { unit: lit })
           : t("No unit can charge now")
-        : fighting && !units.length
-          ? t("No fights this turn")
+        : fighting && !left.length
+          ? t("Fights over")
           : left.length
             ? t("{phase}: pick a unit to act", { phase: gameText(phase) })
             : t("{phase}: nothing left to do", { phase: gameText(phase) });
