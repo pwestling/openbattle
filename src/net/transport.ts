@@ -135,6 +135,11 @@ export interface Transport {
   onPeerJoin(handler: (peerId: string) => void): void;
   onPeerLeave(handler: (peerId: string) => void): void;
   leave(): void;
+  /**
+   * Leave the room and join it again, keeping this peer's id and handlers: for a peer whose transport
+   * dropped the others and isn't finding them again (#85b). Optional: a transport without it never needs it.
+   */
+  rejoin?(): void;
   /** Media streams, where the transport can carry them. */
   readonly media?: MediaChannel;
   /** The WebRTC connection to each peer, for connection stats in a problem report. */

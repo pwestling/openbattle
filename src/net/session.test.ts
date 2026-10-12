@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { GameRecord, GameState } from "../core";
 import { createLoopbackNetwork } from "./loopback";
 import { Session } from "./session";
-import type { Transport } from "./transport";
+import type { NetMessage, Transport } from "./transport";
 import { PROTOCOL } from "../protocol";
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -267,4 +267,203 @@ describe("builds (docs/compatibility.md)", () => {
       vi.useRealTimers();
     }
   });
+});
+
+/**
+ * Joining a table over a connection that misbehaves as it opens (#85b, naive players 12): three tables at
+ * once on a busy machine left a friend on "Looking for the game's host" while the host counted them as
+ * watching. Each case drops or reorders one message, or one peer event, and the friend still sits down.
+ */
+describe("joining over a lossy connection (#85b)", () => {
+  const joinAs = (id: string) => ({
+    type: "player/join" as const,
+    player: { id, name: id, color: "#f00", seat: 1 },
+  });
+
+  /** A transport that loses messages `drop` picks out (it is asked about each one sent). */
+  const dropping = (t: Transport, drop: (message: NetMessage, to?: string) => boolean): Transport => ({
+    ...t,
+    send(message, to) {
+      if (!drop(message, to)) t.send(message, to);
+    },
+  });
+
+  /** Drops the first `n` messages of a type, and only those. */
+  const first = (type: string, n = 1) => {
+    let left = n;
+    return (message: NetMessage) => {
+      if (left <= 0 || message.t !== type) return false;
+      left--;
+      return true;
+    };
+  };
+
+  /** Run `body` with fake timers and a host that has logged one event. */
+  async function table(
+    body: (ctx: {
+      net: ReturnType<typeof createLoopbackNetwork>;
+      h: ReturnType<typeof peer>;
+      host: Session;
+    }) => Promise<void>,
+    hostDrop: (message: NetMessage, to?: string) => boolean = () => false,
+  ) {
+    vi.useFakeTimers();
+    try {
+      const net = createLoopbackNetwork();
+      const h = peer();
+      const host = new Session({
+        transport: dropping(net.connect("host"), hostDrop),
+        role: "host",
+        onChange: h.onChange,
+      });
+      host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
+      await body({ net, h, host });
+    } finally {
+      vi.useRealTimers();
+    }
+  }
+
+  it("a join asked for before the host is known waits, and goes once the lost announcement is heard again", () =>
+    table(
+      async ({ net, h }) => {
+        const c = peer();
+        const client = new Session({
+          transport: net.connect("client"),
+          role: "client",
+          onChange: c.onChange,
+        });
+        client.dispatch(joinAs("client"));
+        await vi.advanceTimersByTimeAsync(100);
+        expect(h.seen.record?.events.length).toBe(1);
+        await vi.advanceTimersByTimeAsync(3500);
+        expect(h.seen.record?.events.map((e) => e.event.type)).toEqual(["dice/roll", "player/join"]);
+        expect(c.seen.record).toEqual(h.seen.record);
+      },
+      // Its announcement on meeting the joiner, and the one answering the joiner's first sync.
+      first("host", 2),
+    ));
+
+  it("a joiner's intent that reaches the host before the host hears it join is still logged", async () => {
+    // The host's own transport is driven by hand, to deliver the joiner's intent before its join.
+    const on: { message?: (m: NetMessage, from: string) => void; join?: (id: string) => void } = {};
+    const sent: [NetMessage, string | undefined][] = [];
+    const h = peer();
+    const host = new Session({
+      transport: {
+        selfId: "host",
+        send: (m, to) => void sent.push([m, to]),
+        onMessage: (f) => void (on.message = f),
+        onPeerJoin: (f) => void (on.join = f),
+        onPeerLeave: () => {},
+        leave: () => {},
+      },
+      role: "host",
+      onChange: h.onChange,
+    });
+    on.message!({ t: "intent", intent: joinAs("early") }, "early");
+    expect(h.seen.record?.events.map((e) => e.by)).toEqual(["early"]);
+    on.join!("early");
+    expect(sent.some(([m, to]) => m.t === "host" && to === "early")).toBe(true);
+    expect(host.status.peers).toEqual(["early"]);
+  });
+
+  /**
+   * The joiner's side of a Trystero room on a busy machine (#85b): it meets the host, then a stale "leave"
+   * (from a handshake the host gave up on while the joiner's tab was too busy to answer) drops the host a
+   * moment later, and Trystero finds it again only on the host's next announcement, a minute apart. The
+   * host's side keeps the joiner all along, and counts them as watching. `when`: right on meeting the host,
+   * or just after the host announced itself. `rejoin` joins the room afresh, as trysteroTransport does.
+   */
+  function flapping(net: ReturnType<typeof createLoopbackNetwork>, when: "join" | "host") {
+    let inner = net.connect("client");
+    const on: {
+      message?: (m: NetMessage, from: string) => void;
+      join?: (id: string) => void;
+      leave?: (id: string) => void;
+    } = {};
+    let detached = false;
+    let flapped = false;
+    const counts = { rejoins: 0 };
+    // As Trystero does, nothing reaches the joiner from a peer it hasn't met (or has dropped).
+    const met = new Set<string>();
+    // Nothing more from the host gets through from here; its leave is told once `then` has run.
+    const drop = (id: string, then: () => void) => {
+      flapped = detached = true;
+      then();
+      met.delete(id);
+      on.leave?.(id);
+    };
+    const wire = () => {
+      met.clear();
+      inner.onMessage((m, from) => {
+        if (detached || !met.has(from)) return;
+        if (when === "host" && !flapped && m.t === "host") drop(from, () => on.message?.(m, from));
+        else on.message?.(m, from);
+      });
+      inner.onPeerJoin((id) => {
+        met.add(id);
+        if (when === "join" && !flapped) drop(id, () => on.join?.(id));
+        else on.join?.(id);
+      });
+      inner.onPeerLeave((id) => {
+        met.delete(id);
+        on.leave?.(id);
+      });
+    };
+    wire();
+    const transport: Transport = {
+      selfId: "client",
+      send: (m, to) => inner.send(m, to),
+      onMessage: (f) => void (on.message = f),
+      onPeerJoin: (f) => void (on.join = f),
+      onPeerLeave: (f) => void (on.leave = f),
+      leave: () => inner.leave(),
+      rejoin() {
+        counts.rejoins++;
+        inner.leave();
+        detached = false;
+        inner = net.connect("client");
+        wire();
+      },
+    };
+    return { transport, counts };
+  }
+
+  it("a joiner whose transport drops the host right after meeting it joins the room again and sits down", () =>
+    table(async ({ net, h, host }) => {
+      const { transport, counts } = flapping(net, "join");
+      const c = peer();
+      const client = new Session({ transport, role: "client", onChange: c.onChange });
+      client.dispatch(joinAs("client"));
+      await vi.advanceTimersByTimeAsync(100);
+      // The stall as players saw it: the host holds the joiner, the joiner holds nobody.
+      expect(host.status.peers).toEqual(["client"]);
+      expect(client.status.peers).toEqual([]);
+      expect(client.status.hostId).toBeNull();
+      await vi.advanceTimersByTimeAsync(3500);
+      expect(counts.rejoins).toBe(1);
+      expect(client.status.hostId).toBe("host");
+      expect(h.seen.record?.events.map((e) => e.event.type)).toEqual(["dice/roll", "player/join"]);
+      expect(c.seen.record).toEqual(h.seen.record);
+      // Once seated it stops asking.
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(counts.rejoins).toBe(1);
+    }));
+
+  it("a joiner dropped from its host before it got the game joins again, instead of hosting an empty table", () =>
+    table(async ({ net, h }) => {
+      const { transport, counts } = flapping(net, "host");
+      const c = peer();
+      const client = new Session({ transport, role: "client", onChange: c.onChange });
+      client.dispatch(joinAs("client"));
+      await vi.advanceTimersByTimeAsync(100);
+      expect(client.status.hostId).toBeNull();
+      // Past the grace a departed host gets: a joiner without the game never stands in for it.
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(client.status.role).toBe("client");
+      expect(counts.rejoins).toBe(1);
+      expect(client.status.hostId).toBe("host");
+      expect(h.seen.record?.events.map((e) => e.event.type)).toEqual(["dice/roll", "player/join"]);
+      expect(c.seen.record).toEqual(h.seen.record);
+    }));
 });

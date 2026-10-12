@@ -144,6 +144,8 @@ export class Session {
   private timer: ReturnType<typeof setTimeout> | null = null;
   /** A joiner that hasn't heard its host yet asks again (see askForHost). */
   private asking: ReturnType<typeof setTimeout> | null = null;
+  /** A host has sent this peer its log: until then, a host that drops it was never really found (#85b). */
+  private heardLog = false;
   /** Peers that greeted the host: until one does, it may have missed the host's announcement. */
   private readonly greeted = new Set<string>();
   private left = false;
@@ -210,6 +212,8 @@ export class Session {
     this.now = now ?? Date.now;
     this.graceMs = graceMs ?? 4000;
     this.record = record ?? createRecord();
+    // A peer coming back with the game's log has had it from a host before.
+    this.heardLog = lastSeq(this.record) > 0;
     this.state = stateAt(this.record);
     if (role === "host") this.hostId = transport.selfId;
 
@@ -232,7 +236,9 @@ export class Session {
       this.behind.delete(peerId);
       if (peerId === this.hostId && this.role !== "host") {
         this.hostId = null;
-        this.startMigration();
+        // A joiner the host dropped before sending it the game looks for it again rather than host an empty one.
+        if (this.heardLog) this.startMigration();
+        else this.askForHost();
       }
       this.notify();
     });
@@ -423,6 +429,7 @@ export class Session {
         if (this.role === "host") return;
         if (this.hostId === null) this.follow(from, { seq: lastSeq(message.record) }, false);
         if (from !== this.hostId) return;
+        this.heardLog = true;
         this.record = message.record;
         this.state = stateAt(this.record);
         // A fresh copy of the host's table: earlier checkpoints no longer apply.
@@ -435,6 +442,7 @@ export class Session {
         return;
       case "events":
         if (this.role === "host" || from !== this.hostId) return;
+        this.heardLog = true;
         for (const logged of message.events) if (!this.take(logged, from)) return;
         if (message.check) this.verify(message.check);
         return;
@@ -542,8 +550,10 @@ export class Session {
   }
 
   /**
-   * A joiner with peers but no host yet: ask again every few seconds (a sync, which a host answers with
-   * its announcement), in case the first announcement was lost as the connection opened.
+   * A joiner that met peers but no host yet: ask again every few seconds (a sync, which a host answers with
+   * its announcement), in case the first announcement was lost as the connection opened. One left with no
+   * peers at all has had its transport drop them (#85b: Trystero can, while the host still holds the
+   * joiner): it joins the room again.
    */
   private askForHost(tries = 10): void {
     if (this.role === "host" || this.hostId || this.asking || this.left || tries <= 0) return;
@@ -551,6 +561,7 @@ export class Session {
       this.asking = null;
       if (this.role === "host" || this.hostId || this.migrating || this.left) return;
       if (this.peers.size) this.transport.send(this.sync());
+      else this.transport.rejoin?.();
       this.askForHost(tries - 1);
     }, ASK_HOST_MS);
   }

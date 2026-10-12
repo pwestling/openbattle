@@ -26,31 +26,47 @@ export function trysteroTransport(
     turnConfig && typeof RTCPeerConnection !== "undefined"
       ? busyAwarePeerConnection(RTCPeerConnection)
       : undefined;
-  const room = config.signal.length
-    ? joinWsRelay(
-        {
-          appId: APP_ID,
-          password,
-          turnConfig,
-          rtcConfig,
-          rtcPolyfill,
-          relayConfig: { urls: config.signal },
-        },
-        roomId,
-      )
-    : joinNostr(
-        {
-          appId: APP_ID,
-          password,
-          turnConfig,
-          rtcConfig,
-          rtcPolyfill,
-          ...(config.nostr.length ? { relayConfig: { urls: config.nostr } } : {}),
-        },
-        roomId,
-      );
+  const join = () =>
+    config.signal.length
+      ? joinWsRelay(
+          {
+            appId: APP_ID,
+            password,
+            turnConfig,
+            rtcConfig,
+            rtcPolyfill,
+            relayConfig: { urls: config.signal },
+          },
+          roomId,
+        )
+      : joinNostr(
+          {
+            appId: APP_ID,
+            password,
+            turnConfig,
+            rtcConfig,
+            rtcPolyfill,
+            ...(config.nostr.length ? { relayConfig: { urls: config.nostr } } : {}),
+          },
+          roomId,
+        );
   const selfId = config.signal.length ? wsSelfId : nostrSelfId;
-  const channel = room.makeAction<JsonValue>("msg");
+  let room = join();
+  let channel = room.makeAction<JsonValue>("msg");
+  // Kept, so a rejoined room gets them again.
+  const on: {
+    message?: (message: NetMessage, from: string) => void;
+    join?: (peerId: string) => void;
+    leave?: (peerId: string) => void;
+    stream?: (stream: MediaStream, peerId: string) => void;
+  } = {};
+  const bind = () => {
+    channel.onMessage = (data, { peerId }) => on.message?.(data as unknown as NetMessage, peerId);
+    room.onPeerJoin = (peerId) => on.join?.(peerId);
+    room.onPeerLeave = (peerId) => on.leave?.(peerId);
+    room.onPeerStream = (stream, peerId) => on.stream?.(stream, peerId);
+  };
+  bind();
 
   return {
     selfId,
@@ -58,16 +74,30 @@ export function trysteroTransport(
       void channel.send(message as unknown as JsonValue, to ? { target: to } : undefined);
     },
     onMessage(handler) {
-      channel.onMessage = (data, { peerId }) => handler(data as unknown as NetMessage, peerId);
+      on.message = handler;
     },
     onPeerJoin(handler) {
-      room.onPeerJoin = handler;
+      on.join = handler;
+      // Peers already here are told of at once, as Trystero does.
+      room.onPeerJoin = (peerId) => on.join?.(peerId);
     },
     onPeerLeave(handler) {
-      room.onPeerLeave = handler;
+      on.leave = handler;
     },
     leave() {
       void room.leave();
+    },
+    rejoin() {
+      // Trystero can drop a peer's room right after meeting it while the other side keeps it (#85b), and finds
+      // it again only on that side's next announcement, a minute apart once it has settled. Leaving tells the
+      // other side we went; joining again meets it over the same connection.
+      const old = room;
+      old.onPeerJoin = null;
+      old.onPeerLeave = null;
+      void old.leave();
+      room = join();
+      channel = room.makeAction<JsonValue>("msg");
+      bind();
     },
     connections: () => room.getPeers(),
     media: {
@@ -79,7 +109,7 @@ export function trysteroTransport(
         room.removeStream(stream, to ? { target: to } : undefined);
       },
       onStream(handler) {
-        room.onPeerStream = (stream, peerId) => handler(stream, peerId);
+        on.stream = handler;
       },
     },
   };
