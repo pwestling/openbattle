@@ -2306,79 +2306,85 @@ msgstr "Letzter Zug: Die Zeit reicht, um diese Schlachtrunde zu beenden, aber ke
 msgid "This battle round is over its time: finish it off."
 msgstr "Diese Schlachtrunde hat ihre Zeit überschritten: Runde zu Ende spielen."
 
-#: src/core/content/examples/forty-k.ts:1005
+#: src/core/content/examples/forty-k.ts:1004
+#, fuzzy
+msgctxt "game"
+msgid "Battle-shock test"
+msgstr "Kampfschocktest"
+
+#: src/core/content/examples/forty-k.ts:1018
 #, fuzzy
 msgctxt "game"
 msgid "Remain stationary"
 msgstr "Stehen bleiben"
 
-#: src/core/content/examples/forty-k.ts:1013
+#: src/core/content/examples/forty-k.ts:1026
 #, fuzzy
 msgctxt "game"
 msgid "Normal move"
 msgstr "Normale Bewegung"
 
-#: src/core/content/examples/forty-k.ts:1024
+#: src/core/content/examples/forty-k.ts:1037
 #, fuzzy
 msgctxt "game"
 msgid "Advance"
 msgstr "Vorrücken"
 
-#: src/core/content/examples/forty-k.ts:1034
+#: src/core/content/examples/forty-k.ts:1047
 #, fuzzy
 msgctxt "game"
 msgid "Fall back"
 msgstr "Zurückfallen"
 
-#: src/core/content/examples/forty-k.ts:1044
+#: src/core/content/examples/forty-k.ts:1057
 #: src/core/content/examples/rank-and-flank.ts:182
 #, fuzzy
 msgctxt "game"
 msgid "Shoot"
 msgstr "Schießen"
 
-#: src/core/content/examples/forty-k.ts:1099
-#: src/core/content/examples/forty-k.ts:1182
+#: src/core/content/examples/forty-k.ts:1112
+#: src/core/content/examples/forty-k.ts:1195
 #: src/core/content/examples/rank-and-flank.ts:287
 #, fuzzy
 msgctxt "game"
 msgid "Charge"
 msgstr "Angriff"
 
-#: src/core/content/examples/forty-k.ts:1129
+#: src/core/content/examples/forty-k.ts:1142
 #, fuzzy
 msgctxt "game"
 msgid "Pile in"
 msgstr "Nachrücken"
 
-#: src/core/content/examples/forty-k.ts:1132
-#: src/core/content/examples/forty-k.ts:1183
+#: src/core/content/examples/forty-k.ts:1145
+#: src/core/content/examples/forty-k.ts:1196
 #: src/core/content/examples/rank-and-flank.ts:183
 #, fuzzy
 msgctxt "game"
 msgid "Fight"
 msgstr "Kämpfen"
 
-#: src/core/content/examples/forty-k.ts:1144
+#: src/core/content/examples/forty-k.ts:1157
 #, fuzzy
 msgctxt "game"
 msgid "Consolidate"
 msgstr "Konsolidieren"
 
-#: src/core/content/examples/forty-k.ts:1160
+#: src/core/content/examples/forty-k.ts:1173
 #, fuzzy
 msgctxt "game"
 msgid "Command"
 msgstr "Kommando"
 
-#: src/core/content/examples/forty-k.ts:1178
+#: src/core/content/examples/forty-k.ts:1191
 #: src/core/content/examples/rank-and-flank.ts:194
 #, fuzzy
 msgctxt "game"
 msgid "Movement"
 msgstr "Bewegung"
 
-#: src/core/content/examples/forty-k.ts:1181
+#: src/core/content/examples/forty-k.ts:1194
 #: src/core/content/examples/rank-and-flank.ts:195
 #, fuzzy
 msgctxt "game"
@@ -2507,135 +2513,214 @@ msgctxt "game"
 msgid "Other stratagem"
 msgstr "Anderes Stratagem"
 
-#: src/core/content/examples/forty-k.ts:991
+#: src/core/content/examples/forty-k.ts:763
 #, fuzzy
 msgctxt "game"
-msgid "Battle-shock test"
-msgstr "Kampfschocktest"
+msgid "held still"
+msgstr "blieb stehen"
 
-#: src/core/content/examples/fsd.ts:1002
+#: src/core/content/examples/forty-k.ts:764
+#: src/systems/qd6/system.ts:623
+#, fuzzy
+msgctxt "game"
+msgid "advanced"
+msgstr "rückte vor"
+
+#: src/core/content/examples/forty-k.ts:765
+#, fuzzy
+msgctxt "game"
+msgid "fell back"
+msgstr "zog sich zurück"
+
+#: src/core/content/examples/forty-k.ts:766
+#: src/systems/qd6/system.ts:627
+#: src/systems/tow/system.ts:301
+#, fuzzy
+msgctxt "game"
+msgid "shot"
+msgstr "schoss"
+
+#: src/core/content/examples/forty-k.ts:767
+#: src/systems/conquest/system.ts:649
+#: src/systems/qd6/system.ts:625
+#, fuzzy
+msgctxt "game"
+msgid "charged"
+msgstr "griff an"
+
+#: src/core/content/examples/forty-k.ts:768
+#: src/systems/qd6/system.ts:628
+#: src/systems/tow/system.ts:303
+#, fuzzy
+msgctxt "game"
+msgid "fought"
+msgstr "kämpfte"
+
+#: src/core/content/examples/forty-k.ts:769
+#, fuzzy
+msgctxt "game"
+msgid "tested for Battle-shock"
+msgstr "legte einen Kampfschock-Test ab"
+
+#: src/core/content/examples/fsd.ts:1014
 #, fuzzy
 msgctxt "game"
 msgid "To a move, pick the point on its path where the reaction happens. A reaction may set off another (a chain), all landing together; a unit may also deploy from reserve as a reaction"
 msgstr "Wähle bei einer Bewegung den Punkt auf ihrem Weg, an dem die Reaktion geschieht. Eine Reaktion kann eine weitere auslösen (eine Kette), die alle zusammen wirken; eine Einheit kann auch als Reaktion aus der Reserve aufgestellt werden"
 
-#: src/core/content/examples/fsd.ts:1007
+#: src/core/content/examples/fsd.ts:1019
 #, fuzzy
 msgctxt "game"
 msgid "Unpin"
 msgstr "Niederhalten lösen"
 
-#: src/core/content/examples/fsd.ts:1015
+#: src/core/content/examples/fsd.ts:1027
 #: src/core/content/examples/rank-and-flank.ts:169
 #, fuzzy
 msgctxt "game"
 msgid "Move"
 msgstr "Bewegen"
 
-#: src/core/content/examples/fsd.ts:1052
+#: src/core/content/examples/fsd.ts:1064
 #, fuzzy
 msgctxt "game"
 msgid "Fire"
 msgstr "Feuern"
 
-#: src/core/content/examples/fsd.ts:1076
+#: src/core/content/examples/fsd.ts:1088
 #, fuzzy
 msgctxt "game"
 msgid "Prepare"
 msgstr "Vorbereiten"
 
-#: src/core/content/examples/fsd.ts:1081
+#: src/core/content/examples/fsd.ts:1093
 #, fuzzy
 msgctxt "game"
 msgid "Its effect lasts while the token stays; clear the token when the action is used or its trigger comes"
 msgstr "Die Wirkung hält, solange der Marker liegt; entferne ihn, wenn die Aktion genutzt wird oder ihr Auslöser eintritt"
 
-#: src/core/content/examples/fsd.ts:1090
+#: src/core/content/examples/fsd.ts:1102
 #, fuzzy
 msgctxt "game"
 msgid "Interact"
 msgstr "Interagieren"
 
-#: src/core/content/examples/fsd.ts:1094
+#: src/core/content/examples/fsd.ts:1106
 #, fuzzy
 msgctxt "game"
 msgid "Retrieve: interacting with an objective nobody disputes takes it off the table. Extract: the unit carries it and scores on reaching a deploy area at the end of its activation; if destroyed, it drops where its last base fell"
 msgstr "Bergen: Wer mit einem unumstrittenen Missionsziel interagiert, nimmt es vom Tisch. Abtransport: Die Einheit trägt es und punktet, wenn sie am Ende ihrer Aktivierung eine Aufstellungszone erreicht; wird sie vernichtet, fällt es dort, wo ihre letzte Base fiel"
 
-#: src/core/content/examples/fsd.ts:1101
+#: src/core/content/examples/fsd.ts:1113
 #, fuzzy
 msgctxt "game"
 msgid "Support card"
 msgstr "Unterstützungskarte"
 
-#: src/core/content/examples/fsd.ts:1107
+#: src/core/content/examples/fsd.ts:1119
 #, fuzzy
 msgctxt "game"
 msgid "Each card once a round; Single Use cards are discarded. A card's attack from a unit doesn't activate it or allow reactions, and the target keeps its cover and range bonuses"
 msgstr "Jede Karte einmal pro Runde; Single-Use-Karten werden abgelegt. Ein Kartenangriff einer Einheit aktiviert sie nicht und erlaubt keine Reaktionen, und das Ziel behält seine Deckungs- und Reichweitenboni"
 
-#: src/core/content/examples/fsd.ts:1115
+#: src/core/content/examples/fsd.ts:1127
 #, fuzzy
 msgctxt "game"
 msgid "Deploy"
 msgstr "Aufstellen"
 
-#: src/core/content/examples/fsd.ts:1120
+#: src/core/content/examples/fsd.ts:1132
 #, fuzzy
 msgctxt "game"
 msgid "Disembarking from a transport is deploying too: place the bases as close to it as possible"
 msgstr "Aussteigen aus einem Transporter ist ebenfalls ein Aufstellen: platziere die Bases so nah wie möglich daran"
 
-#: src/core/content/examples/fsd.ts:1144
+#: src/core/content/examples/fsd.ts:1156
 #, fuzzy
 msgctxt "game"
 msgid "Pre-assign ADs"
 msgstr "ADs vorab zuweisen"
 
-#: src/core/content/examples/fsd.ts:1157
+#: src/core/content/examples/fsd.ts:1169
 #: examples/lessons/fsd.js:19
 #, fuzzy
 msgctxt "game"
 msgid "Activations"
 msgstr "Aktivierungen"
 
-#: src/core/content/examples/fsd.ts:1175
+#: src/core/content/examples/fsd.ts:1187
 #, fuzzy
 msgctxt "game"
 msgid "Scoring"
 msgstr "Wertung"
 
-#: src/core/content/examples/fsd.ts:1179
+#: src/core/content/examples/fsd.ts:1191
 #, fuzzy
 msgctxt "game"
 msgid "Cleanup"
 msgstr "Aufräumen"
 
-#: src/core/content/examples/fsd.ts:899
+#: src/core/content/examples/fsd.ts:409
+#, fuzzy
+msgctxt "game"
+msgid "reacted"
+msgstr "reagierte"
+
+#: src/core/content/examples/fsd.ts:410
+#, fuzzy
+msgctxt "game"
+msgid "unpinned"
+msgstr "löste Niederhalten"
+
+#: src/core/content/examples/fsd.ts:411
+#, fuzzy
+msgctxt "game"
+msgid "fired"
+msgstr "feuerte"
+
+#: src/core/content/examples/fsd.ts:412
+#, fuzzy
+msgctxt "game"
+msgid "prepared"
+msgstr "bereitete sich vor"
+
+#: src/core/content/examples/fsd.ts:413
+#, fuzzy
+msgctxt "game"
+msgid "interacted"
+msgstr "interagierte"
+
+#: src/core/content/examples/fsd.ts:414
+#, fuzzy
+msgctxt "game"
+msgid "deployed"
+msgstr "stellte auf"
+
+#: src/core/content/examples/fsd.ts:911
 #, fuzzy
 msgctxt "game"
 msgid "Activate"
 msgstr "Aktivieren"
 
-#: src/core/content/examples/fsd.ts:902
+#: src/core/content/examples/fsd.ts:914
 #, fuzzy
 msgctxt "game"
 msgid "A Character's abilities (its card behind the unit's) are used during the activation, each once a round, even while pinned, and don't count toward the two actions"
 msgstr "Die Fähigkeiten eines Charakters (seine Karte hinter der der Einheit) werden während der Aktivierung genutzt, jede einmal pro Runde, auch wenn niedergehalten, und zählen nicht zu den zwei Aktionen"
 
-#: src/core/content/examples/fsd.ts:946
+#: src/core/content/examples/fsd.ts:958
 #, fuzzy
 msgctxt "game"
 msgid "Activate (no AD)"
 msgstr "Aktivieren (ohne AD)"
 
-#: src/core/content/examples/fsd.ts:949
+#: src/core/content/examples/fsd.ts:961
 #, fuzzy
 msgctxt "game"
 msgid "Lone Wolf or Disciplined: no AD spent; Disciplined takes one action this way, and neither commands"
 msgstr "Einzelgänger oder Diszipliniert: kein AD ausgegeben; Diszipliniert nimmt so eine Aktion, und keiner befehligt"
 
-#: src/core/content/examples/fsd.ts:958
+#: src/core/content/examples/fsd.ts:970
 #, fuzzy
 msgctxt "game"
 msgid "React"
@@ -2695,6 +2780,197 @@ msgstr "Zusammenstoß"
 msgctxt "game"
 msgid "Activation"
 msgstr "Aktivierung"
+
+#: src/core/content/story.ts:519
+#, fuzzy
+msgid "{name} ({cost})"
+msgstr "{name} ({cost})"
+
+#: src/core/content/story.ts:525
+#: src/core/content/story.ts:608
+#, fuzzy
+msgid "{unit} (destroyed)"
+msgstr "{unit} (vernichtet)"
+
+#: src/core/content/story.ts:526
+#, fuzzy
+msgid "{unit} ({n} slain)"
+msgid_plural "{unit} ({n} slain)"
+msgstr[0] "{unit} ({n} gefallen)"
+msgstr[1] "{unit} ({n} gefallen)"
+
+#: src/core/content/story.ts:527
+#, fuzzy
+msgid "{unit} ({n} wound)"
+msgid_plural "{unit} ({n} wounds)"
+msgstr[0] "{unit} ({n} Lebenspunkt)"
+msgstr[1] "{unit} ({n} Lebenspunkte)"
+
+#: src/core/content/story.ts:528
+#, fuzzy
+msgid "{unit} (no losses)"
+msgstr "{unit} (keine Verluste)"
+
+#: src/core/content/story.ts:560
+#, fuzzy
+msgid "{n} more unit (no losses)"
+msgid_plural "{n} more units (no losses)"
+msgstr[0] "{n} weitere Einheit (keine Verluste)"
+msgstr[1] "{n} weitere Einheiten (keine Verluste)"
+
+#: src/core/content/story.ts:561
+#, fuzzy
+msgid "{n} unit (no losses)"
+msgid_plural "{n} units (no losses)"
+msgstr[0] "{n} Einheit (keine Verluste)"
+msgstr[1] "{n} Einheiten (keine Verluste)"
+
+#: src/core/content/story.ts:577
+#, fuzzy
+msgid "{verb} with {n} unit"
+msgid_plural "{verb} with {n} units"
+msgstr[0] "{verb} mit {n} Einheit"
+msgstr[1] "{verb} mit {n} Einheiten"
+
+#: src/core/content/story.ts:584
+#, fuzzy
+msgid "deployed {n} unit"
+msgid_plural "deployed {n} units"
+msgstr[0] "stellte {n} Einheit auf"
+msgstr[1] "stellte {n} Einheiten auf"
+
+#: src/core/content/story.ts:585
+#, fuzzy
+msgid "moved {n} unit"
+msgid_plural "moved {n} units"
+msgstr[0] "bewegte {n} Einheit"
+msgstr[1] "bewegte {n} Einheiten"
+
+#: src/core/content/story.ts:587
+#, fuzzy
+msgid "attacked {targets}"
+msgstr "griff {targets} an"
+
+#: src/core/content/story.ts:588
+#: src/core/content/story.ts:614
+#, fuzzy
+msgid "{name}: {parts}."
+msgstr "{name}: {parts}."
+
+#: src/core/content/story.ts:595
+#, fuzzy
+msgid "scored {vp} VP ({why})"
+msgstr "erzielte {vp} SP ({why})"
+
+#: src/core/content/story.ts:596
+#, fuzzy
+msgid "scored {vp} VP"
+msgstr "erzielte {vp} SP"
+
+#: src/core/content/story.ts:601
+#, fuzzy
+msgid "used {list}"
+msgstr "setzte {list} ein"
+
+#: src/core/content/story.ts:603
+#, fuzzy
+msgid "reacted with {list}"
+msgstr "reagierte mit {list}"
+
+#: src/core/content/story.ts:609
+#, fuzzy
+msgid "{n} from {unit}"
+msgid_plural "{n} from {unit}"
+msgstr[0] "{n} aus {unit}"
+msgstr[1] "{n} aus {unit}"
+
+#: src/core/content/story.ts:611
+#, fuzzy
+msgid "lost {list}"
+msgstr "verlor {list}"
+
+#: src/core/content/story.ts:613
+#, fuzzy
+msgid "revealed {n} secret"
+msgid_plural "revealed {n} secrets"
+msgstr[0] "deckte {n} Geheimnis auf"
+msgstr[1] "deckte {n} Geheimnisse auf"
+
+#: src/core/content/story.ts:630
+#, fuzzy
+msgid "Your {unit} destroyed {target}"
+msgstr "Deine Einheit {unit} vernichtete {target}"
+
+#: src/core/content/story.ts:632
+#, fuzzy
+msgid "Your {unit} hit {target}: {n} slain"
+msgid_plural "Your {unit} hit {target}: {n} slain"
+msgstr[0] "Deine Einheit {unit} traf {target}: {n} gefallen"
+msgstr[1] "Deine Einheit {unit} traf {target}: {n} gefallen"
+
+#: src/core/content/story.ts:634
+#, fuzzy
+msgid "Your {unit} hit {target}: {n} wound"
+msgid_plural "Your {unit} hit {target}: {n} wounds"
+msgstr[0] "Deine Einheit {unit} traf {target}: {n} Lebenspunkt"
+msgstr[1] "Deine Einheit {unit} traf {target}: {n} Lebenspunkte"
+
+#: src/core/content/story.ts:640
+#, fuzzy
+msgid "Your {unit} attacked {target}: no losses"
+msgstr "Deine Einheit {unit} griff {target} an: keine Verluste"
+
+#: src/core/content/story.ts:648
+#, fuzzy
+msgid "Lost {list}"
+msgstr "Verloren: {list}"
+
+#: src/core/content/story.ts:649
+#, fuzzy
+msgid "{n} {unit}"
+msgid_plural "{n} {unit}"
+msgstr[0] "{n} {unit}"
+msgstr[1] "{n} {unit}"
+
+#: src/core/content/story.ts:653
+#, fuzzy
+msgid "{list} destroyed"
+msgstr "{list} vernichtet"
+
+#: src/core/content/story.ts:661
+#: src/core/content/story.ts:687
+#, fuzzy
+msgid "{name} attacked {targets}"
+msgstr "{name} griff {targets} an"
+
+#: src/core/content/story.ts:668
+#, fuzzy
+msgid "{name} scored {vp} VP"
+msgstr "{name} erzielte {vp} SP"
+
+#: src/core/content/story.ts:676
+#, fuzzy
+msgid "{name} attacked {targets} and {n} more"
+msgid_plural "{name} attacked {targets} and {n} more"
+msgstr[0] "{name} griff {targets} und {n} weitere an"
+msgstr[1] "{name} griff {targets} und {n} weitere an"
+
+#: src/core/content/story.ts:691
+#, fuzzy
+msgid "{name} moved {n} unit"
+msgid_plural "{name} moved {n} units"
+msgstr[0] "{name} bewegte {n} Einheit"
+msgstr[1] "{name} bewegte {n} Einheiten"
+
+#: src/core/content/story.ts:695
+#, fuzzy
+msgid "{name} used {list}"
+msgstr "{name} setzte {list} ein"
+
+#: src/core/content/story.ts:700
+#, fuzzy
+msgid "{name}: {parts}"
+msgstr "{name}: {parts}"
 
 #: src/events/EventSeat.tsx:104
 #, fuzzy
@@ -8368,6 +8644,64 @@ msgstr "{n} verdeckt"
 msgid "all played"
 msgstr "alle gespielt"
 
+#: src/systems/conquest/system.ts:650
+#, fuzzy
+msgctxt "game"
+msgid "volleyed"
+msgstr "gab eine Salve ab"
+
+#: src/systems/conquest/system.ts:651
+#, fuzzy
+msgctxt "game"
+msgid "clashed"
+msgstr "focht"
+
+#: src/systems/conquest/system.ts:652
+#, fuzzy
+msgctxt "game"
+msgid "took aim"
+msgstr "zielte"
+
+#: src/systems/conquest/system.ts:653
+#, fuzzy
+msgctxt "game"
+msgid "inspired"
+msgstr "inspirierte"
+
+#: src/systems/conquest/system.ts:654
+#: src/systems/conquest/system.ts:655
+#: src/systems/qd6/system.ts:626
+#, fuzzy
+msgctxt "game"
+msgid "rallied"
+msgstr "sammelte sich"
+
+#: src/systems/conquest/system.ts:656
+#: src/systems/conquest/system.ts:657
+#: src/systems/conquest/system.ts:658
+#, fuzzy
+msgctxt "game"
+msgid "reformed"
+msgstr "formierte sich neu"
+
+#: src/systems/conquest/system.ts:659
+#, fuzzy
+msgctxt "game"
+msgid "withdrew"
+msgstr "zog sich zurück"
+
+#: src/systems/qd6/system.ts:622
+#, fuzzy
+msgctxt "game"
+msgid "held"
+msgstr "hielt Stellung"
+
+#: src/systems/qd6/system.ts:624
+#, fuzzy
+msgctxt "game"
+msgid "rushed"
+msgstr "stürmte"
+
 #: src/systems/qd6/ui/Qd6Card.tsx:104
 #, fuzzy
 msgid "Its order"
@@ -8626,6 +8960,36 @@ msgstr "Darf neben dem Tisch warten und ab Runde 2 mehr als 9\" von Feinden entf
 #, fuzzy
 msgid "May join a friendly unit before the battle: they move and fight as one."
 msgstr "Darf sich vor der Schlacht einer befreundeten Einheit anschließen: Sie bewegen sich und kämpfen als eine."
+
+#: src/systems/tow/system.ts:302
+#, fuzzy
+msgctxt "game"
+msgid "declared a charge"
+msgstr "sagte einen Angriff an"
+
+#: src/systems/tow/system.ts:304
+#, fuzzy
+msgctxt "game"
+msgid "issued a challenge"
+msgstr "forderte heraus"
+
+#: src/systems/tow/system.ts:305
+#, fuzzy
+msgctxt "game"
+msgid "cast a spell"
+msgstr "wirkte einen Zauber"
+
+#: src/systems/tow/system.ts:306
+#, fuzzy
+msgctxt "game"
+msgid "dispelled a spell"
+msgstr "bannte einen Zauber"
+
+#: src/systems/tow/system.ts:307
+#, fuzzy
+msgctxt "game"
+msgid "used a magic item"
+msgstr "nutzte einen magischen Gegenstand"
 
 #: src/systems/wh40k/FightOrderNote.tsx:25
 msgid "Fights First: your pick ({units})."
