@@ -1,1 +1,0 @@
-import{t as e}from"./react-hsrUxga6.js";var t=e(()=>{let e=new URLSearchParams(typeof location>`u`?``:location.search).get(`workshop`);return{open:e!==null,folded:!1,link:e&&/^https:\/\//.test(e)?e:null}}),n=()=>t.setState({open:!0,folded:!1}),r=()=>t.setState({open:!1,link:null});export{n,t as r,r as t};

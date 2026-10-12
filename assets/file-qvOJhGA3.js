@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-hePW80VL.js";var t=e({STANDEE_EXTENSION:()=>n,standeeBytes:()=>i}),n=`.standee`,r=`open-battle/standee@1`;function i(e){return new TextEncoder().encode(JSON.stringify({format:r,...e}))}export{t as n,i as r,n as t};
