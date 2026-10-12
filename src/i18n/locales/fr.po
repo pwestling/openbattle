@@ -1883,7 +1883,7 @@ msgid "Your go"
 msgstr "À vous"
 
 #: src/companion/CompanionScreen.tsx:184
-#: src/next/step.ts:472
+#: src/next/step.ts:419
 #, fuzzy
 msgid "{side}'s go"
 msgstr "Au tour de {side}"
@@ -3837,7 +3837,7 @@ msgid "Send to {name}"
 msgstr "Envoyer à {name}"
 
 #: src/mail/MailBar.tsx:211
-#: src/next/step.ts:355
+#: src/next/step.ts:302
 #, fuzzy
 msgid "Waiting for {name}"
 msgstr "En attente de {name}"
@@ -4636,7 +4636,7 @@ msgid "Back to the front door"
 msgstr ""
 
 #: src/next/End.tsx:88
-#: src/next/step.ts:321
+#: src/next/step.ts:268
 #: src/ui/WhatNow.tsx:43
 #: src/ui/gameLog.ts:110
 #: src/ui/gameLog.ts:112
@@ -4830,7 +4830,7 @@ msgid "Everything placed. Say you're ready."
 msgstr ""
 
 #: src/next/Setup.tsx:196
-#: src/next/step.ts:455
+#: src/next/step.ts:402
 #: src/ui/Packages.tsx:753
 #: src/ui/TopBar.tsx:380
 #, fuzzy
@@ -5081,7 +5081,7 @@ msgid "Go on"
 msgstr "Continuer"
 
 #: src/next/Strip.tsx:124
-#: src/next/step.ts:322
+#: src/next/step.ts:269
 msgid "Setting up"
 msgstr ""
 
@@ -5155,83 +5155,59 @@ msgstr[1] ""
 msgid "{name} attacked {targets}."
 msgstr ""
 
-#: src/next/step.ts:101
-msgid "End turn"
-msgstr ""
-
-#: src/next/step.ts:102
-msgid "Done moving"
-msgstr ""
-
-#: src/next/step.ts:103
-msgid "Done shooting"
-msgstr ""
-
-#: src/next/step.ts:104
-msgid "Done charging"
-msgstr ""
-
-#: src/next/step.ts:105
-msgid "Done fighting"
-msgstr ""
-
-#: src/next/step.ts:106
-msgid "Done with {phase}"
-msgstr ""
-
-#: src/next/step.ts:153
+#: src/next/step.ts:100
 msgid "Your roll: {stage}"
 msgstr ""
 
-#: src/next/step.ts:154
+#: src/next/step.ts:101
 msgid "{name} rolls {stage}"
 msgstr ""
 
-#: src/next/step.ts:159
+#: src/next/step.ts:106
 msgid "hits"
 msgstr ""
 
-#: src/next/step.ts:159
+#: src/next/step.ts:106
 msgid "wounds"
 msgstr ""
 
-#: src/next/step.ts:159
+#: src/next/step.ts:106
 msgid "saves"
 msgstr ""
 
-#: src/next/step.ts:169
+#: src/next/step.ts:116
 msgid "{a} at {b}: declare the attack"
 msgstr ""
 
-#: src/next/step.ts:170
+#: src/next/step.ts:117
 msgid "Change the weapon or target in the card first if you like."
 msgstr ""
 
-#: src/next/step.ts:173
+#: src/next/step.ts:120
 msgid "Click {unit}'s target on the table"
 msgstr ""
 
-#: src/next/step.ts:174
+#: src/next/step.ts:121
 msgid "Or pick it in the card. Cancel there to choose another unit."
 msgstr ""
 
-#: src/next/step.ts:226
+#: src/next/step.ts:173
 msgid "{a} fights {b}"
 msgstr ""
 
-#: src/next/step.ts:227
-#: src/next/step.ts:276
+#: src/next/step.ts:174
+#: src/next/step.ts:223
 msgid "{a} attacks {b}"
 msgstr ""
 
-#: src/next/step.ts:234
-#: src/next/step.ts:285
+#: src/next/step.ts:181
+#: src/next/step.ts:232
 msgid "Done."
 msgstr ""
 
-#: src/next/step.ts:239
-#: src/next/step.ts:288
-#: src/next/step.ts:448
+#: src/next/step.ts:186
+#: src/next/step.ts:235
+#: src/next/step.ts:395
 #: src/ui/AttackPanel.tsx:623
 #: src/ui/Coach.tsx:87
 #: src/ui/ProcedurePanels.tsx:418
@@ -5239,254 +5215,278 @@ msgstr ""
 msgid "Done"
 msgstr "Terminé"
 
-#: src/next/step.ts:253
+#: src/next/step.ts:200
 msgid "Your answer, where the dice are."
 msgstr ""
 
-#: src/next/step.ts:254
+#: src/next/step.ts:201
 msgid "Waiting for an answer."
 msgstr ""
 
-#: src/next/step.ts:273
+#: src/next/step.ts:220
 msgid "A roll is under way"
 msgstr ""
 
-#: src/next/step.ts:273
+#: src/next/step.ts:220
 msgid "Roll where the dice are."
 msgstr ""
 
-#: src/next/step.ts:293
+#: src/next/step.ts:240
 msgid "Then the damage, where the dice are."
 msgstr ""
 
-#: src/next/step.ts:341
+#: src/next/step.ts:288
 msgid "Pick your answer."
 msgstr ""
 
-#: src/next/step.ts:341
+#: src/next/step.ts:288
 msgid "Answer on the card by the dice."
 msgstr ""
 
-#: src/next/step.ts:367
+#: src/next/step.ts:314
 msgid "Your reaction"
 msgstr ""
 
-#: src/next/step.ts:367
+#: src/next/step.ts:314
 msgid "A reaction"
 msgstr ""
 
-#: src/next/step.ts:369
+#: src/next/step.ts:316
 msgid "React with a unit from its card, or pass."
 msgstr ""
 
-#: src/next/step.ts:370
+#: src/next/step.ts:317
 msgid "Answer on the reaction card by the dice."
 msgstr ""
 
-#: src/next/step.ts:372
-#: src/next/step.ts:387
-#: src/next/step.ts:500
-#: src/next/step.ts:513
+#: src/next/step.ts:319
+#: src/next/step.ts:334
+#: src/next/step.ts:447
+#: src/next/step.ts:460
 #: src/ui/Missions.tsx:198
 #: src/ui/Missions.tsx:213
 #, fuzzy
 msgid "Pass"
 msgstr "Passer"
 
-#: src/next/step.ts:385
+#: src/next/step.ts:332
 #: src/ui/ReactionCard.tsx:65
 #, fuzzy
 msgid "You may react"
 msgstr "Tu peux réagir"
 
-#: src/next/step.ts:386
+#: src/next/step.ts:333
 msgid "Play a reaction from the card by the dice, or pass."
 msgstr ""
 
-#: src/next/step.ts:405
+#: src/next/step.ts:352
 msgid "Score {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:411
+#: src/next/step.ts:358
 #: src/opentables/OpenTables.tsx:1044
 #: src/ranked/RankedGame.tsx:227
 #, fuzzy
 msgid "Not this time"
 msgstr "Pas cette fois"
 
-#: src/next/step.ts:416
+#: src/next/step.ts:363
 msgid "Score {rule}: {vp} VP"
 msgstr ""
 
-#: src/next/step.ts:439
+#: src/next/step.ts:386
 msgid "{name}: {phase}, then Done"
 msgstr ""
 
-#: src/next/step.ts:443
+#: src/next/step.ts:390
 msgid "{phase}: Done when you're ready"
 msgstr ""
 
-#: src/next/step.ts:446
+#: src/next/step.ts:393
 msgid "{names} is doing theirs at the same time."
 msgstr ""
 
-#: src/next/step.ts:455
+#: src/next/step.ts:402
 msgid "Moving on…"
 msgstr ""
 
-#: src/next/step.ts:456
+#: src/next/step.ts:403
 msgid "You're done with {phase}."
 msgstr ""
 
-#: src/next/step.ts:459
+#: src/next/step.ts:406
 #: src/ui/TopBar.tsx:387
 #, fuzzy
 msgid "Not done"
 msgstr "Pas fini"
 
-#: src/next/step.ts:460
+#: src/next/step.ts:407
 #: src/ui/TopBar.tsx:400
 #: src/ui/TopBar.tsx:450
 #, fuzzy
 msgid "Go on anyway"
 msgstr "Continuer quand même"
 
-#: src/next/step.ts:473
+#: src/next/step.ts:420
 msgid "Your next activation comes after theirs."
 msgstr ""
 
-#: src/next/step.ts:481
+#: src/next/step.ts:428
 msgid "Your activation: {unit}"
 msgstr ""
 
-#: src/next/step.ts:482
+#: src/next/step.ts:429
 msgid "Use its actions from its card, then end the activation."
 msgstr ""
 
-#: src/next/step.ts:485
+#: src/next/step.ts:432
 #: src/ui/SystemPanels.tsx:574
 #: src/ui/TopBar.tsx:343
 #, fuzzy
 msgid "End activation"
 msgstr "Terminer l'activation"
 
-#: src/next/step.ts:497
+#: src/next/step.ts:444
 msgid "All your units have had their go"
 msgstr ""
 
-#: src/next/step.ts:498
+#: src/next/step.ts:445
 msgid "Pass: the other side goes on until they pass too."
 msgstr ""
 
-#: src/next/step.ts:505
+#: src/next/step.ts:452
 msgid "Pick a unit to activate"
 msgstr ""
 
-#: src/next/step.ts:508
+#: src/next/step.ts:455
 msgid "{n} unit left this round"
 msgid_plural "{n} units left this round"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:532
+#: src/next/step.ts:479
 msgid "{player}'s pick to fight"
 msgstr ""
 
-#: src/next/step.ts:533
+#: src/next/step.ts:480
 msgid "The sides alternate until every engaged unit has fought."
 msgstr ""
 
-#: src/next/step.ts:562
+#: src/next/step.ts:509
 msgid "Your pick: choose a unit to fight"
 msgstr ""
 
-#: src/next/step.ts:563
+#: src/next/step.ts:510
 msgid "Pile in, fight, then consolidate, from its card."
 msgstr ""
 
-#: src/next/step.ts:583
+#: src/next/step.ts:530
 msgid "{side}'s turn: {phase}"
 msgstr ""
 
-#: src/next/step.ts:584
+#: src/next/step.ts:531
 msgid "Watch the table. Your saves and reactions come to you here."
 msgstr ""
 
-#: src/next/step.ts:605
+#: src/next/step.ts:552
 msgid "Drag {unit}'s base to move it"
 msgstr ""
 
-#: src/next/step.ts:606
+#: src/next/step.ts:553
 msgid "Every unit has moved"
 msgstr ""
 
-#: src/next/step.ts:609
+#: src/next/step.ts:556
 msgid "Tap an enemy for {unit} to shoot"
 msgstr ""
 
-#: src/next/step.ts:610
+#: src/next/step.ts:557
 msgid "Every unit has shot"
 msgstr ""
 
-#: src/next/step.ts:613
+#: src/next/step.ts:560
 msgid "Tap an enemy for {unit} to charge"
 msgstr ""
 
-#: src/next/step.ts:614
+#: src/next/step.ts:561
 msgid "No unit can charge now"
 msgstr ""
 
-#: src/next/step.ts:616
+#: src/next/step.ts:563
 msgid "No fights this turn"
 msgstr ""
 
-#: src/next/step.ts:618
+#: src/next/step.ts:565
 msgid "{phase}: pick a unit to act"
 msgstr ""
 
-#: src/next/step.ts:619
+#: src/next/step.ts:566
 msgid "{phase}: nothing left to do"
 msgstr ""
 
-#: src/next/step.ts:630
+#: src/next/step.ts:577
 msgid "Drag {unit} · up to {n}″"
 msgstr ""
 
-#: src/next/step.ts:631
+#: src/next/step.ts:578
 msgid "Drag {unit} to move it"
 msgstr ""
 
-#: src/next/step.ts:632
+#: src/next/step.ts:579
 msgid "Or pick another unit. Advance and the rest are on its card."
 msgstr ""
 
-#: src/next/step.ts:645
+#: src/next/step.ts:592
 msgid "{unit} moved {moved}″ of its {n}″ charge roll"
 msgstr ""
 
-#: src/next/step.ts:646
+#: src/next/step.ts:593
 msgid "Undo takes the move back. Done charges anyway."
 msgstr ""
 
-#: src/next/step.ts:657
+#: src/next/step.ts:604
 msgid "Charge roll {n}″: drag {unit} into contact with {targets}"
 msgstr ""
 
-#: src/next/step.ts:658
+#: src/next/step.ts:605
 msgid "Then pick the next unit, or move on."
 msgstr ""
 
-#: src/next/step.ts:679
+#: src/next/step.ts:626
 msgid "{n} unit hasn't moved"
 msgid_plural "{n} units haven't moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:680
+#: src/next/step.ts:627
 msgid "{n} unit can still act"
 msgid_plural "{n} units can still act"
 msgstr[0] ""
 msgstr[1] ""
+
+#: src/next/step.ts:73
+msgid "End turn"
+msgstr ""
+
+#: src/next/step.ts:74
+msgid "Done moving"
+msgstr ""
+
+#: src/next/step.ts:75
+msgid "Done shooting"
+msgstr ""
+
+#: src/next/step.ts:76
+msgid "Done charging"
+msgstr ""
+
+#: src/next/step.ts:77
+msgid "Done fighting"
+msgstr ""
+
+#: src/next/step.ts:78
+msgid "Done with {phase}"
+msgstr ""
 
 #: src/opentables/OpenTables.tsx:101
 #, fuzzy
@@ -11687,7 +11687,7 @@ msgid "Open this game as a replay to add notes and marks"
 msgstr "Ouvrir cette partie en replay pour ajouter des notes et des marques"
 
 #: src/ui/Hud.tsx:296
-#: src/ui/route.ts:247
+#: src/ui/route.ts:249
 #, fuzzy
 msgid "Leave this game? The others can't go on without you."
 msgstr "Quitter cette partie ? Les autres ne peuvent pas continuer sans toi."
