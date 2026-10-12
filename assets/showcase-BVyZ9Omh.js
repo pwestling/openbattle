@@ -1,1 +1,0 @@
-import{t as e}from"./react-hsrUxga6.js";var t=e(()=>({on:!1})),n=()=>t.getState().on,r={initial:null},i={initial:null};export{t as i,i as n,n as r,r as t};
