@@ -14,7 +14,7 @@ We aim to reply within a week and to credit you in the release notes, unless you
 - A peer changing another player's game, secrets or ranked result beyond what the protocol allows.
 - Forging or replaying ranked signatures, or getting an unsigned result counted.
 - Running script through imported files (rosters, TTS saves, replays, figures, standees).
-- The self-host kit's relay, mailbox or board.
+- The self-host kit's relay.
 
 ## Out of scope
 

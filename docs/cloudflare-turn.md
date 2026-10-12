@@ -69,7 +69,5 @@ again.
   `curl -H "Origin: https://pwestling.github.io" <worker address>`). It
   answers `{"turn":[…],"ttl":14400}`. An `error` in the answer says what's
   missing, such as an unset secret.
-- On the site, **Check my connection** (in the lobby) shows
-  "TURN: works" under Details.
 - To try a game that goes only through TURN, add `?forceTurn=1` to both
   players' addresses.

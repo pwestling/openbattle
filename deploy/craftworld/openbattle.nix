@@ -1,8 +1,8 @@
 # Open Battle (app repo: pwestling/openbattle, deploy/craftworld/openbattle.nix; copy it to the infra
 # repo as hosts/vps-01/apps/openbattle.nix): a peer-to-peer tabletop for miniatures wargames.
-# Public at https://openbattle.thehivemind5.com. nginx serves the built app and routes to three
-# small Node services on loopback: the signalling relay (4400, also /config.json with TURN logins
-# and /health.json), the play-by-mail mailbox (4401) and the seed node for shared files (4402).
+# Public at https://openbattle.thehivemind5.com. nginx serves the built app and routes to one
+# small Node service on loopback: the signalling relay (4400, also /config.json with TURN logins
+# and /health.json).
 # Games run in the players' browsers; coturn relays game traffic for players whose networks
 # block a direct link.
 #
@@ -51,8 +51,8 @@ let
     CPUWeight = 100;
   };
 
-  # The relay, mailbox and seed node listen on every address; only loopback (nginx, and the
-  # relay's STUN check of coturn) may reach them.
+  # The relay listens on every address; only loopback (nginx, and the relay's STUN check of
+  # coturn) may reach it.
   loopbackOnly = {
     IPAddressDeny = "any";
     IPAddressAllow = "localhost";
@@ -101,7 +101,7 @@ let
       base="https://github.com/pwestling/openbattle/releases/download/craftworld"
       root=/srv/openbattle
       state=/var/lib/openbattle-deploy
-      units=(openbattle-relay openbattle-mailbox openbattle-seeder)
+      units=(openbattle-relay)
       mkdir -p "$state" "$root/releases"
 
       manifest="$(curl -fsSL --max-time 30 "$base/openbattle.json")"
@@ -144,8 +144,6 @@ let
         for _ in $(seq 1 20); do
           if systemctl is-active --quiet "''${units[@]}" &&
             curl -fsS --max-time 3 http://127.0.0.1:4400/config.json >/dev/null &&
-            curl -fsS --max-time 3 http://127.0.0.1:4401/mailbox/health >/dev/null &&
-            curl -fsS --max-time 3 http://127.0.0.1:4402/seed/health >/dev/null &&
             curl -fsS --max-time 3 --resolve openbattle.thehivemind5.com:443:127.0.0.1 \
               https://openbattle.thehivemind5.com/ | grep -q '<div id="root"'; then
             return 0
@@ -219,52 +217,11 @@ in
         PUBLIC_URL = "https://${domain}";
         TURN_URLS = "turn:${domain}:${toString turnPort}?transport=udp,turn:${domain}:${toString turnPort}?transport=tcp";
         TURN_CHECK = "127.0.0.1:${toString turnPort}";
-        MAILBOX_URL = "on";
-        SEEDER_URL = "on";
-        OPEN_TABLES = "off";
       };
       serviceConfig = loopbackOnly // {
         EnvironmentFile = config.sops.secrets."openbattle/environment".path;
         MemoryHigh = "192M";
         MemoryMax = "256M";
-        TasksMax = 64;
-      };
-    };
-
-    openbattle-mailbox = service {
-      description = "Open Battle play-by-mail mailbox";
-      script = "mailbox.mjs";
-      environment = {
-        PORT = "4401";
-        DATA_DIR = "${state}/mailbox";
-        TTL_DAYS = "60";
-        VAPID_SUBJECT = "mailto:pwestling@gmail.com";
-      };
-      serviceConfig = loopbackOnly // {
-        StateDirectory = "openbattle/mailbox";
-        StateDirectoryMode = "0700";
-        MemoryHigh = "128M";
-        MemoryMax = "192M";
-        TasksMax = 64;
-      };
-    };
-
-    openbattle-seeder = service {
-      description = "Open Battle seed node for shared files";
-      script = "seeder.mjs";
-      environment = {
-        PORT = "4402";
-        DATA_DIR = "${state}/seed";
-        MAX_FILE_MB = "96";
-        MAX_TOTAL_GB = "10";
-        TTL_DAYS = "30";
-        CONTACT = "pwestling@gmail.com";
-      };
-      serviceConfig = loopbackOnly // {
-        StateDirectory = "openbattle/seed";
-        StateDirectoryMode = "0700";
-        MemoryHigh = "256M";
-        MemoryMax = "384M";
         TasksMax = 64;
       };
     };
@@ -361,12 +318,6 @@ in
       "/relay" = (proxy 4400) // { proxyWebsockets = true; };
       "= /config.json" = proxy 4400;
       "= /health.json" = proxy 4400;
-      "/mailbox" = (proxy 4401) // {
-        extraConfig = (proxy 4401).extraConfig + "client_max_body_size 17m;";
-      };
-      "/seed" = (proxy 4402) // {
-        extraConfig = (proxy 4402).extraConfig + "client_max_body_size 97m; proxy_request_buffering off;";
-      };
     };
   };
 }

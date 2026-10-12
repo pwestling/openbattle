@@ -10,12 +10,8 @@ small jobs:
    many offices, schools, hotels and mobile carriers. [coturn](https://github.com/coturn/coturn) relays
    for them. (The hosted site uses Cloudflare's TURN service instead: see
    [cloudflare-turn.md](cloudflare-turn.md).)
-4. **Holds play-by-mail turns** until the other player picks them up. That's `server/mailbox.mjs`. It
-   keeps signed files and checks nothing about the game: each player's app checks them (see
-   [correspondence.md](correspondence.md)).
-
-`docker-compose.yml` runs all of them. It needs no account with any service: any Linux machine with Docker
-works, whether that's a cheap VPS or a computer at home.
+   `docker-compose.yml` runs all of them. It needs no account with any service: any Linux machine with Docker
+   works, whether that's a cheap VPS or a computer at home.
 
 ## What you need
 
@@ -49,18 +45,7 @@ Edit `.env`:
 - `TURN_EXTERNAL_IP`: this machine's public IP **if it sits behind NAT**. That covers a home router,
   and clouds such as AWS, GCP and Oracle, where the public IP isn't on the network card. Leave it empty on
   a VPS whose public IP is on the machine (`ip addr` shows it).
-- `VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY` (optional): turn on web push, so a play-by-mail player can
-  be notified when it's their move. Make the pair once, after the first build:
-
-  ```sh
-  docker compose run --rm mailbox node mailbox.mjs --vapid
-  ```
-
-  Paste both lines into `.env` and run `docker compose up -d` again. Without them, players see their move
-  in the tab title, and in the lobby when they open the app. Push goes through the browser maker's push
-  service (as all web push does), but it carries nothing: the app fetches the turn from your server.
-
-Then start it:
+  Then start it:
 
 ```sh
 docker compose up -d --build
@@ -92,8 +77,6 @@ browser ──https──▶ Caddy ── /              the app (static files)
                          ├─ /relay        ─▶ relay (WebSocket signalling)
                          ├─ /config.json  ─▶ relay (signalling URL + TURN login)
                          ├─ /health.json  ─▶ relay (server-side health)
-                         ├─ /mailbox      ─▶ mailbox (play-by-mail turns, web push)
-                         ├─ /seed         ─▶ seeder (shared files, torrent web seeds)
                          └─ /health          the health page
 browser ◀──udp/tcp 3478──▶ coturn (host network)
 ```
@@ -101,26 +84,7 @@ browser ◀──udp/tcp 3478──▶ coturn (host network)
 The app image is built with `VITE_SITE_CONFIG=config.json`, so at startup the app asks the server where
 to meet and how to reach TURN. The relay answers with a TURN login that lasts 24 hours, signed with
 `TURN_SECRET` (coturn's `use-auth-secret`), so the secret itself never reaches a browser. One image fits
-any domain. It also tells the app about the mailbox (`MAILBOX_URL: "on"` in the compose file).
-
-A mail game's mailbox is named by a long random id that only its two players have; there are no
-accounts. Files are kept in the `mailbox_data` volume, and a mailbox nobody has touched for 60 days
-(`MAILBOX_TTL_DAYS`) is forgotten. Players' devices keep their own copy of every game regardless.
-
-**Open tables**, the board where players post a game for strangers to join, is off on a self-hosted
-site. Set `OPEN_TABLES=on` in `.env` to turn it on for your group. The relay then keeps the board in
-memory (`server/board.mjs`, at `/relay/board`) and the app reads it from there, never from the public
-Nostr relays the hosted app uses. A post has only what its player typed: a display name, the game, its
-size and time, language, live or by mail, and whether voice is on. Posts come down when the seats fill,
-when the host leaves, or after their time, and three reports from different addresses hide one.
-
-The **seed node** (`server/seeder.mjs`, at `/seed`) keeps the figure packs, tables, armies and replays
-your players share, so a share link keeps working after its sharer closes the tab. It holds files by
-their SHA-256 and knows nothing about them; private shares reach it encrypted. Files nobody has fetched
-for 30 days (`SEED_TTL_DAYS`) are forgotten, and the least recently fetched go first when it reaches
-`SEED_MAX_TOTAL_GB`. Anyone who can reach your site can post to it (60 files an hour per address), so
-set `SEED_CONTACT` for takedown notices and `SEED_ADMIN_TOKEN` to drop files; see
-[sharing-files.md](sharing-files.md#takedowns). `SEEDER_URL=off` keeps the app from using it.
+any domain.
 
 coturn uses the host's network, so it sees players' real addresses and its relay ports need no mapping.
 It refuses to relay to private and loopback addresses, so nobody can use it to reach machines on your
@@ -157,7 +121,7 @@ games.
 - **No HTTPS certificate.** The DNS record must point at this machine, and ports 80 and 443 must be
   reachable from the internet. `docker compose logs app` shows Caddy's attempts.
 - **"Looking for the game's host…" forever.** The host's page must stay open. Check that both players
-  opened the same address. The app's **Check my connection** (on the start page) tests the network.
+  opened the same address.
 - **A different relay range.** Set `TURN_MIN_PORT` and `TURN_MAX_PORT` in the `turn` service's
   environment in `docker-compose.yml`, and open the same range in your firewall.
 
@@ -170,10 +134,6 @@ The pieces are ordinary:
 - `node server/relay.mjs` runs the relay (needs `@trystero-p2p/ws-relay`). Its settings are described
   at the top of the file.
 - Route `/relay`, `/config.json` and `/health.json` to the relay, as `deploy/Caddyfile` does.
-- `node server/mailbox.mjs` runs the mailbox (no dependencies). Route `/mailbox` to it and set
-  `MAILBOX_URL=on` for the relay, or point the app at it with `?mailbox=` or `VITE_MAILBOX_URL`.
-- `node server/seeder.mjs` runs the seed node (no dependencies). Route `/seed` to it and set
-  `SEEDER_URL=on` for the relay, or point the app at it with `?seeders=` or `VITE_SEEDERS`.
 - Run coturn with the options in `deploy/coturn.sh`.
 
 Without `VITE_SITE_CONFIG`, the app takes the same settings from the page address instead:

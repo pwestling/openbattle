@@ -15,22 +15,6 @@
 		reverse_proxy relay:8787
 	}
 
-	# Play by mail: turns posted and picked up (server/mailbox.mjs).
-	handle /mailbox* {
-		request_body {
-			max_size 17MB
-		}
-		reverse_proxy mailbox:8790
-	}
-
-	# Shared files kept for torrents and served as web seeds (server/seeder.mjs).
-	handle /seed* {
-		request_body {
-			max_size 97MB
-		}
-		reverse_proxy seeder:8791
-	}
-
 	handle /health {
 		rewrite * /health.html
 		file_server {

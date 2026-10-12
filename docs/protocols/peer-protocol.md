@@ -1,13 +1,13 @@
 # Peer protocol
 
-**`PROTOCOL = 2`** (`src/protocol.ts`). Stable. Schemas: [peer-message.v2](../../schemas/peer-message.v2.schema.json) (everything) and [side-message.v1](../../schemas/side-message.v1.schema.json) (the part outside the game log). Code: `src/net/transport.ts` (the messages), `src/net/session.ts` (what a peer does with them).
+**`PROTOCOL = 3`** (`src/protocol.ts`). Schemas: [peer-message.v3](../../schemas/peer-message.v3.schema.json) (everything) and [side-message.v2](../../schemas/side-message.v2.schema.json) (the part outside the game log). Code: `src/net/transport.ts` (the messages), `src/net/session.ts` (what a peer does with them).
 
 Players' browsers talk directly over WebRTC data channels. This page is what two builds must agree on to share a table. [compatibility.md](../compatibility.md) explains what happens when they don't.
 
 ## Meeting
 
 - Peers find each other through Trystero: public Nostr relays by default, or a WebSocket signalling relay (`server/relay.mjs`). The app id is `open-battle-dev`, and the room id comes from the invite link (`?room=`). Signalling carries only the WebRTC handshake.
-- Every game message is one JSON value sent on the Trystero action `msg`. Media (voice) travels as WebRTC media streams.
+- Every game message is one JSON value sent on the Trystero action `msg`.
 - A peer that isn't the host greets with `hello`. The host answers with `host`. Both carry `v: { protocol, build }`.
 - A peer whose `protocol` differs is **parked**: the host sends it no events, drops its intents and never hands it the host role. Both sides show a "can't play together" banner. A peer with the same protocol but another `build` gets a banner only. Builds from before this check send no `v` and are taken to share the protocol.
 
@@ -17,29 +17,24 @@ One peer is the **host**. Clients send `intent` messages: what the player wants 
 
 ## The event log
 
-The log is the game. Each entry is a `LoggedEvent`:
+The log is the game. Each entry is a `LoggedEvent` (`src/core/log.ts`):
 
-| Field    | Meaning                                                                                      |
-| -------- | -------------------------------------------------------------------------------------------- |
-| `seq`    | Its number, counting up from the record's `initial.seq`                                      |
-| `by`     | The player who asked for it                                                                  |
-| `at`     | The host's clock (ms). For replays only, never for rules                                     |
-| `event`  | The event: `{ type: "<area>/<verb>", … }`. About 150 types, defined in `src/core/actions.ts` |
-| `host`   | The peer that was host when it was logged                                                    |
-| `told`   | Its dice were rolled at the real table and typed in                                          |
-| `intent` | Under shared dice: the intent it came from, so the other ranked player can roll it again     |
-| `seed`   | Under shared dice, for a rules package's event: the seed its sandbox was given               |
+| Field    | Meaning                                                                                  |
+| -------- | ---------------------------------------------------------------------------------------- |
+| `seq`    | Its number, counting up from the record's `initial.seq`                                  |
+| `by`     | The player who asked for it                                                              |
+| `at`     | The host's clock (ms). For replays only, never for rules                                 |
+| `event`  | The event: `{ type: "<area>/<verb>", ... }`, defined in `src/core/actions.ts`            |
+| `host`   | The peer that was host when it was logged                                                |
+| `told`   | Its dice were rolled at the real table and typed in                                      |
+| `intent` | Under shared dice: the intent it came from, so the other ranked player can roll it again |
+| `seed`   | Under shared dice, for a macro step: the seed its sandbox was given                      |
 
-Events and intents are versioned together by `PROTOCOL`, not one by one. The reducer is deterministic: the same `initial` and the same events give the same table on every device with the same build and packages. Rules packages add events of their own under their package's namespace. Those are covered by the package's hash, not by `PROTOCOL`.
+The events are the core's primitives (entities, quantities, tags, modifiers, moves, dice, secrets, decks, the pointer) and `macro/step`, the envelope in which a rules module's action logs the primitives it expanded into. The reducer is a pure fold: the same `initial` and the same events give the same table on every device with the same build, with or without the game's rules package. Only the host needs the package, to resolve a new macro.
 
 ## Outside the log
 
-Side messages (`SideMessage`) are never logged or checksummed. Any peer may send them to any other:
-
-- **Content by hash:** `asset/want` and `asset/part` (figure and terrain models, by their id), `package/want`, `package/part` and `package/status` (rules packages, by SHA-256), `campaign/want` and `campaign/part` (campaign books, by SHA-256). Content travels in 48 KB base64 parts. The receiver checks package and campaign bytes against the hash before keeping them.
-- **Table talk:** `talk` (pings, arrows, areas, lines, chat, reactions), `talk/clear`, `talk/cam`, `talk/moment`, `talk/shake`, `talk/reel`, `talk/drag`, `talk/plan`, `talk/volley`, `talk/voice`.
-- **Review rooms:** `review/lead`, `review/hello`, `review/note`, `review/unnote`, `review/notes`.
-- **Armies from a TTS table:** `army/offer`, `army/take`.
+Side messages (`SideMessage`) are never logged or checksummed. Any peer may send them to any other: `package/want`, `package/part` and `package/status` carry rules packages by SHA-256 in 48 KB base64 parts. The receiver checks the bytes against the hash before keeping them.
 
 ## Changing the protocol
 
@@ -50,9 +45,10 @@ The schemas are generated from these types, so any such change also shows up as 
 
 ## History
 
-| `PROTOCOL` | Since | What changed                                                                                                                                                                                                                |
-| ---------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2          | 0.2.0 | Reaction windows: the events `reaction/close` and `reaction/mute` and the intent `reaction/pass`. Simultaneous phases: the event `turn/ready`. The table gains `reaction`, `reactionMute`, `reactionAsked` and `turn.ready` |
-| 1          | 0.1.0 | The first protocol                                                                                                                                                                                                          |
+| `PROTOCOL` | What changed                                                                                                                                                                                   |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 3          | The core rebuilt as physical primitives: entities with `q` and `tags`, modifiers, `pointer/set`, `macro/step`; record format `open-battle/record@2`. Side messages other than packages removed |
+| 2          | Reaction windows and simultaneous phases (gone with the old rules engine)                                                                                                                      |
+| 1          | The first protocol                                                                                                                                                                             |
 
-A 0.1.0 build and a 0.2.0 build can't share a table: each shows the other's version in the "can't play together" banner.
+Builds on different protocols can't share a table: each shows the other's version in the "can't play together" banner.

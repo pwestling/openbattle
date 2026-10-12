@@ -47,7 +47,7 @@ out="$work/release"
 mkdir -p "$out/server"
 cp -R "$src/dist" "$out/"
 cp "$src/deploy/health.html" "$out/health.html"
-cp "$src"/server/{relay,board,mailbox,seeder}.mjs "$out/server/"
+cp "$src/server/relay.mjs" "$out/server/"
 
 # Runtime dependencies at the app's pinned versions.
 dep() { node -p "const p=require('$src/package.json'); (p.dependencies[process.argv[1]] ?? p.devDependencies[process.argv[1]])" "$1"; }
@@ -97,7 +97,7 @@ chown -R root:root "$release"
 chmod -R a+rX,go-w "$release"
 ln -sfn "$release" /srv/openbattle/current.new
 mv -Tf /srv/openbattle/current.new /srv/openbattle/current
-units="openbattle-relay openbattle-mailbox openbattle-seeder"
+units="openbattle-relay"
 # Games are no longer hosted on the server: stop a host server left by an older module.
 systemctl stop openbattle-host.service 2>/dev/null || true
 if systemctl cat openbattle-relay.service >/dev/null 2>&1; then

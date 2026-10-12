@@ -1,248 +1,84 @@
 # Writing a rules package
 
-A rules package adds rules to a game system that Open Battle already knows. For example, it can add a unit ability, an army rule or a house rule. Each package is a single JavaScript file. Players load it from the lobby, and the host shares it with everyone at the table, so every player runs exactly the same bytes.
-
-For a complete working package, see [`examples/packages/second-wind.js`](../examples/packages/second-wind.js). It adds one invented rule to the sci-fi battle.
-
-A **faction pack** is a package that adds rules to armies by their names (abilities, detachments, enhancements, stratagems), loaded from a link in the army import: see [faction-packs.md](faction-packs.md).
-
-**Never put Games Workshop text, art, stats or points in a package you publish.** Write the rule in your own words and let players enter the numbers. The same rule applies to this repository.
+A game is a rules package: one JavaScript file whose default export is a module. The core knows only physical things (units of models, tokens and terrain on a table, decks, hidden values, dice, a pointer saying where the game is up to). A module says what a game adds. It never touches the table directly: it expands its actions into the core's primitive events, and the host logs those. Everything below is checked in `examples/packages/ember-skirmish.js`, a small invented game that uses each part once; copy it to start.
 
 ## The file
 
-A package is an ES module with no imports. It exports two things:
-
 ```js
 export const manifest = {
-  id: "you.my-rules", // stable across versions
-  name: "My rules",
-  version: "1.0.0",
-  author: "You",
-  api: 1, // the game module API version (MODULE_API in src/sdk)
-  kind: "extension", // adds to a built-in system
-  systems: ["forty-k"], // a prefix matches: "forty-k" covers "forty-k-11"
+  id: "me.my-game", // the package's name for good: keep it across versions
+  name: "My game",
+  version: "0.1.0",
+  api: 2,
+  kind: "system", // a whole game; "extension" adds to the games named in `systems`
+  systems: ["my-game"],
   requires: [],
-  adds: "One sentence the consent sheet shows players before the code runs.",
+  adds: "One line for the consent screen",
 };
 
 export default {
-  actions: [], // buttons on the unit card
-  procedures: {}, // rules other code (or data) can start by id
-  functions: {}, // pure helpers data expressions can call
-  hooks: {}, // procedures run when phases and rounds start and end
-  rules: [], // data: rules (keywords, abilities) in the system's rules schema
-  abilityTimings: [], // data: when abilities matching some text come up
-  reactionWindows: [], // data: when the other side may react (docs/reactions.md)
-  missions: [], // missions players pick at setup (see "Armies and missions")
+  api: 2,
+  id: "my-game",
+  name: "My game",
+  version: "0.1.0",
+  table: { width: 36, depth: 24 },
+  layout: (table) => ({ terrain: [], tokens: [], zones: [] }),
+  quantities: [{ id: "hp", name: "Hit points", on: "unit", initial: 3 }],
+  pointer: [
+    { id: "order", name: "Order" },
+    { id: "strike", name: "Strike" },
+  ],
+  actions: [/* CodeAction */],
+  macros: {/* Macro by id */},
+  hooks: {
+    on: {
+      "models/move": function* (ctx, args) {
+        /* ... */
+      },
+    },
+  },
+  panel: (view) => ({ title: "My game", lines: [] }),
 };
 ```
 
-It may also export `armies`, sample armies read as data (see "Armies and missions").
+The manifest is read as data without running the file, so it must be a plain literal. `src/sdk/index.ts` has the types (`defineModule`, `ModuleDef`, `CodeAction`, `Ctx`, `GameView`); a package file has no imports, so it exports a plain object.
 
-The app reads the manifest as data, without running anything, so it can show the consent sheet first. That means the manifest must be a plain literal. Variables, function calls, spreads and `${}` templates are rejected.
+## What the core gives you
 
-The types for everything below live in `src/sdk/index.ts`. To get type checking, write the package in TypeScript against that file and then compile it to a single `.js` file with no imports.
+Entities: players, units (each with models), models, tokens, terrain, zones, decks. Players, units, models and tokens carry two open bags: `q` (named quantities and attributes: wounds, command points, a profile) and `tags`. Modifiers are kept as records (`mod/add` with an op, a value and an optional `until`) and a quantity's value is worked out from its stored base and the modifiers that hold (`view.q(ref, key)`). `until: view.until("n")` means "while the pointer's `n` field stays as it is now".
 
-## Actions
+Primitive events a module may emit: `entity/set`, `q/set`, `q/adjust`, `tag/set`, `mod/add`, `mod/remove`, `models/move`, `unit/move`, `unit/add`, `unit/remove`, `unit/members`, `model/add`, `model/remove`, `token/add`, `token/remove`, `terrain/*`, `pointer/set`, `deck/shuffle`, `log/note`, `module/set`. Dice, secrets and questions have their own commands (below).
 
-An action is a button on the unit card:
+The pointer is `{ round, seat, phase, ... }` and is yours: the core only stores it. "Next phase" is an action of yours that emits `pointer/set`.
 
-```js
-{
-  id: "secondWind",
-  name: "Second wind",
-  by: "unit",
-  phases: ["strategy"], // phase ids from the system's turn structure
-  applies: (view, actor) => true, // hide it from units that could never take it
-  available: (view, actor) => true || "why not", // greyed out, with the reason shown
-  targets: (view, actor) => [{ unitId, label }], // optional: the player picks one
-  run: function* (ctx, args) { ... }, // args.unit, and args.target if it takes one
-}
-```
+## Actions and macros
 
-`applies`, `available` and `targets` run every time the card redraws, so keep them quick and side-effect free.
+An action is a button the page offers: `{ id, name, by: "unit" | "player", phases?, applies?, available, targets?, run }`. `run` is a macro, a generator that yields commands and gets their results back:
 
-**Action points.** In a game of plain activations (an `alternate` slot whose units take their goes one at a time), the slot's `actionsPerActivation` is how many action points each go has: a number, or a `const.` ref. Moving or taking an action starts the unit's go with that many, every action spends its `cost` (1 when it doesn't say; 0 for a free one), and the go lasts while any are left. The host refuses an action that costs more than the unit has left, and the card greys it out with the reason. A go also ends when its unit is taken out in the middle of it. The points are the unit's `actionBudget` and `actionsTaken` statuses: a rule can spend more (moving further than its Move, say) or give one back by emitting `unit/status` for `actionsTaken`. Without `actionsPerActivation`, a go is one move and one action, as before.
+| Command                                      | Does                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------ |
+| `ctx.roll("2D6", label?)`                    | dice from the host's rng; the result is `{ rolls, total }`                     |
+| `ctx.ask(player, question, options)`         | pauses until that player answers; the result is the option id                  |
+| `ctx.emit(event)`                            | one of the primitive events above                                              |
+| `ctx.set(key, value)`                        | this module's own state (`view.own`)                                           |
+| `ctx.secret(player, key, question, options)` | the player's device keeps the choice; only a commitment goes on the table      |
+| `ctx.reveal(player, key)`                    | the player reveals it; everyone checks the commitment; the result is the value |
+| `ctx.note(text)`                             | a line in the log                                                              |
 
-## Procedures: rules as generators
+`args.by` is the player who started the macro; `args.unit` and `args.target` are whatever the action's buttons sent. A macro spans one action (an activation, an attack), never a phase: between actions the game's state lives in the pointer, quantities and `ctx.set`.
 
-A rule is a generator function. It yields commands and receives each command's result back:
+### Be deterministic
 
-| Command                                      | Result                | What it does                                                                                        |
-| -------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------- |
-| `ctx.roll("3d6", label, unitId?, need?)`     | `{ rolls, total }`    | Rolls dice with the host's dice. With `need`, the log shows "3+: 2 of 3" instead of a sum.          |
-| `ctx.ask(player, question, options)`         | the chosen option id  | Shows the question to that player and waits for an answer.                                          |
-| `ctx.note(text)`                             | none                  | Adds a line to the game log.                                                                        |
-| `ctx.emit(event)`                            | none                  | Changes the table with an ordinary game event, e.g. `model/wounds` or `unit/status`.                |
-| `ctx.set(key, value)`                        | none                  | Stores the package's own state, which you read back as `ctx.view.own[key]`.                         |
-| `ctx.run(procedure, roles)`                  | `{ steps, outcomes }` | Runs one of the system's data procedures (an attack sequence or a test) to its end.                 |
-| `ctx.secret(player, key, question, options)` | the commitment        | Asks a player to choose in secret. Their device keeps the choice; the table gets only a commitment. |
-| `ctx.reveal(player, key)`                    | the chosen option id  | Has that player's device reveal the secret. Every player checks it against the commitment.          |
+The host runs a macro once per step and, to carry on after an answer, replays it from the start feeding back the recorded results. The replay must yield the same commands or the macro is stopped. So: read the game only through `ctx.view`, roll only with `ctx.roll`, no `Math.random` or `Date`. After an answer, `ctx.view` is the table as it stands when the answer was given, including anything that moved while the question was open; before it, the table as the macro saw it, plus its own emitted events.
 
-The first `note` of a rule becomes its heading in the log, and later notes and rolls appear under it. If the rule asks a question before writing anything, the first line it writes afterwards becomes the heading.
+### Hooks
 
-### The one hard rule: be deterministic
+`hooks.on["models/move"]` starts a macro after every logged event of that type (including ones a macro emitted), one at a time, once no other macro is waiting. It gets `{ event, seq, by }`, and `from` (the previous pointer) for `pointer/set`. A hook run is tied to the event that set it off: undoing that event undoes the run. Hooks set off by hooks stop four runs deep.
 
-Only the host runs a rule. To resume after a question, a reconnect or a change of host, it replays the rule from the start and feeds back the recorded results. The replay must yield the same commands in the same order, or the rule is stopped and the log says so. In practice:
+## Where code runs
 
-- Read the game only through `ctx.view`, which includes `ctx.view.state`, and get randomness only from `ctx.roll`.
-- Never use `Math.random`, `Date` or timers, and never keep state in variables outside the generator.
-- Keep anything that must last between rules in `ctx.set` and `ctx.view.own`.
-
-### Secrets
-
-A secret (a hidden order, a secret objective) never leaves its owner's device until they reveal it. `ctx.secret` puts a SHA-256 commitment of the choice and a random salt in the game, at `ctx.view.state.secrets[player][key]`. Nobody else can read it, the host included. `ctx.reveal` has the owner's device send the choice and the salt, and every player's app checks them against the commitment, so a secret can't be changed after it was committed. A revealed secret's value is at `secrets[player][key].revealed.value`.
-
-## Turn hooks
-
-`hooks` runs procedures when the turn moves on:
-
-```js
-hooks: {
-  phaseStart: { strategy: function* (ctx, args) { ... } }, // args: { phase, round, player }
-  phaseEnd: { combat: function* (ctx, args) { ... } },
-  roundStart: function* (ctx, args) { ... },
-  activationEnd: function* (ctx, args) { ... }, // games where units activate one at a time
-  moved: function* (ctx, args) { ... }, // args: { unitId, round, player }
-}
-```
-
-`moved` runs after each move of a unit in the battle (not while setting up), once the move is on the table: what a move costs in action points, or a guard who sees it.
-
-The host starts them one after another, in this order: phase end, round start, phase start. If one asks a question, the next waits for the answer. `args.player` is the player whose turn it is.
-
-## Campaign rules
-
-Two more hooks run only in games played for a campaign book. A package can
-use them to add experience, honours and scars to a campaign (roadmap 24b):
-
-```js
-hooks: {
-  beforeGame: function* (ctx, args) { ... }, // once the battle starts
-  afterGame: function* (ctx, args) { ... },  // once it's over and scored, before the book records it
-}
-```
-
-Both get `args.units`: every campaign unit on the table, each with `key`,
-`unitId`, `name`, `owner` and its story so far (`games`, `kills`, `xp`,
-`honours`, `scars`). For `afterGame`, each unit also has this game's `slain`
-and `survived`.
-
-`afterGame` gives awards by emitting them:
-
-```js
-yield ctx.emit({ type: "campaign/award", key: u.key, unitId: u.unitId, xp: 1 });
-yield ctx.emit({ type: "campaign/award", key: u.key, unitId: u.unitId, scar: "Old wound" });
-```
-
-The book adds each award to the unit's story when it records the game. The
-awards are in the log, just like the rolls behind them, so every player's copy
-of the book comes out the same.
-
-`beforeGame` applies effects carried over from earlier games, using ordinary
-table events or notes.
-
-`examples/packages/battle-scars.js` is a worked example. Its rules are
-invented ones that work in any game.
-
-## Data rules
-
-`rules`, `abilityTimings`, `reactionWindows` and `actions` entries without a `run`, are plain data in the system's rules schema (`src/core/content/schema.ts`). They are added to the system on every player's screen that runs the package, so previews and panels show them as well. A data rule with the same id as a built-in one replaces it.
-
-## Armies and missions
-
-An extension can bring armies and missions to the game it extends (needs Open Battle 0.2.0 or later; an older app
-loads the package without them). The spec is [protocols/packages.md](protocols/packages.md).
-
-- `export const armies = [...]` is a list of [Army list v1](protocols/army-list.md) documents, read as data like
-  the manifest. While a game names the package, they are offered beside the game's sample armies, labelled with the
-  package's name, and can be put on the army shelf. An entry the app can't read is left out with a warning.
-- `missions` in the default export are the same `Mission`s a whole game gives (below). They are added after the
-  game's own and run in the sandbox.
-
-[`examples/packages/border-muster.js`](../examples/packages/border-muster.js) brings two invented warbands and a
-mission to the sci-fi battle.
-
-## Reaction windows
-
-A package can say when the side whose turn it isn't may answer (#80, [reactions.md](reactions.md)). Each window names an engine moment it opens at (`phaseEnd`, `unitMoved` (#81: as each enemy unit's move ends), `attackDeclared`, `beforeSaves`, `attackRolled`, `unitFought`, `chargeRolled`), and a data player action answers it with `reacts`:
-
-```js
-reactionWindows: [{ id: "ambush", opens: "attackDeclared", units: { same: ["it.id", "event.target.id"] } }],
-actions: [
-  {
-    id: "ambush", name: "Ambush", by: "player", side: "inactive",
-    cost: [{ resource: "CP", amount: 1 }], limit: { count: 1, per: "phase" },
-    target: { filter: { same: ["it.owner", "player.id"] } },
-    reacts: [{ window: "ambush", range: 12 }], // only units within 12 of the attacker
-  },
-],
-```
-
-The window opens only when the reacting player can play something in it (they can pay, it is within its limits and phase, and a unit qualifies), so it never asks for nothing. A window with the id of a built-in one replaces it. A code procedure's question becomes a window by naming one: `ctx.ask(player, question, options, "chargeDeclared")`.
-
-## Data calling code
-
-Rules written as data can use package code in two ways:
-
-- `{ "call": "myFunction", "args": [...] }` inside any expression calls one of the package's `functions`. While a game uses a package, the host resolves every action in the sandbox, so these calls always reach the package. Its signature is `(view, ...args) => number | boolean`, and it must be pure. A bare `{ "ref": "unit" }` argument passes the unit or model it names.
-- `{ "do": "script", "procedure": "myRule", "args": { ... } }` in a data effect starts a code procedure once the data procedure finishes.
-
-## A whole game
-
-A package can also bring an entire game system. Set `kind: "system"` and list the new system's id in `systems`, then export `{ module }`. The module has the same shape as a built-in one (`GameModule` in `src/sdk`):
-
-```js
-export default {
-  module: {
-    id: "arena", version: "1.0.0", api: 1,
-    system, // the rules as data: characteristics, dice, turn structure, rules, procedures, actions
-    app: { sample: (seat) => roster, layout: (table) => ({ terrain: [], objectives: [], zones: [] }) },
-    actions: [...], procedures: {...}, hooks: {...}, functions: {...},
-  },
-};
-```
-
-Once a player trusts the package, its game appears in the lobby's **Game** list, and a game started with it names the package so every player gets the code.
-
-The rest of `app` (`PackageApp` in `src/sdk`) is optional, and all of it runs in the sandbox:
-
-- `sample(seat)` and `layout(table)` run once when the package loads, and the results are handed to the app as data.
-- `armies` lists every sample army players can pick from (one per faction). Without it, **Add an army** offers the two `sample` gives.
-- A sample army's model can say how it looks: `look: { shape, color }` draws a stand-in figure (`trooper`, `brute`, `robed`, `beast`, `walker`, `drone` or `vehicle`) in that colour, and `height` sets its line-of-sight height in inches.
-- In `layout`, a terrain entry can name one of the app's terrain templates instead of listing solids: `{ template: "Ruin", id: "r1", position: { x, y }, facing }` (Ruin, Small ruin, Tall ruin, Container, Woods, Barricade, Crater, Hill). `templateCategory` maps each template to one of the game's terrain categories.
-- `missions` are picked at setup, like a built-in game's (`Mission` in `src/sdk`). They run in the sandbox: `setup` once for the system's `defaultTable` (scaled to the table played on), and each `suggest` as the game goes, with the answers handed to the app.
-- `importRoster(fileName, data)` reads an army list file (`data` is its bytes) and returns a roster shaped like `sample`'s. The lobby's **Add an army** uses it for the package's game.
-- `rankRules(game, unit)` returns `{ width, maxBonus }` for rank-and-file games, and `leaving(game)` lists the units that must leave the table. Both run after every event, and the app reads their latest answers.
-- `rulebook` is the game's rules in words, for its rules page and print and play (`Rulebook` in `src/sdk`; `pnpm rulebook` writes `RULES.md` from it). `words` names the game's armies, units and markers in the page's headings, and `terrainColors` colours its own terrain categories on the starter map.
-- `sidePanel(view)` describes a panel of the game's own, as data: a `title`, text `lines`, and `buttons` that each start one of the package's procedures (`{ label, procedure, args?, player?, disabled? }`). It is redrawn after every event; return `null` to hide it.
-
-The `system` may name the verbs the turn story ([story.md](story.md)) tells its actions by: `storyVerbs: { volley: "volleyed", march: "" }` (an empty verb leaves a plain move out; actions not named are told by their name).
-
-The module's `bot` (`BotTuning` in `src/sdk`) tunes the computer player for the game. Among its fields, `evaluate(state, seat, view)` adds the game's own sense of the table to the computer's (the `view` answers sight and cover as rules do), `moveInches(state, unit)` says how far a unit goes in a move, and `climbs: true` has it try moves up onto terrain floors (a game where height matters).
-
-[`examples/packages/arena.js`](../examples/packages/arena.js) is a complete small game,.
-
-## The sandbox
-
-A package's code never runs on the page itself. It runs in a Web Worker started inside a sandboxed iframe, which means:
-
-- It has its own empty origin, so it can't reach the app's storage or cookies.
-- A content security policy blocks all network access.
-- It can read the game and suggest results, and nothing more.
-
-The worker keeps its own copy of the game, updated with every event, so calls into it are small.
-
-If any call into the package (`available`, `targets`, a step of a rule) takes longer than 250 ms, the sandbox is shut down for the rest of the game, and players see that the package's rules are off. Keep loops bounded.
+Module code runs only on the host, inside the sandbox (a worker with no network and an opaque origin), when it resolves a new `macro/start` or `macro/answer` intent. What a macro emits reaches every peer as ordinary events inside one `macro/step` envelope, so replays, undo, late joining and desync checks never need the module: a spectator without the package folds to the host's state hash. Undo takes a macro run with it (every later step of the run, and any run its event set off).
 
 ## Trying it
 
-The quickest way is the **Module workshop** on the start page: an editor that checks your code against the SDK's types as you type (a wrong key, event type or `ctx` call is underlined with the reason, and hovering shows a type and its comment), starter templates, a test table that reloads your package every time you save (Ctrl+S), the soak bot, a **Check** button that gives one verdict (types, loading with the shape check, and a two-round bot game), and export as a file or as a pull request for the [community modules](community-modules.md) gallery. Its **Faction pack** template builds a [faction pack](faction-packs.md#building-one-in-the-workshop) against one of your own armies instead, with no code.
-
-By hand:
-
-1. Run `pnpm dev`, choose the game system in the lobby and click **Load package…**. Read the consent sheet, then click **Load it**.
-2. Start a game, open **Game settings** and tick the package.
-3. When you host online, the other players are asked to accept the package. Their copy comes from you over the peer connection and is checked against its SHA-256 hash.
-
-Changing a single byte creates a new version with a new hash, so every player has to accept it again. To unit-test a package, `src/sandbox/sandbox.test.ts` shows how to load one into the sandbox engine under Vitest and play intents against it.
+`pnpm dev`, then on the debug page choose a mode, **Load a package…** with the file, **Start**. The module's actions appear under "The module's actions"; the primitive intents and the event log are below. Open a second tab in "local" mode to join as a client; a tab that never loaded the package can still **watch**.

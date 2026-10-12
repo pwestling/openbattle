@@ -9,10 +9,10 @@ Start with the architecture page, [docs/architecture.html](docs/architecture.htm
 ## Rules that never bend
 
 - **No publisher IP.** Never commit unit names, stats, points, rules text, art or models from Games Workshop or any other publisher, not even in tests or comments. Sample armies are invented. Run the `ip-check` skill when in doubt.
-- **`src/core` is deterministic.** No `Math.random`, `Date`, timers or DOM. Dice come from the rng passed in. Package and module procedures read the game only through `ctx.view` and roll only with `ctx.roll`.
+- **`src/core` is deterministic and knows no game.** No `Math.random`, `Date`, timers or DOM; dice come from the rng passed in. The reducer is a pure fold over primitive events (entities with `q` and `tags`, modifiers, a pointer, moves, dice, secrets, decks): it never reads a rules package or a registry, so a peer without the package folds to the host's state. A game's own moves are module macros, which run only on the host and are logged as the primitive events they emit. Macros read the game only through `ctx.view` and roll only with `ctx.roll`.
 - **Everything peers must agree on is an event in the log.** Undo, replays, late joining, "What if" branches and desync checks all depend on it.
 - **Rules are advisory.** A check is a warning the player can override, never a wall.
-- **Compatibility is a promise.** Every file, link, message and server API others can use is a versioned protocol listed in [docs/protocols](docs/protocols/README.md). Within a major version, changes only add. Read it and [docs/compatibility.md](docs/compatibility.md) before changing an event's shape, a file format, the network messages, `MODULE_API` or what a ranked result signs.
+- **Compatibility is a promise.** Every file, link, message and server API others can use is a versioned protocol listed in [docs/protocols](docs/protocols/README.md). Within a major version, changes only add. Read it and [docs/compatibility.md](docs/compatibility.md) before changing an event's shape, the record format, the network messages or `MODULE_API`.
 
 ## Checks
 

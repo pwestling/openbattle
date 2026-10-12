@@ -22,9 +22,6 @@ Use the **Proposal** issue form; it adds the `proposal` label. A proposal is nee
 
 - change the **network protocol** or the shape of an event (bumps `PROTOCOL`);
 - change the **module API** in a way an existing package would notice (bumps `MODULE_API`);
-- change **what a ranked result records or signs**, or how ratings are worked out;
-- add or change a **standard ruleset** for the public ranked board (`rulesets.json`);
-- change the **board protocol** ([docs/board-protocol.md](docs/board-protocol.md));
 - make a **breaking change to any stable protocol** in [docs/protocols](docs/protocols/README.md) (a new major version of a file format, the Open link or a server API), or make a provisional one stable;
 - change the **licence**, this page, or the code of conduct.
 
@@ -32,13 +29,11 @@ Use the **Proposal** issue form; it adds the `proposal` label. A proposal is nee
 
 ## Forks
 
-Forks are welcome; the code is MIT. A fork that changes the protocol, the reducer or what ranked results mean should use its own name and its own ranked board, so players on either side are never mixed up. See "The Open Battle name" below.
+Forks are welcome; the code is MIT. A fork that changes the protocol or the reducer should use its own name, so players on either side are never mixed up. See "The Open Battle name" below.
 
 ## The Open Battle name
 
-"Open Battle" names this project and its releases. The test is the build string every game records (`APP_BUILD`, the `package.json` version plus the commit): an official build carries a release version, such as `0.1.0+abc1234`. A fork or modified build marks its version with a prerelease tag naming it, `0.1.0-<name>`, so its build reads `0.1.0-<name>+<commit>` and its ranked games land on ladders of their own ([docs/compatibility.md](docs/compatibility.md)). Such builds are welcome to play with Open Battle tables and to post to the public board; they use their own name, with a line saying they're based on Open Battle. This is a project policy, not a registered trademark.
-
-**The public board** is the `open-battle-result`, `open-battle-table` and `open-battle-event` tags on public Nostr relays, which the app at https://pwestling.github.io/openbattle/ reads and writes. Its results are public: anyone may read, recompute or mirror the ladders. Self-hosted sites run their own board ([docs/board-protocol.md](docs/board-protocol.md)).
+"Open Battle" names this project and its releases. The test is the build string every game records (`APP_BUILD`, the `package.json` version plus the commit): an official build carries a release version, such as `0.1.0+abc1234`. A fork or modified build marks its version with a prerelease tag naming it, `0.1.0-<name>`, so its build reads `0.1.0-<name>+<commit>` ([docs/compatibility.md](docs/compatibility.md)). Such builds are welcome to play with Open Battle tables; they use their own name, with a line saying they're based on Open Battle. This is a project policy, not a registered trademark.
 
 ## Contributions
 
