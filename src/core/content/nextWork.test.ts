@@ -9,6 +9,7 @@ import { fortyK } from "./examples/forty-k";
 import type { GameSystem } from "./schema";
 import { spawnIntents } from "../../systems/wh40k/deploy";
 import { sampleRoster } from "../../systems/wh40k/sample";
+import { wh40kModule } from "../../systems/wh40k/module";
 
 /** A tiny table kept as a log, like the host's. */
 class Table {
@@ -53,6 +54,28 @@ const unitsOf = (s: GameState, p: PlayerId) =>
 afterEach(() => unregisterSystem("alternate-test"));
 
 describe("nextWork (#84)", () => {
+  it("40k: a unit with no enemy in reach has no shooting to do, and a failed charge roll is a charge done", () => {
+    const t = battle("forty-k-11");
+    for (const p of ["a", "b"]) t.must({ type: "turn/ready" }, p);
+    const active = t.state.turn.activeSeat === 0 ? "a" : "b";
+    t.must({ type: "turn/next" }, active);
+    expect(phase(t.state)).toBe("shooting");
+    // The armies start about 20" apart: units whose guns reach that far have shooting to do, the rest don't.
+    const fn = wh40kModule.functions as Record<string, (view: { state: GameState }, id: string) => number>;
+    const reaches = (id: string) =>
+      fn.shotReach!({ state: t.state }, id) >= fn.enemyGap!({ state: t.state }, id);
+    const shooting = nextWork(t.state, active);
+    const mine = unitsOf(t.state, active);
+    expect(mine.some((u) => !reaches(u))).toBe(true);
+    expect(shooting.left.sort()).toEqual(mine.filter(reaches).sort());
+    t.must({ type: "turn/next" }, active);
+    expect(phase(t.state)).toBe("charge");
+    // No charge either (nothing within 12"), but a charge rolled by hand counts as that unit's charge, made or not.
+    const unit = unitsOf(t.state, active)[0]!;
+    t.must({ type: "dice/roll", count: 2, sides: 6, label: "charge", unitId: unit }, active);
+    expect(nextWork(t.state, active).done).toContain(unit);
+  });
+
   it("40k player turns: Done for both in Command, then the active side's units, phase by phase", () => {
     const t = battle("forty-k-11");
     const active = t.state.turn.activeSeat === 0 ? "a" : "b";

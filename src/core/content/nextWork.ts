@@ -141,15 +141,25 @@ const onTable = (state: GameState, u: Unit) => isAlive(state, u) && !u.status?.r
 /**
  * Whether the unit has done this phase's work: a flag one of the phase's
  * actions sets, a once-only action used, a weapon fired this phase, or (in
- * a phase with moves) a model moved since the phase began.
+ * a phase with moves) a model moved since the phase began, or (in a phase
+ * with a charge move) a charge rolled, made or failed.
  */
-function didPhaseWork(state: GameState, u: Unit, flags: Set<string>, used: string[], moves: boolean) {
+function didPhaseWork(
+  state: GameState,
+  u: Unit,
+  flags: Set<string>,
+  used: string[],
+  moves: boolean,
+  charges: boolean,
+) {
   const s = u.status ?? {};
   for (const [k, v] of Object.entries(s)) {
     if (!v) continue;
     if (flags.has(k) || k.startsWith("fired.") || used.some((p) => k === p || k.startsWith(`${p}.`)))
       return true;
   }
+  // A charge rolled (made or failed) is the phase's work done, whether or not the unit moved.
+  if (charges && typeof s.charge === "number") return true;
   if (!moves) return false;
   return u.modelIds.some((id) => {
     const m = state.models[id];
@@ -166,13 +176,14 @@ function phaseUnits(state: GameState, players: PlayerId[]): { left: UnitId[]; do
   const flags = new Set(defs.flatMap((d) => d.sets ?? []));
   const used = defs.filter((d) => d.limit).map((d) => `used.${d.id}`);
   const moves = defs.some((d) => d.move);
+  const charges = defs.some((d) => d.move?.kind === "charge");
   const left: UnitId[] = [];
   const done: UnitId[] = [];
   const units = Object.values(state.units)
     .filter((u) => players.includes(u.owner) && onTable(state, u))
     .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
   for (const u of units) {
-    if (didPhaseWork(state, u, flags, used, moves)) {
+    if (didPhaseWork(state, u, flags, used, moves, charges)) {
       done.push(u.id);
       continue;
     }

@@ -55,8 +55,11 @@ aside) and it hasn't done the phase's work. It has done it when it carries a
 flag one of the phase's actions `sets`, used a once-only action of the phase
 (`used.<action>`), fired a weapon this phase (`fired.*`), or, in a phase with
 move actions, any of its models stands somewhere else than at the start of the
-phase. A game that wants its units to count as done after an action that sets
-nothing (40k's Shoot) gives that action `sets: [...]`.
+phase, or, in a phase with a charge move, it has rolled its charge (made or
+failed: `status.charge`). A game that wants its units to count as done after an
+action that sets nothing (40k's Shoot) gives that action `sets: [...]`. A unit
+with nothing it could do has no work: 40k's Shoot is not allowed when no enemy
+is within reach of any of the unit's ranged weapons ("No enemy in range").
 
 In alternating games a unit has work when it hasn't activated this round
 (plain activations: any; data activations: one with an action that
