@@ -1,0 +1,1035 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["./syntax-CEL_Wvla.js","./dist-YYVtoirG.js","./dist-lgRNSFRF.js","./Editor-vY_wwjor.js","./rolldown-runtime-hePW80VL.js","./react-Cvdyeg_0.js","./jsx-runtime-NZYk81nU.js"])))=>i.map(i=>d[i]);
+import{r as e}from"./rolldown-runtime-hePW80VL.js";import{t}from"./react-Cvdyeg_0.js";import{Ht as n,Jn as r,Vr as i,Yn as a,Yt as o,it as s,rt as c,tt as l,zr as u}from"./core-TAh7tNY5.js";import{t as d}from"./preload-helper-BaNbYf_w.js";import{d as f,v as p}from"./store-rofak1a7.js";import{a as m,i as h,r as g,t as _}from"./manifest-BRIPGYy3.js";import{d as v,u as y}from"./systemLabels-C5pv3gzx.js";import{p as b,t as x}from"./gameLog-DyyxLa98.js";import{o as S,r as C}from"./systems-ClGdaxfQ.js";import"./roster-CVZButfQ.js";import{n as w}from"./files-CdfAAl3C.js";import{t as ee}from"./jsx-runtime-NZYk81nU.js";import{r as T,t as te}from"./open-Z0phF1iv.js";import{h as E,n as D}from"./shelfActions-DG5eZKZG.js";import{s as O}from"./lesson-C74UOffG.js";import{n as k}from"./showcase-BVyZ9Omh.js";import{a as ne}from"./Packages-Bwqe2Z9i.js";import{a as A,i as j,o as re,s as ie,t as ae}from"./faction-DX31N-B_.js";import oe from"./brinewatch-DN2-OwGh.js";import se from"./rift-lanterns-DLDKmR7R.js";import{S as ce,b as M,o as le,s as ue,t as de}from"./TeachRule-B5DDAwNX.js";import{s as N}from"./dist-lgRNSFRF.js";var P=e(t(),1),F=(e,t,n)=>({label:e,detail:t,info:n,type:`function`}),I=(e,t,n)=>({label:e,detail:t,info:n,type:`property`}),fe=[I(`view`,`: GameView`,`The game as it stands: units, distances, line of sight.`),F(`roll`,`(dice, label?, unitId?, need?)`,'Roll dice with the host\'s dice, e.g. ctx.roll("3d6", "hits", unitId, 4). With `need`, each die of that score or more is a success.'),F(`note`,`(text)`,`A line in the game log.`),F(`ask`,`(player, question, options)`,`Ask a player to choose; the result is the option id.`),F(`run`,`(procedure, roles)`,`Run one of the system's data procedures to the end; the result says what each step rolled.`),F(`emit`,`(event)`,`Change the table with an event, e.g. { type: "model/wounds", id, woundsLost, destroyed }.`),F(`set`,`(key, value)`,`Remember a value for this player's package (read back from view.own[key]).`),F(`secret`,`(player, key, question, options)`,`A choice kept on the player's device; only a commitment goes on the table.`),F(`reveal`,`(player, key)`,`Have a player reveal a secret they committed.`)],pe=[I(`round`,`: number`,`The battle round (0 while setting up).`),I(`phase`,`: string | null`,`The current phase's id.`),I(`activePlayer`,`: string | null`,`Whose turn it is.`),F(`unit`,`(id)`,`A unit by id.`),F(`units`,`(player?)`,`Every unit, or one player's.`),F(`distance`,`(a, b)`,`Closest distance between two units' bases, in the system's units.`),F(`visible`,`(from, to)`,`Whether a unit can see another.`),F(`inCover`,`(from, to)`,`Whether the target is in cover from the shooter.`),F(`arc`,`(of, other)`,`Which arc of a unit another is in (front, flank, rear), for ranked games.`),F(`engaged`,`(unitId)`,`Enemy units this one is engaged with.`),I(`own`,`: Record<string, unknown>`,`This player's package values (ctx.set).`),I(`state`,`: GameState`,`The whole game state, read-only.`)],me=[I(`id`,`manifest / module / action`,`A stable id: a package's must stay the same across versions.`),I(`name`,`manifest / action`,`What players see.`),I(`version`,`manifest / module`,`Semantic version, e.g. 0.1.0.`),I(`author`,`manifest`,`Who wrote it.`),I(`api`,`manifest / module`,`The SDK version: 1.`),I(`kind`,`manifest`,`"system" for a whole game, "extension" for additions to one.`),I(`systems`,`manifest`,`The system ids it brings or changes.`),I(`requires`,`manifest`,`Other packages it needs.`),I(`adds`,`manifest`,`One line on what it adds, shown before a player trusts it.`),I(`system`,`module`,`The rules as data: characteristics, dice, the turn (src/core/content/schema.ts).`),I(`app`,`module`,`The app glue: sample armies, the table layout, rank rules, a side panel.`),I(`actions`,`module`,`Code actions: buttons on a unit card or for a player.`),I(`procedures`,`module`,`Named generator procedures, run by data or by ctx.run.`),I(`hooks`,`module`,`Turn hooks: phaseStart, phaseEnd, roundStart, activationEnd.`),I(`functions`,`module`,`Pure functions data rules can call.`),I(`checks`,`module`,`(view) => warnings for the table warnings panel.`),I(`by`,`action`,`"unit" or "player".`),I(`phases`,`action`,`Phase ids it's offered in (an alternate's id for activations).`),F(`available`,`(view, actor)`,`true, or why not.`),F(`targets`,`(view, actor)`,`The targets to pick from: { unitId, label }.`),F(`run`,`function* (ctx, args)`,`What it does: yield ctx commands.`),F(`sample`,`(seat)`,`The test table's army for a seat.`),F(`layout`,`(table)`,`Terrain, objectives and deployment zones.`),F(`sidePanel`,`(view)`,`A panel of lines and buttons, or null.`),I(`armies`,`app`,`Every sample army players pick from, one per faction.`),I(`missions`,`app`,`Missions picked at setup: zones, objectives and scoring.`),I(`templateCategory`,`app`,`What each terrain template counts as, e.g. { Woods: "cover" }.`),I(`phaseStart`,`hooks`,`{ [phaseId]: function* (ctx) }`),I(`phaseEnd`,`hooks`,`{ [phaseId]: function* (ctx) }`),F(`roundStart`,`function* (ctx)`,`At the start of each round.`),F(`activationEnd`,`function* (ctx)`,`When a unit's activation ends.`),N(`{
+  id: "\${id}",
+  name: "\${Name}",
+  by: "unit",
+  phases: ["\${phase}"],
+  available: (view, actor) => true,
+  targets: (view, actor) => [],
+  run: function* (ctx, args) {
+    yield ctx.note("\${Name}");
+  },
+}`,{label:`action`,detail:`snippet`,info:`A code action on a unit card.`,type:`keyword`}),N('function* ${name}(ctx, args) {\n  const roll = yield ctx.roll("${2d6}", "${label}");\n  ${}\n}',{label:`procedure`,detail:`snippet`,info:`A generator procedure: yield commands, read their results.`,type:`keyword`}),N('{ kind: "phase", id: "${id}", name: "${Name}" }',{label:`phase`,detail:`snippet`,info:`A phase in the turn.`,type:`keyword`}),N('{ id: "${id}", name: "${Name}", of: "model", type: "number" }',{label:`characteristic`,detail:`snippet`,info:`A stat on each model's profile.`,type:`keyword`}),N(`{
+  id: "\${id}",
+  name: "\${Name}",
+  summary: "\${What to do}",
+  setup: (table) => ({ zones: [], objectives: [{ id: "middle", position: { x: 0, y: 0 } }] }),
+  scoring: [
+    {
+      id: "\${hold}",
+      name: "\${Held}",
+      at: { roundEnd: true },
+      suggest: (game, seat) => ({ vp: 1, why: "\${why}" }),
+    },
+  ],
+}`,{label:`mission`,detail:`snippet`,info:`A mission: setup and scoring.`,type:`keyword`}),N('{ template: "${Ruin}", id: "${id}", position: { x: ${0}, y: ${0} }, facing: 0 }',{label:`terrain`,detail:`snippet`,info:`A terrain piece from a template (Ruin, Small ruin, Tall ruin, Container, Woods, Barricade, Crater, Hill).`,type:`keyword`}),N('look: { shape: "${trooper}", color: "${#8a6bb8}" }',{label:`look`,detail:`snippet`,info:`A model's stand-in figure: trooper, brute, robed, beast, walker, drone or vehicle.`,type:`keyword`}),N('(view) => [{ unitId: ${id}, message: "${what is wrong}", severity: "warning" }]',{label:`check`,detail:`snippet`,info:`A table warning.`,type:`keyword`})];function he(e){let t=e.matchBefore(/\b(ctx|view)\.\w*$/);if(t){let e=t.text.indexOf(`.`);return{from:t.from+e+1,options:t.text.startsWith(`ctx`)?fe:pe,validFor:/^\w*$/}}let n=e.matchBefore(/\w+$/);return!n&&!e.explicit||n&&e.state.sliceDoc(n.from-1,n.from)===`.`?null:{from:n?.from??e.pos,options:me,validFor:/^\w*$/}}var L=null,R=!1,ge=1,z=new Map;function _e(){if(L||R)return L;try{L=new Worker(new URL(new URL(`typesWorker-DP44UAnd.js`,import.meta.url).href,``+import.meta.url),{type:`module`,name:`workshop-types`})}catch{return R=!0,null}return L.onmessage=e=>{z.get(e.data.id)?.(e.data.result),z.delete(e.data.id)},L.onerror=()=>{R=!0,L?.terminate(),L=null;for(let e of z.values())e(null);z.clear()},L}function B(e){let t=_e();if(!t)return Promise.resolve(null);let n=ge++;return new Promise(r=>{z.set(n,e=>r(e)),t.postMessage({...e,id:n})})}var V={problems:async e=>await B({t:`problems`,source:e})??[],hover:(e,t)=>B({t:`hover`,source:e,pos:t}),complete:async(e,t)=>await B({t:`complete`,source:e,pos:t})??[],detail:(e,t,n)=>B({t:`detail`,source:e,pos:t,name:n}),available:()=>!R},ve=`import type { GameSystem, Id } from "../core/content/schema";
+import type { GameState, Objective, Unit, Zone } from "../core/types";
+import type { GameEvent } from "../core/actions";
+import type { Outcome, RoleRef } from "../core/content/runner";
+
+/**
+ * The game module API, version 1 (see the game modules spec, linked from
+ * research/rules-schema.md). Built-in systems and rules packages both
+ * implement it. Data stays in \`system\`; code is for what data can't say.
+ *
+ * Types only for now: the code procedure runner that executes \`procedures\`,
+ * \`actions\`, \`hooks\` and \`functions\` comes next.
+ */
+
+export const MODULE_API = 1;
+
+export interface GameModule<App = unknown> {
+  /** Same as \`system.id\`. */
+  id: Id;
+  /** Semver. */
+  version: string;
+  api: typeof MODULE_API;
+  /** Rules data: characteristics, keywords, effects, procedures, turn structure. */
+  system: GameSystem;
+  /** App glue: table layout, sample armies, rank rules (src/systems/app.ts). */
+  app?: App;
+  actions?: CodeAction[];
+  procedures?: Record<Id, CodeProcedure>;
+  hooks?: TurnHooks;
+  /** Pure functions data can call with \`{ call: "id", args }\`. */
+  functions?: Record<Id, PureFn>;
+  /**
+   * Advisory warnings, run on every peer against its own state and shown in
+   * the Table warnings panel (src/ui/warnings.ts), next to the system's data
+   * \`checks\`. A warning whose \`id\` matches a data check replaces that check.
+   * Built-in modules only for now: a package's code stays in its sandbox.
+   */
+  checks?: (view: GameView) => Warning[];
+  /** Data check ids that \`checks\` replaces, so they don't run twice. */
+  replacesChecks?: Id[];
+  /** How the computer opponent (src/bot) should weigh this game, where its defaults don't fit. */
+  bot?: BotTuning;
+}
+
+/**
+ * Tuning for the computer opponent. It judges a table by victory points,
+ * what the mission would score now, the army each side has left and how near
+ * its units are to the objectives; a module can say more.
+ */
+export interface BotTuning {
+  /** VP that a whole army is worth, for weighing models lost against points scored. */
+  armyVp?: number;
+  /** A unit's worth, when the sheet has no points. */
+  unitValue?(state: GameState, unit: Unit): number;
+  /**
+   * Extra to add to the judgement, from \`seat\`'s side (a module's own sense
+   * of what matters). \`view\` asks the table's geometry (sight, cover,
+   * distance) as a module's actions do, for judging positions by them.
+   */
+  evaluate?(state: GameState, seat: number, view: GameView): number;
+  /** Inches a unit moves in a straight move it makes by hand, when there's no move action. */
+  moveInches?(state: GameState, unit: Unit): number;
+  /** How much it fears enemies in reach of its units (default 0.3; 0 turns it off). */
+  threat?: number;
+  /**
+   * What the whole-turn planner (#51) plays after its own turn: the enemy's
+   * whole turn, greedily ("turn", the default), or only their guns ("shots").
+   */
+  planReply?: "turn" | "shots";
+  /** Sharp's own weights for this game, over its defaults (Conquest: it looks further ahead at the mission). */
+  sharp?: Partial<
+    Record<"projectNext" | "projectLater" | "approach" | "contest" | "engage" | "threat" | "finish", number>
+  >;
+  /**
+   * Height matters here (vantage from upper floors): the computer also tries
+   * moving its units up onto the nearest floors and blocks it can reach,
+   * climbing counted, and steps them down where a floor ends.
+   */
+  climbs?: boolean;
+  /** Regiments turn to face where they march, or end facing the nearest enemy (Conquest: charges go at the front arc). */
+  faceMoves?: boolean;
+  /**
+   * How many goes, each on its own dice, the game review (#63) plays out of
+   * the moves it weighs closely (default 3); more where one go says little
+   * (Conquest: a whole activation and the enemy's answer).
+   */
+  reviewPasses?: number;
+}
+
+/** What a package's default export holds: additions to one or more systems. */
+export interface PackageContents {
+  rules?: GameSystem["rules"];
+  actions?: (GameSystem["actions"][number] | CodeAction)[];
+  procedures?: Record<Id, CodeProcedure>;
+  functions?: Record<Id, PureFn>;
+  hooks?: TurnHooks;
+  abilityTimings?: GameSystem["abilityTimings"];
+  /**
+   * When the other side may react (#80, docs/reactions.md): windows added to
+   * the system (one of the same id replaces it). Player actions answer them
+   * with \`reacts\`.
+   */
+  reactionWindows?: GameSystem["reactionWindows"];
+  /**
+   * Missions an extension adds to the games it extends (#82b), picked at
+   * setup beside the game's own; one with the id of the game's own replaces
+   * it. The same \`Mission\` a whole game's \`module.app.missions\` gives, and
+   * run the same way, in the sandbox.
+   */
+  missions?: Mission[];
+  /** A \`system\` package's whole module. */
+  module?: GameModule;
+}
+
+export function definePackage(contents: PackageContents): PackageContents {
+  return contents;
+}
+
+export interface CodeAction {
+  id: Id;
+  name: string;
+  by: "unit" | "player";
+  phases?: Id[];
+  /** Whether the unit could ever take it (a character's action); hidden otherwise. */
+  applies?(view: GameView, actor: Actor): boolean;
+  /** The button's text for this unit, when it says more than \`name\` ("Use Marsh Lantern (one use)"). */
+  label?(view: GameView, actor: Actor): string;
+  /** True, or why not. */
+  available(view: GameView, actor: Actor): true | string;
+  targets?(view: GameView, actor: Actor): Target[];
+  /**
+   * At a real table (\`view.atTable\`, the table companion) nothing can be
+   * measured, so the players say: yes/no questions asked before the action
+   * starts, for this target. The answers reach \`run\` as \`args.told[id]\`; a
+   * question with \`need\` answered no stops the action ("Can they see it?").
+   */
+  told?(view: GameView, actor: Actor, target: Id | undefined): TableQuestion[];
+  /**
+   * Action points it spends, in a game whose activations count them (the
+   * alternate slot's \`actionsPerActivation\`, e.g. 2 a go): 1 when missing,
+   * 0 for a free action. The engine refuses it when the unit has fewer left,
+   * and the unit's go ends once they're all spent. A rule may spend more
+   * by emitting \`{ type: "unit/status", id, key: "actionsTaken", value }\`.
+   */
+  cost?: number;
+  run: CodeProcedure;
+}
+
+/** A yes/no question the players answer from their real table (see \`CodeAction.told\`). */
+export interface TableQuestion {
+  id: Id;
+  question: string;
+  /** Without a yes, the action can't be taken. */
+  need?: boolean;
+}
+
+/**
+ * A rule as a generator: it yields commands and gets their results back. It
+ * must be deterministic: the host replays it from the start, feeding back the
+ * recorded results, to resume after a reconnect or a change of host.
+ */
+export type CodeProcedure = (ctx: Ctx, args: Args) => Generator<Command, void, unknown>;
+
+export interface TurnHooks {
+  phaseStart?: Record<Id, CodeProcedure>;
+  phaseEnd?: Record<Id, CodeProcedure>;
+  roundStart?: CodeProcedure;
+  activationEnd?: CodeProcedure;
+  /**
+   * After a charge, for rules that react to how it went. Started with
+   * \`{ unitId, kind, round, player }\` and: for a charge roll (a dice roll
+   * labelled "charge" or "charge roll" for the unit), \`kind: "roll"\` and
+   * \`roll\` (the total); for a charge move (core \`chargeFor\`: a block's charge
+   * move, or models moved in a Charge phase), \`kind: "move"\`, \`landed\`
+   * (whether it ended in contact) and, when it did, \`targetId\`.
+   */
+  charge?: CodeProcedure;
+  /**
+   * After a unit moves in the battle (dragged, or moved as a block; not set
+   * up, and not before round 1), for rules that answer a move: a guard's
+   * shot at a model that moves in its sight, or charging the move's cost to
+   * the mover's action points. Started with \`{ unitId, round, player }\`.
+   */
+  moved?: CodeProcedure;
+  /**
+   * Campaign rules (roadmap 24b), for games played for a campaign book. The
+   * book starts \`beforeGame\` once the battle begins, and \`afterGame\` once it
+   * is over and scored, before it records the game. Both get
+   * \`{ units: CampaignStory[] }\`. \`afterGame\` hands out experience, honours
+   * and scars by emitting \`{ type: "campaign/award", key, xp?, honour?, scar? }\`
+   * (rolls through \`ctx.roll\`, so everyone sees them in the log);
+   * \`beforeGame\` applies carried-over effects with ordinary table events.
+   */
+  beforeGame?: CodeProcedure;
+  afterGame?: CodeProcedure;
+}
+
+/** A campaign unit's story as the campaign hooks see it (src/campaign/book.ts CampaignUnit). */
+export interface CampaignStory {
+  /** The campaign unit's key, for awards. */
+  key: Id;
+  /** The unit on the table. */
+  unitId: Id;
+  name: string;
+  owner: Id;
+  /** Before this game. */
+  games: number;
+  kills: number;
+  xp: number;
+  honours: string;
+  scars: string;
+  /** This game, for afterGame: enemy models it destroyed, and whether any of it is left. */
+  slain?: number;
+  survived?: boolean;
+}
+
+export type PureFn = (view: GameView, ...args: unknown[]) => unknown;
+
+export type Args = Record<string, unknown>;
+
+export interface Actor {
+  player: Id;
+  unitId?: Id;
+}
+
+export interface Target {
+  unitId?: Id;
+  label: string;
+}
+
+export interface Warning {
+  /** Which check this is, e.g. "coherency"; the same id as a data check replaces it. */
+  id?: Id;
+  unitId?: Id;
+  message: string;
+  severity?: "info" | "warning";
+}
+
+/** Read-only game access; the runtime views in core/content/runtime.ts. */
+export interface GameView {
+  round: number;
+  phase: Id | null;
+  activePlayer: Id | null;
+  unit(id: Id): unknown;
+  units(player?: Id): unknown[];
+  /** Between two units or models (ids of either), in the system's distance units. */
+  distance(a: Id, b: Id): number;
+  /** Whether any model of \`from\` sees any model of \`to\` (unit or model ids). */
+  visible(from: Id, to: Id): boolean;
+  /** Whether \`to\` is in cover from \`from\` (unit or model ids): a model in cover terrain, or seen through it. */
+  inCover(from: Id, to: Id): boolean;
+  arc(of: Id, other: Id): Id | null;
+  engaged(unitId: Id): Id[];
+  /**
+   * Played with real models on a real table (the table companion): the
+   * positions aren't the table's, so \`distance\`, \`visible\` and \`inCover\` mean
+   * nothing. Ask the players instead (\`CodeAction.told\`, \`ctx.ask\`).
+   */
+  atTable: boolean;
+  /** This module's own state, \`state.modules[id]\`. */
+  own: Record<string, unknown>;
+  /** The whole game state, read-only (a worker holds the same replica). */
+  state: Readonly<GameState>;
+}
+
+/** Commands a procedure yields; each result is recorded for replay. */
+export type Command =
+  | { cmd: "roll"; dice: string; label?: string; unitId?: Id; need?: number }
+  | { cmd: "note"; text: string }
+  | { cmd: "ask"; player: Id; question: string; options: { id: Id; label: string }[]; window?: Id }
+  | { cmd: "run"; procedure: Id; roles: Record<string, Id | RoleRef> }
+  | { cmd: "emit"; event: GameEvent }
+  | { cmd: "set"; key: string; value: unknown }
+  | { cmd: "secret"; player: Id; key: string; question: string; options: { id: Id; label: string }[] }
+  | { cmd: "reveal"; player: Id; key: string };
+
+export interface Ctx {
+  view: GameView;
+  /**
+   * Dice from the host's rng; \`unitId\` files the roll under that unit (e.g. a "flee roll").
+   * \`need\` marks each die as a success on that score or more, so the log reads "5 of 10" not a sum.
+   */
+  roll(dice: string, label?: string, unitId?: Id, need?: number): Command;
+  /** A line in the game log. */
+  note(text: string): Command;
+  /** \`window\`: the question is a reaction window (#80), e.g. "chargeDeclared", so the UI shows it as one. */
+  ask(player: Id, question: string, options: { id: Id; label: string }[], window?: Id): Command;
+  /**
+   * Run one of the system's data procedures (an attack sequence, a test) to
+   * the end with the host's dice: a unit id fills a role, or pass a RoleRef
+   * for a weapon, model or player. Reaction windows take their default
+   * answer. Its table changes are applied, and the result says what each
+   * step rolled.
+   */
+  run(procedure: Id, roles: Record<string, Id | RoleRef>): Command;
+  /**
+   * Change the table with one of the game's events, e.g.
+   * \`{ type: "model/wounds", id, woundsLost, destroyed }\`: the type names
+   * which, and each takes its own fields.
+   */
+  emit(event: GameEvent): Command;
+  set(key: string, value: unknown): Command;
+  /**
+   * Ask a player to choose an option in secret (a hidden order, a secret
+   * objective). Their device keeps the choice and puts only a commitment on
+   * the table (\`view.state.secrets[player][key]\`), so nobody else, the host
+   * included, learns it. The result is the commitment.
+   */
+  secret(player: Id, key: string, question: string, options: { id: Id; label: string }[]): Command;
+  /**
+   * Have a player reveal a secret they committed. Their device sends the
+   * value, every player checks it against the commitment, and the result is
+   * the value (straight away if it was already revealed).
+   */
+  reveal(player: Id, key: string): Command;
+}
+
+/** What \`ctx.run\` hands back: each step's tokens in and out and its successes, and the table changes made. */
+export interface RunResult {
+  steps: Record<Id, { in: number; out: number; successes?: number; dice?: number[] }>;
+  outcomes: Outcome[];
+}
+
+/**
+ * A package game's side panel, described as data (a package can't ship React
+ * components: its code runs in the sandbox). The app draws it and runs a
+ * button's procedure when it is pressed.
+ */
+export interface PanelSpec {
+  title: string;
+  lines?: string[];
+  buttons?: {
+    label: string;
+    procedure: Id;
+    args?: Args;
+    /** Who presses it; the player whose turn it is when missing. */
+    player?: Id;
+    /** Why it can't be pressed now. */
+    disabled?: string;
+  }[];
+}
+
+/**
+ * The app glue a whole-game package gives (\`module.app\`). It runs in the
+ * sandbox: \`sample\` and \`layout\` once when the package loads, \`rankRules\`,
+ * \`leaving\` and \`sidePanel\` after every event, \`importRoster\` when a player
+ * picks a file.
+ */
+export interface PackageApp {
+  /** The test table's (and a demo's) army for a seat. */
+  sample(seat: 0 | 1): unknown;
+  /**
+   * Every sample army a player can pick (one per faction), shaped like
+   * \`sample\`'s. Without it, players pick from the two \`sample\` gives.
+   */
+  armies?: unknown[];
+  /**
+   * The starting table. A terrain entry can name one of the app's terrain
+   * templates instead of listing its solids: \`{ template: "Ruin", id,
+   * position, facing?, category? }\` (templates: "Ruin", "Small ruin", "Tall
+   * ruin", "Container", "Woods", "Barricade", "Crater", "Hill").
+   */
+  layout(table: GameState["table"]): unknown;
+  /**
+   * Missions players pick from at setup. They run in the sandbox: \`setup\`
+   * once for the system's default table (scaled to the table played on), and
+   * \`suggest\` as the game goes, its answers handed to the app.
+   */
+  missions?: Mission[];
+  importRoster?(fileName: string, data: Uint8Array): unknown;
+  rankRules?(game: GameState, unit: GameState["units"][string]): { width: number; maxBonus: number };
+  leaving?(game: GameState): string[];
+  sidePanel?(view: GameView): PanelSpec | null;
+  templateCategory?: Record<string, string>;
+  /**
+   * The game's rules in words (#47), for its rules page, its docs and its
+   * print-and-play rules sheet, which add tables made from the game's own
+   * data (armies, units, missions, the starter table). Light Markdown: a
+   * line each, \`**bold**\`, \`- \` and \`1. \` list items, a blank line between
+   * paragraphs.
+   */
+  rulebook?: Rulebook;
+  fleeDice?: string;
+  chargeRoll?: { count: number; sides: number; keep: "highest" | "sum" };
+}
+
+/**
+ * A mission: where the armies deploy, where the objectives are, how victory
+ * points are scored and, optionally, a deck of secret mission cards. Players
+ * pick one at setup. At each scoring moment the app suggests each side's
+ * score from \`suggest\` and a player of that side confirms it (or changes it);
+ * nothing is scored without a person saying so.
+ */
+export interface Mission {
+  id: Id;
+  name: string;
+  /** One or two sentences for the picker. */
+  summary: string;
+  /** Deployment zones and objective markers for a table this size (terrain is left alone). */
+  setup(table: { width: number; depth: number }): { zones: Zone[]; objectives: Objective[] };
+  scoring: ScoringRule[];
+  /** Secret mission cards: each player draws in secret (src/core/secrets.ts) and reveals one to score it. */
+  deck?: MissionCard[];
+  /** Cards each player may hold at once. */
+  hand?: number;
+}
+
+/** When a rule scores: the end of a phase (the side whose turn it was), the end of each round, or the battle's end (every side). */
+export type ScoringMoment =
+  { phaseEnd: Id; fromRound?: number } | { roundEnd: true; fromRound?: number } | { gameEnd: true };
+
+export interface ScoringRule {
+  id: Id;
+  name: string;
+  at: ScoringMoment;
+  /** The side's score at that moment, as the table stood then; null when it scores nothing. */
+  suggest(game: GameState, seat: number): { vp: number; why: string } | null;
+  /** At a real table (table companion), what to ask the player instead, the app working out the VP. */
+  ask?: ScoreQuestion;
+  /**
+   * False when \`suggest\` measures nothing on the table (it counts units wiped out, say): a real
+   * table can then use it as it is, instead of asking.
+   */
+  measures?: boolean;
+}
+
+/** A scoring rule's question for players at a real table (UX 278), and what each answer scores. */
+export interface ScoreQuestion {
+  question: string;
+  answers: { label: string; vp: number; why: string }[];
+}
+
+export interface MissionCard {
+  id: Id;
+  name: string;
+  /** What it asks for, in the player's words. */
+  text: string;
+  /** Its score when revealed, as the table stands. */
+  suggest(game: GameState, seat: number): { vp: number; why: string };
+  /** At a real table, the question that scores it. */
+  ask?: ScoreQuestion;
+}
+
+/** A game's rules in words (PackageApp.rulebook). */
+export interface Rulebook {
+  intro: string;
+  sections: { id: Id; title: string; text: string }[];
+  /** The quick-reference card, a line each. */
+  quickRef?: string[];
+  /**
+   * What the game calls its armies, units and objective markers, for the
+   * headings and tables made from its data (Rift Lanterns' warbands, units
+   * and lanterns when missing). \`reach\` is how near a model must be to hold
+   * a marker, in inches, for the print-and-play gauge.
+   */
+  words?: {
+    army: string;
+    armies: string;
+    unit: string;
+    units: string;
+    marker: string;
+    markers: string;
+    reach: number;
+  };
+  /** The starter map's colour for each of the game's terrain categories, over the built-in ones. */
+  terrainColors?: Record<string, string>;
+}
+
+/** A faction pack's data (#76, docs/faction-packs.md): \`export const faction: FactionPack = { ... }\`. */
+export type { FactionPack, PackDetachment, PackRule, PackStratagem } from "../packages/factionFormat";
+`,ye=`// A starter game for the module workshop: a skirmish game, model by model.
+// Each player in turn moves, then fights. Change anything: the workshop
+// reloads it onto the test table every time you save (Ctrl+S).
+//
+// Everything a package can use is in the SDK tab, on the right; in the editor,
+// type ctx. or view. for suggestions.
+
+export const manifest = {
+  id: "me.my-skirmish", // change "me" to your name: it must stay the same across versions
+  name: "My skirmish game",
+  version: "0.1.0",
+  author: "Me",
+  api: 1,
+  kind: "system",
+  systems: ["my-skirmish"],
+  requires: [],
+  adds: "A whole small game: move, then fight; each hit takes a wound.",
+};
+
+/** The rules as data: characteristics, dice and the turn (the SDK tab lists the keys). */
+const system = {
+  id: "my-skirmish",
+  name: "My skirmish game",
+  version: "0.1.0",
+  units: "inch",
+  dice: [{ id: "d6", sides: 6 }],
+  defaultDie: "d6",
+  characteristics: [
+    { id: "M", name: "Move", of: "model", type: "distance" },
+    { id: "A", name: "Attacks", of: "model", type: "number" },
+    { id: "Hit", name: "Hits on", of: "model", type: "number" },
+    { id: "W", name: "Wounds", of: "model", type: "number" },
+  ],
+  weaponKinds: ["melee"],
+  terrain: [],
+  unitShape: { kind: "skirmish" },
+  rules: [],
+  procedures: [],
+  actions: [],
+  turn: {
+    rounds: 4,
+    round: [
+      {
+        kind: "playerTurns",
+        segments: [
+          { kind: "phase", id: "move", name: "Move" },
+          { kind: "phase", id: "fight", name: "Fight" },
+        ],
+      },
+    ],
+  },
+};
+
+/** A unit of \`count\` models with the same stats. */
+function unit(name, count, stats) {
+  const chars = Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, String(v)]));
+  return {
+    name,
+    base: { shape: "round", diameterMm: 32 },
+    sheet: { weapons: {}, abilities: [], keywords: [], points: count * 10 },
+    models: Array.from({ length: count }, () => ({ profile: { name, chars }, weapons: [] })),
+  };
+}
+
+/** One unit a side for the test table. */
+const samples = [
+  { name: "Red band", units: [unit("Red fighters", 5, { M: 6, A: 2, Hit: 4, W: 1 })], warnings: [] },
+  { name: "Blue band", units: [unit("Blue fighters", 5, { M: 5, A: 1, Hit: 3, W: 2 })], warnings: [] },
+];
+
+const alive = (state, u) => u.modelIds.map((id) => state.models[id]).filter((m) => !m.destroyed);
+const stat = (model, key) => Number(model.profile.chars[key]) || 0;
+
+/** Enemy units within 1" of this one. */
+function inReach(view, unitId) {
+  const me = view.state.units[unitId];
+  return Object.values(view.state.units).filter(
+    (u) => u.owner !== me.owner && alive(view.state, u).length && view.distance(unitId, u.id) <= 1,
+  );
+}
+
+/** Fight: every model rolls its Attacks; each roll of its Hits-on or more is a wound. */
+function* fight(ctx, args) {
+  const state = ctx.view.state;
+  const me = state.units[args.unit];
+  const target = state.units[args.target];
+  const fighters = alive(state, me);
+  const need = Math.max(...fighters.map((m) => stat(m, "Hit")));
+  const dice = fighters.reduce((n, m) => n + stat(m, "A"), 0);
+  yield ctx.note(\`\${me.name} fight \${target.name}\`);
+  const roll = yield ctx.roll(\`\${dice}d6\`, "hits", me.id, need);
+  let wounds = roll.rolls.filter((r) => r >= need).length;
+  for (const m of alive(state, target)) {
+    if (!wounds) break;
+    const take = Math.min(wounds, stat(m, "W") - (m.woundsLost ?? 0));
+    wounds -= take;
+    const woundsLost = (m.woundsLost ?? 0) + take;
+    yield ctx.emit({ type: "model/wounds", id: m.id, woundsLost, destroyed: woundsLost >= stat(m, "W") });
+  }
+  yield ctx.set(\`fought:\${me.id}\`, state.turn.round);
+}
+
+export default {
+  module: {
+    id: "my-skirmish",
+    version: "0.1.0",
+    api: 1,
+    system,
+    app: {
+      sample: (seat) => samples[seat],
+      layout: () => ({ terrain: [], objectives: [], zones: [] }),
+    },
+    actions: [
+      {
+        id: "fight",
+        name: "Fight",
+        by: "unit",
+        phases: ["fight"],
+        available: (view, actor) => {
+          if (view.own[\`fought:\${actor.unitId}\`] === view.round) return "Already fought this round";
+          return inReach(view, actor.unitId).length ? true : 'No enemy within 1"';
+        },
+        targets: (view, actor) => inReach(view, actor.unitId).map((u) => ({ unitId: u.id, label: u.name })),
+        run: fight,
+      },
+    ],
+    procedures: {},
+    hooks: {},
+  },
+};
+`,be=`// A starter game for the module workshop: rank-and-flank regiments that move
+// as blocks with a facing (wheel, reform, turn, march). Each player in turn
+// moves, then the blocks in contact clash. Change anything: the workshop
+// reloads it onto the test table every time you save (Ctrl+S).
+//
+// Everything a package can use is in the SDK tab, on the right; in the editor,
+// type ctx. or view. for suggestions.
+
+export const manifest = {
+  id: "me.my-ranked", // change "me" to your name: it must stay the same across versions
+  name: "My rank-and-flank game",
+  version: "0.1.0",
+  author: "Me",
+  api: 1,
+  kind: "system",
+  systems: ["my-ranked"],
+  requires: [],
+  adds: "A whole small game: regiments in blocks; the front rank strikes, rear ranks add a bonus.",
+};
+
+/** The rules as data: characteristics, dice and the turn (the SDK tab lists the keys). */
+const system = {
+  id: "my-ranked",
+  name: "My rank-and-flank game",
+  version: "0.1.0",
+  units: "inch",
+  dice: [{ id: "d6", sides: 6 }],
+  defaultDie: "d6",
+  characteristics: [
+    { id: "M", name: "Move", of: "model", type: "distance" },
+    { id: "A", name: "Attacks", of: "model", type: "number" },
+    { id: "Hit", name: "Hits on", of: "model", type: "number" },
+    { id: "W", name: "Wounds", of: "model", type: "number" },
+  ],
+  // Arcs from a block's facing: what is in front, on a flank or behind it.
+  arcs: [
+    { id: "front", name: "Front", from: -45, to: 45, origin: "baseCorners" },
+    { id: "rightFlank", name: "Right flank", from: 45, to: 135, origin: "baseCorners" },
+    { id: "rear", name: "Rear", from: 135, to: 225, origin: "baseCorners" },
+    { id: "leftFlank", name: "Left flank", from: 225, to: 315, origin: "baseCorners" },
+  ],
+  weaponKinds: ["melee"],
+  terrain: [],
+  unitShape: { kind: "ranked", minFiles: 4, manoeuvres: ["wheel", "reform", "turn", "march"] },
+  rules: [],
+  procedures: [],
+  actions: [],
+  turn: {
+    rounds: 4,
+    round: [
+      {
+        kind: "playerTurns",
+        segments: [
+          { kind: "phase", id: "move", name: "Move" },
+          { kind: "phase", id: "clash", name: "Clash" },
+        ],
+      },
+    ],
+  },
+};
+
+/** A regiment of \`count\` models with the same stats, \`files\` wide. */
+function unit(name, count, stats, files = 5) {
+  const chars = Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, String(v)]));
+  return {
+    name,
+    base: { shape: "rect", widthMm: 25, depthMm: 25 },
+    files,
+    sheet: { weapons: {}, abilities: [], keywords: [], points: count * 10 },
+    models: Array.from({ length: count }, () => ({ profile: { name, chars }, weapons: [] })),
+  };
+}
+
+/** One regiment a side for the test table. */
+const samples = [
+  { name: "Red host", units: [unit("Red spears", 15, { M: 4, A: 1, Hit: 4, W: 1 })], warnings: [] },
+  { name: "Blue host", units: [unit("Blue swords", 12, { M: 4, A: 1, Hit: 3, W: 1 }, 4)], warnings: [] },
+];
+
+const alive = (state, u) => u.modelIds.map((id) => state.models[id]).filter((m) => !m.destroyed);
+const stat = (model, key) => Number(model.profile.chars[key]) || 0;
+
+/** Enemy units within 1" of this one. */
+function inReach(view, unitId) {
+  const me = view.state.units[unitId];
+  return Object.values(view.state.units).filter(
+    (u) => u.owner !== me.owner && alive(view.state, u).length && view.distance(unitId, u.id) <= 1,
+  );
+}
+
+/** Clash: the front rank rolls its Attacks, plus a die for each full rank behind it (up to 2). */
+function* fight(ctx, args) {
+  const state = ctx.view.state;
+  const me = state.units[args.unit];
+  const target = state.units[args.target];
+  const left = alive(state, me);
+  const files = me.formation?.kind === "ranked" ? me.formation.files : 5;
+  const front = left.slice(0, files);
+  const ranks = Math.min(2, Math.floor(left.length / files) - 1);
+  const need = Math.max(...front.map((m) => stat(m, "Hit")));
+  const dice = front.reduce((n, m) => n + stat(m, "A"), 0) + Math.max(0, ranks);
+  yield ctx.note(\`\${me.name} clash with \${target.name}\`);
+  const roll = yield ctx.roll(\`\${dice}d6\`, "hits", me.id, need);
+  let wounds = roll.rolls.filter((r) => r >= need).length;
+  for (const m of alive(state, target)) {
+    if (!wounds) break;
+    const take = Math.min(wounds, stat(m, "W") - (m.woundsLost ?? 0));
+    wounds -= take;
+    const woundsLost = (m.woundsLost ?? 0) + take;
+    yield ctx.emit({ type: "model/wounds", id: m.id, woundsLost, destroyed: woundsLost >= stat(m, "W") });
+  }
+  yield ctx.set(\`fought:\${me.id}\`, state.turn.round);
+}
+
+export default {
+  module: {
+    id: "my-ranked",
+    version: "0.1.0",
+    api: 1,
+    system,
+    app: {
+      sample: (seat) => samples[seat],
+      layout: () => ({ terrain: [], objectives: [], zones: [] }),
+    },
+    actions: [
+      {
+        id: "clash",
+        name: "Clash",
+        by: "unit",
+        phases: ["clash"],
+        available: (view, actor) => {
+          if (view.own[\`fought:\${actor.unitId}\`] === view.round) return "Already fought this round";
+          return inReach(view, actor.unitId).length ? true : 'No enemy within 1"';
+        },
+        targets: (view, actor) => inReach(view, actor.unitId).map((u) => ({ unitId: u.id, label: u.name })),
+        run: fight,
+      },
+    ],
+    procedures: {},
+    hooks: {},
+  },
+};
+`,xe=`// A starter game for the module workshop: alternating activations. Players
+// take turns activating one unit at a time; an activated unit may move and
+// shoot. The round ends when every unit has gone. Change anything: the workshop
+// reloads it onto the test table every time you save (Ctrl+S).
+//
+// Everything a package can use is in the SDK tab, on the right; in the editor,
+// type ctx. or view. for suggestions.
+
+export const manifest = {
+  id: "me.my-activations", // change "me" to your name: it must stay the same across versions
+  name: "My activation game",
+  version: "0.1.0",
+  author: "Me",
+  api: 1,
+  kind: "system",
+  systems: ["my-activations"],
+  requires: [],
+  adds: "A whole small game: players alternate activating units, which move and shoot.",
+};
+
+/** The rules as data: characteristics, dice and the turn (the SDK tab lists the keys). */
+const system = {
+  id: "my-activations",
+  name: "My activation game",
+  version: "0.1.0",
+  units: "inch",
+  dice: [{ id: "d6", sides: 6 }],
+  defaultDie: "d6",
+  characteristics: [
+    { id: "M", name: "Move", of: "model", type: "distance" },
+    { id: "Shots", name: "Shots", of: "model", type: "number" },
+    { id: "Range", name: "Range", of: "model", type: "distance" },
+    { id: "Hit", name: "Hits on", of: "model", type: "number" },
+    { id: "W", name: "Wounds", of: "model", type: "number" },
+  ],
+  weaponKinds: ["ranged"],
+  terrain: [],
+  unitShape: { kind: "skirmish" },
+  rules: [],
+  procedures: [],
+  actions: [],
+  turn: {
+    rounds: 4,
+    round: [
+      {
+        // Players alternate: each activation is one unit's turn to move and shoot.
+        kind: "alternate",
+        id: "activations",
+        pool: { kind: "units" },
+        activation: [{ kind: "phase", id: "activation", name: "Activation", actions: ["shoot"] }],
+      },
+    ],
+  },
+};
+
+/** A unit of \`count\` models with the same stats. */
+function unit(name, count, stats) {
+  const chars = Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, String(v)]));
+  return {
+    name,
+    base: { shape: "round", diameterMm: 32 },
+    sheet: { weapons: {}, abilities: [], keywords: [], points: count * 10 },
+    models: Array.from({ length: count }, () => ({ profile: { name, chars }, weapons: [] })),
+  };
+}
+
+/** Two units a side for the test table, so activations alternate. */
+const samples = [
+  {
+    name: "Red squad",
+    units: [
+      unit("Red rifles", 5, { M: 6, Shots: 1, Range: 24, Hit: 4, W: 1 }),
+      unit("Red gunner", 1, { M: 5, Shots: 3, Range: 30, Hit: 4, W: 2 }),
+    ],
+    warnings: [],
+  },
+  {
+    name: "Blue squad",
+    units: [
+      unit("Blue rifles", 5, { M: 6, Shots: 1, Range: 24, Hit: 4, W: 1 }),
+      unit("Blue scout", 1, { M: 8, Shots: 2, Range: 18, Hit: 3, W: 1 }),
+    ],
+    warnings: [],
+  },
+];
+
+const alive = (state, u) => u.modelIds.map((id) => state.models[id]).filter((m) => !m.destroyed);
+const stat = (model, key) => Number(model.profile.chars[key]) || 0;
+
+/** Enemy units within this unit's range. */
+function inReach(view, unitId) {
+  const me = view.state.units[unitId];
+  const range = Math.max(0, ...alive(view.state, me).map((m) => stat(m, "Range")));
+  return Object.values(view.state.units).filter(
+    (u) => u.owner !== me.owner && alive(view.state, u).length && view.distance(unitId, u.id) <= range,
+  );
+}
+
+/** Shoot: every model rolls its Shots; each roll of its Hits-on or more is a wound. */
+function* fight(ctx, args) {
+  const state = ctx.view.state;
+  const me = state.units[args.unit];
+  const target = state.units[args.target];
+  const fighters = alive(state, me);
+  const need = Math.max(...fighters.map((m) => stat(m, "Hit")));
+  const dice = fighters.reduce((n, m) => n + stat(m, "Shots"), 0);
+  yield ctx.note(\`\${me.name} shoot at \${target.name}\`);
+  const roll = yield ctx.roll(\`\${dice}d6\`, "hits", me.id, need);
+  let wounds = roll.rolls.filter((r) => r >= need).length;
+  for (const m of alive(state, target)) {
+    if (!wounds) break;
+    const take = Math.min(wounds, stat(m, "W") - (m.woundsLost ?? 0));
+    wounds -= take;
+    const woundsLost = (m.woundsLost ?? 0) + take;
+    yield ctx.emit({ type: "model/wounds", id: m.id, woundsLost, destroyed: woundsLost >= stat(m, "W") });
+  }
+  yield ctx.set(\`fought:\${me.id}\`, state.turn.round);
+}
+
+export default {
+  module: {
+    id: "my-activations",
+    version: "0.1.0",
+    api: 1,
+    system,
+    app: {
+      sample: (seat) => samples[seat],
+      layout: () => ({ terrain: [], objectives: [], zones: [] }),
+    },
+    actions: [
+      {
+        id: "shoot",
+        name: "Shoot",
+        by: "unit",
+        phases: ["activations"],
+        available: (view, actor) => {
+          if (view.own[\`fought:\${actor.unitId}\`] === view.round) return "Already shot this round";
+          return inReach(view, actor.unitId).length ? true : "No enemy in range";
+        },
+        targets: (view, actor) => inReach(view, actor.unitId).map((u) => ({ unitId: u.id, label: u.name })),
+        run: fight,
+      },
+    ],
+    procedures: {},
+    hooks: {},
+  },
+};
+`,Se=`// A faction pack to start from (#79). Everything in it is invented: the
+// Vanguard Legion is one of the app's own sample armies, and the rules below
+// were made up for this file. A pack teaches the app what rules do BY NAME:
+// unit abilities, army and detachment rules, enhancements and stratagems.
+// Never put a publisher's rules text in a pack: names, and your own words.
+//
+// In the workshop, pick an army (Army tab): it lists the names in that army,
+// and "Build" writes a rule for a name into \`faction\` below, as data. Test
+// table plays your army with the pack on it; Export downloads the file to
+// host anywhere. See docs/faction-packs.md for the format.
+
+/** Read as data before anything runs: a plain literal, no variables or calls. */
+export const manifest = {
+  id: "me.my-faction-pack",
+  name: "My faction pack",
+  version: "0.1.0",
+  author: "Me",
+  api: 1,
+  kind: "faction",
+  systems: ["forty-k"],
+  requires: [],
+  adds: "Rules for the invented Vanguard Legion: three unit abilities, a faction rule, and the Spearhead Muster detachment's rule and two stratagems.",
+};
+
+// The rules, keyed by name. Each says what it does in one of four ways:
+// - teach: what "Teach it this rule" builds (when, who, what), the easiest;
+// - auto: the automated-ability parts the app's ability reader writes;
+// - effects: rules-schema effects, as a package's data rules write them;
+// - code: the pack's own code plays it (give the file a default export with
+//   hooks, as docs/packages.md shows).
+// A rule with only a summary is played by hand, with your words as its reminder.
+// The workshop writes this literal back when you build a rule, so keep notes
+// up here rather than inside it.
+export const faction = {
+  faction: "Vanguard Legion",
+  rules: [
+    {
+      name: "Shoulder to Shoulder",
+      summary: "Each model in this army ignores a lost wound on a 6.",
+      teach: { when: { kind: "attacks" }, who: { kind: "self" }, what: [{ kind: "fnp", x: 6 }] },
+    },
+  ],
+  abilities: [
+    {
+      name: "Hold the Line",
+      summary: "While this unit is within range of an objective, add 1 to its saving throws.",
+      teach: {
+        when: { kind: "attacks" },
+        who: { kind: "self" },
+        what: [{ kind: "save", by: 1 }],
+        onObjective: "within",
+      },
+    },
+    {
+      name: "Rally Call",
+      summary: "Once per battle, for one phase: re-roll failed Hit rolls for this unit's attacks.",
+      teach: {
+        when: { kind: "attacks" },
+        who: { kind: "self" },
+        what: [{ kind: "reroll", roll: "hit", which: "failed" }],
+        oncePerBattle: true,
+      },
+    },
+    {
+      name: "Steady Gait",
+      summary: "This model can shoot after it Falls Back.",
+    },
+  ],
+  detachments: [
+    {
+      name: "Spearhead Muster",
+      rules: [
+        {
+          name: "Drilled Volleys",
+          summary: "Ranged attacks of a unit that stayed still re-roll Hit rolls of 1.",
+          teach: {
+            when: { kind: "attacks", weapon: "ranged", when: "stationary" },
+            who: { kind: "self" },
+            what: [{ kind: "reroll", roll: "hit", which: "ones" }],
+          },
+        },
+      ],
+      enhancements: [],
+      stratagems: [
+        {
+          name: "Focused Fire",
+          cp: 1,
+          side: "active",
+          phases: ["shooting"],
+          target: { notYet: "shot" },
+          summary: "Your unit's ranged attacks add 1 to the Wound roll this phase.",
+          teach: {
+            when: { kind: "attacks", weapon: "ranged" },
+            who: { kind: "self" },
+            what: [{ kind: "modify", roll: "wound", by: 1 }],
+          },
+        },
+        {
+          name: "Smoke Drill",
+          cp: 1,
+          side: "inactive",
+          phases: ["shooting"],
+          once: "turn",
+          summary: "Ranged attacks against your unit subtract 1 from the Hit roll this phase.",
+          teach: {
+            when: { kind: "attacks", weapon: "ranged" },
+            who: { kind: "self" },
+            what: [{ kind: "against", roll: "hit", by: -1 }],
+          },
+        },
+      ],
+    },
+  ],
+};
+`,Ce=`open-battle:workshop`;function we(){try{let e=JSON.parse(localStorage.getItem(Ce)??`null`);if(e&&Array.isArray(e.drafts))return e}catch{}return{drafts:[],current:null}}function Te(e,t){try{localStorage.setItem(Ce,JSON.stringify({drafts:e,current:t}))}catch{}}function Ee(e){return{id:crypto.randomUUID().slice(0,8),source:e,updated:Date.now()}}function H(e){let t=h(e);return`error`in t?t.error:t.manifest}function U(e){let t=H(e);if(typeof t==`string`)return[t];if(t.kind===`faction`){let t=A(e);return`error`in t?[t.error]:[]}let n=[];return t.kind!==`system`&&n.push(`The workshop tests whole games: set manifest.kind to "system".`),t.systems[0]||n.push(`Name the game's system id in manifest.systems.`),/export\s+default\b/.test(e)||n.push(`Export the game: export default { module }.`),n}function De(e){return`${e.id.replace(/[^\w.-]+/g,`-`)}-${e.version}.js`}var Oe=`https://github.com/pwestling/openbattle`,W=`${Oe}/blob/main/docs/community-modules.md`,ke=`${Oe}/edit/main/docs/community-modules.md`;function Ae(e,t,n){let r=n||`<the module's raw URL>`;return[`## Add ${e.name} ${e.version} to the community modules`,``,e.adds??``,``,`Row for docs/community-modules.md:`,``,"```",`| [${e.name}](${r}) | ${e.version} | ${e.author??``} | ${e.systems.join(`, `)} | ${e.adds??``} | \`${t.slice(0,16)}\` |`,"```",``,`- Package id: \`${e.id}\` (kind: ${e.kind})`,`- SHA-256: \`${t}\``,`- Tested in the module workshop: the test table and the soak bot.`,`- No Games Workshop text, names or stats in the file.`].join(`
+`)}var je=12e4;async function Me(e,t,n,r){let i=null,a;try{let e=(await d(async()=>{let{default:e}=await import(`./_virtual_soak-worker-D1tD6NzA.js`);return{default:e}},[],import.meta.url)).default;a=await ce.start(e,e=>i=e)}catch(e){let r=e instanceof Error?e.message:String(e);for(let e of t)n({seed:e,ok:!1,failures:[r],steps:0,round:0,finished:!1});return}try{for(let o of t)try{n(await a.call({t:`soak`,source:e,seed:o,...r===void 0?{}:{untilRound:r}},je))}catch(e){if(n({seed:o,ok:!1,failures:[i??(e instanceof Error?e.message:String(e))],steps:0,round:0,finished:!1}),i)return}}finally{a.stop()}}var G=null;async function Ne(e){G??=(async()=>{let e=(await d(async()=>{let{default:e}=await import(`./_virtual_soak-worker-D1tD6NzA.js`);return{default:e}},[],import.meta.url)).default;return ce.start(e,()=>G=null)})();try{return await(await G).call({t:`check`,source:e},Pe)}catch(e){throw G=null,e}}var Pe=5e3;function Fe(e,t){let n=(/^system\.([\w.[\]]+)/.exec(t)?.[1])?.replace(/\[\d+\]/g,``).split(`.`).at(-1);if(!n)return null;let r=e.search(/\bconst\s+system\b|\bsystem\s*[:=]\s*{/),i=e.slice(Math.max(0,r)).search(RegExp(`\\b${n}\\s*:`));return i<0?null:e.slice(0,Math.max(0,r)+i).split(`
+`).length}function Ie(e){let t=[];for(let n of e)n.ok===!1&&(n.id===`code`?t.push(n.text):n.id===`types`?t.push(i(n.count??1,`{n} type problem`,`{n} type problems`)):n.id===`load`?t.push(u(`it doesn't load`)):t.push(u(`the bot game went wrong`)));return t.join(`, `)}var Le=2,Re=(e,t)=>e.slice(0,t).split(`
+`).length;function K(e,t){let n=/line (\d+)/.exec(t);return n?Number(n[1]):Fe(e,t)}async function ze(e,t){let n=[],r=()=>t([...n]),a=()=>({ok:n.every(e=>e.ok!==!1),source:e,steps:n,summary:Ie(n)}),o=U(e),{syntaxError:s}=await d(async()=>{let{syntaxError:e}=await import(`./syntax-CEL_Wvla.js`);return{syntaxError:e}},__vite__mapDeps([0,1,2]),import.meta.url),c=s(e);if(o.length||c)return n.push({id:`code`,ok:!1,text:o[0]??u(`The code doesn't parse at line {line}, column {column}.`,c),line:c?.line??null}),a();let[l,f]=await Promise.all([V.available()?V.problems(e):Promise.resolve(null),Ne(e).then(e=>e.errors[0]?.error??null,e=>e instanceof Error?e.message:String(e))]),p=l?.filter(e=>e.severity===`error`)??[];if(n.push(l===null?{id:`types`,ok:null,text:u(`Types: the type checker isn't available here.`),line:null}:p.length?{id:`types`,ok:!1,text:i(p.length,`Types: {n} problem. Line {line}: {message}`,`Types: {n} problems. The first, line {line}: {message}`,{line:Re(e,p[0].from),message:p[0].message}),line:Re(e,p[0].from),count:p.length}:{id:`types`,ok:!0,text:u(`Types: everything matches the SDK.`),line:null}),n.push(f?{id:`load`,ok:!1,text:u(`Loading: {why}`,{why:f}),line:K(e,f)}:{id:`load`,ok:!0,text:u(`Loading: it loads, and its system has the right shape.`),line:null}),r(),f)return n.push({id:`soak`,ok:null,text:u(`Bot game: not played, since it doesn't load.`),line:null}),a();let m=null;await Me(e,[1],e=>m=e,Le);let h=m;return n.push(h?h.ok?{id:`soak`,ok:!0,text:h.finished?u(`Bot game: played to the end in {steps} moves.`,{steps:h.steps}):u(`Bot game: {rounds} rounds in {steps} moves, with nothing wrong.`,{rounds:Le,steps:h.steps}),line:null}:{id:`soak`,ok:!1,text:u(`Bot game: {why}`,{why:h.failures[0]??``}),line:K(e,h.failures[0]??``)}:{id:`soak`,ok:!1,text:u(`Bot game: it didn't report back.`),line:null}),a()}var Be=(e,t)=>t.auto?.pack?`pack`:t.auto?.taught?`taught`:c(e,t)?`automated`:`manual`;function q(e,t,n=[]){let r=[],i=new Map,a=e=>{let t=`${e.kind===`stratagem`?`s`:`r`}/${j(e.name)}`,n=i.get(t);if(n){for(let t of e.units)n.units.includes(t)||n.units.push(t);return}i.set(t,e),r.push(e)},o=e.army;for(let e of o?.rules??[]){if(s(t,e))continue;let n=e.group===`Army rule`||!o?.detachment?`army`:`detachment`;a({name:e.name,kind:n,text:e.text,status:Be(t,e),...J(e),units:[]})}for(let r of e.units){let e={sheet:r.sheet};for(let i of r.sheet.abilities)n.includes(i.group??``)||i.group!==`Enhancements`&&l(t,e,i)||o?.rules.some(e=>j(e.name)===j(i.name))||a({name:i.name,kind:i.group===`Enhancements`?`enhancement`:`ability`,text:i.text,status:Be(t,i),...J(i),units:[r.name]})}for(let e of o?.stratagems??[])a({name:e.name,kind:`stratagem`,text:e.text,status:e.auto?.pack||e.pack?`pack`:e.auto?.taught?`taught`:e.auto?`automated`:`manual`,...J(e),stratagem:e,units:[]});return r}var J=e=>e.auto?{auto:e.auto}:{};function Y(e,t,n,r){let i={name:e,...r?.trim()?{summary:r.trim()}:{}};if(!t)return i;let a=ie(t),o=e=>{if(!e)return null;let{effects:t,taught:n,pack:r,...i}=e;return i};return JSON.stringify(o(re(a,n)))===JSON.stringify(o(t))?{...i,teach:a}:{...i,auto:o(t)}}function Ve(e,t,n,r){let{name:i,...a}=Y(e.name,t,n,r),o=e.targetsUnit!==!1||!!t;return{name:e.name,cp:e.cp,side:e.side,...e.phases?.length?{phases:e.phases}:{},...e.once&&e.once!==`phase`?{once:e.once}:{},...o?e.targetKeywords||e.notYet?{target:{...e.targetKeywords?{keywords:e.targetKeywords}:{},...e.notYet?{notYet:e.notYet}:{}}}:{}:{target:!1},...a}}function He(e,t){return e===`ability`?{list:`abilities`}:e===`army`?{list:`rules`}:t?{detachment:t,list:e===`enhancement`?`enhancements`:e===`stratagem`?`stratagems`:`rules`}:{list:e===`enhancement`?`abilities`:e===`stratagem`?`stratagems`:`rules`}}function Ue(e,t,n,r){let i=JSON.parse(JSON.stringify(e)),a=j(n.name),o=t===`stratagem`?[...(i.detachments??[]).map(e=>e.stratagems),i.stratagems]:[i.abilities,i.rules,...(i.detachments??[]).flatMap(e=>[e.rules,e.enhancements])];for(let e of o){let t=e?.findIndex(e=>j(e.name)===a)??-1;if(t<0)continue;let r=e[t];return e[t]={...n,...!n.summary&&r.summary?{summary:r.summary}:{}},i}let s=He(t,r);if(`detachment`in s){i.detachments??=[];let e=i.detachments.find(e=>j(e.name)===j(s.detachment));e||i.detachments.push(e={name:s.detachment}),(e[s.list]??=[]).push(n)}else(i[s.list]??=[]).push(n);return i}function We(e,t){return q(e,t).filter(e=>e.status===`taught`&&e.auto).map(e=>({kind:e.kind,entry:e.kind===`stratagem`&&e.stratagem?Ve({...e.stratagem,targetsUnit:!0},e.auto,t):Y(e.name,e.auto,t)}))}function Ge(e,t,n){let r=We(t,n);return{pack:r.reduce((e,{kind:n,entry:r})=>Ue(e,n,r,t.army?.detachment),e),count:r.length}}var Ke=/^[A-Za-z_$][\w$]*$/,qe=100;function X(e,t=``){if(typeof e!=`object`||!e)return JSON.stringify(e??null);let n=t+`  `,r=Array.isArray(e),i=r?e.map(e=>X(e,n)):Object.entries(e).filter(([,e])=>e!==void 0).map(([e,t])=>`${Ke.test(e)?e:JSON.stringify(e)}: ${X(t,n)}`),[a,o]=r?[`[`,`]`]:[`{`,`}`];if(!i.length)return`${a}${o}`;let s=r?`[${i.join(`, `)}]`:`{ ${i.join(`, `)} }`;return!s.includes(`
+`)&&t.length+s.length<=qe?s:`${a}\n${i.map(e=>`${n}${e},`).join(`
+`)}\n${t}${o}`}function Je(e,t){let n=X(t),r=g(e,`faction`);if(r&&`start`in r)return e.slice(0,r.start)+n+e.slice(r.end);let i=`\nexport const faction = ${n};\n`,a=g(e,`manifest`);if(a&&`end`in a){let t=e.indexOf(`;`,a.end)===a.end?a.end+1:a.end;return e.slice(0,t)+`
+`+i+e.slice(t)}return e+i}function Ye(e){let t=A(e);return`error`in t?t.error:t.pack}var Xe=`\0draft`;function Ze(e,t,n,r=[]){return q(ae(e,t,{id:`draft`,name:Xe,version:`0`,hash:`draft`,bytes:0},n).roster,n,r)}var Qe=e=>e.auto?.pack===Xe?e.auto:null,$e=e=>e.replace(/[.*+?^${}()|[\]\\]/g,`\\$&`);function et(e,t,n=0){let r=Math.max(0,e.search(/export\s+const\s+faction\b/)),i=RegExp(`\\bname\\s*:\\s*(["'\`])${$e(t)}\\1`,`g`);i.lastIndex=r;let a=null;for(let t=0;t<=n;t++)if(a=i.exec(e),!a)return null;return e.slice(0,a.index).split(`
+`).length}function tt(e,t,n,r,i=[]){let a=q(n,r,i),o=(e,t)=>a.some(n=>t.includes(n.kind)&&j(n.name)===e),s=[],c=[],l=new Map,u=new Set,d=n.army,f=!t.faction||!d?.faction||j(t.faction)===j(d.faction),p=(t,n,r)=>{let i=l.get(t)??0;s.push({name:t,where:n,line:et(e,t,Math.max(0,i-1)),why:r})},m=(e,t,n,r,i)=>{for(let a of e??[]){let e=j(a.name);l.set(a.name,(l.get(a.name)??0)+1);let s=`${i}/${e}`;if(u.has(s)){p(a.name,t,`twice`);continue}u.add(s),!o(e,n)&&(r?c.push(a.name):p(a.name,t,n.includes(`army`)&&!f?`faction`:n.includes(`army`)?`not-army-rule`:`no-unit`))}};m(t.rules,`rules`,[`army`,`detachment`,`ability`],f,`rule`),m(t.abilities,`abilities`,[`ability`,`enhancement`],!1,`rule`),m(t.stratagems,`stratagems`,[`stratagem`],!0,`strat`),(t.detachments??[]).forEach((e,t)=>{if(!(d?.detachment&&j(e.name)===j(d.detachment))){l.set(e.name,(l.get(e.name)??0)+1),p(e.name,`detachments[${t}]`,`detachment`);return}m(e.rules,`detachments[${t}].rules`,[`detachment`,`army`,`ability`],!0,`rule`),m(e.enhancements,`detachments[${t}].enhancements`,[`enhancement`,`ability`],!1,`rule`),m(e.stratagems,`detachments[${t}].stratagems`,[`stratagem`],!0,`strat`)});let h=Ze(n,t,r,i),g=new Set(a.map(e=>`${e.kind===`stratagem`}/${j(e.name)}`)),_=h.filter(e=>g.has(`${e.kind===`stratagem`}/${j(e.name)}`));return{problems:s,added:c,matched:_.filter(e=>Qe(e)).length,uncovered:_.filter(e=>e.status===`manual`)}}function nt(e,t){let r=e=>t.some(t=>y(t,e)),i=Object.values(e).filter(e=>r(e.system)&&e.roster.units.length).sort((e,t)=>t.savedAt-e.savedAt).map(e=>({key:e.id,name:e.name,system:e.system,roster:e.roster,shelf:e}));if(!r(`forty-k-11`))return i;let a=[0,1].map(e=>{let t=S(n).sample(e);return{key:`sample:${e}`,name:t.name,system:n,roster:t}});return[...i,...a]}function rt(e,t){return{id:e.manifest.id,name:e.manifest.name,version:e.manifest.version,hash:e.hash,bytes:e.bytes,...t?{code:!0}:{}}}var Z=null,it=(e,t,n,r)=>ae(e.roster,n.pack,rt(t,n.code),o({system:r})).roster;function at(e,t){let{game:n,dispatch:r}=f.getState(),i=n.packages?.packages??[],a=[...i.filter(t=>t.id!==e.manifest.id),...t?[ne(e)]:[]];JSON.stringify(a)!==JSON.stringify(i)&&r({type:`game/packages`,app:p,system:{id:n.system??`forty-k-11`,builtIn:!0},packages:a,...n.turn.round>0?{agreed:Object.values(n.players).filter(e=>e.seat!==void 0).map(e=>e.id)}:{}})}function ot(e,t,n){let i=f.getState();i.session&&(i.session.leave(),f.setState({session:null,role:null,scrub:null,selected:null,draft:null}));let o=e.system;return f.getState().start({role:`host`,mode:`hotseat`,name:localStorage.getItem(`open-battle:name`)??``,system:o}),new Promise(i=>{let s=0,c=()=>{let{game:l,dispatch:u}=f.getState();if((l.system??`forty-k-11`)!==o||a(l).length<2){s++<200?setTimeout(c,50):i(!1);return}k.initial=f.getState().record.initial;let d=crypto.randomUUID().slice(0,6),p=S(o).sample(e.key===`sample:1`?0:1);O(()=>f.getState().game,u,d,[it(e,t,n,o),p]);let m=r(f.getState().game,0)[0].id;Z={owner:m,prefix:`${m}-${d}`,army:e,system:o},e.shelf&&D(e.shelf,m,Z.prefix),at(t,n.code),f.getState().dispatch({type:`turn/next`}),i(!0)};c()})}function st(e,t){let{game:n,dispatch:r,session:i}=f.getState();if(!Z||!i||(n.system??`forty-k-11`)!==Z.system)return!1;let{owner:a,prefix:o,army:s,system:c}=Z,l=it(s,e,t,c);return l.units.forEach((e,t)=>{let i=n.units[`${o}-${t}`];if(i?.sheet)for(let t of e.sheet.abilities){let e=i.sheet.abilities.find(e=>e.name===t.name);e&&JSON.stringify(e.auto??null)!==JSON.stringify(t.auto??null)&&r({type:`unit/automate`,id:i.id,ability:t.name,auto:t.auto??null},a)}}),l.army&&r({type:`player/army`,army:l.army},a),at(e,t.code),!0}var Q=ee();function ct(e){let t=E(e=>e.armies);(0,P.useEffect)(()=>void E.getState().load(),[]);let n=H(e.source),r=typeof n==`string`?``:n.systems.join(` `),i=(0,P.useMemo)(()=>nt(t,r.split(` `).filter(Boolean)),[t,r]),a=i.find(t=>t.key===e.army)??i[0]??null,s=(0,P.useMemo)(()=>Ye(e.source),[e.source]),c=a?o({system:a.system}):null,l=a?S(a.system).profileGroups??[]:[];return{armies:i,army:a,system:c,pack:s,check:(0,P.useMemo)(()=>a&&c&&typeof s!=`string`?tt(e.source,s,a.roster,c,l):null,[a,c,s,e.source]),profiles:l}}function lt(e,t){switch(e.why){case`no-unit`:return u(`{name}: no unit in {army} has it.`,{name:e.name,army:t});case`not-army-rule`:return u(`{name}: {army} has no rule by that name.`,{name:e.name,army:t});case`faction`:return u(`{name}: a rule for another faction than {army}'s.`,{name:e.name,army:t});case`detachment`:return u(`Detachment {name}: {army} isn't in it, so nothing in it applies.`,{name:e.name,army:t});case`twice`:return u(`{name} is in the pack twice: keep one.`,{name:e.name})}}function ut({draft:e,onLine:t}){let{army:n,check:r}=ct(e);return!n||!r?.problems.length?null:(0,Q.jsx)(`ul`,{className:`workshop-problems pack-problems`,"aria-label":u(`Names that don't match`),children:r.problems.map((e,r)=>(0,Q.jsxs)(`li`,{children:[`⚠ `,lt(e,n.name),` `,e.line!==null&&(0,Q.jsx)(`button`,{className:`quiet small`,onClick:()=>t(e.line),children:u(`line {line}`,{line:e.line})})]},`${e.where}/${e.name}/${r}`))})}var dt={ability:()=>u(`Unit abilities`),enhancement:()=>u(`Enhancements`),army:()=>u(`Army rules`),detachment:()=>u(`Detachment rules`),stratagem:()=>u(`Stratagems`)},ft=(e,t)=>t?u(`in this pack`):e.status===`manual`?u(`by hand`):e.status===`taught`?u(`taught`):e.status===`pack`?u(`another pack`):u(`read by the app`);function pt({draft:e,onEdit:t,onPick:n}){let{armies:r,army:a,system:o,pack:s,check:c,profiles:l}=ct(e),[d,f]=(0,P.useState)(null),[p,m]=(0,P.useState)(null),h=(0,P.useMemo)(()=>a&&o?q(a.roster,o,l):[],[a,o]),g=(0,P.useMemo)(()=>!a||!o||typeof s==`string`?new Map:new Map(Ze(a.roster,s,o,l).flatMap(e=>{let t=Qe(e);return t?[[`${e.kind===`stratagem`}/${e.name}`,t]]:[]})),[a,o,s]);if(typeof s==`string`)return(0,Q.jsx)(`p`,{className:`bad`,children:s});if(!a||!o)return(0,Q.jsx)(`p`,{children:u(`No army for this pack's game yet. Import a list in a game and save it to your shelf, or open an army file: it shows up here.`)});let _=h.filter(e=>e.status===`taught`).length,v=e=>g.has(`${e.kind===`stratagem`}/${e.name}`),y=n=>t(Je(e.source,n)),x=(e,t,n)=>{let r=e.kind===`stratagem`?Ve({...n??e.stratagem,name:e.name,notYet:e.stratagem?.notYet,targetsUnit:!0},t,o):Y(e.name,t,o);y(Ue(s,e.kind,r,a.roster.army?.detachment)),f(null),m(u(`{name} is in the pack now. Save to play it on the test table.`,{name:e.name}))},S=[`ability`,`enhancement`,`army`,`detachment`,`stratagem`].filter(e=>h.some(t=>t.kind===e));return(0,Q.jsxs)(`div`,{className:`workshop-pack`,children:[(0,Q.jsxs)(`label`,{children:[u(`Build it against`),(0,Q.jsx)(`select`,{value:a.key,onChange:e=>n(e.target.value),children:r.map(e=>(0,Q.jsx)(`option`,{value:e.key,children:e.shelf?e.name:u(`{army} (sample army)`,{army:e.name})},e.key))})]}),c&&(0,Q.jsx)(mt,{check:c,total:h.length}),_>0&&(0,Q.jsx)(`p`,{children:(0,Q.jsx)(`button`,{onClick:()=>{let e=Ge(s,a.roster,o);y(e.pack),m(i(e.count,`{n} taught rule is in the pack now.`,`{n} taught rules are in the pack now.`))},children:i(_,`Put the {n} rule you taught in the pack`,`Put the {n} rules you taught in the pack`)})}),p&&(0,Q.jsx)(`p`,{className:`hint`,role:`status`,children:p}),S.map(e=>(0,Q.jsxs)(`section`,{children:[(0,Q.jsx)(`h3`,{children:dt[e]()}),(0,Q.jsx)(`ul`,{className:`pack-names`,children:h.filter(t=>t.kind===e).map(e=>{let t=v(e),n=g.get(`${e.kind===`stratagem`}/${e.name}`)??null;return(0,Q.jsxs)(`li`,{className:`pack-name ${t?`ok`:e.status}`,children:[(0,Q.jsxs)(`span`,{children:[(0,Q.jsx)(`strong`,{children:e.name}),` `,(0,Q.jsx)(`span`,{className:`muted small`,children:ft(e,t)}),e.units.length>0&&(0,Q.jsxs)(`span`,{className:`muted small`,children:[` · `,e.units.join(`, `)]}),n&&(0,Q.jsxs)(`span`,{className:`small`,children:[` · ⚙ `,b(n,o)]})]}),(0,Q.jsx)(`button`,{className:`small`,onClick:()=>f(e),children:u(t?`Change`:`Build`)})]},e.name)})})]},e)),c&&c.uncovered.length>0&&(0,Q.jsxs)(`details`,{children:[(0,Q.jsx)(`summary`,{children:i(c.uncovered.length,`{n} name not covered yet`,`{n} names not covered yet`)}),(0,Q.jsx)(`p`,{className:`hint`,children:c.uncovered.map(e=>e.name).join(`, `)})]}),d&&(0,Q.jsx)(de,{name:d.name,text:d.text,auto:g.get(`${d.kind===`stratagem`}/${d.name}`)??void 0,system:o,stratagem:d.stratagem&&{name:d.name,cp:d.stratagem.cp,side:d.stratagem.side,...d.stratagem.phases?{phases:d.stratagem.phases}:{},...d.stratagem.once?{once:d.stratagem.once}:{},...d.stratagem.targetKeywords?{targetKeywords:d.stratagem.targetKeywords}:{}},onSave:(e,t)=>x(d,e,t),onClose:()=>f(null)})]})}function mt({check:e,total:t}){return(0,Q.jsxs)(`p`,{className:`hint`,children:[i(t,`The pack plays {matched} of this army's {n} name.`,`The pack plays {matched} of this army's {n} names.`,{matched:e.matched}),e.added.length>0&&` ${i(e.added.length,`It adds {n} rule the list doesn't carry.`,`It adds {n} rules the list doesn't carry.`)}`]})}function ht({draft:e,save:t}){let n=f(e=>e.session!==null),{army:r}=ct(e),[i,a]=(0,P.useState)(!1),o=async()=>{if(!r)return;let e=await t(),n=e?v.getState().packages[e]:void 0,i=n?A(n.source):null;!n||!i||`error`in i||(a(!0),await ot(r,n,i),a(!1))};return(0,Q.jsx)(`button`,{onClick:()=>void o(),disabled:i||!r,title:r?u(`Play {army} with the pack on it`,{army:r.name}):void 0,children:u(i?`Setting up…`:n?`Restart the test table`:`Test table`)})}function gt({draft:e}){let[t,n]=(0,P.useState)(null),r=H(e.source);return(0,P.useEffect)(()=>{let t=!0;return m(new TextEncoder().encode(e.source)).then(e=>t&&n(e)),()=>{t=!1}},[e.source]),typeof r==`string`?(0,Q.jsx)(`p`,{children:r}):(0,Q.jsxs)(`div`,{className:`workshop-export`,children:[(0,Q.jsxs)(`p`,{children:[u(`{name} {version}`,{name:r.name,version:r.version}),t&&(0,Q.jsxs)(Q.Fragment,{children:[` · `,(0,Q.jsx)(`code`,{title:t,children:_(t)})]})]}),t&&(0,Q.jsxs)(`p`,{className:`small`,children:[`SHA-256 `,(0,Q.jsx)(`code`,{className:`pack-hash`,children:t})]}),(0,Q.jsx)(`button`,{className:`primary`,onClick:()=>w(new Blob([e.source],{type:`text/javascript`}),De(r)),children:u(`Download the pack`)}),(0,Q.jsx)(`p`,{className:`hint`,children:u(`Host the file anywhere that lets other sites read it, and share its link. Players paste the link in the army import (Faction packs); the app pins the link to this SHA-256 and asks again if the file changes. Publish only your own words: names, and what the rules do.`)})]})}var _t=`https://`,vt=(0,P.lazy)(()=>d(()=>import(`./Editor-vY_wwjor.js`).then(e=>({default:e.Editor})),__vite__mapDeps([3,4,5,6,2,1]),import.meta.url)),yt=[{id:`skirmish`,source:ye,name:()=>u(`Skirmish`),what:()=>u(`Model by model: move, then fight.`)},{id:`ranked`,source:be,name:()=>u(`Ranked`),what:()=>u(`Regiment blocks that wheel and clash.`)},{id:`activations`,source:xe,name:()=>u(`Alternating activations`),what:()=>u(`Players take turns activating one unit each.`)},{id:`rift-lanterns`,source:se,name:()=>`Rift Lanterns`,what:()=>u(`A finished game of ours to take apart: four warbands, three missions.`)},{id:`brinewatch`,source:oe,name:()=>`Brinewatch`,what:()=>u(`Our second, to take apart: action points, guards, hidden lurkers and a campaign.`)},{id:`faction-pack`,source:Se,name:()=>u(`Faction pack`),what:()=>u(`Rules for an army's abilities, detachment and stratagems, by name, built against your own army.`)}];function bt(){let[{drafts:e,current:t},n]=(0,P.useState)(we),r=e.find(e=>e.id===t)??null,i=T(e=>e.folded),a=T(e=>e.link),o=f(e=>e.session!==null),[s,c]=(0,P.useState)(`table`),[l,p]=(0,P.useState)(null),[m,h]=(0,P.useState)(null),[g,_]=(0,P.useState)(null),[y,b]=(0,P.useState)(null),x=async()=>{if(!r||y)return;_(null),b([]);let e=await ze(r.source,b);b(null),_(e),h(e.steps.find(e=>e.ok===!1)?.line??null)},S=(e,t)=>{Te(e,t),n({drafts:e,current:t})},C=t=>{let n=Ee(t);S([...e,n],n.id);let r=H(t);typeof r!=`string`&&r.kind===`faction`&&c(`army`)},w=t=>{r&&(m!==null&&h(null),S(e.map(e=>e.id===r.id?{...e,source:t,updated:Date.now()}:e),r.id))},ee=()=>{if(!r||!confirm(u(`Delete this draft? This can't be undone.`)))return;let t=e.filter(e=>e.id!==r.id);S(t,t.at(-1)?.id??null)};(0,P.useEffect)(()=>{a&&(T.setState({link:null}),St(a).then(e=>{C(e),p({text:u(`Opened from {url}. Read it before you test it: saving runs its code in the sandbox.`,{url:a}),bad:!1})},e=>p({text:e.message,bad:!0})))},[a]);let E=(e,t=null)=>{p({text:e,bad:!0}),h(t)},D=async()=>{if(!r)return null;let t=r.source,n=U(t);if(n.length)return E(n[0]),null;let{syntaxError:i}=await d(async()=>{let{syntaxError:e}=await import(`./syntax-CEL_Wvla.js`);return{syntaxError:e}},__vite__mapDeps([0,1,2]),import.meta.url),a=i(t);if(a)return E(u(`Not saved: the code doesn't parse at line {line}, column {column}.`,a),a.line),null;let o=A(t),s=!(`error`in o),c;try{c=s&&!o.code?{packages:[],errors:[]}:await Ne(t)}catch(e){return E(u(`Not saved: your rules didn't load: {why}`,{why:e instanceof Error?e.message:String(e)})),null}let l=c.errors[0]?.error;if(l)return E(u(`Not saved: your rules didn't load: {why}`,{why:l}),K(t,l)),null;h(null);let m=v.getState(),g=await m.add(new TextEncoder().encode(t),{own:!0});if(!g.ok)return E(g.error),null;if(m.trust(g.pkg.hash,!0),r.saved&&r.saved!==g.pkg.hash&&m.packages[r.saved]?.own&&Tt(r.saved),S(e.map(e=>e.id===r.id?{...e,saved:g.pkg.hash}:e),r.id),s)return p({text:st(g.pkg,o)?u(`Saved, and the pack's rules are on the army on the test table.`):u(`Saved.`),bad:!1}),g.pkg.hash;let _=Et(c);Dt(_);let y=g.pkg.manifest.systems[0],b=f.getState().game;if(f.getState().session&&b.packages?.system?.id===y){if(b.packages.packages.some(e=>e.hash===g.pkg.hash))return p({text:u(`Saved. Nothing changed for the test table.`),bad:!1}),g.pkg.hash;At(g.pkg.hash);let e=await kt();e?E(u(`Saved, but your rules didn't load on the test table: {why}`,{why:e}),K(t,e)):p({text:$.table!==null&&_!==$.table?u(`Saved and reloaded. The sample armies, missions or table changed: restart the test table to play with them.`):u(`Saved and reloaded onto the test table.`),bad:!1})}else p({text:u(`Saved.`),bad:!1});return g.pkg.hash};if(i&&o)return(0,Q.jsx)(`button`,{className:`workshop-tab`,onClick:()=>T.setState({folded:!1}),children:u(`Workshop`)});let O=r?H(r.source):null,k=typeof O!=`string`&&O?.kind===`faction`;return(0,Q.jsxs)(`section`,{className:`workshop${o?` over-table`:``}`,role:o?`complementary`:`dialog`,"aria-label":u(`Module workshop`),children:[(0,Q.jsxs)(`header`,{className:`workshop-head`,children:[(0,Q.jsx)(`h2`,{children:u(`Module workshop`)}),e.length>0&&(0,Q.jsx)(`select`,{"aria-label":u(`Draft`),value:t??``,onChange:t=>S(e,t.target.value),children:e.map(e=>{let t=H(e.source);return(0,Q.jsx)(`option`,{value:e.id,children:typeof t==`string`?u(`Untitled draft`):`${t.name} ${t.version}`},e.id)})}),(0,Q.jsx)(`span`,{className:`spacer`}),o&&(0,Q.jsxs)(`button`,{onClick:()=>T.setState({folded:!0}),title:u(`Fold the workshop to the side`),children:[`⇥ `,u(`Table`)]}),(0,Q.jsx)(`button`,{onClick:te,"aria-label":u(`Close the workshop`),children:`✕`})]}),r?(0,Q.jsxs)(`div`,{className:`workshop-body`,children:[(0,Q.jsxs)(`div`,{className:`workshop-code`,children:[(0,Q.jsxs)(`div`,{className:`workshop-tools`,children:[(0,Q.jsx)(`button`,{className:`primary`,onClick:()=>void D(),title:u(`Save (Ctrl+S)`),children:u(`Save`)}),k?(0,Q.jsx)(ht,{draft:r,save:D}):(0,Q.jsx)(jt,{save:D}),!k&&(0,Q.jsx)(`button`,{onClick:()=>void x(),disabled:!!y,title:u(`Check the types, load it, and let a bot play two rounds`),children:u(y?`Checking…`:`Check`)}),(0,Q.jsx)(`span`,{className:`spacer`}),(0,Q.jsx)(`button`,{onClick:()=>S(e,null),children:u(`New draft`)}),(0,Q.jsx)(`button`,{onClick:ee,children:u(`Delete`)})]}),l&&(0,Q.jsx)(`p`,{className:`workshop-note${l.bad?` bad`:``}`,role:l.bad?`alert`:`status`,children:l.text}),!k&&(y||g)&&(0,Q.jsx)(Ct,{steps:y??g.steps,verdict:y?null:g,stale:!!g&&g.source!==r.source,onClose:()=>_(null)}),(0,Q.jsx)(wt,{draft:r}),k&&(0,Q.jsx)(ut,{draft:r,onLine:h}),(0,Q.jsx)(P.Suspense,{fallback:(0,Q.jsx)(`div`,{className:`workshop-editor`,children:u(`Loading the editor…`)}),children:(0,Q.jsx)(vt,{doc:r.source,onChange:w,onSave:()=>void D(),label:u(`The package's code`),mark:m})})]}),(0,Q.jsxs)(`aside`,{className:`workshop-side`,children:[(0,Q.jsx)(`div`,{className:`tabs`,role:`tablist`,children:(k?[[`army`,u(`Army`)],[`table`,u(`Test table`)],[`export`,u(`Export`)]]:[[`table`,u(`Test table`)],[`soak`,u(`Soak bot`)],[`export`,u(`Export`)],[`sdk`,u(`SDK`)]]).map(([e,t])=>(0,Q.jsx)(`button`,{role:`tab`,"aria-selected":s===e,onClick:()=>c(e),children:t},e))}),s===`army`&&k&&(0,Q.jsx)(pt,{draft:r,onEdit:w,onPick:t=>S(e.map(e=>e.id===r.id?{...e,army:t}:e),r.id)}),s===`table`&&(0,Q.jsx)(Mt,{pack:k}),s===`soak`&&!k&&(0,Q.jsx)(Nt,{draft:r}),s===`export`&&k&&(0,Q.jsx)(gt,{draft:r}),s===`export`&&!k&&typeof O!=`string`&&O&&(0,Q.jsx)(Pt,{draft:r}),s===`export`&&typeof O==`string`&&(0,Q.jsx)(`p`,{children:O}),s===`sdk`&&!k&&(0,Q.jsx)(Ft,{})]})]}):(0,Q.jsx)(xt,{onPick:C})]})}function xt({onPick:e}){let[t,n]=(0,P.useState)(``),[r,i]=(0,P.useState)(null);return(0,Q.jsxs)(`div`,{className:`workshop-start`,children:[(0,Q.jsx)(`p`,{children:u(`Write a whole game as one JavaScript file: its rules as data, with code where data won't do. Start from a template; the test table plays it as you go.`)}),(0,Q.jsx)(`div`,{className:`workshop-templates`,children:yt.map(t=>(0,Q.jsxs)(`button`,{className:`workshop-template`,onClick:()=>e(t.source),children:[(0,Q.jsx)(`strong`,{children:t.name()}),(0,Q.jsx)(`span`,{children:t.what()})]},t.id))}),(0,Q.jsxs)(`form`,{className:`workshop-link`,onSubmit:n=>{n.preventDefault(),i(null),St(t).then(e,e=>i(e.message))},children:[(0,Q.jsxs)(`label`,{children:[u(`Open from a link`),(0,Q.jsx)(`input`,{type:`url`,value:t,placeholder:_t,onChange:e=>n(e.target.value),required:!0})]}),(0,Q.jsx)(`button`,{type:`submit`,children:u(`Open`)}),r&&(0,Q.jsx)(`p`,{className:`error`,children:r})]}),(0,Q.jsxs)(`p`,{children:[(0,Q.jsx)(`a`,{href:W,target:`_blank`,rel:`noreferrer`,children:u(`Community modules`)}),` · `,(0,Q.jsx)(`a`,{href:`${W.replace(`community-modules`,`packages`)}`,target:`_blank`,rel:`noreferrer`,children:u(`How packages work`)})]})]})}async function St(e){let t=e.replace(/^https:\/\/github\.com\/([^/]+\/[^/]+)\/blob\//,`https://raw.githubusercontent.com/$1/`),n;try{n=await fetch(t)}catch{throw Error(u(`Couldn't fetch that link (it may not allow other sites to read it).`))}if(!n.ok)throw Error(u(`That link answered {status}.`,{status:n.status}));let r=await n.text();if(r.length>1048576)throw Error(u(`That's too big for a module.`));let i=H(r);if(typeof i==`string`)throw Error(u(`That isn't a rules package: {why}`,{why:i}));return r}function Ct({steps:e,verdict:t,stale:n,onClose:r}){let i=t?t.ok?u(`Ready to share: nothing wrong found.`):u(`Not ready yet: {summary}`,{summary:t.summary}):u(`Checking: types, loading, then a short bot game…`);return(0,Q.jsxs)(`div`,{className:`workshop-check${t?t.ok?` ok`:` bad`:``}`,role:`status`,"aria-live":`polite`,children:[(0,Q.jsxs)(`div`,{className:`row spread`,children:[(0,Q.jsxs)(`strong`,{children:[t?t.ok?`✓ `:`✗ `:``,i]}),t&&(0,Q.jsx)(`button`,{className:`quiet`,onClick:r,title:u(`Hide`),children:`✕`})]}),n&&(0,Q.jsx)(`p`,{className:`muted small`,children:u(`The draft has changed since: check again.`)}),(0,Q.jsx)(`ul`,{children:e.map(e=>(0,Q.jsxs)(`li`,{className:e.ok===null?`skip`:e.ok?`ok`:`bad`,children:[e.ok===null?`–`:e.ok?`✓`:`✗`,` `,e.text]},e.id))})]})}function wt({draft:e}){let t=(0,P.useMemo)(()=>U(e.source),[e.source]),n=M(e=>e.error),r=f(e=>e.session!==null),i=[...t,...r&&n?[n]:[]];return i.length?(0,Q.jsx)(`ul`,{className:`workshop-problems`,"aria-label":u(`Problems`),children:i.map(e=>(0,Q.jsxs)(`li`,{children:[`⚠ `,e]},e))}):null}function Tt(e){let t=()=>f.getState().game.packages?.packages.some(t=>t.hash===e)??!1;if(!t())return v.getState().remove(e);let n=f.subscribe(()=>{t()||(n(),v.getState().remove(e))})}function Et(e){let t=e.packages[0]?.provides?.app;return JSON.stringify(t?[t.samples,t.armies,t.missions,t.layout]:null)}var $={table:null,last:null},Dt=e=>void($.last=e),Ot=()=>void($.table=$.last);function kt(){return new Promise(e=>{let t=M.getState().status===`starting`,n=t=>{r(),clearTimeout(i),e(t)},r=M.subscribe(e=>{e.status===`starting`?t=!0:t&&n(e.status===`on`?e.error:e.error??u(`the rules stopped`))}),i=setTimeout(()=>n(null),1e4)})}function At(e){let t=v.getState().packages[e];t&&f.getState().dispatch({type:`game/packages`,app:p,system:{id:t.manifest.systems[0],builtIn:!1},packages:[ne(t)]})}function jt({save:e}){let t=f(e=>e.session!==null),[n,r]=(0,P.useState)(!1),i=async()=>{let t=await e();Ot();let n=t?v.getState().packages[t]:void 0;if(!n)return;r(!0);let i=f.getState();i.session&&(i.session.leave(),f.setState({session:null,role:null,scrub:null,selected:null,draft:null}));let o=n.manifest.systems[0];f.getState().start({role:`host`,mode:`hotseat`,name:localStorage.getItem(`open-battle:name`)??``,system:o}),At(n.hash);let s=0,c=()=>{let{game:e,dispatch:t}=f.getState(),n=M.getState();if(n.status===`stopped`)return r(!1);if(n.status!==`on`||!C(o)||e.system!==o||a(e).length<2){s++<200?setTimeout(c,50):r(!1);return}k.initial=f.getState().record.initial,O(()=>f.getState().game,t,crypto.randomUUID().slice(0,6)),f.getState().dispatch({type:`turn/next`}),r(!1)};c()};return(0,Q.jsx)(`button`,{onClick:()=>void i(),disabled:n,children:u(n?`Setting up…`:t?`Restart the test table`:`Test table`)})}function Mt({pack:e}){let t=f(e=>e.session!==null),n=M(e=>e.status),r=M(e=>e.error),a=f(e=>e.record),o=ue(),s=(0,P.useMemo)(()=>t?x(a).filter(e=>e.kind===`line`&&!e.undone).slice(-12).reverse():[],[t,a]);return t?(0,Q.jsxs)(`div`,{className:`workshop-table`,children:[(0,Q.jsxs)(`p`,{className:r&&n!==`starting`?`bad`:void 0,children:[u(e&&n!==`starting`&&!r?`Your army is on the table with the pack on it.`:n===`on`&&!r?`Your rules are running.`:n===`starting`?`Starting your rules…`:`Your rules aren't running.`),r&&n!==`starting`&&(0,Q.jsxs)(Q.Fragment,{children:[` `,r]})]}),(0,Q.jsx)(`p`,{children:(0,Q.jsx)(`button`,{onClick:le,children:i(o.length,`{n} table warning`,`{n} table warnings`,{n:o.length})})}),(0,Q.jsx)(`h3`,{children:u(`Dice and log`)}),(0,Q.jsx)(`ol`,{className:`workshop-log`,children:s.map(e=>(0,Q.jsx)(`li`,{children:e.kind===`line`?e.text:``},e.key))})]}):(0,Q.jsx)(`p`,{children:u(e?`Test table starts a game on this screen: the army you build against, with the pack on it, against a sample army. Every save puts the pack's new rules on it.`:`Test table starts a game of your draft on this screen with each side's sample army. Every save reloads it there.`)})}function Nt({draft:e}){let[t,n]=(0,P.useState)([]),[r,i]=(0,P.useState)(!1),a=async()=>{i(!0),n([]),await Me(e.source,[1,2,3],e=>n(t=>[...t,e])),i(!1)};return(0,Q.jsxs)(`div`,{className:`workshop-soak`,children:[(0,Q.jsx)(`p`,{children:u(`The soak bot plays whole games of your draft with random legal moves, over pretend peers, and checks every table stays the same and nothing throws.`)}),(0,Q.jsx)(`button`,{onClick:()=>void a(),disabled:r||U(e.source).length>0,children:u(r?`Playing…`:`Play 3 bot games`)}),(0,Q.jsx)(`ul`,{children:t.map(e=>(0,Q.jsx)(`li`,{className:e.ok?`ok`:`bad`,children:e.ok?e.finished?u(`Game {seed}: fine, played to the end in {steps} moves.`,{seed:e.seed,steps:e.steps}):u(`Game {seed}: fine for {steps} moves, stopped in round {round}.`,{seed:e.seed,steps:e.steps,round:e.round}):u(`Game {seed} went wrong: {why}`,{seed:e.seed,why:e.failures[0]??``})},e.seed))})]})}function Pt({draft:e}){let[t,n]=(0,P.useState)(null),[r,i]=(0,P.useState)(``),[a,o]=(0,P.useState)(!1),s=H(e.source);return(0,P.useEffect)(()=>{let t=!0;return crypto.subtle.digest(`SHA-256`,new TextEncoder().encode(e.source)).then(e=>{t&&n(Array.from(new Uint8Array(e)).map(e=>e.toString(16).padStart(2,`0`)).join(``))}),()=>{t=!1}},[e.source]),typeof s==`string`?(0,Q.jsx)(`p`,{children:s}):(0,Q.jsxs)(`div`,{className:`workshop-export`,children:[(0,Q.jsxs)(`p`,{children:[u(`{name} {version}`,{name:s.name,version:s.version}),t&&(0,Q.jsxs)(Q.Fragment,{children:[` · `,(0,Q.jsx)(`code`,{title:t,children:_(t)})]})]}),(0,Q.jsx)(`button`,{className:`primary`,onClick:()=>{w(new Blob([e.source],{type:`text/javascript`}),De(s))},children:u(`Download the package`)}),(0,Q.jsx)(`p`,{className:`hint`,children:u(`Players load the file in Rules packages; peers check they have the same bytes by this fingerprint.`)}),(0,Q.jsx)(`h3`,{children:u(`Share it in the gallery`)}),(0,Q.jsx)(`p`,{className:`hint`,children:u(`To host it: make a gist at gist.github.com, paste the file in, save, and copy its Raw link. A file in a GitHub repository works too (its Raw button).`)}),(0,Q.jsxs)(`label`,{children:[u(`Where the file is hosted (a raw link)`),(0,Q.jsx)(`input`,{type:`url`,value:r,placeholder:_t,onChange:e=>i(e.target.value)})]}),(0,Q.jsx)(`button`,{disabled:!t,onClick:()=>void navigator.clipboard.writeText(Ae(s,t,r)).then(()=>{o(!0),setTimeout(()=>o(!1),2e3)}),children:u(a?`Copied`:`Copy the pull request text`)}),` `,(0,Q.jsx)(`a`,{href:ke,target:`_blank`,rel:`noreferrer`,children:u(`Edit the gallery on GitHub`)})]})}function Ft(){let e=(e,t)=>(0,Q.jsxs)(Q.Fragment,{children:[(0,Q.jsx)(`h3`,{children:e}),(0,Q.jsx)(`dl`,{className:`workshop-ref`,children:t.map(e=>(0,Q.jsxs)(`div`,{children:[(0,Q.jsx)(`dt`,{children:(0,Q.jsxs)(`code`,{children:[e.label,e.detail&&e.detail!==`snippet`?` ${e.detail}`:``]})}),(0,Q.jsx)(`dd`,{children:typeof e.info==`string`?e.info:``})]},e.label))})]});return(0,Q.jsxs)(`div`,{className:`workshop-sdk`,children:[(0,Q.jsx)(`p`,{children:u(`Everything a package can use. In the editor, type ctx. or view. for suggestions.`)}),e(u(`Commands a rule yields (ctx.)`),fe),e(u(`The game as it stands (view.)`),pe),e(u(`Keys and snippets`),me),(0,Q.jsx)(`p`,{children:(0,Q.jsx)(`a`,{href:`${W.replace(`community-modules`,`packages`)}`,target:`_blank`,rel:`noreferrer`,children:u(`How packages work`)})}),(0,Q.jsxs)(`details`,{children:[(0,Q.jsx)(`summary`,{children:u(`The full types`)}),(0,Q.jsx)(`pre`,{children:ve})]})]})}export{bt as Workshop,he as n,V as t};
