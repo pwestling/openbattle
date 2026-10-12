@@ -27,14 +27,7 @@ const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
 const CLASSIC = new Set([
-  "clip-options",
-  "move-legs",
-  "card-actions",
-  "card-widths",
   "hotseat-resume",
-  "solo-saves",
-  "solo-own-army",
-  "p2p-host-join",
   "live-now",
   "ranked",
   "ranked-refusal",
@@ -347,6 +340,99 @@ async function footer(page) {
 async function moreWays(page) {
   if (page.ui === "classic") await page.locator("summary", { hasText: "More ways to play" }).click();
   else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
+}
+
+/** Where the phase stands: the round and the phase lit on the new layout's rail (or the classic top bar's turn). */
+const phaseKey = (page) =>
+  page.ui === "classic"
+    ? page.locator(".topbar .turn strong").textContent()
+    : page.evaluate(
+        () =>
+          `${document.querySelector(".obn-round")?.textContent} · ${document.querySelector(".obn-rail .on")?.textContent} · ${document.querySelector(".obn-side.on")?.textContent}`,
+      );
+
+/**
+ * On to the next phase, as a player does: the top bar's Next phase (classic), or the step bar's Done / End
+ * turn (new layout), answering "… anyway". A phase both sides play at once takes a Done from each.
+ */
+async function phaseDone(page) {
+  if (page.ui === "classic") {
+    await page.locator('.topbar button[title="Next phase"]').click();
+    const anyway = page.locator(".topbar .ask button.primary");
+    if (await anyway.count()) await anyway.click();
+    return page.waitForTimeout(300);
+  }
+  const before = await phaseKey(page);
+  for (let i = 0; i < 6 && (await phaseKey(page)) === before; i++) {
+    await barStep(page);
+    await page.waitForTimeout(300);
+  }
+}
+
+/**
+ * The step bar's way on (new layout): Done or End turn, else its lit step (Score, Pass…), answering "… anyway".
+ * Returns what it pressed, or null when the bar offers nothing (waiting on the other side).
+ */
+async function barStep(page, timeout = 10_000) {
+  const anyway = page.locator(".obn-ask button", { hasText: /anyway$/ });
+  if (await anyway.count()) {
+    await anyway.click();
+    return "anyway";
+  }
+  const done = page.locator(".obn-bar .obn-buttons button", { hasText: /^(Done|End turn)/ }).last();
+  const lit = page.locator(".obn-bar .obn-buttons button.obn-lit").first();
+  // A reaction you may make: let it go by.
+  const pass = page.locator(".obn-bar .obn-buttons button", { hasText: /^Pass$/ });
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeout) {
+    for (const b of [done, lit, pass]) {
+      if (await b.count()) {
+        const label = await b.textContent();
+        await b.click({ timeout: 2000 }).catch(() => {});
+        if (await anyway.count()) await anyway.click();
+        return label;
+      }
+    }
+    await page.waitForTimeout(200);
+  }
+  if (process.env.SMOKE_SHOTS)
+    await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "bar-stuck.png") });
+  throw new Error(`the step bar offers no way on: ${await page.locator(".obn-bar").innerText()}`);
+}
+
+/** Into the battle with the showcase over and nothing open: the table is the player's. */
+async function battleOn(page) {
+  await roundOne(page, 20_000);
+  await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
+  await page.keyboard.press("Escape");
+}
+
+/** A guest opening an invite gives their name: asked at once, while the table connects (UX 403). */
+async function joinAs(page, name) {
+  if (page.ui === "classic") {
+    await page.getByText(/What should the others call you/).waitFor({ timeout: 10_000 });
+    await page.getByPlaceholder("Your name").fill(name);
+    return page.getByRole("button", { name: "Use this name" }).click();
+  }
+  await page.getByPlaceholder(/What should the others call you/).fill(name);
+  await page.getByRole("button", { name: /^Join the table/ }).click();
+}
+
+/** "⋯ Game" opened: in the new layout it sits in the ⋯ menu. */
+async function gameMenu(page) {
+  if (page.ui !== "classic") await page.locator(".obn-menu").click();
+  await page.getByRole("button", { name: "⋯ Game" }).click();
+}
+
+/** Against the computer at Easy, with the sample army: Start. */
+async function startEasy(page, title = "Sci-fi battle") {
+  await playComputer(page, title);
+  if (page.ui === "classic") {
+    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
+    return page.locator(".your-army button").first().click();
+  }
+  await page.locator(".obn-levels [role=radio]", { hasText: /^Easy/ }).click();
+  await page.locator("#obn-ready .obn-lit").click();
 }
 
 /** The battle's first round has begun, in either UI. */
@@ -764,18 +850,11 @@ const checks = {
   async "clip-options"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    for (let i = 0; i < 12; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(150);
-    }
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    for (let i = 0; i < 12; i++) await phaseDone(page);
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "⋯ Game" }).click();
+    await gameMenu(page);
     await page.getByRole("menuitem", { name: "Download replay" }).click();
     const path = join(files, "clip.json");
     await (await download).saveAs(path);
@@ -803,13 +882,9 @@ const checks = {
   async "move-legs"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    await page.locator('.topbar button[title="Next phase"]').click();
-    const anyway = page.locator(".topbar .ask button.primary");
-    if (await anyway.count()) await anyway.click();
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    await phaseDone(page);
     await page.keyboard.press("]");
     await sleep(1500);
     // The selected unit's plate: the one named as the card is.
@@ -870,16 +945,9 @@ const checks = {
   async "card-actions"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    const next = async () => {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(300);
-    };
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    const next = () => phaseDone(page);
     await next(); // Movement
     await next(); // Shooting
     await page
@@ -892,6 +960,9 @@ const checks = {
     await page.locator(".panel.attack .volley").waitFor();
     await page.locator(".panel.attack").getByRole("button", { name: "Cancel" }).click();
     await next(); // Charge
+    // The new layout leaves the table clear after Cancel: pick the unit again.
+    if (page.ui !== "classic" && !(await page.locator(".panel.unitcard").count()))
+      await page.keyboard.press("]");
     // With nothing within 12" the button says so and asks "Charge anyway?" (UX 434).
     await page.getByRole("button", { name: /^Charge(: no enemy| \(2D6\))/ }).click();
     await page
@@ -915,10 +986,10 @@ const checks = {
     const { page, context } = await device();
     for (const demo of ["Full Spectrum Dominance", "Conquest", "Rank and flank"]) {
       await lobby(page);
-      await tryDemo(page, page.locator(".demos .demo", { hasText: demo }));
+      await tryDemo(page, page.ui === "classic" ? page.locator(".demos .demo", { hasText: demo }) : demo);
       await page
-        .locator(".topbar")
-        .getByText(/Round 1|Deploy/)
+        .locator(page.ui === "classic" ? ".topbar" : ".obn-strip")
+        .getByText(/Round 1|Deploy|Setting up/i)
         .first()
         .waitFor({ timeout: 20000 });
       await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
@@ -941,6 +1012,8 @@ const checks = {
             : null;
         });
         if (over) throw new Error(`${demo}: ${over}`);
+        // The new layout keeps the stats under one disclosure (naive players): only their width is checked.
+        if (page.ui !== "classic") continue;
         // The stats sit under the name, not below the regiment's manoeuvres (UX 401).
         const low = await page.evaluate(() => {
           const card = document.querySelector(".panel.unitcard");
@@ -993,14 +1066,10 @@ const checks = {
   async "solo-saves"() {
     const { page, context } = await device();
     await lobby(page);
-    await playComputer(page, "Sci-fi battle");
-    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
-    await page.locator(".your-army button").first().click();
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
+    await startEasy(page);
+    await battleOn(page);
     // Pass through your turn, phase by phase, until the computer shoots at you.
-    const saves = page.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
+    const saves = page.locator(".panel.attack button:enabled", { hasText: /^Roll saves?\b/ });
     const deadline = Date.now() + 150000;
     for (;;) {
       if (Date.now() > deadline) {
@@ -1009,6 +1078,11 @@ const checks = {
         throw new Error("the computer never shot at you in its first turn");
       }
       if (await saves.count()) break;
+      if (page.ui !== "classic") {
+        await barStep(page, 500).catch(() => {});
+        await page.waitForTimeout(500);
+        continue;
+      }
       const anyway = page.locator(".topbar .ask button.primary");
       const next = page.locator('.topbar button[title="Next phase"]');
       if (await anyway.count()) await anyway.click().catch(() => {});
@@ -1022,7 +1096,13 @@ const checks = {
     await saves.waitFor({ state: "detached", timeout: 15000 });
     // Resume names the computer's level from the saved game, not its side's name (UX 439).
     await lobby(page);
-    await page.locator(".resume-top").getByText("Against the computer (Easy)").waitFor();
+    if (page.ui === "classic")
+      await page.locator(".resume-top").getByText("Against the computer (Easy)").waitFor();
+    else
+      await page
+        .locator(".obn-resume")
+        .getByText(/round 1/)
+        .waitFor();
     if (page.errors.length) throw new Error(page.errors[0]);
     await context.close();
   },
@@ -1034,36 +1114,57 @@ const checks = {
   async "solo-own-army"() {
     const { page, context } = await device();
     await lobby(page);
-    await playComputer(page, "Sci-fi battle");
-    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
-    await page
-      .locator(".your-army input[type=file]")
-      .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
-    // One line to check first (UX 408): the army, its size, the computer's.
-    await page
-      .locator(".army-check")
-      .getByText(/Test Muster · \d+ units · 165 pts · the list itself says 335 pts/)
-      .waitFor();
-    // About 4 to 1 against the computer's sample is said in words, with a way to even it (PX re-check of #56).
-    await page
-      .locator(".your-army .warn")
-      .getByText(/The computer's army is about \d+ times yours/)
-      .waitFor();
-    await page.getByRole("button", { name: "Save to shelf" }).click();
-    await page.getByRole("button", { name: "Match my points" }).click();
-    // It says what the computer now fields and leaves Start to the player (PX re-check of #56).
-    await page
-      .locator(".army-check")
-      .getByText(/the computer's is [1-3]\d\d pts/)
-      .waitFor();
-    if (await page.getByText(/The computer's army is about/).count())
-      throw new Error("still lopsided after matching");
-    await page.getByRole("button", { name: "Start", exact: true }).click();
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
+    if (page.ui === "classic") {
+      await playComputer(page, "Sci-fi battle");
+      await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
+      await page
+        .locator(".your-army input[type=file]")
+        .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
+      // One line to check first (UX 408): the army, its size, the computer's.
+      await page
+        .locator(".army-check")
+        .getByText(/Test Muster · \d+ units · 165 pts · the list itself says 335 pts/)
+        .waitFor();
+      // About 4 to 1 against the computer's sample is said in words, with a way to even it (PX re-check of #56).
+      await page
+        .locator(".your-army .warn")
+        .getByText(/The computer's army is about \d+ times yours/)
+        .waitFor();
+      await page.getByRole("button", { name: "Save to shelf" }).click();
+      await page.getByRole("button", { name: "Match my points" }).click();
+      // It says what the computer now fields and leaves Start to the player (PX re-check of #56).
+      await page
+        .locator(".army-check")
+        .getByText(/the computer's is [1-3]\d\d pts/)
+        .waitFor();
+      if (await page.getByText(/The computer's army is about/).count())
+        throw new Error("still lopsided after matching");
+      await page.getByRole("button", { name: "Start", exact: true }).click();
+      await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+      await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
+        timeout: 30000,
+      });
+      await page.keyboard.press("Escape");
+    } else {
+      // The new door (UX N1): the list read is a choice of its own, and matching points is one tick.
+      await playComputer(page, "Sci-fi battle");
+      await page.locator(".obn-levels [role=radio]", { hasText: /^Easy/ }).click();
+      await page
+        .locator("#obn-ready input[type=file]")
+        .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
+      await page
+        .locator("#obn-ready [role=radio][aria-checked=true]", { hasText: "Test Muster" })
+        .getByText(/Just read · \d+ units · 165 pts/)
+        .waitFor();
+      await page
+        .locator("#obn-ready .obn-tick", { hasText: /match my points/ })
+        .locator("input")
+        .check();
+      await page.locator("#obn-ready .obn-lit").click();
+      await battleOn(page);
+    }
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "⋯ Game" }).click();
+    await gameMenu(page);
     await page.getByRole("menuitem", { name: "Download replay" }).click();
     const path = join(files, "solo.json");
     await (await download).saveAs(path);
@@ -1097,12 +1198,17 @@ const checks = {
     await host.page.locator(".room").waitFor();
     await guest.page.goto(host.page.url());
     // The name is asked at once, while the table connects (UX 403), and used once seated.
-    await guest.page.getByText(/What should the others call you/).waitFor({ timeout: 10_000 });
-    await guest.page.getByPlaceholder("Your name").fill("Ben");
-    await guest.page.getByRole("button", { name: "Use this name" }).click();
+    await joinAs(guest.page, "Ben");
     await host.page.locator(".room").getByText("connected").waitFor({ timeout: 30_000 });
-    await guest.page.locator(".topbar .player").nth(1).waitFor();
-    await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 15_000 });
+    await guest.page
+      .locator(guest.page.ui === "classic" ? ".topbar .player" : ".obn-strip .obn-side")
+      .nth(1)
+      .waitFor();
+    await host.page
+      .locator(host.page.ui === "classic" ? ".topbar" : ".obn-strip")
+      .getByText("Ben")
+      .first()
+      .waitFor({ timeout: 15_000 });
     await host.context.close();
     await guest.context.close();
     return [...host.page.errors, ...guest.page.errors];
@@ -3397,7 +3503,7 @@ const checks = {
           .first()
           .click({ timeout: 3000 })
           .catch(() => {});
-      const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
+      const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves?\b/ });
       if (await own.count()) {
         await own.first().click();
         pressed = true;
