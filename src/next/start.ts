@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { armSolo } from "../bot/solo";
+import type { OwnArmy } from "../bot/startSolo";
 import { BROADCAST } from "../broadcast/broadcast";
 import { EXHIBITION, startExhibition } from "../broadcast/exhibition";
 import { installOwnGame, ownGame, playOwnAtTable, playOwnGame } from "../games/riftLanterns";
@@ -106,10 +107,10 @@ export function joinRoom(roomId: string, name: string, role: "client" | "spectat
 }
 
 /** Both sides on this screen: the sample armies set up where there are any, else an empty table. */
-export function bothSides(system: string, name: string): void {
+export function bothSides(system: string, name: string, near?: OwnArmy): void {
   remember(name, system);
-  if (ownGame(system)) return void playOwnGame(system);
-  if (FRONT[system]) return startDemo(system);
+  if (ownGame(system)) return void playOwnGame(system, near);
+  if (FRONT[system]) return startDemo(system, near);
   useStore.getState().start({ role: "host", mode: "hotseat", name, system });
   namePackage(system);
   presetMission();

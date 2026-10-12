@@ -41,7 +41,8 @@ export function App() {
   const eventOpen = useEventOpen((s) => s.id !== null || s.running);
   const runsEvents = useRunsEvents((s) => s.on);
   // The address follows the screens, from here on: the front door has rejoined a reloaded game by now (children's effects run first).
-  useEffect(watchRoute, []);
+  // ui-next's door loads in its own chunk, after this: NextApp watches the route itself, once its door is up.
+  useEffect(() => (NEXT ? undefined : watchRoute()), []);
   useEffect(() => {
     const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
     idle(() => {

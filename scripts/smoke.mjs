@@ -5,6 +5,10 @@
 //   pnpm smoke                 build, then run every check
 //   pnpm smoke --no-build      use the dist/ already built
 //   pnpm smoke lesson offline  run only the named checks
+//   pnpm smoke --classic       run every check in the classic UI (?ui=classic)
+//
+// Checks run in the new UI (ui-next, the default) unless they're in CLASSIC
+// below: those still walk the classic screens, until they're ported.
 //
 // CHROMIUM=/path/to/chrome picks the browser; otherwise playwright-core's own
 // (CI runs `npx playwright-core install --with-deps chromium` first).
@@ -21,6 +25,48 @@ const BASE = `http://localhost:${PORT}/`;
 const SIGNAL = `signal=${encodeURIComponent(`ws://localhost:${RELAY}`)}`;
 const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
+/** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
+const CLASSIC = new Set([
+  "clip-options",
+  "move-legs",
+  "card-actions",
+  "card-widths",
+  "hotseat-resume",
+  "solo-saves",
+  "solo-own-army",
+  "p2p-host-join",
+  "live-now",
+  "ranked",
+  "ranked-refusal",
+  "events",
+  "standees",
+  "photo-match",
+  "companion-invite",
+  "phone-table",
+  "tablet-touch",
+  "campaign",
+  "tts-table",
+  "tts-short-edges",
+  "arrive",
+  "tts-controls",
+  "tts-board-turn",
+  "tts-cards",
+  "tts-online",
+  "declutter",
+  "table-verbs",
+  "stratagem-hand",
+  "drag-charge",
+  "table-keys",
+  "reroll-card",
+  "reactions",
+  "volley",
+  "planning",
+  "dice-myself",
+  "stratagem-tab",
+  "qd6-card",
+]);
+/** The UI the running check's browsers open in: "next" or "classic". */
+let ui = "next";
 
 if (!args.includes("--no-build")) execFileSync("pnpm", ["build"], { stdio: "inherit" });
 
@@ -166,26 +212,72 @@ async function nextPhase(pages) {
   await pages[0].locator('.topbar button[title="Next phase"]').click({ timeout: 10_000 });
 }
 
-async function device(options = {}) {
+async function device({ ui: _ui, ...options } = {}) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 860 }, ...options });
+  // The UI is kept per browser (src/next/flag.ts): set before the first page loads.
+  const want = _ui ?? ui;
+  await context.addInitScript((v) => {
+    try {
+      if (!localStorage.getItem("open-battle:ui")) localStorage.setItem("open-battle:ui", v);
+    } catch {
+      // Storage blocked: the default (next) shows.
+    }
+  }, want);
   const page = await context.newPage();
+  page.ui = want;
   page.errors = [];
   page.on("pageerror", (e) => page.errors.push(e.message));
   page.on("dialog", (d) => void d.accept());
   return { context, page };
 }
 
+const WHO = {
+  classic: {
+    friend: ".who-pick.friend",
+    solo: ".who-pick.solo",
+    try: ".who-pick.try",
+    table: ".who-pick.table",
+  },
+  next: {
+    friend: "A friend online",
+    solo: "The computer",
+    try: "Both sides, this screen",
+    table: "A real table, your models",
+  },
+};
+
+/** Who against, in either UI: friend, solo (the computer), try (both sides here) or table. */
+async function who(page, kind, tap = false) {
+  const go = (l) => (tap ? l.tap() : l.click());
+  if (page.ui === "classic") return go(page.locator(WHO.classic[kind]));
+  await go(page.locator("#obn-who [role=radio]", { hasText: WHO.next[kind] }));
+}
+
+/** The front door's one lit button, once the flow is answered. */
+async function flowGo(page, tap = false) {
+  const go = page.locator(page.ui === "classic" ? ".flow-go" : "#obn-ready .obn-lit");
+  await (tap ? go.tap() : go.click());
+}
+
+/** The name field of the front door's Get ready, in either UI. */
+const flowName = (page) => page.locator(page.ui === "classic" ? ".flow-name input" : "#obn-ready input");
+
 /** The front door's flow (UX 513): a game's card, "Both sides, on this screen", then Set up both sides. */
 async function tryDemo(page, card, tap = false) {
-  const go = (l) => (tap ? l.tap() : l.click());
   await pickGame(page, card, tap);
-  await go(page.locator(".who-pick.try"));
-  await go(page.locator(".flow-go"));
+  await who(page, "try", tap);
+  await flowGo(page, tap);
 }
 
 /** Pick a game on the front door by its card (a locator) or its title; the others fold under More games (UX 504). */
 async function pickGame(page, card, tap = false) {
   const go = (l) => (tap ? l.tap() : l.click());
+  if (page.ui !== "classic") {
+    if (typeof card !== "string") return go(card);
+    const pick = page.locator("#obn-game [role=radio]", { hasText: card }).first();
+    if (!(await pick.isVisible())) await go(page.locator("#obn-game .obn-link", { hasText: "More games" }));
+    return go(pick);
+  }
   if (typeof card === "string") card = page.locator(".game-pick", { hasText: card }).first();
   if (!(await card.isVisible())) await go(page.locator(".more-games > summary"));
   await go(card);
@@ -194,18 +286,19 @@ async function pickGame(page, card, tap = false) {
 /** Who against: the computer, for this game (UX 513). */
 async function playComputer(page, title) {
   await pickGame(page, title);
-  await page.locator(".who-pick.solo").click();
+  await who(page, "solo");
 }
 
 /** At a real table: the phones are picked in Get ready, with a name for a phone each (UX 513). */
 async function atTable(page, phones, tap = false, name = "Ana", title = "Sci-fi battle") {
   const go = (l) => (tap ? l.tap() : l.click());
   await pickGame(page, title, tap);
-  await go(page.locator(".who-pick.table"));
-  await go(page.getByRole("radio", { name: phones }));
-  const box = page.locator(".flow-name input");
+  await who(page, "table", tap);
+  const choice = page.getByRole("radio", { name: phones });
+  if (await choice.count()) await go(choice);
+  const box = flowName(page);
   if ((await box.count()) && !(await box.inputValue())) await box.fill(name);
-  await go(page.locator(".flow-go"));
+  await flowGo(page, tap);
 }
 
 /** The name, asked when it's first needed (UX 517). */
@@ -225,28 +318,53 @@ async function answerName(page, name) {
 /** Host a game online from the front door: its card, A friend online, the name, Open the table (UX 513). */
 async function hostOnline(page, name, title = "Sci-fi battle") {
   await pickGame(page, title);
-  await page.locator(".who-pick.friend").click();
-  await page.locator(".flow-name input").fill(name);
-  await page.locator(".flow-go").click();
+  await who(page, "friend");
+  await flowName(page).fill(name);
+  await flowGo(page);
 }
 
-/** Open tables from the front door: under A friend online (UX 513). */
+/** Open tables: the new door's footer, or the classic door's A friend online (UX 513). */
 async function openTables(page) {
+  if (page.ui !== "classic")
+    return page.locator(".obn-foot").getByRole("button", { name: "Find an opponent" }).click();
   await pickGame(page, "Sci-fi battle");
-  await page.locator(".who-pick.friend").click();
+  await who(page, "friend");
   await page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+}
+
+/** At a game's table, in either UI. */
+const atGame = (page, timeout = 30_000) =>
+  page.locator(page.ui === "classic" ? ".topbar" : ".obn-strip").waitFor({ timeout });
+
+/** The front door's other ways to play, opened, in either UI. */
+async function moreWays(page) {
+  if (page.ui === "classic") await page.locator("summary", { hasText: "More ways to play" }).click();
+  else
+    await page
+      .locator(".obn-foot")
+      .getByRole("button", { name: /More ways to play/ })
+      .click();
+}
+
+/** The battle's first round has begun, in either UI. */
+async function roundOne(page, timeout = 30_000) {
+  await page
+    .locator(page.ui === "classic" ? ".topbar" : ".obn-strip .obn-round")
+    .getByText(/Round 1\b/i)
+    .first()
+    .waitFor({ timeout });
 }
 
 /** A name kept on this device, as if given before (the front door has no name field, UX 517). */
 async function presetName(page, name) {
   await page.evaluate((n) => localStorage.setItem("open-battle:name", n), name);
   await page.reload();
-  await page.locator(".lobby").waitFor();
+  await page.locator(".lobby, .obn-door").first().waitFor();
 }
 
 async function lobby(page, query = "") {
   await page.goto(BASE + query);
-  await page.locator(".lobby").waitFor();
+  await page.locator(".lobby, .obn-door").first().waitFor();
 }
 
 /** Two sample armies on the table, from the start of a game. */
@@ -387,17 +505,26 @@ const checks = {
   async "try-it-now"() {
     const { page, context } = await device();
     await lobby(page);
-    const demos = await page.locator(".demos .demo.game-pick").count();
+    // Every game with sample armies on both sides (the new door lists them all, some under More games).
+    const games =
+      page.ui === "classic"
+        ? null
+        : await (async () => {
+            await page.locator("#obn-game .obn-link", { hasText: "More games" }).click();
+            return page.locator("#obn-game [role=radio] strong").allTextContents();
+          })();
+    const demos = games ? games.length : await page.locator(".demos .demo.game-pick").count();
     if (demos < 4) throw new Error(`only ${demos} games to try`);
     for (let i = 0; i < demos; i++) {
       await lobby(page);
-      const card = page.locator(".demos .demo.game-pick").nth(i);
-      const name = await card.locator("strong").textContent();
+      const card = games ? games[i] : page.locator(".demos .demo.game-pick").nth(i);
+      const name = games ? games[i] : await card.locator("strong").textContent();
       await tryDemo(page, card);
-      await page.locator(".topbar").waitFor();
+      await atGame(page);
       await page.locator("canvas").first().waitFor();
       await page.waitForTimeout(1500);
-      if (!(await page.locator(".unitcard, .panel.hud").count())) throw new Error(`${name}: no panels`);
+      if (!(await page.locator(".unitcard, .panel.hud, .obn-bar").count()))
+        throw new Error(`${name}: no panels`);
       if (page.errors.length) throw new Error(`${name}: ${page.errors[0]}`);
       await page.evaluate(() => localStorage.clear());
     }
@@ -415,7 +542,7 @@ const checks = {
       if ((await hash()) !== h) throw new Error(`step ${step}: address ${await hash()}, not ${h}`);
     };
     await lobby(page);
-    await page.locator("summary", { hasText: "More ways to play" }).click();
+    await moreWays(page);
     await page.getByRole("button", { name: /Module workshop/ }).click();
     await want("#/workshop");
     await page.goBack();
@@ -429,21 +556,21 @@ const checks = {
     if ((await page.evaluate(() => history.state)) !== null) throw new Error("closing added a history entry");
     // A game: its address, kept by a reload, left with Back and come back to with Forward.
     await tryDemo(page, "Sci-fi battle");
-    await page.locator(".topbar").waitFor();
+    await atGame(page);
     await want("#/game");
     await page.reload();
-    await page.locator(".topbar").waitFor();
+    await atGame(page);
     await want("#/game");
     // Back is the front door with the choices that started it still open (UX 513).
     await page.goBack();
-    await page.locator(".lobby").waitFor();
+    await page.locator(".lobby, .obn-door").first().waitFor();
     await want("#/play/forty-k-11/both");
     await page.goForward();
-    await page.locator(".topbar").waitFor();
+    await atGame(page);
     // The table companion: in sight, a way out, and Back leaves it too (Porter: no way out).
     for (const out of ["menu", "back"]) {
       await lobby(page);
-      await atTable(page, "One phone for both of us");
+      await atTable(page, /One phone/);
       await page.locator(".companion").waitFor();
       await want("#/game");
       if (out === "back") await page.goBack();
@@ -451,28 +578,25 @@ const checks = {
         await page.locator(".companion-leave").getByRole("button", { name: /Game/ }).click();
         await page.getByRole("menuitem", { name: "Leave game" }).click();
       }
-      await page.locator(".lobby").waitFor();
+      await page.locator(".lobby, .obn-door").first().waitFor();
     }
     // Old links open their screen at its address.
     await lobby(page, "?play=rift-lanterns");
     await page
-      .locator(".game-pick.on, .game-pick[aria-checked=true]", { hasText: "Rift Lanterns" })
+      .locator(".game-pick.on, [role=radio][aria-checked=true]", { hasText: "Rift Lanterns" })
       .waitFor();
     await want("#/play/rift-lanterns");
     if ((await page.evaluate(() => location.search)) !== "") throw new Error("?play= kept after it was read");
     // An online room: its ?room= link, Back asks and leaves for the front door, Forward rejoins as host.
     await lobby(page, `?${SIGNAL}`);
-    await pickGame(page, "Sci-fi battle");
-    await page.locator(".who-pick.friend").click();
-    await page.locator(".flow-name input").fill("Ana");
-    await page.locator(".flow-go").click();
+    await hostOnline(page, "Ana");
     await page.locator(".room").waitFor();
     const room = new URL(page.url()).searchParams.get("room");
     if (!room) throw new Error("no ?room= in a hosted game's address");
     let asked = 0;
     page.on("dialog", () => asked++);
     await page.goBack();
-    await page.locator(".lobby").waitFor();
+    await page.locator(".lobby, .obn-door").first().waitFor();
     if (new URL(page.url()).searchParams.has("room")) throw new Error("Back kept the room");
     if (!asked) throw new Error("Back left an online game without asking");
     await page.goForward();
@@ -492,8 +616,18 @@ const checks = {
     const { page, context } = await device();
     await lobby(page);
     await tryDemo(page, "Rift Lanterns");
-    await page.locator(".topbar").waitFor();
+    await atGame(page);
     await page.locator("canvas").first().waitFor();
+    if (page.ui !== "classic") {
+      // The battle starts by itself on round 1, and the step bar says what to do.
+      await roundOne(page, 20_000);
+      await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
+        timeout: 30000,
+      });
+      await page.locator(".obn-bar .obn-say strong").first().waitFor();
+      if (page.errors.length) throw new Error(page.errors[0]);
+      return void (await context.close());
+    }
     // The battle starts by itself, Lantern Grab set, and "What can I do now?" open on round 1.
     await page.waitForFunction(
       () =>
@@ -519,7 +653,7 @@ const checks = {
   async workshop() {
     const { page, context } = await device();
     await lobby(page);
-    await page.locator("summary", { hasText: "More ways to play" }).click();
+    await moreWays(page);
     await page.getByRole("button", { name: /Module workshop/ }).click();
     await page.getByRole("button", { name: /Skirmish/ }).click();
     await page.locator(".cm-editor").waitFor();
@@ -581,7 +715,8 @@ const checks = {
     const { page, context } = await device();
     await lobby(page);
     await pickGame(page, "Sci-fi battle");
-    await page.locator(".lobby .learn").first().click();
+    if (page.ui === "classic") await page.locator(".lobby .learn").first().click();
+    else await page.getByRole("button", { name: /Learn with a coach/ }).click();
     await page.locator(".coach").waitFor();
     await page.getByRole("button", { name: "Got it" }).click();
     await page
@@ -595,14 +730,17 @@ const checks = {
   async hotseat() {
     const { page, context } = await device();
     await lobby(page);
-    await page.locator("summary", { hasText: "More ways to play" }).click();
-    await page.getByRole("button", { name: /hotseat/ }).click();
-    await page.locator(".panel.hud").waitFor();
-    await sampleArmies(page);
-    await page.getByRole("button", { name: /Start battle/ }).click();
-    await page.locator(".topbar").getByText("Round 1").waitFor();
+    if (page.ui === "classic") {
+      await page.locator("summary", { hasText: "More ways to play" }).click();
+      await page.getByRole("button", { name: /hotseat/ }).click();
+      await page.locator(".panel.hud").waitFor();
+      await sampleArmies(page);
+      await page.getByRole("button", { name: /Start battle/ }).click();
+    } else await tryDemo(page, "Sci-fi battle");
+    await roundOne(page);
     // A replay of this game, for the replay check.
     const download = page.waitForEvent("download");
+    if (page.ui !== "classic") await page.locator(".obn-menu").click();
     await page.getByRole("button", { name: "⋯ Game" }).click();
     await page.getByRole("menuitem", { name: "Download replay" }).click();
     await (await download).saveAs(join(files, "replay.json"));
@@ -1927,10 +2065,13 @@ const checks = {
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
     await context.setOffline(true);
     await page.reload();
-    await page.locator(".lobby").waitFor();
+    await page.locator(".lobby, .obn-door").first().waitFor();
     await page.getByText("You're offline").first().waitFor();
-    await tryDemo(page, page.locator(".demos .demo.game-pick").first());
-    await page.locator(".topbar").waitFor();
+    await tryDemo(
+      page,
+      page.ui === "classic" ? page.locator(".demos .demo.game-pick").first() : "Sci-fi battle",
+    );
+    await atGame(page);
     await context.close();
     return page.errors;
   },
@@ -1966,7 +2107,9 @@ const checks = {
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
     await page.locator("label.file", { hasText: "Open a file…" }).locator("input").setInputFiles(path);
-    await page.locator(".tts-import .tts-table").waitFor({ timeout: 10_000 });
+    await page
+      .locator(page.ui === "classic" ? ".tts-import .tts-table" : "#obn-save-h")
+      .waitFor({ timeout: 10_000 });
     await context.close();
     return page.errors;
   },
@@ -3492,14 +3635,14 @@ const checks = {
   async language() {
     const { page, context } = await device();
     await lobby(page);
-    await page.getByRole("button", { name: "Aa ▾" }).click();
+    const aa = page.getByRole("button", { name: /^Aa/ });
+    await aa.click();
     await page.locator(".language-picker select").selectOption("de");
-    await page.getByRole("heading", { name: "1. Was spielst du?" }).waitFor();
+    await page.getByRole("heading", { name: /Was spielst du\?/ }).waitFor();
     // The page redraws in the new language, closing the menu.
-    if (!(await page.locator(".language-picker select").isVisible()))
-      await page.getByRole("button", { name: "Aa ▾" }).click();
+    if (!(await page.locator(".language-picker select").isVisible())) await aa.click();
     await page.locator(".language-picker select").selectOption("fr");
-    await page.getByRole("heading", { name: "1. À quoi joues-tu ?" }).waitFor();
+    await page.getByRole("heading", { name: /À quoi joues-tu \?/ }).waitFor();
     await context.close();
     return page.errors;
   },
@@ -3508,6 +3651,7 @@ const checks = {
 let failed = 0;
 for (const [name, run] of Object.entries(checks)) {
   if (only.length && !only.includes(name)) continue;
+  ui = args.includes("--classic") || CLASSIC.has(name) ? "classic" : "next";
   const t0 = Date.now();
   try {
     const errors = (await run()) ?? [];

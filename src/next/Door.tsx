@@ -28,7 +28,11 @@ import { FRONT, gameTitle, systemLabel } from "../ui/systemLabels";
 import { TextSizePicker } from "../ui/TextSizePicker";
 import { APP_BUILD } from "../version";
 import { openWorkshop } from "../workshop/open";
+import { InstallLink, OfflineForFriends, OfflineNote, UpdateToast } from "../sw/UpdateToast";
+import { WhatsNew } from "../ui/WhatsNew";
 import { ComputerArmy } from "./ComputerArmy";
+import type { OwnArmy } from "../bot/startSolo";
+import { PackageArmyChoice } from "../ui/PackageArmies";
 import { SaveDoor } from "./SaveDoor";
 import { switchUi } from "./flag";
 import {
@@ -111,6 +115,8 @@ export function Door() {
   // The last level played (Easy the first time) is picked already, so Start is lit at once (UX N39).
   const [level, setLevel] = useState<Level | null>(savedLevel);
   const [phones, setPhones] = useState<"one" | "each">("one");
+  // Both sides on this screen: the near side's army, when a trusted package brings one (#82b).
+  const [near, setNear] = useState<OwnArmy | null>(null);
   const [more, setMore] = useState(false);
   // A TTS save opened here goes to its own door (UX N2).
   const [save, setSave] = useState<File | null>(null);
@@ -244,6 +250,7 @@ export function Door() {
   }, [saved]);
 
   const pick = (id: string) => {
+    setNear(null);
     try {
       localStorage.setItem(SYSTEM_KEY, id);
     } catch {
@@ -277,7 +284,7 @@ export function Door() {
     if (!system) return;
     const n = name.trim();
     if (who === "friend") void hostRoom(system, n);
-    else if (who === "both") bothSides(system, n);
+    else if (who === "both") bothSides(system, n, near ?? undefined);
     else if (who === "table") {
       if (phones === "one") atTable(system, n);
       else void hostRoom(system, n, true);
@@ -370,6 +377,9 @@ export function Door() {
   return (
     <div className="obn obn-door">
       <Header invite={invite} setInvite={setInvite} name={name} />
+      {/* A new version, between games only (#34), and what still works offline (UX 249/250). */}
+      <UpdateToast />
+      <OfflineNote />
       {saved && savedAt && (
         <button className="obn-resume" onClick={() => resume(saved, name.trim() || savedName())}>
           <span className="obn-label">{savedAt.over ? t("Your last game") : t("Resume")}</span>
@@ -519,6 +529,10 @@ export function Door() {
                       ))}
                     </div>
                   )}
+                  {who === "both" && (FRONT[system] || ownGame(system)) && (
+                    <PackageArmyChoice key={system} system={system} onChange={setNear} />
+                  )}
+                  {who === "friend" && <OfflineForFriends />}
                   {needsName && (
                     <label className="obn-field">
                       <span className="obn-label">{t("Your name")}</span>
@@ -565,6 +579,7 @@ export function Door() {
             </button>
           </>
         )}
+        <WhatsNew />
         <span className="obn-muted obn-version">
           {/* i18n-ignore */}
           Open Battle {APP_BUILD.split("+")[0]} ·{" "}
@@ -597,6 +612,7 @@ export function Door() {
             <span>{t("Write your own game system.")}</span>
           </button>
           <OpenLink />
+          <InstallLink />
         </div>
       )}
       {tables && (

@@ -9,6 +9,7 @@ import { t, tn } from "../i18n";
 import { useShelf } from "../packages/shelf";
 import { systemModule } from "../systems";
 import type { ImportedRoster } from "../systems/wh40k/roster";
+import { packageArmyRoster, packageOf, useLibraryArmies } from "../ui/PackageArmies";
 
 /**
  * Get ready against the computer (ui-next, UX N1): your army as a choice
@@ -25,6 +26,8 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
   useEffect(() => {
     void load();
   }, [load]);
+  // Armies the packages this device trusts bring for the game (#82b): their package comes on with them.
+  const fromPackages = useLibraryArmies(system);
   const shelf = Object.values(armies)
     .filter((a) => (a.system || DEFAULT_SYSTEM) === system)
     .sort((a, b) => b.savedAt - a.savedAt);
@@ -44,7 +47,9 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
     }
   };
   const shelved = shelf.find((a) => a.id === pick);
-  const roster = pick === "read" ? read : shelved ? shelved.roster : (sample ?? null);
+  const packaged = pick.startsWith("pkg:") ? fromPackages[Number(pick.slice(4))] : undefined;
+  const packagedRoster = packaged ? packageArmyRoster(packaged, system) : null;
+  const roster = pick === "read" ? read : shelved ? shelved.roster : (packagedRoster ?? sample ?? null);
   const pts = roster ? pointsOf(roster) : 0;
   const theirPts = theirs ? pointsOf(theirs) : 0;
   const far = !!(pts && theirPts && Math.abs(pts - theirPts) > 0.25 * Math.min(pts, theirPts));
@@ -54,7 +59,12 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
         ? { roster: read }
         : shelved
           ? { roster: shelved.roster, shelf: shelved }
-          : undefined;
+          : packaged && packagedRoster
+            ? (() => {
+                const pkg = packageOf(packaged);
+                return { roster: packagedRoster, ...(pkg ? { packages: [pkg] } : {}) };
+              })()
+            : undefined;
     const cut = match && far && theirs ? matchPoints(theirs, pts) : null;
     if (!mine && !cut) return startSolo(system, level);
     startSolo(system, level, { ...(mine ?? { roster: sample! }), ...(cut ? { theirs: cut } : {}) });
@@ -88,6 +98,16 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
           sample ? t("Sample · {line}", { line: ptsLine(sample) }) : undefined,
         )}
         {shelf.map((a) => choice(a.id, a.name, t("Your shelf · {line}", { line: ptsLine(a.roster) })))}
+        {fromPackages.map((a, i) =>
+          choice(
+            `pkg:${i}`,
+            a.list.name,
+            t("From {package} · {line}", {
+              package: a.from.name,
+              line: ptsLine(packageArmyRoster(a, system)),
+            }),
+          ),
+        )}
         {read && choice("read", read.name, t("Just read · {line}", { line: ptsLine(read) }))}
         {!ownGame(system) && (
           <label className="obn-link obn-file">
