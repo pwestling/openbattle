@@ -377,6 +377,19 @@ async function moreWays(page) {
   else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
 }
 
+/** The TTS save importer, from More ways to play. */
+async function openTtsSave(page) {
+  await moreWays(page);
+  await page
+    .getByRole("button", {
+      name:
+        page.ui === "classic"
+          ? "Open a Tabletop Simulator save as a game"
+          : /^Open a Tabletop Simulator save/,
+    })
+    .click();
+}
+
 /** Where "Open a file…" is: the classic lobby, or the new door's More ways to play sheet. */
 async function fileOpener(page) {
   if (page.ui === "classic") return page.locator(".lobby");
@@ -464,7 +477,9 @@ async function battleOn(page) {
 async function toPhase(page, phase) {
   for (let i = 0; i < 8; i++) {
     const on =
-      page.ui === "classic" ? await phaseKey(page) : await page.locator(".obn-rail .on").textContent();
+      page.ui === "classic"
+        ? await page.locator(".topbar .phases .current").first().textContent()
+        : await page.locator(".obn-rail .on").textContent();
     if (phase.test(on ?? "")) return;
     await phaseDone(page);
   }
@@ -2491,7 +2506,7 @@ const checks = {
     const path = join(files, "tts-save.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
+    await openTtsSave(page);
     await page.locator(".tts-import").waitFor();
     await page
       .locator(".tts-import label", { hasText: "Open a save file" })
@@ -2557,7 +2572,10 @@ const checks = {
     if (JSON.stringify({ terrain, models, table }) !== want)
       throw new Error(`table came in as ${JSON.stringify({ terrain, models, table })}`);
     // And the game opened on it, both armies on the table in their figures.
-    await page.locator("option:checked", { hasText: "Smoke Table" }).first().waitFor({ state: "attached" });
+    await page
+      .getByText(/deployed .*\(Smoke Table\)/)
+      .first()
+      .waitFor();
     await page.locator(".plate", { hasText: "Scrap Brute" }).first().waitFor();
     await page.locator(".plate", { hasText: "Warden" }).first().waitFor();
     if (process.env.SMOKE_SHOTS) await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "tts-2.png") });
@@ -2599,7 +2617,7 @@ const checks = {
     const path = join(files, "tts-short.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
+    await openTtsSave(page);
     await page
       .locator(".tts-import label", { hasText: "Open a save file" })
       .locator("input")
@@ -2670,7 +2688,7 @@ const checks = {
     const path = join(files, "arrive.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
+    await openTtsSave(page);
     await page
       .locator(".tts-import label", { hasText: "Open a save file" })
       .locator("input")
@@ -2855,7 +2873,7 @@ const checks = {
     const path = join(files, "tts-board.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
+    await openTtsSave(page);
     await page
       .locator(".tts-import label", { hasText: "Open a save file" })
       .locator("input")
@@ -2956,7 +2974,7 @@ const checks = {
     const path = join(files, "tts-cards.json");
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
-    await page.getByRole("button", { name: "Open a Tabletop Simulator save as a game" }).click();
+    await openTtsSave(page);
     await page
       .locator(".tts-import label", { hasText: "Open a save file" })
       .locator("input")
