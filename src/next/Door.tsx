@@ -96,7 +96,8 @@ export function Door() {
   }, [saved]);
   const [name, setName] = useState(savedName);
   const [invite, setInvite] = useState(() => new URLSearchParams(location.search).get("room") ?? "");
-  const [level, setLevel] = useState<Level | null>(null);
+  // The last level played (Easy the first time) is picked already, so Start is lit at once (UX N39).
+  const [level, setLevel] = useState<Level | null>(savedLevel);
   const [phones, setPhones] = useState<"one" | "each">("one");
   const [more, setMore] = useState(false);
   // A TTS save opened here goes to its own door (UX N2).
@@ -229,7 +230,7 @@ export function Door() {
       // Not kept.
     }
     if (id === "computer") {
-      setLevel(null);
+      setLevel(savedLevel());
       focusInto("obn-who .obn-levels");
     } else focusInto("obn-ready");
   };
@@ -612,6 +613,7 @@ function Header({
             <input
               value={invite}
               placeholder={t("Paste the link or code")}
+              aria-label={t("Paste an invite link or code")}
               onChange={(e) => setInvite(roomFrom(e.target.value))}
             />
           </label>

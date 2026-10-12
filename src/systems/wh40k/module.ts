@@ -81,10 +81,12 @@ export const wh40kModule: GameModule<SystemModule> = {
   hooks: {
     // A charge made by hand (a charge roll, then the models dragged into contact) charged just as the
     // Charge action does: it fights first, and "charged" abilities and stratagems see it (UX N27).
+    // One that went further than its roll counts too, once in contact: the rules are advisory (UX N34).
     *charge(ctx, args) {
-      if (args.kind !== "move" || !args.landed) return;
+      if (args.kind !== "move") return;
       const unit = ctx.view.state.units[String(args.unitId ?? "")];
       if (!unit || unit.status?.charged) return;
+      if (!args.landed && !engagedWith(ctx.view.state, unit).length) return;
       yield ctx.emit({ type: "unit/status", id: unit.id, key: "charged", value: true });
     },
   },

@@ -8,6 +8,7 @@ import { focusOn } from "../render/focus";
 import { useSandbox } from "../sandbox/runtime";
 import { useCanControl, useJoining, useStore } from "../store";
 import { UndoButton } from "../ui/Hud";
+import { snapToLimit } from "../ui/UnitCard";
 import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
 import { fightOrder } from "../systems/wh40k/fight";
@@ -145,6 +146,7 @@ export function StepBar() {
   const press = (b: StepButton) => {
     if (b.confirm && asking !== b) return setAsking(b);
     setAsking(null);
+    if (b.snap) snapToLimit(b.snap.unitId, b.snap.limit);
     if (b.intent) dispatch(b.intent, b.as);
   };
   // With the next unit picked, its card holds the lit step: the bar repeats it, so the gold stays here (UX N7).

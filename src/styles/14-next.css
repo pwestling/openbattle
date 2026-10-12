@@ -374,6 +374,8 @@
   .obn-cols {
     flex-direction: column;
     gap: 18px;
+    /* Grows with its columns, so the footer comes after them, not over them (UX N37). */
+    flex: none;
   }
   .obn-col {
     width: 100%;

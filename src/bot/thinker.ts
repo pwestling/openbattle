@@ -426,11 +426,12 @@ export class Thinker implements Policy, Analyst {
   private theirFight(record: GameRecord, state: GameState, mine: Set<PlayerId>): BotMove | null {
     const order = fightOrder(state);
     if (!order) return null;
-    const fights = inOrder(state, order, this.candidates(state, mine), mine);
+    // What it already did this phase goes first: a unit that has fought every weapon must not hold up
+    // the next pick as "the unit fighting now" (UX N35: its engaged unit then never fought).
+    const left = this.candidates(state, mine).filter((c) => !c.key || !this.done.keys.has(c.key));
+    const fights = inOrder(state, order, left, mine);
     if (fights === "wait") return null;
-    const options = fights.filter(
-      (c) => c.must && (!c.key || !this.done.keys.has(c.key)) && legal(record, state, c.move),
-    );
+    const options = fights.filter((c) => c.must && legal(record, state, c.move));
     if (!options.length) return null;
     const pick = this.best(state, options, null);
     const chosen = options.find((c) => c.move === pick);

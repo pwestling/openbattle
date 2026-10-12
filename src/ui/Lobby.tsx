@@ -12,6 +12,7 @@ import { BROADCAST } from "../broadcast/broadcast";
 import { EXHIBITION, startExhibition } from "../broadcast/exhibition";
 import { useLibrary } from "../packages/library";
 import { APP_BUILD } from "../version";
+import { switchUi } from "../next/flag";
 import { ArmyGuide } from "./ArmyGuide";
 import { NetCheck } from "./NetCheck";
 import { presetMission, startDemo } from "./demo";
@@ -935,7 +936,11 @@ export function Lobby() {
           Open Battle {APP_BUILD.split("+")[0]} ·{" "}
           <a href="https://github.com/pwestling/openbattle" target="_blank" rel="noreferrer">
             {t("Source code")}
-          </a>
+          </a>{" "}
+          · {/* Back to ui-next, the default, after choosing the classic layout (UX N36). */}
+          <button className="link" onClick={() => switchUi(true)}>
+            {t("New layout")}
+          </button>
         </span>
       </footer>
       {guide && <ArmyGuide system={system} onClose={() => setGuide(false)} />}

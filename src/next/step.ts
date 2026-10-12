@@ -61,6 +61,8 @@ export interface StepButton {
   confirm?: string;
   /** Not an intent: a local action the bar's owner handles. */
   local?: "copy" | "undo";
+  /** Pull a unit's move back to its limit, along its legs (the unit card's Snap back). */
+  snap?: { unitId: string; limit: number };
 }
 
 interface StepUnit {
@@ -176,6 +178,22 @@ function draftSay(game: GameState, draft: StepInput["draft"]): { say: string; su
     say: t("Click {unit}'s target on the table", { unit: attacker.name }),
     sub: t("Or pick it in the card. Cancel there to choose another unit."),
   };
+}
+
+/** A charge of this side's moved further than its roll, if any. */
+function overCharge(
+  game: GameState,
+  units: StepUnit[],
+  isMine: (p: PlayerId) => boolean,
+): { id: string; unit: string; n: number; moved: string } | null {
+  for (const { id } of units) {
+    const u = game.units[id];
+    const roll = u?.status?.charge;
+    if (!u || !isMine(u.owner) || typeof roll !== "number") continue;
+    const moved = unitMoved(aliveModels(game, u));
+    if (moved > roll + 0.05) return { id, unit: u.name, n: roll, moved: moved.toFixed(1) };
+  }
+  return null;
 }
 
 /** The charge this side just rolled and made, while its unit isn't yet in contact with what it charged. */
@@ -602,6 +620,22 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       buttons: [{ ...done, lit: false }],
     };
   }
+  // A charge moved further than its roll (UX N34): the bar says so and Snap back is the step. The rules
+  // are advisory, so Done still goes on, asking first, and the charge counts.
+  const over = /charge/i.test(phase) ? overCharge(game, units, isMine) : null;
+  if (over)
+    return {
+      tone: "job",
+      seat,
+      rail,
+      say: t("{unit} moved {moved}″ on a charge roll of {n}″", over),
+      sub: t("Snap it back to the roll, or charge anyway."),
+      units,
+      buttons: [
+        { label: t('Snap back to {n}"', { n: over.n }), lit: true, snap: { unitId: over.id, limit: over.n } },
+        { ...done, lit: false, confirm: t("{unit} went further than its roll. Charge anyway?", over) },
+      ],
+    };
   // A charge rolled and made (UX N24): moving in is the step, by hand on the table; nothing to press.
   const charging = /charge/i.test(phase) ? madeCharge(game, units, isMine) : null;
   if (charging)

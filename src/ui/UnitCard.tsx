@@ -127,9 +127,9 @@ export function eyeView(unitId: string) {
 /** The selected unit's datasheet, state and actions. */
 /**
  * Pull an over-long move back along each model's path until no model has
- * moved further than the limit this phase. Advisory: only on request.
+ * moved further than the limit this phase. Advisory: only on request (here and in ui-next's step bar).
  */
-function snapToLimit(unitId: string, limit: number) {
+export function snapToLimit(unitId: string, limit: number) {
   const { game, dispatch } = useStore.getState();
   const unit = game.units[unitId];
   if (!unit) return;
