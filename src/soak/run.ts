@@ -18,6 +18,8 @@ import { SandboxEngine, type ImportSource } from "../sandbox/engine";
 import { registerHooks, unregisterHooks } from "../core/script";
 import { seededRng } from "../sandbox/protocol";
 import { gameModule, systemModule } from "../systems";
+import { pendingScores } from "../missions/scoring";
+import { deadEnds } from "./deadEnds";
 import { spawnIntents } from "../systems/wh40k/deploy";
 import {
   battleOver,
@@ -81,6 +83,8 @@ export interface SoakOptions {
   watch?: (s: GameState, events: GameEvent[], before: GameState) => string[];
   /** Game settings the host sets before the armies go down (FSD's game size in `points`). */
   settings?: Partial<GameState["settings"]>;
+  /** Check for dead ends at every step (#84, deadEnds.ts); on unless SOAK_DEADENDS=0. */
+  deadEnds?: boolean;
 }
 
 export interface SoakReport {
@@ -193,6 +197,28 @@ export async function soak(opts: SoakOptions): Promise<SoakReport> {
   const ctx: BotContext = { rng, kept, idle: 0, wholeGame: !!opts.systemPkg };
   let steps = 0;
   const pick = <T>(xs: T[]): T => xs[Math.floor(rng() * xs.length)]!;
+  const checkEnds = opts.deadEnds ?? env.SOAK_DEADENDS !== "0";
+  const endsFound = new Set<string>();
+
+  /** No dead ends (#84): every one found is a failure, once per kind of moment; known ones are counted. */
+  const noDeadEnds = (record: GameRecord, state: GameState) => {
+    const mission = gameModule(state.system)?.app?.missions?.find((m) => m.id === state.mission?.id);
+    const scores = mission && ctx.scores?.length ? pendingScores(record, state, mission) : [];
+    for (const d of deadEnds(record, state, scores)) {
+      const phase = currentSlot(state)?.id ?? "-";
+      if (d.allowed) {
+        const tag = `dead end allowed: ${d.allowed}`;
+        seen[tag] = (seen[tag] ?? 0) + 1;
+        continue;
+      }
+      const key = `${d.rule}|${phase}|${d.say}`;
+      if (endsFound.has(key) || endsFound.size >= 8) continue;
+      endsFound.add(key);
+      failures.push(
+        `dead end (${d.rule}) in ${system} seed ${seed} step ${steps}, round ${state.turn.round} ${phase}: screen ${d.screen} "${d.say}": ${d.why}`,
+      );
+    }
+  };
 
   const fail = (why: string): never => {
     throw new Failure(why);
@@ -388,6 +414,7 @@ export async function soak(opts: SoakOptions): Promise<SoakReport> {
       }
       const record = host.log;
       const waiting = waitingOn(record, state, ctx);
+      if (checkEnds) noDeadEnds(record, state);
       // Now and then someone presses Undo.
       const players = Object.values(state.players).filter((p) => p.seat !== undefined);
       const undo = state.turn.round > 0 && rng() < 0.02 ? undoMove(record, state, pick(players).id) : null;
