@@ -15,6 +15,7 @@ import {
 import {
   aliveModels,
   carriers,
+  engagedWith,
   mainWeapon,
   suggestAttack,
   unitDistance,
@@ -64,6 +65,12 @@ function BoardAttackSetup({ draft }: { draft: AttackDraft }) {
   const game = useGame();
   const { setDraft, dispatch } = useStore();
   const attacker = game.units[draft.attackerId];
+  // A fight with one enemy in reach fights it: nothing to ask (Jobs review). Two or more, the player picks.
+  useEffect(() => {
+    if (!NEXT || draft.kind !== "melee" || draft.targetId || !attacker) return;
+    const foes = engagedWith(game, attacker);
+    if (foes.length === 1) setDraft({ ...draft, targetId: foes[0], picking: false });
+  }, [draft, attacker, game, setDraft]);
   if (!attacker) return null;
   const weapons = Object.values(attacker.sheet?.weapons ?? {})
     .filter((w) => w.kind === draft.kind)

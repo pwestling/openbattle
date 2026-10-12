@@ -14,7 +14,7 @@ import {
   ownGame,
   RIFT_LANTERNS,
 } from "../games/riftLanterns";
-import { formatList, t } from "../i18n";
+import { t } from "../i18n";
 import { LanguagePicker } from "../i18n/LanguagePicker";
 import { boardOn, useOpenTables } from "../opentables/board";
 import { useLibrary } from "../packages/library";
@@ -25,16 +25,13 @@ import { loadSavedGame } from "../store";
 import { BUILT_IN_LESSONS, lessonPackages, lessonSystem } from "../teach/builtin";
 import { usePlayRoute, useRouteFlag } from "../ui/route";
 import { FRONT, gameTitle, systemLabel } from "../ui/systemLabels";
-import { TextSizePicker } from "../ui/TextSizePicker";
 import { APP_BUILD } from "../version";
 import { openWorkshop } from "../workshop/open";
 import { InstallLink, OfflineForFriends, OfflineNote, UpdateToast } from "../sw/UpdateToast";
-import { WhatsNew } from "../ui/WhatsNew";
 import { ComputerArmy } from "./ComputerArmy";
 import type { OwnArmy } from "../bot/startSolo";
 import { PackageArmyChoice } from "../ui/PackageArmies";
 import { SaveDoor } from "./SaveDoor";
-import { switchUi } from "./flag";
 import {
   atTable,
   autoJoin,
@@ -410,11 +407,7 @@ export function Door() {
                   aria-expanded={moreGames}
                   onClick={() => setMoreGames(!moreGames)}
                 >
-                  {moreGames
-                    ? t("Fewer games ▴")
-                    : t("More games: {names} ▸", {
-                        names: formatList(others.slice(0, 3).map((g) => g.title)),
-                      })}
+                  {moreGames ? t("Fewer games ▴") : t("More games ▸")}
                 </button>
                 {moreGames && (
                   <div
@@ -568,7 +561,6 @@ export function Door() {
             visit sees only the games. */}
         {system && (
           <>
-            <OpenFile onTts={setSave} />
             {boardOn() && (
               <button className="obn-link" onClick={() => setTables(true)}>
                 {t("Find an opponent")}
@@ -579,13 +571,11 @@ export function Door() {
             </button>
           </>
         )}
-        <WhatsNew />
+        {/* One version string is enough (Jobs review): What's new, the classic layout and text size are gone
+            from the door; files and the language are under More ways to play. */}
         <span className="obn-muted obn-version">
           {/* i18n-ignore */}
-          Open Battle {APP_BUILD.split("+")[0]} ·{" "}
-          <button className="obn-link" onClick={() => switchUi(false)}>
-            {t("Classic layout")}
-          </button>
+          Open Battle {APP_BUILD.split("+")[0]}
         </span>
       </footer>
       {more && (
@@ -613,6 +603,8 @@ export function Door() {
           </button>
           <OpenLink />
           <InstallLink />
+          <OpenFile onTts={setSave} />
+          <LanguagePicker />
         </div>
       )}
       {tables && (
@@ -634,7 +626,7 @@ export function Door() {
   );
 }
 
-/** The door's header: the name, the invite (always here), the player card and text size. */
+/** The door's header: the name, the invite (always here) and the player card. */
 function Header({
   invite,
   setInvite,
@@ -644,7 +636,6 @@ function Header({
   setInvite: (s: string) => void;
   name: string;
 }) {
-  const [aa, setAa] = useState(false);
   return (
     <header className="obn-head">
       <div className="obn-brand">
@@ -677,22 +668,6 @@ function Header({
       <button className="obn-quiet" onClick={openPlayerCard} title={t("Your player card")}>
         {name.trim() || t("Player card")}
       </button>
-      <span className="obn-pop">
-        <button
-          className="obn-quiet"
-          aria-expanded={aa}
-          onClick={() => setAa(!aa)}
-          title={t("Text size and language")}
-        >
-          {t("Aa")}
-        </button>
-        {aa && (
-          <span className="obn-popmenu">
-            <TextSizePicker />
-            <LanguagePicker />
-          </span>
-        )}
-      </span>
     </header>
   );
 }

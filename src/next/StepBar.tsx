@@ -11,6 +11,7 @@ import { UndoButton } from "../ui/Hud";
 import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
 import { workOrder } from "../core/content/nextWork";
+import { useCoach } from "../teach/store";
 import { useLit } from "./lit";
 import { recapLine } from "./recap";
 import { stepFor, type StepButton } from "./step";
@@ -65,19 +66,6 @@ function useSheetPrimary(): { el: HTMLButtonElement; label: string } | null {
     return () => watch.disconnect();
   }, []);
   return seen;
-}
-
-/** Whether the classic phase panel is folded on the page (its chip is hidden in ui-next: the bar opens it). */
-function usePlayChip(): HTMLButtonElement | null {
-  const [el, setEl] = useState<HTMLButtonElement | null>(null);
-  useEffect(() => {
-    const find = () => setEl(document.querySelector<HTMLButtonElement>(".panel.play.collapsed button"));
-    find();
-    const watch = new MutationObserver(find);
-    watch.observe(document.body, { childList: true, subtree: true });
-    return () => watch.disconnect();
-  }, []);
-  return el;
 }
 
 /** The players this screen plays: both sides on one screen (less the computer's), else this browser's own. */
@@ -139,7 +127,30 @@ export function StepBar() {
   const stuck = useStuckFinish();
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
-  const playChip = usePlayChip();
+  // An empty phase moves on by itself after a beat, so the rail ticks past it (Jobs review). Not straight
+  // after an Undo, which would only step forward again, nor in a lesson, which walks every phase, nor
+  // online, where a peer still loading the game's rules would disagree with the step.
+  const online = useStore((s) => !!s.roomId && s.mode !== "hotseat");
+  const skip = step.tone === "job" && step.empty ? step.buttons.find((b) => b.lit && b.intent) : undefined;
+  const skipKey =
+    skip &&
+    !online &&
+    !draft &&
+    !game.attack &&
+    !game.procedure &&
+    !game.reaction &&
+    !game.pending &&
+    record.events.at(-1)?.event.type !== "undo" &&
+    useCoach.getState().lesson === null
+      ? `${record.events.length}`
+      : null;
+  useEffect(() => {
+    if (!skipKey || !skip?.intent) return;
+    const { intent, as } = skip;
+    const timer = window.setTimeout(() => dispatch(intent, as), SKIP_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipKey]);
   const litNext = step.tone === "job" ? (step.next ?? null) : null;
   useEffect(() => {
     useLit.setState({ unitId: litNext });
@@ -187,21 +198,9 @@ export function StepBar() {
       )}
       <div className="obn-bar-row">
         <div className="obn-say" role="status" aria-live="polite">
-          {recap && <span className="obn-recap">{recap}</span>}
           <strong>{step.say}</strong>
-          {(step.sub || (playChip && step.tone === "job")) && (
-            <span>
-              {step.sub}
-              {playChip && step.tone === "job" && (
-                <>
-                  {" "}
-                  <button className="obn-link small" onClick={() => playChip.click()}>
-                    {t("Stratagems and abilities ▸")}
-                  </button>
-                </>
-              )}
-            </span>
-          )}
+          {/* What just happened takes the sub line's place, so the bar keeps one height (Jobs review). */}
+          {recap ? <span className="obn-recap">{recap}</span> : step.sub && <span>{step.sub}</span>}
           {/* One unit left shows too: its chip is the lit step (UX N25). */}
           {step.units && (step.units.length > 1 || !!step.next) && (
             <div className="obn-left" aria-label={t("Units")}>
@@ -253,6 +252,9 @@ export function StepBar() {
     </section>
   );
 }
+
+/** How long an empty phase shows before the bar moves past it. */
+const SKIP_MS = 1000;
 
 /**
  * The computer's finished attack still on the table a few seconds on: a backstop so the game can

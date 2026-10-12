@@ -73,6 +73,47 @@ function hatchTexture(): CanvasTexture {
   return hatch;
 }
 
+/**
+ * A mottled felt for the table (ui-next, Jobs review: "the green needs texture, not a grid"): soft light
+ * and dark blots tinted by the material's colour, one tile every foot. Drawn once per table size.
+ */
+const felts = new Map<string, CanvasTexture>();
+export function feltTexture(width: number, depth: number): CanvasTexture {
+  const key = `${width}x${depth}`;
+  const kept = felts.get(key);
+  if (kept) return kept;
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "#d8d8d8";
+  g.fillRect(0, 0, 256, 256);
+  // A fixed sequence, so every screen's felt looks the same.
+  let seed = 7;
+  const rand = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  for (let i = 0; i < 900; i++) {
+    const x = rand() * 256;
+    const y = rand() * 256;
+    const r = 4 + rand() * 22;
+    const light = rand() > 0.5;
+    const blot = g.createRadialGradient(x, y, 0, x, y, r);
+    blot.addColorStop(0, light ? "rgba(255,255,255,0.045)" : "rgba(0,0,0,0.05)");
+    blot.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = blot;
+    // Drawn again across each edge it crosses, so the tile repeats without a seam.
+    for (const dx of [-256, 0, 256])
+      for (const dy of [-256, 0, 256]) {
+        g.setTransform(1, 0, 0, 1, dx, dy);
+        g.fillRect(x - r, y - r, r * 2, r * 2);
+      }
+    g.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  const felt = new CanvasTexture(c);
+  felt.wrapS = felt.wrapT = RepeatWrapping;
+  felt.repeat.set(width / 12, depth / 12);
+  felts.set(key, felt);
+  return felt;
+}
+
 const FOOTPRINT_COLORS = { open: "#e5e7eb", obscuring: "#facc15", blocking: "#ef4444" };
 
 /** Footprint line of sight: clear outline for open, stripes for obscuring, solid for blocking. */

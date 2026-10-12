@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import type { GameState } from "../core";
 import { create } from "zustand";
 import { t } from "../i18n";
+import { NEXT } from "../next/flag";
 import { focusOn } from "../render/focus";
 import { useCanControl, useStore } from "../store";
 import { aliveModels } from "../systems/wh40k/rules";
@@ -59,6 +60,8 @@ function WarningRow({ w, onShow }: { w: TableWarning; onShow?: (w: TableWarning)
   const canControl = useCanControl();
   const unit = w.unitId ? game.units[w.unitId] : undefined;
   const yours = !!unit && canControl(unit.owner) && scrub === null && role !== "spectator";
+  // On the new layout's card a warning is one line of text: releasing the drag already overrode it (Jobs review).
+  if (NEXT && !onShow) return <li className={w.severity}>{w.message}</li>;
   const text = (
     <>
       {onShow && unit && (

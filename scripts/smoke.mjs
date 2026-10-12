@@ -27,6 +27,7 @@ const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
 const CLASSIC = new Set([
+  "whats-new",
   "hotseat-resume",
   "standees",
   "photo-match",
@@ -374,6 +375,13 @@ async function moreWays(page) {
   else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
 }
 
+/** Where "Open a file…" is: the classic lobby, or the new door's More ways to play sheet. */
+async function fileOpener(page) {
+  if (page.ui === "classic") return page.locator(".lobby");
+  await moreWays(page);
+  return page.locator(".obn-more");
+}
+
 /** Where the phase stands: the round and the phase lit on the new layout's rail (or the classic top bar's turn). */
 const phaseKey = (page) =>
   page.ui === "classic"
@@ -437,6 +445,28 @@ async function battleOn(page) {
   await roundOne(page, 20_000);
   await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
   await page.keyboard.press("Escape");
+  // The new layout moves past an empty Command phase by itself: let it.
+  if (page.ui !== "classic")
+    await page
+      .waitForFunction(
+        () => !/command/i.test(document.querySelector(".obn-rail .on")?.textContent ?? ""),
+        null,
+        {
+          timeout: 4000,
+        },
+      )
+      .catch(() => {});
+}
+
+/** On through the phases (new layout: Done in the step bar) until the rail lights `phase`. */
+async function toPhase(page, phase) {
+  for (let i = 0; i < 8; i++) {
+    const on =
+      page.ui === "classic" ? await phaseKey(page) : await page.locator(".obn-rail .on").textContent();
+    if (phase.test(on ?? "")) return;
+    await phaseDone(page);
+  }
+  throw new Error(`never reached ${phase}`);
 }
 
 /** A guest opening an invite gives their name: asked at once, while the table connects (UX 403). */
@@ -957,7 +987,7 @@ const checks = {
     await (await download).saveAs(path);
     await lobby(page);
     await (
-      await footer(page)
+      await fileOpener(page)
     )
       .locator("label.file", { hasText: "Open a file…" })
       .locator("input")
@@ -981,7 +1011,7 @@ const checks = {
     await lobby(page);
     await tryDemo(page, "Sci-fi battle");
     await battleOn(page);
-    await phaseDone(page);
+    await toPhase(page, /move/i);
     await page.keyboard.press("]");
     await sleep(1500);
     // The selected unit's plate: the one named as the card is.
@@ -1045,8 +1075,7 @@ const checks = {
     await tryDemo(page, "Sci-fi battle");
     await battleOn(page);
     const next = () => phaseDone(page);
-    await next(); // Movement
-    await next(); // Shooting
+    await toPhase(page, /shoot/i);
     await page
       .locator("canvas")
       .first()
@@ -1060,17 +1089,20 @@ const checks = {
     // The new layout leaves the table clear after Cancel: pick the unit again.
     if (page.ui !== "classic" && !(await page.locator(".panel.unitcard").count()))
       await page.keyboard.press("]");
-    // With nothing within 12" the button says so and asks "Charge anyway?" (UX 434).
-    await page.getByRole("button", { name: /^Charge(: no enemy| \(2D6\))/ }).click();
-    await page
-      .locator(".charge-declare")
-      .getByText(/no charge possible|Roll charge|Charge anyway/)
-      .first()
-      .waitFor();
-    // Status chips only show (UX 399): the ⋯ beside them marks one, on purpose.
-    await page.locator(".panel.unitcard .status-menu summary").click();
-    await page.locator(".panel.unitcard .status-menu button", { hasText: "Mark Fought" }).click();
-    await page.locator(".panel.unitcard .chips .chip", { hasText: "Fought" }).waitFor();
+    // The new layout has no charge out of reach and no status ⋯ on the card (Jobs review).
+    if (page.ui === "classic") {
+      // With nothing within 12" the button says so and asks "Charge anyway?" (UX 434).
+      await page.getByRole("button", { name: /^Charge(: no enemy| \(2D6\))/ }).click();
+      await page
+        .locator(".charge-declare")
+        .getByText(/no charge possible|Roll charge|Charge anyway/)
+        .first()
+        .waitFor();
+      // Status chips only show (UX 399): the ⋯ beside them marks one, on purpose.
+      await page.locator(".panel.unitcard .status-menu summary").click();
+      await page.locator(".panel.unitcard .status-menu button", { hasText: "Mark Fought" }).click();
+      await page.locator(".panel.unitcard .chips .chip", { hasText: "Fought" }).waitFor();
+    }
     if (page.errors.length) throw new Error(page.errors[0]);
     await context.close();
   },
@@ -2312,7 +2344,7 @@ const checks = {
     const { page, context } = await device();
     await lobby(page);
     await (
-      await footer(page)
+      await fileOpener(page)
     )
       .locator("label.file", { hasText: "Open a file…" })
       .locator("input")
@@ -2391,7 +2423,7 @@ const checks = {
     writeFileSync(path, JSON.stringify(save));
     await lobby(page);
     await (
-      await footer(page)
+      await fileOpener(page)
     )
       .locator("label.file", { hasText: "Open a file…" })
       .locator("input")
@@ -3921,12 +3953,13 @@ const checks = {
   async language() {
     const { page, context } = await device();
     await lobby(page);
-    const aa = page.getByRole("button", { name: /^Aa/ });
-    await aa.click();
+    // The language is under More ways to play (Jobs review took the door's Aa away).
+    await moreWays(page);
     await page.locator(".language-picker select").selectOption("de");
     await page.getByRole("heading", { name: /Was spielst du\?/ }).waitFor();
-    // The page redraws in the new language, closing the menu.
-    if (!(await page.locator(".language-picker select").isVisible())) await aa.click();
+    // The page redraws in the new language, closing the sheet.
+    if (!(await page.locator(".language-picker select").isVisible()))
+      await page.locator(".obn-foot button").filter({ hasText: /▸$/ }).last().click();
     await page.locator(".language-picker select").selectOption("fr");
     await page.getByRole("heading", { name: /À quoi joues-tu \?/ }).waitFor();
     await context.close();

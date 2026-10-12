@@ -32,7 +32,6 @@ import { PlayPanel } from "../ui/PlayPanel";
 import { ReactionPrompt } from "../ui/ProcedurePanels";
 import { MayReact, ReactionCard } from "../ui/ReactionCard";
 import { ReplayBar } from "../ui/ReplayBar";
-import { RerollCard } from "../ui/RerollCard";
 import { ReplayTitle, RoundCard } from "../ui/RoundCard";
 import { SandboxNotice } from "../ui/SandboxNotice";
 import { ScriptPanel } from "../ui/ScriptPanel";
@@ -138,7 +137,6 @@ export function NextGame() {
       <TableTag />
       <DragTag />
       {!editing && <StratagemHand tucked />}
-      {!editing && <RerollCard />}
       {!editing && <ReactionCard />}
       {!editing && <MayReact />}
       {!editing && !hotseat && <PlanPanel />}

@@ -13,12 +13,14 @@ import {
   type Vec2,
 } from "../core";
 import { t, tn } from "../i18n";
+import { NEXT } from "../next/flag";
 import { shot } from "./focus";
 
 /**
  * PX-3d: slain models tip over where they stood, lie still a moment and fade
  * out there, then fade in on their owner's casualty pile: rows just off the
- * owner's long table edge, under the player's name and a count. The pile is
+ * owner's long table edge (in the new layout, at its left-hand corner), under
+ * the player's name and a count. The pile is
  * read from the game state, so an undo puts a model back on the table.
  */
 
@@ -26,7 +28,8 @@ const FALL_MS = 350;
 const REST_MS = 600;
 const FADE_MS = 300;
 export const TOPPLE_MS = FALL_MS + REST_MS + FADE_MS;
-const PER_ROW = 14;
+/** The new layout keeps the pile short, in the corner, clear of the step bar under the table (Jobs review). */
+const PER_ROW = NEXT ? 6 : 14;
 const MAX_SHOWN = 60;
 /** Along the edge between figures, and outwards between rows. */
 const COL_STEP = 1.6;
@@ -58,9 +61,12 @@ function pileSlot(game: GameState, owner: string, i: number): Vec2 {
   const k = Math.min(i, MAX_SHOWN - 1);
   const row = Math.floor(k / PER_ROW);
   const col = k % PER_ROW;
+  const y = side * (game.table.depth / 2 + 1 + row * ROW_STEP);
+  // The new layout: from the owner's left-hand corner inwards.
+  if (NEXT) return { x: -side * (game.table.width / 2 - 1 - col * COL_STEP), y };
   // 0, then right, left, right... of the middle.
   const off = Math.ceil(col / 2) * (col % 2 ? 1 : -1);
-  return { x: side * off * COL_STEP, y: side * (game.table.depth / 2 + 1 + row * ROW_STEP) };
+  return { x: side * off * COL_STEP, y };
 }
 
 /**
@@ -200,7 +206,7 @@ function Pile({
   // Over the pile's middle, beyond its outer row (UX 129).
   const first = pileSlot(game, owner, 0);
   const rows = Math.ceil(Math.min(dead.length, MAX_SHOWN) / PER_ROW);
-  const labelX = first.x;
+  const labelX = NEXT ? (first.x + pileSlot(game, owner, Math.min(dead.length, PER_ROW) - 1).x) / 2 : first.x;
   return (
     <group ref={pile}>
       {dead
