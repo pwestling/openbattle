@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { GameRecord, GameState } from "../core";
 import { createLoopbackNetwork } from "./loopback";
 import { Session } from "./session";
+import type { Transport } from "./transport";
 import { PROTOCOL } from "../protocol";
 
 const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
@@ -228,5 +229,42 @@ describe("builds (docs/compatibility.md)", () => {
       expect(() => newer.send(m as never)).not.toThrow();
     host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
     expect(h.seen.record?.events.length).toBe(1);
+  });
+
+  it("a joiner that missed the host's announcement asks again and joins (naive players 12)", async () => {
+    vi.useFakeTimers();
+    try {
+      const net = createLoopbackNetwork();
+      // The connection opens lossy: the host's first announcement and the joiner's first sync are lost.
+      const lossy = (t: Transport, type: string): Transport => {
+        let dropped = false;
+        return {
+          ...t,
+          send(message, to) {
+            if (message.t === type && !dropped) {
+              dropped = true;
+              return;
+            }
+            t.send(message, to);
+          },
+        };
+      };
+      const h = peer();
+      const c = peer();
+      const host = new Session({
+        transport: lossy(net.connect("host"), "host"),
+        role: "host",
+        onChange: h.onChange,
+      });
+      host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
+      new Session({ transport: lossy(net.connect("client"), "sync"), role: "client", onChange: c.onChange });
+      await vi.advanceTimersByTimeAsync(100);
+      expect(c.seen.record?.events.length ?? 0).toBe(0);
+      // A few seconds on, it asked again, heard the host and caught up.
+      await vi.advanceTimersByTimeAsync(3500);
+      expect(c.seen.record?.events.length).toBe(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

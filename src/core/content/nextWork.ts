@@ -168,8 +168,11 @@ function didPhaseWork(
   });
 }
 
-/** A side's units in this phase: those with an action they can take and haven't done the phase's work, and those done. */
-function phaseUnits(state: GameState, players: PlayerId[]): { left: UnitId[]; done: UnitId[] } {
+/**
+ * A side's units in this phase: those with an action they can take and haven't done the phase's work,
+ * and those done, by name. The step bar lists them (ui-next), so the screen and the engine agree (#84).
+ */
+export function phaseUnits(state: GameState, players: PlayerId[]): { left: UnitId[]; done: UnitId[] } {
   const slot = currentSlot(state);
   const system = systemOf(state);
   const defs = (slot?.actions ?? []).flatMap((id) => system.actions.filter((a) => a.id === id));

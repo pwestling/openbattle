@@ -124,6 +124,9 @@ function beats(
  * works this out the same way, and should two hosts ever meet, the lesser
  * one stands down. Each logged event records which host logged it.
  */
+/** How long a joiner waits for its host's announcement before asking again. */
+const ASK_HOST_MS = 3000;
+
 export class Session {
   private record: GameRecord;
   private state: GameState;
@@ -139,6 +142,10 @@ export class Session {
   private readonly frozen: boolean;
   private queue: Intent[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
+  /** A joiner that hasn't heard its host yet asks again (see askForHost). */
+  private asking: ReturnType<typeof setTimeout> | null = null;
+  /** Peers that greeted the host: until one does, it may have missed the host's announcement. */
+  private readonly greeted = new Set<string>();
   private left = false;
   private readonly transport: Transport;
   private readonly onChange: SessionOptions["onChange"];
@@ -210,13 +217,17 @@ export class Session {
       if (!this.peers.has(peerId)) this.peers.set(peerId, {});
       // Hosts say so; everyone else says how much log it holds (used to pick a new host).
       if (this.role === "host") this.announce(peerId);
-      else this.transport.send(this.sync(), peerId);
+      else {
+        this.transport.send(this.sync(), peerId);
+        this.askForHost();
+      }
       for (const l of this.side.values()) l.onPeer?.(peerId);
       this.notify();
     });
 
     transport.onPeerLeave((peerId) => {
       this.peers.delete(peerId);
+      this.greeted.delete(peerId);
       this.builds.delete(peerId);
       this.behind.delete(peerId);
       if (peerId === this.hostId && this.role !== "host") {
@@ -348,6 +359,7 @@ export class Session {
     this.flushBehind();
     this.left = true;
     if (this.timer) clearTimeout(this.timer);
+    if (this.asking) clearTimeout(this.asking);
     this.transport.leave();
   }
 
@@ -368,6 +380,7 @@ export class Session {
     switch (message.t) {
       case "hello":
         this.peers.set(from, { role: message.role, seq: message.seq });
+        this.greeted.add(from);
         this.heardBuild(from, message.v);
         if (this.role !== "host" || this.parked(from)) return;
         if (message.role === "spectator") {
@@ -385,6 +398,10 @@ export class Session {
         return;
       case "sync":
         this.peers.set(from, { role: message.role, seq: message.seq, ready: message.ready !== false });
+        // A joiner that hasn't greeted us may have missed our announcement (naive players 12: a friend sat
+        // on "Looking for the game's host" while the host counted them as watching): say it again.
+        if (this.role === "host" && message.role !== "host" && !this.greeted.has(from) && !this.parked(from))
+          this.announce(from);
         return;
       case "intent":
         if (this.role !== "host" || this.parked(from)) return;
@@ -522,6 +539,20 @@ export class Session {
       b.sent = events.at(-1)!.seq;
       this.transport.send({ t: "events", events }, peer);
     }
+  }
+
+  /**
+   * A joiner with peers but no host yet: ask again every few seconds (a sync, which a host answers with
+   * its announcement), in case the first announcement was lost as the connection opened.
+   */
+  private askForHost(tries = 10): void {
+    if (this.role === "host" || this.hostId || this.asking || this.left || tries <= 0) return;
+    this.asking = setTimeout(() => {
+      this.asking = null;
+      if (this.role === "host" || this.hostId || this.migrating || this.left) return;
+      if (this.peers.size) this.transport.send(this.sync());
+      this.askForHost(tries - 1);
+    }, ASK_HOST_MS);
   }
 
   private greet(peerId: string): void {

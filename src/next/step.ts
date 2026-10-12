@@ -1,42 +1,14 @@
-import {
-  opposed,
-  sideName,
-  sidePlayers,
-  type GameState,
-  type Intent,
-  type PlayerId,
-  type Unit,
-} from "../core";
+import { sideName, sidePlayers, type GameState, type Intent, type PlayerId, type Unit } from "../core";
 import { findProcedure } from "../core/content/runner";
-import { actingUnits, unitActions } from "../core/content/play";
+import { actingUnits } from "../core/content/play";
 import { simultaneousPhase } from "../core/content/simultaneous";
 import { currentSlot, phaseHint, plainActivations, systemOf, turnView } from "../core/content/turn";
 import { formatList, gameText, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
 import type { Pending } from "../missions/scoring";
 import { chargeNeeded } from "../systems/wh40k/charge";
-import { workOrder } from "../core/content/nextWork";
-import {
-  aliveModels,
-  engagedWith,
-  moveAllowance,
-  unitDistance,
-  unitMoved,
-  weaponReach,
-} from "../systems/wh40k/rules";
-
-/** Whether any enemy is within reach of the unit's ranged weapons (true when the game doesn't say ranges). */
-function inReach(game: GameState, unit: Unit): boolean {
-  const ranged = Object.values(unit.sheet?.weapons ?? {}).filter((w) => w.kind === "ranged");
-  if (!ranged.length) return true;
-  const reaches = ranged.map(weaponReach);
-  if (reaches.some((r) => r === null)) return true;
-  const reach = Math.max(...(reaches as number[]));
-  const mine = aliveModels(game, unit);
-  return Object.values(game.units).some(
-    (e) => opposed(game, e.owner, unit.owner) && unitDistance(mine, aliveModels(game, e)) <= reach,
-  );
-}
+import { phaseUnits as workUnits, workOrder } from "../core/content/nextWork";
+import { aliveModels, engagedWith, moveAllowance, unitMoved } from "../systems/wh40k/rules";
 
 /**
  * The step bar (ui-next): what this screen's player does now, in one sentence,
@@ -107,42 +79,17 @@ function doneLabel(phase: string, last: boolean): string {
 }
 
 /** Units of `seat` that still have work in this phase, and the ones that are done, in table order. */
-function phaseUnits(game: GameState, seat: number, phase: string): StepUnit[] {
-  const units = Object.values(game.units)
-    .filter((u) => game.players[u.owner]?.seat === seat && alive(game, u))
-    .sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-  const out: StepUnit[] = [];
-  for (const u of units) {
-    let can: boolean;
-    if (/move/i.test(phase)) {
-      const s = u.status ?? {};
-      // Any model moved counts (UX N20): the engine's flags come only with Advance and the like.
-      can = !(s.moved || s.advanced || s.fellBack || s.stayed) && unitMoved(aliveModels(game, u)) < 0.05;
-      out.push({ id: u.id, name: u.name, done: !can });
-      continue;
-    }
-    try {
-      const options = unitActions(game, u.id).filter((o) => o.ok);
-      can = /shoot/i.test(phase)
-        ? options.some((o) => /shoot|fire/i.test(o.def.name)) && inReach(game, u)
-        : /charge/i.test(phase)
-          ? options.some((o) => /charge/i.test(o.def.name))
-          : options.length > 0;
-    } catch {
-      can = false;
-    }
-    // A unit that did this phase's thing shows as done; one that never could isn't listed.
-    // (The rules are advisory, so a unit that shot may still be allowed to again: it counts as done.)
-    const did = !!(/shoot/i.test(phase)
-      ? u.status?.shot
-      : /charge/i.test(phase)
-        ? u.status?.charged || typeof u.status?.charge === "number"
-        : /fight/i.test(phase)
-          ? u.status?.fought
-          : false);
-    if (can || did) out.push({ id: u.id, name: u.name, done: did || !can });
-  }
-  return out;
+function phaseUnits(game: GameState, seat: number): StepUnit[] {
+  // The engine's own list (#84): a unit with work left has an action it can take now (out of range
+  // or out of charge reach doesn't count), and a unit done did the phase's work (moved, shot, rolled a charge).
+  const { left, done } = workUnits(
+    game,
+    sidePlayers(game, seat).map((p) => p.id),
+  );
+  const named = (id: string, isDone: boolean) => ({ id, name: game.units[id]?.name ?? id, done: isDone });
+  return [...left.map((id) => named(id, false)), ...done.map((id) => named(id, true))].sort(
+    (a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id),
+  );
 }
 
 /** "{name} rolls hits" or "Your roll: hits": whose dice come next (UX N17). */
@@ -587,7 +534,7 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
 
   // A fight phase with no one to pick has nobody engaged: nothing to do (UX N6).
   const fighting = /fight/i.test(phase);
-  const units = fighting && order && !order.picker ? [] : phaseUnits(game, seat, phase);
+  const units = fighting && order && !order.picker ? [] : phaseUnits(game, seat);
   const left = units.filter((u) => !u.done);
   const moving = /move/i.test(phase);
   const done: StepButton = {
