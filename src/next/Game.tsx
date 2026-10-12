@@ -49,6 +49,7 @@ import { OnAir, VoiceRoom } from "../voice/VoiceBar";
 import { Drawer } from "./Drawer";
 import { NextHelp } from "./Help";
 import { NextEnd, useEndStats } from "./End";
+import { EventSlot } from "./EventSlot";
 import { Setup } from "./Setup";
 import { StepBar } from "./StepBar";
 import { Strip } from "./Strip";
@@ -149,6 +150,8 @@ export function NextGame() {
       <Showcase />
       {(!over || statsAsked) && <StatsScreen />}
       <NextEnd />
+      {/* An event table's seat, kept running through the battle (Setup and the end card show it). */}
+      {!deploying && !over && <EventSlot hidden />}
       <PackageCards />
       <SandboxNotice />
       {!editing && <BetterMoveHint />}

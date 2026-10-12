@@ -27,18 +27,7 @@ const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
 const CLASSIC = new Set([
-  "clip-options",
-  "move-legs",
-  "card-actions",
-  "card-widths",
   "hotseat-resume",
-  "solo-saves",
-  "solo-own-army",
-  "p2p-host-join",
-  "live-now",
-  "ranked",
-  "ranked-refusal",
-  "events",
   "standees",
   "photo-match",
   "companion-invite",
@@ -76,7 +65,9 @@ const executablePath =
 
 const started = (p, word) =>
   new Promise((resolve, reject) => {
-    const on = (d) => String(d).includes(word) && resolve();
+    // A port already taken (a relay left running) would leave the checks talking to the wrong server.
+    const on = (d) =>
+      /EADDRINUSE/.test(String(d)) ? reject(new Error(String(d))) : String(d).includes(word) && resolve();
     p.stdout.on("data", on);
     p.stderr.on("data", on);
     p.on("exit", (code) => reject(new Error(`exited with ${code}`)));
@@ -90,7 +81,10 @@ const relay = spawn("node", ["server/relay.mjs"], {
   detached: true,
   env: { ...process.env, PORT: String(RELAY), OPEN_TABLES: "on", BOARD_ORIGIN: `http://localhost:${PORT}` },
 });
-await Promise.all([started(server, "localhost"), started(relay, String(RELAY))]);
+await Promise.all([started(server, "localhost"), started(relay, String(RELAY))]).catch((e) => {
+  for (const p of [server, relay]) process.kill(-p.pid);
+  throw e;
+});
 
 const browser = await chromium.launch({
   executablePath,
@@ -100,6 +94,36 @@ const files = mkdtempSync(join(tmpdir(), "open-battle-smoke-"));
 
 /** A fresh device: its own storage, page errors collected. */
 /** #65: two browsers at a ranked Rift Lanterns table from Open tables, played to the result (Ana 1, Ben 0). */
+/** The new layout's ranked game from the table: set up, Ana scores a point by hand, both pass to the end. */
+async function rankedPlay(host, guest, tables) {
+  await readyUp([host.page, guest.page]);
+  for (const { page } of [host, guest]) await page.keyboard.press("Escape");
+  await vpPlus(host.page, 0);
+  const deadline = Date.now() + 120_000;
+  while (!(await host.page.locator(".ranked-sign").count())) {
+    if (Date.now() > deadline) throw new Error("the ranked game never reached its result");
+    for (const { page } of [host, guest]) await passOn(page);
+    await sleep(300);
+  }
+  return { host, guest, tables };
+}
+
+/** One VP by hand on a side's score, in the new layout's strip (its −/+ show on hover). */
+async function vpPlus(page, side) {
+  const box = page.locator(".obn-strip .obn-side").nth(side);
+  await box.hover();
+  await box.locator(".counter", { hasText: "VP" }).getByRole("button", { name: "+" }).click();
+}
+
+/** A side with nothing to do lets its go pass: the bar's lit step, else Pass (and "… anyway"). */
+async function passOn(page) {
+  const anyway = page.locator(".obn-ask button", { hasText: /anyway$/ });
+  if (await anyway.count()) return anyway.click({ timeout: 1500 }).catch(() => {});
+  const lit = page.locator(".obn-bar .obn-buttons button.obn-lit").first();
+  const pass = page.locator(".obn-bar .obn-buttons button", { hasText: /^(Pass|Done|End turn)/ }).last();
+  for (const b of [lit, pass]) if (await b.count()) return b.click({ timeout: 1500 }).catch(() => {});
+}
+
 async function rankedToResult() {
   const q = `?${SIGNAL}&openTables=1&board=${encodeURIComponent(`http://localhost:${RELAY}/board`)}`;
   const host = await device();
@@ -110,8 +134,10 @@ async function rankedToResult() {
   };
   await lobby(host.page, q);
   await pickGame(host.page, "Rift Lanterns");
-  await host.page.locator(".who-pick.friend").click();
-  await host.page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+  if (host.page.ui === "classic") {
+    await who(host.page, "friend");
+    await host.page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+  } else await openTables(host.page);
   await host.page.getByRole("button", { name: "Host a table and post it" }).click();
   const form = host.page.locator(".post-table");
   await form.locator("label", { hasText: "Your name" }).locator("input").fill("Ana");
@@ -129,7 +155,8 @@ async function rankedToResult() {
     .locator(".arrival")
     .getByRole("button", { name: "Play ranked" })
     .click({ timeout: 30_000 });
-  await host.page.locator(".topbar .ranked-chip").waitFor({ timeout: 15_000 });
+  await host.page.locator(".ranked-chip").waitFor({ timeout: 15_000 });
+  if (host.page.ui !== "classic") return rankedPlay(host, guest, tables);
   for (const [i, { page }] of [host, guest].entries()) {
     await page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: i + 1 });
     const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
@@ -347,6 +374,164 @@ async function footer(page) {
 async function moreWays(page) {
   if (page.ui === "classic") await page.locator("summary", { hasText: "More ways to play" }).click();
   else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
+}
+
+/** Where the phase stands: the round and the phase lit on the new layout's rail (or the classic top bar's turn). */
+const phaseKey = (page) =>
+  page.ui === "classic"
+    ? page.locator(".topbar .turn strong").textContent()
+    : page.evaluate(
+        () =>
+          `${document.querySelector(".obn-round")?.textContent} · ${document.querySelector(".obn-rail .on")?.textContent} · ${document.querySelector(".obn-side.on")?.textContent}`,
+      );
+
+/**
+ * On to the next phase, as a player does: the top bar's Next phase (classic), or the step bar's Done / End
+ * turn (new layout), answering "… anyway". A phase both sides play at once takes a Done from each.
+ */
+async function phaseDone(page) {
+  if (page.ui === "classic") {
+    await page.locator('.topbar button[title="Next phase"]').click();
+    const anyway = page.locator(".topbar .ask button.primary");
+    if (await anyway.count()) await anyway.click();
+    return page.waitForTimeout(300);
+  }
+  const before = await phaseKey(page);
+  for (let i = 0; i < 6 && (await phaseKey(page)) === before; i++) {
+    await barStep(page);
+    await page.waitForTimeout(300);
+  }
+}
+
+/**
+ * The step bar's way on (new layout): Done or End turn, else its lit step (Score, Pass…), answering "… anyway".
+ * Returns what it pressed, or null when the bar offers nothing (waiting on the other side).
+ */
+async function barStep(page, timeout = 10_000) {
+  const anyway = page.locator(".obn-ask button", { hasText: /anyway$/ });
+  if (await anyway.count()) {
+    await anyway.click();
+    return "anyway";
+  }
+  const done = page.locator(".obn-bar .obn-buttons button", { hasText: /^(Done|End turn)/ }).last();
+  const lit = page.locator(".obn-bar .obn-buttons button.obn-lit").first();
+  // A reaction you may make: let it go by.
+  const pass = page.locator(".obn-bar .obn-buttons button", { hasText: /^Pass$/ });
+  const t0 = Date.now();
+  while (Date.now() - t0 < timeout) {
+    for (const b of [done, lit, pass]) {
+      if (await b.count()) {
+        const label = await b.textContent();
+        await b.click({ timeout: 2000 }).catch(() => {});
+        if (await anyway.count()) await anyway.click();
+        return label;
+      }
+    }
+    await page.waitForTimeout(200);
+  }
+  if (process.env.SMOKE_SHOTS)
+    await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "bar-stuck.png") });
+  throw new Error(`the step bar offers no way on: ${await page.locator(".obn-bar").innerText()}`);
+}
+
+/** Into the battle with the showcase over and nothing open: the table is the player's. */
+async function battleOn(page) {
+  await roundOne(page, 20_000);
+  await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
+  await page.keyboard.press("Escape");
+}
+
+/** A guest opening an invite gives their name: asked at once, while the table connects (UX 403). */
+async function joinAs(page, name) {
+  if (page.ui === "classic") {
+    await page.getByText(/What should the others call you/).waitFor({ timeout: 10_000 });
+    await page.getByPlaceholder("Your name").fill(name);
+    return page.getByRole("button", { name: "Use this name" }).click();
+  }
+  await page.getByPlaceholder(/What should the others call you/).fill(name);
+  await page.getByRole("button", { name: /^Join the table/ }).click();
+}
+
+/** "⋯ Game" opened: in the new layout it sits in the ⋯ menu. */
+async function gameMenu(page) {
+  if (page.ui !== "classic") await page.locator(".obn-menu").click();
+  await page.getByRole("button", { name: "⋯ Game" }).click();
+}
+
+/** Against the computer at Easy, with the sample army: Start. */
+async function startEasy(page, title = "Sci-fi battle") {
+  await playComputer(page, title);
+  if (page.ui === "classic") {
+    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
+    return page.locator(".your-army button").first().click();
+  }
+  await page.locator(".obn-levels [role=radio]", { hasText: /^Easy/ }).click();
+  await page.locator("#obn-ready .obn-lit").click();
+}
+
+/**
+ * Before the battle in the new layout: each screen presses its lit step (its sample army, Keep these, Ready, Roll
+ * off, Start the battle) until round 1 begins. The invite link is left alone.
+ */
+async function readyUp(pages, { start = true } = {}) {
+  for (let i = 0; i < 40; i++) {
+    for (const page of pages) {
+      if (
+        await page
+          .locator(".obn-strip .obn-round")
+          .getByText(/Round 1\b/i)
+          .count()
+      )
+        return;
+      const lit = page.locator(".obn-bar .obn-lit").first();
+      if (!(await lit.count())) continue;
+      const label = (await lit.textContent()) ?? "";
+      if (/Copy invite link/.test(label) || (!start && /Start the battle/.test(label))) continue;
+      await lit.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(400);
+    }
+    if (!start && (await pages[0].locator(".obn-bar .obn-lit", { hasText: /Start the battle/ }).count()))
+      return;
+    await pages[0].waitForTimeout(300);
+  }
+  throw new Error(`setup never finished: ${await pages[0].locator(".obn-bar").innerText()}`);
+}
+
+/** Several tables set up at once (new layout): each screen presses its lit step until every one is in round 1. */
+async function readyAll(pages) {
+  for (let i = 0; i < 60; i++) {
+    let on = 0;
+    for (const page of pages) {
+      if (
+        await page
+          .locator(".obn-strip .obn-round")
+          .getByText(/Round 1\b/i)
+          .count()
+      ) {
+        on++;
+        continue;
+      }
+      const lit = page.locator(".obn-bar .obn-lit").first();
+      // Rules are advisory: a table that isn't happy with the deployment can still go ahead, as the classic test did.
+      const anyway = page.locator(".obn-bar .obn-plain", { hasText: /^(Ready|Start) anyway$/ }).first();
+      const label = (await lit.count()) ? ((await lit.textContent()) ?? "") : "";
+      if (label && !/Copy invite link/.test(label)) await lit.click({ timeout: 3000 }).catch(() => {});
+      else if (i > 10 && (await anyway.count())) await anyway.click({ timeout: 3000 }).catch(() => {});
+    }
+    if (on === pages.length) return;
+    await pages[0].waitForTimeout(400);
+  }
+  const bars = await Promise.all(
+    pages.map((p) =>
+      p
+        .locator(".obn-bar")
+        .innerText()
+        .catch(() => "?"),
+    ),
+  );
+  throw new Error(
+    `not every table reached round 1: ${bars.map((b) => b.replace(/\n/g, " | ")).join(" ## ")}`,
+  );
 }
 
 /** The battle's first round has begun, in either UI. */
@@ -764,18 +949,11 @@ const checks = {
   async "clip-options"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    for (let i = 0; i < 12; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(150);
-    }
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    for (let i = 0; i < 12; i++) await phaseDone(page);
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "⋯ Game" }).click();
+    await gameMenu(page);
     await page.getByRole("menuitem", { name: "Download replay" }).click();
     const path = join(files, "clip.json");
     await (await download).saveAs(path);
@@ -803,13 +981,9 @@ const checks = {
   async "move-legs"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    await page.locator('.topbar button[title="Next phase"]').click();
-    const anyway = page.locator(".topbar .ask button.primary");
-    if (await anyway.count()) await anyway.click();
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    await phaseDone(page);
     await page.keyboard.press("]");
     await sleep(1500);
     // The selected unit's plate: the one named as the card is.
@@ -870,16 +1044,9 @@ const checks = {
   async "card-actions"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
-    const next = async () => {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(300);
-    };
+    await tryDemo(page, "Sci-fi battle");
+    await battleOn(page);
+    const next = () => phaseDone(page);
     await next(); // Movement
     await next(); // Shooting
     await page
@@ -892,6 +1059,9 @@ const checks = {
     await page.locator(".panel.attack .volley").waitFor();
     await page.locator(".panel.attack").getByRole("button", { name: "Cancel" }).click();
     await next(); // Charge
+    // The new layout leaves the table clear after Cancel: pick the unit again.
+    if (page.ui !== "classic" && !(await page.locator(".panel.unitcard").count()))
+      await page.keyboard.press("]");
     // With nothing within 12" the button says so and asks "Charge anyway?" (UX 434).
     await page.getByRole("button", { name: /^Charge(: no enemy| \(2D6\))/ }).click();
     await page
@@ -915,10 +1085,10 @@ const checks = {
     const { page, context } = await device();
     for (const demo of ["Full Spectrum Dominance", "Conquest", "Rank and flank"]) {
       await lobby(page);
-      await tryDemo(page, page.locator(".demos .demo", { hasText: demo }));
+      await tryDemo(page, page.ui === "classic" ? page.locator(".demos .demo", { hasText: demo }) : demo);
       await page
-        .locator(".topbar")
-        .getByText(/Round 1|Deploy/)
+        .locator(page.ui === "classic" ? ".topbar" : ".obn-strip")
+        .getByText(/Round 1|Deploy|Setting up/i)
         .first()
         .waitFor({ timeout: 20000 });
       await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
@@ -941,6 +1111,8 @@ const checks = {
             : null;
         });
         if (over) throw new Error(`${demo}: ${over}`);
+        // The new layout keeps the stats under one disclosure (naive players): only their width is checked.
+        if (page.ui !== "classic") continue;
         // The stats sit under the name, not below the regiment's manoeuvres (UX 401).
         const low = await page.evaluate(() => {
           const card = document.querySelector(".panel.unitcard");
@@ -993,14 +1165,10 @@ const checks = {
   async "solo-saves"() {
     const { page, context } = await device();
     await lobby(page);
-    await playComputer(page, "Sci-fi battle");
-    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
-    await page.locator(".your-army button").first().click();
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
+    await startEasy(page);
+    await battleOn(page);
     // Pass through your turn, phase by phase, until the computer shoots at you.
-    const saves = page.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
+    const saves = page.locator(".panel.attack button:enabled", { hasText: /^Roll saves?\b/ });
     const deadline = Date.now() + 150000;
     for (;;) {
       if (Date.now() > deadline) {
@@ -1009,6 +1177,11 @@ const checks = {
         throw new Error("the computer never shot at you in its first turn");
       }
       if (await saves.count()) break;
+      if (page.ui !== "classic") {
+        await barStep(page, 500).catch(() => {});
+        await page.waitForTimeout(500);
+        continue;
+      }
       const anyway = page.locator(".topbar .ask button.primary");
       const next = page.locator('.topbar button[title="Next phase"]');
       if (await anyway.count()) await anyway.click().catch(() => {});
@@ -1022,7 +1195,13 @@ const checks = {
     await saves.waitFor({ state: "detached", timeout: 15000 });
     // Resume names the computer's level from the saved game, not its side's name (UX 439).
     await lobby(page);
-    await page.locator(".resume-top").getByText("Against the computer (Easy)").waitFor();
+    if (page.ui === "classic")
+      await page.locator(".resume-top").getByText("Against the computer (Easy)").waitFor();
+    else
+      await page
+        .locator(".obn-resume")
+        .getByText(/round 1/)
+        .waitFor();
     if (page.errors.length) throw new Error(page.errors[0]);
     await context.close();
   },
@@ -1034,36 +1213,57 @@ const checks = {
   async "solo-own-army"() {
     const { page, context } = await device();
     await lobby(page);
-    await playComputer(page, "Sci-fi battle");
-    await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
-    await page
-      .locator(".your-army input[type=file]")
-      .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
-    // One line to check first (UX 408): the army, its size, the computer's.
-    await page
-      .locator(".army-check")
-      .getByText(/Test Muster · \d+ units · 165 pts · the list itself says 335 pts/)
-      .waitFor();
-    // About 4 to 1 against the computer's sample is said in words, with a way to even it (PX re-check of #56).
-    await page
-      .locator(".your-army .warn")
-      .getByText(/The computer's army is about \d+ times yours/)
-      .waitFor();
-    await page.getByRole("button", { name: "Save to shelf" }).click();
-    await page.getByRole("button", { name: "Match my points" }).click();
-    // It says what the computer now fields and leaves Start to the player (PX re-check of #56).
-    await page
-      .locator(".army-check")
-      .getByText(/the computer's is [1-3]\d\d pts/)
-      .waitFor();
-    if (await page.getByText(/The computer's army is about/).count())
-      throw new Error("still lopsided after matching");
-    await page.getByRole("button", { name: "Start", exact: true }).click();
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
-    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
-    await page.keyboard.press("Escape");
+    if (page.ui === "classic") {
+      await playComputer(page, "Sci-fi battle");
+      await page.locator(".how-hard button", { hasText: /^Easy/ }).click();
+      await page
+        .locator(".your-army input[type=file]")
+        .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
+      // One line to check first (UX 408): the army, its size, the computer's.
+      await page
+        .locator(".army-check")
+        .getByText(/Test Muster · \d+ units · 165 pts · the list itself says 335 pts/)
+        .waitFor();
+      // About 4 to 1 against the computer's sample is said in words, with a way to even it (PX re-check of #56).
+      await page
+        .locator(".your-army .warn")
+        .getByText(/The computer's army is about \d+ times yours/)
+        .waitFor();
+      await page.getByRole("button", { name: "Save to shelf" }).click();
+      await page.getByRole("button", { name: "Match my points" }).click();
+      // It says what the computer now fields and leaves Start to the player (PX re-check of #56).
+      await page
+        .locator(".army-check")
+        .getByText(/the computer's is [1-3]\d\d pts/)
+        .waitFor();
+      if (await page.getByText(/The computer's army is about/).count())
+        throw new Error("still lopsided after matching");
+      await page.getByRole("button", { name: "Start", exact: true }).click();
+      await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+      await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
+        timeout: 30000,
+      });
+      await page.keyboard.press("Escape");
+    } else {
+      // The new door (UX N1): the list read is a choice of its own, and matching points is one tick.
+      await playComputer(page, "Sci-fi battle");
+      await page.locator(".obn-levels [role=radio]", { hasText: /^Easy/ }).click();
+      await page
+        .locator("#obn-ready input[type=file]")
+        .setInputFiles(new URL("./fixtures/test-muster.ros", import.meta.url).pathname);
+      await page
+        .locator("#obn-ready [role=radio][aria-checked=true]", { hasText: "Test Muster" })
+        .getByText(/Just read · \d+ units · 165 pts/)
+        .waitFor();
+      await page
+        .locator("#obn-ready .obn-tick", { hasText: /match my points/ })
+        .locator("input")
+        .check();
+      await page.locator("#obn-ready .obn-lit").click();
+      await battleOn(page);
+    }
     const download = page.waitForEvent("download");
-    await page.getByRole("button", { name: "⋯ Game" }).click();
+    await gameMenu(page);
     await page.getByRole("menuitem", { name: "Download replay" }).click();
     const path = join(files, "solo.json");
     await (await download).saveAs(path);
@@ -1097,12 +1297,17 @@ const checks = {
     await host.page.locator(".room").waitFor();
     await guest.page.goto(host.page.url());
     // The name is asked at once, while the table connects (UX 403), and used once seated.
-    await guest.page.getByText(/What should the others call you/).waitFor({ timeout: 10_000 });
-    await guest.page.getByPlaceholder("Your name").fill("Ben");
-    await guest.page.getByRole("button", { name: "Use this name" }).click();
+    await joinAs(guest.page, "Ben");
     await host.page.locator(".room").getByText("connected").waitFor({ timeout: 30_000 });
-    await guest.page.locator(".topbar .player").nth(1).waitFor();
-    await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 15_000 });
+    await guest.page
+      .locator(guest.page.ui === "classic" ? ".topbar .player" : ".obn-strip .obn-side")
+      .nth(1)
+      .waitFor();
+    await host.page
+      .locator(host.page.ui === "classic" ? ".topbar" : ".obn-strip")
+      .getByText("Ben")
+      .first()
+      .waitFor({ timeout: 15_000 });
     await host.context.close();
     await guest.context.close();
     return [...host.page.errors, ...guest.page.errors];
@@ -1132,16 +1337,21 @@ const checks = {
     await post.getByRole("button", { name: "Join" }).click({ timeout: 30_000 });
     await guest.page.locator(".table-post:not(.live-game) input").first().fill("Ben");
     await guest.page.getByRole("button", { name: "Join Ana" }).click();
-    await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 30_000 });
-    for (const { page } of [host, guest]) {
-      await page.getByRole("button", { name: "Sample army" }).first().click();
-      const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
-      await deploy.click();
-      await deploy.waitFor({ state: "detached" });
+    if (host.page.ui !== "classic") {
+      await host.page.locator(".room").getByText("Ben").first().waitFor({ timeout: 30_000 });
+      await readyUp([host.page, guest.page]);
+    } else {
+      await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 30_000 });
+      for (const { page } of [host, guest]) {
+        await page.getByRole("button", { name: "Sample army" }).first().click();
+        const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
+        await deploy.click();
+        await deploy.waitFor({ state: "detached" });
+      }
+      await host.page.getByRole("button", { name: /Start battle/ }).click();
+      const anyway = host.page.getByRole("button", { name: /Start anyway/ });
+      if (await anyway.count()) await anyway.first().click();
     }
-    await host.page.getByRole("button", { name: /Start battle/ }).click();
-    const anyway = host.page.getByRole("button", { name: /Start anyway/ });
-    if (await anyway.count()) await anyway.first().click();
     await tables(watcher.page);
     // The board is polled, so a just-filled table can take a round to show as live.
     const live = watcher.page.locator(".live-game").first();
@@ -1208,7 +1418,9 @@ const checks = {
       .getByText(/Ben says the score is wrong/)
       .waitFor({ timeout: 20_000 });
     // Ben's point was missed: he puts it on, and the result is written again as a draw.
-    await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
+    if (guest.page.ui === "classic")
+      await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
+    else await vpPlus(guest.page, 1);
     await sign(guest.page).getByRole("button", { name: "Score fixed: write it up" }).click();
     await sign(host.page)
       .getByText(/Ana 1 – 1 Ben, a draw/)
@@ -1255,13 +1467,25 @@ const checks = {
       // A shelf army: deploy Rift Lanterns' sample warband at a table of one's own and save it.
       await lobby(d.page, q);
       await hostOnline(d.page, name, "Rift Lanterns");
-      await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
-      await d.page
-        .getByRole("button", { name: /^Deploy for/ })
-        .first()
-        .click();
-      // Once every side has an army, adding and saving armies fold under "Armies" (UX 83).
-      await d.page.locator(".panel.hud summary", { hasText: "Armies" }).click();
+      if (d.page.ui === "classic") {
+        await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
+        await d.page
+          .getByRole("button", { name: /^Deploy for/ })
+          .first()
+          .click();
+        // Once every side has an army, adding and saving armies fold under "Armies" (UX 83).
+        await d.page.locator(".panel.hud summary", { hasText: "Armies" }).click();
+      } else {
+        // The checklist's lit step puts the sample army down; its Change opens the army picker with Save.
+        await d.page.locator(".obn-bar .obn-lit", { hasText: /Copy invite link/ }).click({ timeout: 30_000 });
+        await d.page
+          .locator(".obn-bar .obn-lit", { hasText: /Use the sample army/ })
+          .click({ timeout: 30_000 });
+        await d.page
+          .locator(".obn-check li", { hasText: "Your army" })
+          .getByRole("button", { name: "Change" })
+          .click();
+      }
       await d.page.getByRole("button", { name: "Save army to your shelf" }).click();
       await d.page.getByText("This army is on your shelf as it is now.").waitFor();
     }
@@ -1324,36 +1548,34 @@ const checks = {
       step(`round ${round}: checks`);
       for (const d of ds) {
         await d.page.locator(".event-seat li.good").nth(1).waitFor({ timeout: 30_000 });
-        await d.page.locator(".topbar .ranked-chip").waitFor({ timeout: 30_000 });
+        await d.page.locator(".ranked-chip").waitFor({ timeout: 30_000 });
       }
       step(`round ${round}: start battles`);
-      for (const d of ds) {
-        // Each table's host starts it.
-        if (
-          !(await d.page
-            .locator(".room .people")
-            .getByText(/^you · host/)
-            .count())
-        )
-          continue;
-        const start = d.page.locator(".topbar").getByRole("button", { name: /Start battle/ });
-        if (process.env.SMOKE_SHOTS)
-          await d.page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${d.name}-${round}.png` });
-        await start.click();
-        const anyway = d.page.getByRole("button", { name: /Start anyway/ });
-        if (await anyway.count()) await anyway.first().click();
-      }
+      if (ds[0].page.ui !== "classic") await readyAll(ds.map((d) => d.page));
+      else
+        for (const d of ds) {
+          // Each table's host starts it.
+          if (
+            !(await d.page
+              .locator(".room .people")
+              .getByText(/^you · host/)
+              .count())
+          )
+            continue;
+          const start = d.page.locator(".topbar").getByRole("button", { name: /Start battle/ });
+          if (process.env.SMOKE_SHOTS)
+            await d.page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${d.name}-${round}.png` });
+          await start.click();
+          const anyway = d.page.getByRole("button", { name: /Start anyway/ });
+          if (await anyway.count()) await anyway.first().click();
+        }
       // Every guest's table matches its host's, though the game's rules package loaded as they joined.
       await sleep(3000);
       for (const d of ds)
         if (await d.page.locator(".net-banner.desync").count())
           throw new Error(`round ${round}: ${d.name}'s table doesn't match the host's`);
       for (const d of ds) {
-        await d.page
-          .locator(".topbar")
-          .getByText(/Round 1/)
-          .first()
-          .waitFor({ timeout: 20_000 });
+        await roundOne(d.page, 20_000);
         await d.page.keyboard.press("Escape");
       }
       // Round 1: someone watches a top table from Live now, behind the game.
@@ -1363,10 +1585,23 @@ const checks = {
         const live = watcher.page.locator(".live-game", { hasText: "Smoke Cup" }).first();
         await live.waitFor({ timeout: 45_000 });
         await live.getByRole("button", { name: "Watch" }).click();
-        await watcher.page.locator(".broadcast-badge").waitFor({ timeout: 30_000 });
+        // On the table (the army showcase may hide the panels while it plays, 30 s behind).
+        await watcher.page
+          .locator(".broadcast-badge")
+          .waitFor({ state: "attached", timeout: 30_000 })
+          .catch(async (e) => {
+            if (process.env.SMOKE_SHOTS)
+              await watcher.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "event-watcher.png") });
+            throw e;
+          });
       }
       // Each table's first side scores a point, then everyone passes to the end.
       for (const d of ds) {
+        if (d.page.ui !== "classic") {
+          if ((await d.page.locator(".obn-strip .obn-side").first().innerText()).includes(d.name))
+            await vpPlus(d.page, 0);
+          continue;
+        }
         const plus = d.page.locator(".topbar .player").first().getByRole("button", { name: "+" });
         if ((await d.page.locator(".topbar .player").first().innerText()).includes(d.name))
           await plus.click();
@@ -1378,6 +1613,10 @@ const checks = {
         for (const d of ds) {
           if (await d.page.locator(".ranked-sign").count()) {
             done++;
+            continue;
+          }
+          if (d.page.ui !== "classic") {
+            await passOn(d.page);
             continue;
           }
           const pass = d.page.locator(".topbar").getByRole("button", { name: "Pass", exact: true });
@@ -3397,7 +3636,7 @@ const checks = {
           .first()
           .click({ timeout: 3000 })
           .catch(() => {});
-      const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves/ });
+      const own = b.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll saves?\b/ });
       if (await own.count()) {
         await own.first().click();
         pressed = true;
