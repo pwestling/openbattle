@@ -1010,3 +1010,10 @@ body:has(.obn-game) .table-tag.ok {
     width: calc(100vw - 24px);
   }
 }
+
+/* A package game's own panel (The crews…) sits low on the left: up top it covered a rule's question card. */
+.obn .panel.package-panel {
+  top: auto;
+  left: 12px;
+  bottom: 120px;
+}
