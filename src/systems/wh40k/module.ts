@@ -10,7 +10,7 @@ import { recognize } from "./recognize";
 import { unitGap } from "../../core/manoeuvre";
 import { opposed } from "../../core/teams";
 import { maxWounds, woundsRemaining } from "../../core/attack";
-import { engagedWith } from "./rules";
+import { engagedWith, weaponReach } from "./rules";
 import { fightOrder } from "./fight";
 import { registerWorkOrder } from "../../core/content/nextWork";
 
@@ -34,6 +34,13 @@ function enemyGap(view: { state: GameState }, unitId: unknown): number {
       gap = Math.min(gap, unitGap(state, unit, u));
   memo.gaps.set(unit.id, gap);
   return gap;
+}
+/** The longest reach of a unit's ranged weapons: Infinity when it has none or one has no range (nothing to judge by). */
+function shotReach(state: GameState, unitId: string): number {
+  const ranged = Object.values(state.units[unitId]?.sheet?.weapons ?? {}).filter((w) => w.kind === "ranged");
+  const reaches = ranged.map(weaponReach);
+  if (!reaches.length || reaches.some((r) => r === null)) return Infinity;
+  return Math.max(...(reaches as number[]));
 }
 const gapMemo = new WeakMap<object, { units: unknown; gaps: Map<string, number> }>();
 
@@ -60,6 +67,8 @@ export const wh40kModule: GameModule<SystemModule> = {
   functions: {
     enemyGap: (view, unitId) => enemyGap(view, unitId),
     belowHalf: (view, unitId) => belowHalf(view, unitId),
+    // The longest range of the unit's ranged weapons (Infinity when one doesn't say, or the unit has none to read).
+    shotReach: (view, unitId) => shotReach(view.state, String(unitId)),
     // An enemy unit engaged with the shooter's other units (it can't be shot at).
     engagedWithOthers: (view, targetId, shooterId) => {
       const target = view.state.units[String(targetId)];

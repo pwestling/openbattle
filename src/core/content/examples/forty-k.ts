@@ -1067,6 +1067,15 @@ export const fortyK: GameSystem = {
           },
           why: "Engaged: only Pistols",
         },
+        // Nothing to shoot at: no enemy unit within reach of any of its ranged weapons (the 40k module's function).
+        {
+          if: {
+            cmp: ">",
+            a: { call: "enemyGap", args: [ref("self.id")] },
+            b: { call: "shotReach", args: [ref("self.id")] },
+          },
+          why: "No enemy in range",
+        },
       ],
       // Visible units, or any with an Indirect Fire weapon; not one engaged with the shooter's other units.
       target: {
