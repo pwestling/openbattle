@@ -3,7 +3,7 @@ import { swipeAway } from "./swipe";
 import { UnitWarnings } from "./TableWarnings";
 import { RulesText } from "./RulesText";
 import { playerShape } from "./sides";
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import {
   cantPlace,
   currentSlot,
@@ -29,6 +29,7 @@ import { useCharged } from "../render/charges";
 import { StatusMenu } from "./StatusMenu";
 import { formatList, formatNumber, t, tn, gameText } from "../i18n";
 import { lengthText } from "./distance";
+import { systemModule } from "../systems";
 
 /**
  * Panels for any game system, built from its data: a unit card with the
@@ -147,6 +148,10 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
   const companion = !!game.settings.companion;
   const plain = plainActivations(game);
   const statuses = (system.statuses ?? []).filter((s) => view.statuses.includes(s.id));
+  // The system's own part of the card (Quality d6's orders and badges).
+  const own = systemModule(game.system).unitCard;
+  const Part = own?.part;
+  const chipped = own?.statuses ? [] : statuses;
   const flags = view.flags.filter(
     (f) =>
       !statuses.some((s) => s.id === f) &&
@@ -154,6 +159,7 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
         f,
       ),
   );
+  const flagChips = own?.statuses ? [] : flags;
   const chars = system.characteristics.filter((c) => c.of === "model" && c.type !== "text");
   const texts = system.characteristics.filter((c) => c.of === "model" && c.type === "text");
   const weapons = Object.values(unit.sheet?.weapons ?? {});
@@ -257,24 +263,29 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
         ) : null,
       )}
 
-      {mine && game.turn.round > 0 && <SystemActions unit={unit} />}
+      {Part && (
+        <Suspense fallback={null}>
+          <Part unit={unit} mine={mine} />
+        </Suspense>
+      )}
+      {mine && game.turn.round > 0 && <SystemActions unit={unit} ownStarters={!!own?.starts} />}
       {children}
-      {statuses
+      {chipped
         .filter((s) => s.hint)
         .map((s) => (
           <p key={`hint-${s.id}`} className="warn small">
             {gameText(s.hint!)}
           </p>
         ))}
-      {(statuses.length > 0 || flags.length > 0 || chargedText) && (
+      {(chipped.length > 0 || flagChips.length > 0 || chargedText || (mine && statuses.length > 0)) && (
         <div className="chips">
           {/* Read-only: one click used to clear a spent regiment's Activated (UX 399). The ⋯ changes them. */}
-          {statuses.map((s) => (
+          {chipped.map((s) => (
             <span key={s.id} className="chip on">
               {s.id === "charged" && chargedText ? chargedText : s.name}
             </span>
           ))}
-          {flags.map((f) =>
+          {flagChips.map((f) =>
             // A spell on the unit (rank-and-flank magic) or a prepared action's token (FSD):
             // by name, and a player ends it by hand when it's used or lost.
             f.startsWith("spell:") || f.startsWith("prepared.") ? (
@@ -452,7 +463,7 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
  * die they use; a player can pick a die in the pool first to pay with it.
  * Reasons an action can't be taken: one shared line, the rest in tooltips.
  */
-function SystemActions({ unit }: { unit: Unit }) {
+function SystemActions({ unit, ownStarters }: { unit: Unit; ownStarters?: boolean }) {
   const game = useGame();
   const { dispatch, setDraft } = useStore();
   const [commanding, setCommanding] = useState<{ action: string; picked: string[] } | null>(null);
@@ -473,6 +484,8 @@ function SystemActions({ unit }: { unit: Unit }) {
     (o) =>
       !o.def.prepares &&
       (!o.def.reactTo || o.ok) &&
+      // The system's own card part offers them (Quality d6's orders).
+      !(ownStarters && o.def.activates !== undefined && !o.def.reactTo) &&
       // Of the ways to start an activation, only those this unit could use (Deploy for reserves).
       !(activations && !acting && o.def.activates !== undefined && !o.def.reactTo && o !== starter) &&
       (!activations || (acting ? o.def.activates === undefined : o.def.activates !== undefined)),
@@ -538,7 +551,8 @@ function SystemActions({ unit }: { unit: Unit }) {
         !game.script?.waiting && (
           <div className="row">
             <button
-              className="primary"
+              // One next step lit (Porter's flows): a free action still open (Shoot after Hold) comes first.
+              className={shown.some((o) => o.ok) ? "" : "primary"}
               title={t("End this activation; the other player goes next")}
               onClick={() => {
                 setDraft(null);

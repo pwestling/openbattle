@@ -9656,6 +9656,25 @@
           "properties": {
             "type": {
               "type": "string",
+              "const": "procedure/allocate"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "order"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
               "const": "procedure/clear"
             }
           },

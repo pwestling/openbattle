@@ -660,3 +660,88 @@ details p {
   white-space: nowrap;
   pointer-events: none;
 }
+
+/* Quality d6's part of the unit card (#82): badges, the order as one choice, the list's rules. */
+.qd6-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0;
+}
+.qd6-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.qd6-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 10px;
+  border: 1px solid #39404f;
+  color: #e5e7eb;
+}
+.qd6-badge.bad {
+  background: #7f1d1d;
+  border-color: #f87171;
+}
+.qd6-badge.tired {
+  background: #78350f;
+  border-color: #fbbf24;
+}
+.qd6-badge.order {
+  background: #1e3a8a;
+  border-color: #3b82f6;
+}
+.qd6-badge.gone {
+  color: #9ca3af;
+}
+.qd6-badge-hint {
+  flex-basis: 100%;
+  margin: 0;
+  color: #d1d5db;
+}
+.qd6-order-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 6px;
+}
+.qd6-order {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2px;
+  padding: 6px 10px;
+}
+.qd6-order-name {
+  font-weight: 600;
+}
+.qd6-order-hint {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+.qd6-order.primary .qd6-order-hint {
+  color: inherit;
+}
+.qd6-rules .rule-text {
+  margin: 4px 0 0;
+}
+.qd6-before {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.qd6-round .qd6-to-go .now {
+  font-weight: 600;
+}
+.qd6-round p {
+  margin: 4px 0 0;
+}
+.qd6-fight {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #39404f;
+}

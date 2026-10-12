@@ -147,7 +147,8 @@ In the table companion (players use real models; the app keeps the cards, dice a
 - `importRoster(fileName, data)` reads an army list file. Without it, the app uses the BattleScribe and New Recruit reader in `src/systems/wh40k/roster.ts`.
 - `rankRules(game, unit)` gives rank width and the rank bonus cap for ranked units.
 - `chargeRoll`, `fleeDice`, `templates`, `specialDice` and `scatter` set up the charge panel, flee and pursuit rolls, blast and flame templates, and dice with named faces in the dice tray.
-- `panel` is a React component drawn during play, for a system that needs a panel of its own (Conquest's command stack).
+- `panel` is a React component drawn during play, for a system that needs a panel of its own (Conquest's command stack, Quality d6's round panel).
+- `unitCard` adds the system's own part to the generic unit card, under the stats (Quality d6's orders, Shaken and Fatigued badges and list rules). Set `starts` when the part offers the ways to start an activation, and `statuses` when it shows the unit's statuses, so the card doesn't show them twice.
 - `leaving(game)` lists what's still undone in this phase, so **Next phase** can ask before moving on.
 - `dedicatedUi` switches on the sci-fi game's own attack editor and phase moves. Other systems use the generic action and procedure panels, which is what a new system should do.
 - `secretObjectives` names the game's hidden objectives, kept on each owner's device until revealed.

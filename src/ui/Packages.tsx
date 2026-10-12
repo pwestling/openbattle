@@ -1,3 +1,4 @@
+import { PackageBrings } from "./PackageArmies";
 import { displayName, playerName } from "../i18n/names";
 import { readLessonPackage } from "../teach/lesson";
 import { installOwnGame, ownGame } from "../games/riftLanterns";
@@ -137,6 +138,7 @@ function ConsentSheet({
           {label(pkg.manifest)} · <Fp hash={pkg.hash} />
         </h3>
         {pkg.manifest.adds && <p>{t("Adds: {what}", { what: pkg.manifest.adds })}</p>}
+        <PackageBrings pkg={pkg} />
         <p className="muted">{sandbox()}</p>
         <div className="row">
           <button
@@ -262,6 +264,7 @@ function PackageRow({ pkg }: { pkg: StoredPackage }) {
             })}
           </div>
           {pkg.manifest.adds && <div>{t("Adds: {what}", { what: pkg.manifest.adds })}</div>}
+          <PackageBrings pkg={pkg} />
           {pkg.manifest.changelog && <div>{t("Changes: {what}", { what: pkg.manifest.changelog })}</div>}
         </div>
       )}

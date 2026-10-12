@@ -5,6 +5,7 @@ import { deployOwn, deploySamples } from "../teach/setup";
 import { systemModule } from "../systems";
 import { owed } from "../render/showcase";
 import { useHelp } from "./help";
+import { turnOnRules } from "../campaign/RulesLine";
 
 /**
  * "Try it now" (front door): a hotseat game of a system with both sample
@@ -24,6 +25,8 @@ export function startDemo(system: string, mine?: OwnArmy, seated?: () => void): 
     }
     const { dispatch } = useStore.getState();
     seated?.();
+    // An army from a rules package plays with that package's rules (#82b).
+    if (mine?.packages?.length) turnOnRules(game, mine.packages);
     presetMission();
     if (mine) deployOwn(mine, () => useStore.getState().game, dispatch, mine.theirs);
     else deploySamples(() => useStore.getState().game, dispatch, crypto.randomUUID().slice(0, 6));

@@ -401,6 +401,8 @@ export type StepKind =
       alternateEnds?: boolean;
       /** With rearRankFirst: models for which this holds ("model") go after every other, e.g. a command stand. */
       last?: Expr;
+      /** When this holds, the attacker picks instead of the defender (a sniper weapon: the shooter picks the model hit). */
+      attackerPicks?: Expr;
     }
   /** Turn input successes into lost wounds. */
   /** `minAmount`: no attack does less than this after modifiers (40k: 1). */

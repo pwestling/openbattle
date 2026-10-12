@@ -29,12 +29,14 @@ export function readPackageArmies(source: string): { armies: ArmyListV1[]; warni
 }
 
 /** Each package's armies by hash: a hash names exact bytes, so they are read once. */
-const read = new Map<string, ArmyListV1[]>();
-const armiesOf = (p: StoredPackage) => {
-  let armies = read.get(p.hash);
-  if (!armies) read.set(p.hash, (armies = readPackageArmies(p.source).armies));
-  return armies;
-};
+const read = new Map<string, { armies: ArmyListV1[]; warnings: string[] }>();
+/** A package's armies, and what about them it couldn't read (for its consent sheet and details). */
+export function packageArmiesReport(p: StoredPackage): { armies: ArmyListV1[]; warnings: string[] } {
+  let got = read.get(p.hash);
+  if (!got) read.set(p.hash, (got = readPackageArmies(p.source)));
+  return got;
+}
+const armiesOf = (p: StoredPackage) => packageArmiesReport(p).armies;
 
 /** An army from a package, with the package it came from (for its label). */
 export interface PackageArmy {

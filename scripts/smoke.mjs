@@ -428,27 +428,22 @@ const checks = {
     // Closing went back to the entry before rather than adding one: Back from here leaves the site.
     if ((await page.evaluate(() => history.state)) !== null) throw new Error("closing added a history entry");
     // A game: its address, kept by a reload, left with Back and come back to with Forward.
-    await tryDemo(
-      page,
-      page
-        .locator(".demos .demo")
-        .filter({ has: page.locator(".solo") })
-        .first(),
-    );
+    await tryDemo(page, "Sci-fi battle");
     await page.locator(".topbar").waitFor();
     await want("#/game");
     await page.reload();
     await page.locator(".topbar").waitFor();
     await want("#/game");
+    // Back is the front door with the choices that started it still open (UX 513).
     await page.goBack();
     await page.locator(".lobby").waitFor();
-    await want("");
+    await want("#/play/forty-k-11/both");
     await page.goForward();
     await page.locator(".topbar").waitFor();
     // The table companion: in sight, a way out, and Back leaves it too (Porter: no way out).
     for (const out of ["menu", "back"]) {
       await lobby(page);
-      await page.getByRole("button", { name: "One phone for both of us" }).click();
+      await atTable(page, "One phone for both of us");
       await page.locator(".companion").waitFor();
       await want("#/game");
       if (out === "back") await page.goBack();
@@ -460,13 +455,17 @@ const checks = {
     }
     // Old links open their screen at its address.
     await lobby(page, "?play=rift-lanterns");
-    await page.getByRole("group", { name: "How hard?" }).waitFor();
+    await page
+      .locator(".game-pick.on, .game-pick[aria-checked=true]", { hasText: "Rift Lanterns" })
+      .waitFor();
     await want("#/play/rift-lanterns");
     if ((await page.evaluate(() => location.search)) !== "") throw new Error("?play= kept after it was read");
     // An online room: its ?room= link, Back asks and leaves for the front door, Forward rejoins as host.
     await lobby(page, `?${SIGNAL}`);
-    await page.locator(".lobby input").first().fill("Ana");
-    await page.getByRole("button", { name: "Host a game", exact: true }).click();
+    await pickGame(page, "Sci-fi battle");
+    await page.locator(".who-pick.friend").click();
+    await page.locator(".flow-name input").fill("Ana");
+    await page.locator(".flow-go").click();
     await page.locator(".room").waitFor();
     const room = new URL(page.url()).searchParams.get("room");
     if (!room) throw new Error("no ?room= in a hosted game's address");
@@ -3444,17 +3443,63 @@ const checks = {
     return page.errors;
   },
 
+  // Quality d6 (#82): a unit's order is one choice on its card, the order shows as a badge, Shoot follows
+  // Hold, and the round panel counts the units each side has left.
+  async "qd6-card"() {
+    const { page, context } = await device();
+    await lobby(page);
+    await tryDemo(page, "Quality d6");
+    await page
+      .locator(".topbar")
+      .getByText(/Round 1/)
+      .waitFor({ timeout: 60_000 });
+    await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
+      timeout: 30_000,
+    });
+    await page.keyboard.press("Escape");
+    const panel = page.locator(".qd6-round");
+    await panel
+      .getByText(/units? to go/)
+      .first()
+      .waitFor({ timeout: 10_000 });
+    // The first unit whose order can be given: Hold, then its Shoot is on the card.
+    const hold = page.locator(".qd6-orders .qd6-order:enabled", { hasText: "Hold" });
+    for (let i = 0; i < 12 && !(await hold.count()); i++) {
+      await page.keyboard.press("]");
+      await page.waitForTimeout(400);
+    }
+    const before = await panel.innerText();
+    if (process.env.SMOKE_SHOTS)
+      await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "qd6-orders.png") });
+    await hold.first().click();
+    await page.locator(".qd6-badge.order", { hasText: "Holding" }).waitFor({ timeout: 5000 });
+    await page
+      .locator(".panel.unitcard .actions button", { hasText: "Shoot" })
+      .first()
+      .waitFor({ timeout: 5000 });
+    if (await page.locator(".qd6-orders").count()) throw new Error("the orders stayed up after Hold");
+    if (process.env.SMOKE_SHOTS)
+      await page.screenshot({ path: join(process.env.SMOKE_SHOTS, "qd6-holding.png") });
+    // Ending its go counts it off.
+    await page.locator(".panel.unitcard button", { hasText: "End activation" }).click();
+    await page.waitForFunction((was) => document.querySelector(".qd6-round")?.innerText !== was, before, {
+      timeout: 5000,
+    });
+    await context.close();
+    return page.errors;
+  },
+
   async language() {
     const { page, context } = await device();
     await lobby(page);
     await page.getByRole("button", { name: "Aa ▾" }).click();
     await page.locator(".language-picker select").selectOption("de");
-    await page.getByRole("heading", { name: "Wähle ein Spiel" }).waitFor();
+    await page.getByRole("heading", { name: "1. Was spielst du?" }).waitFor();
     // The page redraws in the new language, closing the menu.
     if (!(await page.locator(".language-picker select").isVisible()))
       await page.getByRole("button", { name: "Aa ▾" }).click();
     await page.locator(".language-picker select").selectOption("fr");
-    await page.getByRole("heading", { name: "Choisis un jeu" }).waitFor();
+    await page.getByRole("heading", { name: "1. À quoi joues-tu ?" }).waitFor();
     await context.close();
     return page.errors;
   },
@@ -3484,7 +3529,12 @@ for (const [name, run] of Object.entries(checks)) {
   }
 }
 await browser.close();
-for (const p of [server, relay]) process.kill(-p.pid);
+for (const p of [server, relay])
+  try {
+    process.kill(-p.pid);
+  } catch {
+    // Already gone.
+  }
 writeFileSync(join(files, "done"), "");
 if (failed) {
   console.log(`${failed} smoke check(s) failed`);

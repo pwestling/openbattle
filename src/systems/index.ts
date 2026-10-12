@@ -60,14 +60,21 @@ export function unregisterPackageSystem(id: string): void {
 
 /** Modules as they were before extension packages added missions to them, to put back. */
 const BEFORE_MISSIONS = new Map<string, GameModule<SystemModule>>();
+/** The package (by hash) that added each mission, by system and mission id: the picker's "from <package>". */
+const MISSION_FROM = new Map<string, Map<string, string>>();
 
 /**
  * Missions an extension package adds to a system (#82b, PackageContents.missions),
  * after its own; one with the id of one already there replaces it.
  */
-export function addPackageMissions(id: string, missions: Mission[]): void {
+export function addPackageMissions(id: string, missions: Mission[], from?: string): void {
   const m = MODULES.get(id);
   if (!m?.app || !missions.length) return;
+  if (from) {
+    const by = MISSION_FROM.get(id) ?? new Map<string, string>();
+    for (const x of missions) by.set(x.id, from);
+    MISSION_FROM.set(id, by);
+  }
   if (!BEFORE_MISSIONS.has(id)) BEFORE_MISSIONS.set(id, m);
   const kept = (m.app.missions ?? []).filter((x) => !missions.some((y) => y.id === x.id));
   MODULES.set(id, { ...m, app: { ...m.app, missions: [...kept, ...missions] } });
@@ -77,6 +84,12 @@ export function addPackageMissions(id: string, missions: Mission[]): void {
 export function clearPackageMissions(): void {
   for (const [id, m] of BEFORE_MISSIONS) if (MODULES.has(id)) MODULES.set(id, m);
   BEFORE_MISSIONS.clear();
+  MISSION_FROM.clear();
+}
+
+/** The hash of the package that added a mission to a system, if a package did. */
+export function missionFrom(system: string, mission: string): string | undefined {
+  return MISSION_FROM.get(system)?.get(mission);
 }
 
 /** The game module for a system id, if one is registered. */

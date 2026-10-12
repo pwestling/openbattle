@@ -45,6 +45,17 @@ export interface SystemModule {
   chargeRoll?: { count: number; sides: number; keep: "highest" | "sum" };
   /** A panel of the system's own, shown during play (Conquest's command stack). */
   panel?: ComponentType;
+  /**
+   * The system's own part of the generic unit card, under the stats (Quality d6's orders and badges).
+   * Self-contained, so another screen can mount it too.
+   */
+  unitCard?: {
+    part: ComponentType<{ unit: Unit; mine: boolean }>;
+    /** The part offers the ways to start an activation (orders), so the card's generic actions leave them out. */
+    starts?: boolean;
+    /** The part shows the unit's statuses, so the card's chips and hints leave them out. */
+    statuses?: boolean;
+  };
   /** What is left undone in this phase, asked about before Next phase moves on ("hasn't brought in reinforcements"). */
   leaving?(game: GameState): string[];
   /**

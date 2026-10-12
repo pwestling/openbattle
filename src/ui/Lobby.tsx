@@ -31,6 +31,8 @@ import {
 } from "../games/riftLanterns";
 import type { RulebookDoc } from "../printplay/rulebook";
 import { YourArmy } from "../bot/YourArmy";
+import type { OwnArmy } from "../bot/startSolo";
+import { PackageArmyChoice } from "./PackageArmies";
 import { armSolo, characterName, levelName, savedLevel } from "../bot/solo";
 import type { Level } from "../bot/player";
 import { TextSizePicker } from "./TextSizePicker";
@@ -298,6 +300,8 @@ export function Lobby() {
   };
   // The name is asked once, when it's needed: an invite link, or hosting or joining with none yet (#78, UX 517).
   const [askName, setAskName] = useState<{ go: (name: string) => void; watch?: () => void } | null>(null);
+  // Both sides on this screen: the near side's army, when a trusted package brings one (#82b).
+  const [near, setNear] = useState<OwnArmy | null>(null);
   const needName = (go: (name: string) => void) => {
     const n = name.trim() || useCard.getState().name.trim();
     if (n) go(n);
@@ -305,8 +309,8 @@ export function Lobby() {
   };
   /** Both sides on this screen: our own games and the samples set up and started, any other game on an empty table. */
   const bothSides = () => {
-    if (ownGame(system)) return void playOwnGame(system);
-    if (FRONT[system]) return startDemo(system);
+    if (ownGame(system)) return void playOwnGame(system, near ?? undefined);
+    if (FRONT[system]) return startDemo(system, near ?? undefined);
     remember();
     start({ role: "host", mode: "hotseat", name, system });
     namePackage();
@@ -476,6 +480,7 @@ export function Lobby() {
   const lesson = games.find((g) => g.id === system)?.lessons[0];
   const pick = (id: string) => {
     setSystem(id);
+    setNear(null);
     localStorage.setItem("open-battle:system", id);
     // A choice the new game can't take (the computer) is asked again.
     flow.go(id, who === "computer" && !(FRONT[id] || ownGame(id)) ? null : who);
@@ -773,6 +778,9 @@ export function Lobby() {
             )}
             {who === "friend" && (
               <p className="muted small">{t("Next, in the room: your army and the invite link to send.")}</p>
+            )}
+            {who === "both" && (FRONT[system] || ownGame(system)) && (
+              <PackageArmyChoice system={system} onChange={setNear} />
             )}
             {who === "both" && (
               <p className="muted small">

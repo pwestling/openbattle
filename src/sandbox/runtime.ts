@@ -249,7 +249,7 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
       }
       // Missions an extension adds (#82b): picked at setup, their suggestions worked out in here.
       for (const [s, missions] of Object.entries(p.missions ?? {})) {
-        addPackageMissions(s, missions.map(packageMission));
+        addPackageMissions(s, missions.map(packageMission), p.hash);
         wantsAppState = true;
       }
       hookOwners.push(p.hash);

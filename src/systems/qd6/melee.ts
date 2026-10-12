@@ -86,12 +86,51 @@ const fight: CodeProcedure = function* (ctx, args) {
       yield ctx.emit({ type: "unit/status", id: targetId, key: "fatigued", value: true });
   }
   yield ctx.note(`${me.name} caused ${dealt} wound${dealt === 1 ? "" : "s"}, ${foe.name} ${taken}`);
-  if (dealt === taken) return;
+  // The fight as the round panel sums it up (ui/RoundPanel.tsx): who struck whom, and how it ended.
+  const record = (morale: FightRecord["morale"], loser?: string) =>
+    ctx.set("lastFight", {
+      round: ctx.view.round,
+      unit: unitId,
+      unitName: me.name,
+      foe: targetId,
+      foeName: foe.name,
+      dealt,
+      taken,
+      ...(loser ? { loser } : {}),
+      morale,
+    } satisfies FightRecord);
+  if (dealt === taken) {
+    yield record("tie");
+    return;
+  }
   const loser = dealt < taken ? unitId : targetId;
-  if (!standing(ctx.view.state, ctx.view.state.units[loser])) return;
-  if (yield* moraleTest(ctx, loser, "lost the fight")) return;
+  if (!standing(ctx.view.state, ctx.view.state.units[loser])) {
+    yield record("destroyed", loser);
+    return;
+  }
+  if (yield* moraleTest(ctx, loser, "lost the fight")) {
+    yield record("held", loser);
+    return;
+  }
   yield* failed(ctx, loser, true);
+  yield record(standing(ctx.view.state, ctx.view.state.units[loser]) ? "shaken" : "routed", loser);
 };
+
+/** The last fight, kept in the module's state as `lastFight`. */
+export interface FightRecord {
+  round: number;
+  unit: string;
+  unitName: string;
+  foe: string;
+  foeName: string;
+  /** Wounds the charging unit caused, and took from the strike-back. */
+  dealt: number;
+  taken: number;
+  /** The side that caused fewer wounds. */
+  loser?: string;
+  /** A tie tests no one; else the loser was destroyed, held, or failed and is Shaken or routed. */
+  morale: "tie" | "destroyed" | "held" | "shaken" | "routed";
+}
 
 export const meleeActions: CodeAction[] = [
   {

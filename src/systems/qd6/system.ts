@@ -112,6 +112,8 @@ const allocate: Step = {
   kind: "allocate",
   id: "allocate",
   chooser: "defender",
+  // Sniper: the shooter picks the model hit.
+  attackerPicks: rule("weapon", "sniper"),
   // A wounded model takes the next wound; models unlike the rest (heroes, special weapons) go last.
   order: {
     cases: [
@@ -286,7 +288,7 @@ const weaponRules: RuleDef[] = [
   // Hits on 2+ whoever shoots.
   weaponSets("reliable", "Reliable", "skill", 2),
   {
-    // Hits on 2+, and the shooter picks the model hit (that part by hand).
+    // Hits on 2+, and the shooter picks the model hit (the allocate step's attackerPicks).
     id: "sniper",
     name: "Sniper",
     match: named("sniper"),
@@ -296,7 +298,6 @@ const weaponRules: RuleDef[] = [
         when: { event: "always" },
         do: [{ do: "setCharacteristic", target: "self", characteristic: "skill", to: 2 }],
       },
-      { when: { event: "action.declared" }, do: [{ do: "manual", reminder: "sniper" }] },
     ],
   },
   {

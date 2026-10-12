@@ -1,11 +1,11 @@
 import { displayName } from "../i18n/names";
 import { useEffect, useMemo, useState } from "react";
-import { sideName, sidePlayers, sides, type GameState, type Intent } from "../core";
+import { DEFAULT_SYSTEM, sideName, sidePlayers, sides, type GameState, type Intent } from "../core";
 import { secretsWithPrefix } from "../core/secrets";
 import { pendingScores, vpByRound, type Pending } from "../missions/scoring";
 import type { Mission } from "../sdk";
 import { keepSecret, localSecret, useLocalSecrets } from "../secrets/local";
-import { systemModule } from "../systems";
+import { missionFrom, systemModule } from "../systems";
 import { useSandbox } from "../sandbox/runtime";
 import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
@@ -50,6 +50,11 @@ export function MissionPicker() {
   const missions = systemModule(game.system).missions ?? [];
   if (!missions.length || game.turn.round > 0) return null;
   const chosen = missionOf(game);
+  // A mission an extension package added says which (#82b).
+  const fromName = (id: string) => {
+    const hash = missionFrom(game.system ?? DEFAULT_SYSTEM, id);
+    return hash ? game.packages?.packages.find((p) => p.hash === hash)?.name : undefined;
+  };
   const pick = (id: string) => {
     const m = missions.find((x) => x.id === id);
     // None: score by hand, keeping the zones and objectives already on the table.
@@ -66,7 +71,9 @@ export function MissionPicker() {
           <option value="">{t("None (score by hand)")}</option>
           {missions.map((m) => (
             <option key={m.id} value={m.id}>
-              {m.name}
+              {fromName(m.id)
+                ? t("{mission} · from {package}", { mission: m.name, package: fromName(m.id)! })
+                : m.name}
             </option>
           ))}
         </select>
