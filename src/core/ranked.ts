@@ -39,7 +39,7 @@ export interface RankedResult {
 }
 
 /** One rules package a ranked game ran. `game`: it is the game itself (a package with `kind: "system"`). */
-export interface RankedPackage {
+interface RankedPackage {
   id: string;
   name: string;
   version: string;
@@ -96,7 +96,7 @@ export function rankedOver(state: GameState): boolean {
 }
 
 /** The seated players, by seat: a ranked game has exactly two. */
-export function rankedSeats(state: GameState): PlayerId[] {
+function rankedSeats(state: GameState): PlayerId[] {
   return Object.values(state.players)
     .filter((p) => typeof p.seat === "number" && p.seat >= 0)
     .sort((a, b) => a.seat! - b.seat!)

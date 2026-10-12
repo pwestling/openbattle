@@ -5229,39 +5229,36 @@
         "packages": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/RankedPackage"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "hash": {
+                "type": "string"
+              },
+              "game": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "version",
+              "hash"
+            ]
           }
         }
       },
       "required": [
         "packages"
-      ]
-    },
-    "RankedPackage": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "hash": {
-          "type": "string"
-        },
-        "game": {
-          "type": "boolean",
-          "const": true
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "version",
-        "hash"
       ]
     },
     "DeclineWhy": {

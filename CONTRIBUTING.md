@@ -8,12 +8,10 @@ You need Node 22 or newer and [pnpm](https://pnpm.io). `corepack enable` gives y
 
 ```sh
 pnpm install
-pnpm dev          # http://localhost:5173
+pnpm dev          # http://localhost:5173, the debug page
 ```
 
-The landing page has a **Try it now** card for each built-in game. One click sets up a hotseat game with two sample armies, which is the quickest way to see a change.
-
-To try an online game on one machine, open two tabs: host in one and join in the other, or tick **Same browser** under **More ways to play** to skip the network.
+The debug page starts a hotseat game (one screen, both sides), or hosts and joins a room: open two tabs, host in one with mode "local" and join in the other. Load a rules package from `examples/` with **Load a package**.
 
 ## Before you push
 
@@ -23,49 +21,15 @@ There is no CI. Run these locally:
 pnpm format       # Prettier
 pnpm lint         # ESLint
 pnpm typecheck    # tsc -b, the real type check
+pnpm schemas:check
+pnpm deadcode     # knip: delete what is unused
 ```
 
-Two notes:
-
-- Type check with `pnpm typecheck` (or `pnpm tsc -b`). The root `tsconfig.json` only holds project references, so `tsc --noEmit -p .` checks nothing and always passes.
+Type check with `pnpm typecheck` (or `pnpm tsc -b`). The root `tsconfig.json` only holds project references, so `tsc --noEmit -p .` checks nothing and always passes.
 
 ## Code layout
 
-```
-src/
-  core/        The generic engine: game state, intents and events, the reducer and
-               log, geometry, line of sight, terrain, ranked formations, dice,
-               attacks, secrets, teams, branching. No DOM, three.js or network
-               imports, so it runs the same on every peer and in tests.
-    content/   The rules schema (GameSystem, schema.ts), the expression evaluator,
-               the data procedure runner, turn structure and action play.
-  sdk/         The game module API: GameModule, code actions and procedures,
-               turn hooks, missions. Built-in systems and rules packages both use it.
-  systems/     The built-in game modules, one folder each: wh40k/, tow/, conquest/,
-               fsd/. index.ts registers them; app.ts defines SystemModule, the app glue.
-  missions/    Shared sample missions and scoring helpers.
-  net/         Transport interface, Trystero (WebRTC) and in-memory loopback
-               transports, and the Session that keeps peers in sync, reconnects
-               them and hands over the host role.
-  packages/    Rules packages: manifests, the local library, sharing between peers.
-  sandbox/     Runs package code in a Worker inside a sandboxed iframe.
-  render/      The React Three Fiber scene: table, terrain, models, regiments,
-               rulers, templates, casualties, cameras.
-  ui/          The HTML overlay: lobby, top bar, unit card, attack and charge
-               panels, dice tray, terrain editor, replay bar, problem reports.
-  assets/      Uploaded figure and terrain model pipeline (parse, simplify, encode, cache).
-  talk/        Table talk: pings, arrows, areas, chat and reactions.
-  voice/       Voice chat over the game's peer connections.
-  broadcast/   Stream view, commentator camera and end-of-game moments.
-  secrets/     Keeps a player's secrets (hidden orders, secret objectives) on their device.
-  soak/        The bot's move generator, and the soak runner the Workshop checks packages with.
-  dev/         Development-only harnesses for perf runs.
-  store.ts     The zustand store that wires a Session to React.
-examples/packages/   Example rules packages.
-scripts/             Perf, load and smoke scripts (pnpm perf, perf:load, smoke).
-server/              The optional self-hosted signalling relay.
-docs/                Guides for package and module authors and self-hosters.
-```
+How the pieces fit is on the architecture page, [docs/architecture.html](docs/architecture.html): open a component to see what it owns, what it talks to and which files to read first. In short: `src/core` is the deterministic engine, `src/net` moves intents and events between peers, `src/sandbox` and `src/packages` load and run a game's rules package, `src/sdk` is what a package can use, and `server/` is the optional signalling relay.
 
 ## Principles
 
@@ -75,19 +39,8 @@ docs/                Guides for package and module authors and self-hosters.
 - **No publisher IP in the repo.** Never commit unit names, stats, points, rules text, artwork or models from Games Workshop or any other publisher. Sample armies, missions and rules in this repo are invented. Describe built-in games by how they play ("Sci-fi battle", "Rank and flank"), not by trademarked names, on screen.
 - **Player data stays with players.** Army lists, uploaded figures and published rules are imported by players at runtime and never committed, not even as test fixtures. Write test rosters by hand with made-up names.
 
-## Reporting a bug
-
-The best bug report includes a problem report file:
-
-1. In a game, open the left-hand menu (**☰ Menu** if it is hidden) and press **Report a problem**, next to **Download replay**. It downloads one `.json` file.
-2. If the app crashed, the crash screen offers **Download a problem report** instead.
-3. Open a [bug report](https://github.com/pwestling/openbattle/issues/new?template=bug_report.yml) and attach the file.
-
-The file is a replay with extra details: the app build, the rules packages in use, recent console errors, sync checksums and connection stats. Anyone can open it with **Open a replay file** on the landing page, and the viewer jumps to the moment the report was made. Nothing is sent anywhere; you download it and choose who to give it to. See the bug report form for exactly what it contains.
-
 ## More docs
 
-- [docs/system-modules.md](docs/system-modules.md): write a game system module.
 - [docs/packages.md](docs/packages.md): write a rules package that players load at runtime.
 - [docs/self-host.md](docs/self-host.md): run your own copy of the app, signalling relay and TURN server.
 - [docs/compatibility.md](docs/compatibility.md): how forks, builds and rules packages coexist, and how ranked ladders keep house rules apart.
@@ -95,7 +48,7 @@ The file is a replay with extra details: the app build, the rules packages in us
 
 ## Working with Claude Code
 
-[CLAUDE.md](CLAUDE.md) gives Claude Code the project's rules, and `.claude/skills/` has guided workflows it picks up on its own: `rules-package` (write a package), `system-module` (add or change a built-in game), `ip-check` (look for publisher IP before committing), `verify-change` (run the right checks before pushing) and `propose-change` (draft a proposal issue when a change needs one). They work as plain checklists for people too.
+[CLAUDE.md](CLAUDE.md) gives Claude Code the project's rules, and `.claude/skills/` has guided workflows it picks up on its own: `rules-package` (write a package), `ip-check`, `verify-change` and `propose-change`.
 
 ## Pull requests
 

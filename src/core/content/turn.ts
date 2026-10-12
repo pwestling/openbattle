@@ -18,7 +18,7 @@ import { movedSoFar } from "../path";
  *    keep the same indices for each player, so `turn.phase` reads the same.
  */
 
-export const DEFAULT_SYSTEM = "forty-k-11";
+export const DEFAULT_SYSTEM = "none";
 export const SEATS = 2;
 
 export function systemOf(state: Pick<GameState, "system">): GameSystem {
@@ -136,11 +136,6 @@ export function currentSlot(state: GameState): TurnSlot | null {
 /** Name of the current phase, e.g. "Shooting", or undefined during deployment. */
 export function phaseName(state: GameState): string | undefined {
   return currentSlot(state)?.name;
-}
-
-/** The reminder for now: the phase's `hint`, or while the armies are set up the system's `deploymentHint`. */
-export function phaseHint(state: GameState): string | undefined {
-  return state.turn.round === 0 ? systemOf(state).deploymentHint : currentSlot(state)?.hint;
 }
 
 /** What the turn bar shows: the phases of the current player turn (or round), and which is current. */
@@ -552,15 +547,6 @@ export function endActivation(state: GameState, seed = 0): GameState {
   if (!left(0) && !left(1)) return advanceTurn(ended, 1, seed);
   if (!left(next)) return { ...ended, turn: { ...ended.turn, activeSeat: state.turn.activeSeat } };
   return ended;
-}
-
-/**
- * The round's activations end by themselves once every unit has gone: plain
- * activations, or a slot marked `untilAllActivated` (#82). ▶ would cut the
- * round short there, so a player with nothing to do passes instead.
- */
-export function roundEndsItself(state: GameState): boolean {
-  return plainActivations(state) || !!currentSlot(state)?.untilAllActivated;
 }
 
 /**

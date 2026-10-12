@@ -137,36 +137,7 @@ export const useLibrary = create<Library>((set, get) => ({
   },
 }));
 
-/** Packages that fit a system (by manifest.systems), newest version first within each id. */
-export function packagesFor(
-  packages: Record<string, StoredPackage>,
-  system: string | undefined,
-): StoredPackage[] {
-  return Object.values(packages)
-    .filter(
-      (p) =>
-        !system ||
-        p.manifest.systems.length === 0 ||
-        p.manifest.systems.some((s) => systemMatches(s, system)),
-    )
-    .sort(
-      (a, b) =>
-        a.manifest.name.localeCompare(b.manifest.name) ||
-        compareVersions(b.manifest.version, a.manifest.version),
-    );
-}
-
 /** A manifest's system names ("tow", "wh40k") against a game's system id ("tow-hand", "wh40k-10e"). */
 export function systemMatches(declared: string, system: string): boolean {
   return system === declared || system.startsWith(`${declared}-`) || declared.startsWith(`${system}-`);
-}
-
-function compareVersions(a: string, b: string): number {
-  const pa = a.split(/[.+-]/).map((x) => Number(x) || 0);
-  const pb = b.split(/[.+-]/).map((x) => Number(x) || 0);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const d = (pa[i] ?? 0) - (pb[i] ?? 0);
-    if (d) return d;
-  }
-  return 0;
 }

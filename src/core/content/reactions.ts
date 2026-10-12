@@ -1,11 +1,10 @@
 import type { GameEvent, Intent } from "../actions";
-import type { GameRecord } from "../log";
 import { sidePlayers } from "../teams";
 import type { GameState, OpenReaction, PlayerId, ReactionTrigger, UnitId } from "../types";
 import { isAlive } from "../units";
 import { num } from "./expr";
 import type { ProcedureRun } from "./runner";
-import { evalCtx, safeBool, seatName, unitActions, type Payment } from "./play";
+import { evalCtx, safeBool, unitActions, type Payment } from "./play";
 import { armyStratagem, playerActions } from "./player";
 import { tableGeometry, unitView, type UnitView } from "./runtime";
 import type { ActionDef, Expr, GameSystem, ReactionWindowDef } from "./schema";
@@ -25,7 +24,7 @@ import { currentSlot, systemOf } from "./turn";
  *    reaction), which waits on the answer too.
  */
 
-export interface ReactionWindowView extends OpenReaction {
+interface ReactionWindowView extends OpenReaction {
   /** Where it comes from: an engine window, FSD's held action, or a code procedure's question. */
   source: "window" | "pending" | "script";
   /** The game waits on an answer (pending, script); an engine window never blocks. */
@@ -33,7 +32,7 @@ export interface ReactionWindowView extends OpenReaction {
 }
 
 /** A reaction the player can play now, with what the UI needs to offer it. */
-export interface PlayableReaction {
+interface PlayableReaction {
   /** The action id (a stratagem, "army:<player>:<slug>", a unit reaction) or a question's option id. */
   id: string;
   name: string;
@@ -75,7 +74,7 @@ function pendingWindow(state: GameState): string {
 }
 
 /** The window open now, or null: an engine window, FSD's held action, or a code procedure's question. */
-export function reactionWindow(state: GameState): ReactionWindowView | null {
+function reactionWindow(state: GameState): ReactionWindowView | null {
   const waiting = state.script?.waiting;
   if (waiting?.window) {
     const seat = seatOf(state, waiting.player);
@@ -113,21 +112,6 @@ export function reactionWindow(state: GameState): ReactionWindowView | null {
     };
   }
   return state.reaction ? { ...state.reaction, source: "window", blocking: false } : null;
-}
-
-/** "Ben may react…": who may react, for any other player's screen (never which card), or null. */
-export function mayReact(state: GameState, viewer: PlayerId): { seat: number; name: string } | null {
-  const open = reactionWindow(state);
-  if (!open || seatOf(state, viewer) === open.seat) return null;
-  return { seat: open.seat, name: seatName(state, open.seat) };
-}
-
-/** Host time (ms) until which the active side holds for an answer: the opening event's `at` plus `hold`. */
-export function reactionHoldUntil(record: GameRecord, state: GameState): number | null {
-  const open = state.reaction;
-  if (!open?.hold) return null;
-  const at = record.events.find((e) => e.seq === open.opened)?.at;
-  return at === undefined ? null : at + open.hold;
 }
 
 /** Whether a reaction id is muted for the player ("Don't ask me this game"). */

@@ -6,7 +6,7 @@ import { create } from "zustand";
  * networks need TURN then can't connect, so the room says the relay is busy instead of waiting in
  * silence. A peer connection that does connect (directly or through TURN) clears it.
  */
-export const useRelayBusy = create<{ at: number | null }>(() => ({ at: null }));
+const useRelayBusy = create<{ at: number | null }>(() => ({ at: null }));
 
 /** coturn's answers when it won't hand out another relay. */
 const FULL = new Set([486, 508]);

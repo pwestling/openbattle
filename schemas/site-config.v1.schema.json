@@ -51,27 +51,6 @@
         },
         "forceTurn": {
           "type": "boolean"
-        },
-        "mailbox": {
-          "type": "string"
-        },
-        "board": {
-          "type": "string"
-        },
-        "trackers": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "seeders": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "openTables": {
-          "type": "boolean"
         }
       }
     }

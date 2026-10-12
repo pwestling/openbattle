@@ -179,7 +179,7 @@ function readFresh(
 
 const patternCache = new Map<string, RegExp>();
 
-export function pattern(source: string): RegExp {
+function pattern(source: string): RegExp {
   let re = patternCache.get(source);
   if (!re) {
     re = new RegExp(source, "i");
@@ -194,7 +194,7 @@ export function pattern(source: string): RegExp {
  */
 const bound = new WeakMap<RuleDef[], Map<string, RuleRef[]>>();
 
-export function bindRules(rules: RuleDef[], texts: string[], kind: "weapon" | "model" | "unit"): RuleRef[] {
+function bindRules(rules: RuleDef[], texts: string[], kind: "weapon" | "model" | "unit"): RuleRef[] {
   // The same rules against the same texts bind the same way: views are rebuilt for every table the bot tries.
   let byText = bound.get(rules);
   if (!byText) bound.set(rules, (byText = new Map()));
@@ -302,14 +302,12 @@ export function modelView(
 }
 
 /** What makes models interchangeable: the same profile and the same weapons. */
-export function loadoutKey(model: { profile?: { name?: string }; weapons?: string[] } | undefined): string {
+function loadoutKey(model: { profile?: { name?: string }; weapons?: string[] } | undefined): string {
   return `${model?.profile?.name ?? ""}|${[...(model?.weapons ?? [])].sort().join(",")}`;
 }
 
 /** The commonest loadout among these models (the unit's ordinary models). */
-export function commonLoadout(
-  models: ({ profile?: { name?: string }; weapons?: string[] } | undefined)[],
-): string {
+function commonLoadout(models: ({ profile?: { name?: string }; weapons?: string[] } | undefined)[]): string {
   const counts = new Map<string, number>();
   for (const m of models) counts.set(loadoutKey(m), (counts.get(loadoutKey(m)) ?? 0) + 1);
   let best = "";

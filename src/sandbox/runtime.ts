@@ -16,7 +16,7 @@ import { useStore } from "../store";
 import { Sandbox, STARTUP_MS } from "./host";
 import type { ActionRow, AppState, Loaded, Provided, ProvidedMission } from "./protocol";
 import type { Mission } from "../sdk";
-import type { ImportedRoster } from "../systems/wh40k/roster";
+import type { ImportedRoster } from "../core/roster";
 
 /**
  * The game's trusted rules packages running in the sandbox: started when the
@@ -36,7 +36,7 @@ interface SandboxState {
   app: AppState | null;
 }
 
-export const useSandbox = create<SandboxState>(() => ({
+const useSandbox = create<SandboxState>(() => ({
   status: "off",
   error: null,
   code: {},
@@ -206,18 +206,6 @@ function stop(why: string) {
   useSandbox.setState({ status: "stopped", error: why, code: {}, rows: {} });
 }
 
-/** Start the game's rules packages again, after they stopped (the notice's Retry). */
-export function retrySandbox(): void {
-  if (!wantedNow) return;
-  generation++;
-  sandbox?.stop();
-  unload();
-  sandbox = null;
-  sent = null;
-  retried = false;
-  void start(wantedNow);
-}
-
 /** Bumped when a start is cancelled (the packages changed, or the game screen went), so a start still loading stops itself. */
 let generation = 0;
 
@@ -275,17 +263,11 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
   }
 }
 
-/** The trusted packages the game runs now, with their code (a package game's review loads them too). */
-export function runningPackages(): { hash: string; source: string }[] | null {
-  return wantedNow;
-}
-
 /** Keep the sandbox running the game's trusted packages. Mount once. */
 export function usePackageSandbox(): void {
   const wanted = useStore((s) => s.game.packages?.packages);
-  const waived = useStore((s) => s.packagesWaived);
   const library = useLibrary((s) => s.packages);
-  const run = (wanted ?? []).filter((p) => library[p.hash]?.trusted && !waived[p.hash]);
+  const run = (wanted ?? []).filter((p) => library[p.hash]?.trusted);
   const key = run.map((p) => p.hash).join();
   useEffect(() => {
     if (!key) return;
@@ -306,54 +288,4 @@ export function usePackageSandbox(): void {
   }, [key]);
   // Every change to the record reaches the worker's replica.
   useEffect(() => useStore.subscribe((s, p) => s.record !== p.record && sync()), []);
-}
-
-/** The packages' code actions for a unit, worked out in the sandbox (empty until it answers). */
-export function usePackageActions(unit: Unit): ActionRow[] {
-  const status = useSandbox((s) => s.status);
-  const seq = useStore((s) => s.record.events.at(-1)?.seq ?? 0);
-  const has = useSandbox((s) => (s.code[systemOf(useStore.getState().game).id] ?? []).length > 0);
-  const key = `${seq}:${unit.id}`;
-  const rows = useSandbox((s) => s.rows[key]);
-  useEffect(() => {
-    if (status !== "on" || !has || rows || !sandbox) return;
-    sync();
-    sandbox
-      .call<ActionRow[]>({ t: "actions", unitId: unit.id, player: unit.owner })
-      .then((r) => useSandbox.setState((s) => ({ rows: { [key]: r, ...keep(s.rows, seq) } })))
-      .catch(() => {});
-  }, [status, has, key, rows, unit.id, unit.owner, seq]);
-  return rows ?? [];
-}
-
-/** Rows for the current seq only. */
-function keep(rows: SandboxState["rows"], seq: number): SandboxState["rows"] {
-  return Object.fromEntries(Object.entries(rows).filter(([k]) => k.startsWith(`${seq}:`)));
-}
-
-/**
- * A computer opponent's next move in a package game (#45), worked out in the
- * sandbox, where the package's code is. Null when no package runs this game.
- */
-export function sandboxBotMove(
-  level: "random" | "steady" | "sharp",
-  seat: number,
-  player: string,
-  seed: number,
-): Promise<BotMoveData | null> | null {
-  const box = sandbox;
-  const game = useStore.getState().game;
-  if (!box || !useSandbox.getState().code[systemOf(game).id]) return null;
-  sync();
-  // The watchdog's 250 ms is for the package's own calls: a Sharp decision tries dozens of moves
-  // through the package's code and takes 300 ms or more on a phone (perf/results.md, #45).
-  return box.call<BotMoveData | null>({ t: "bot", level, seat, player, seed }, STARTUP_MS);
-}
-
-/** A bot's move as the sandbox sends it (soak/bot.ts BotMove). */
-interface BotMoveData {
-  intent: import("../core").Intent;
-  as: string;
-  kind: string;
-  then?: BotMoveData;
 }

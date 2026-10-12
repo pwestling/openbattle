@@ -2,7 +2,7 @@ import type { ComponentType } from "react";
 import type { Mission } from "../sdk";
 import type { AbilityAuto, GameState, Layout, Table, Unit } from "../core";
 import type { GameSystem } from "../core/content/schema";
-import type { ImportedRoster } from "./wh40k/roster";
+import type { ImportedRoster } from "../core/roster";
 import type { ArmyListV1 } from "../share/armyList";
 
 /**

@@ -1,10 +1,8 @@
-import { woundsRemaining } from "../attack";
 import { isAlive } from "../units";
-import type { Ability, ArmyStratagem, GameState, PlayerActionUse, PlayerId, Unit, UnitId } from "../types";
-import { bool } from "./expr";
+import type { ArmyStratagem, GameState, PlayerActionUse, PlayerId, UnitId } from "../types";
 import { actingUnits, costLabel, evalCtx, pay, payFor, safeBool, setStatus, type Payment } from "./play";
-import { bindRules, hasKeywordPhrase, lookupRules, pattern, unitView, type UnitView } from "./runtime";
-import type { AbilityTiming, ActionDef, GameSystem } from "./schema";
+import { hasKeywordPhrase, unitView, type UnitView } from "./runtime";
+import type { ActionDef } from "./schema";
 import { currentSlot, endActivation, systemOf } from "./turn";
 import { sharedPhase } from "./simultaneous";
 
@@ -15,7 +13,7 @@ import { sharedPhase } from "./simultaneous";
  * text says they matter.
  */
 
-export interface PlayerActionOption {
+interface PlayerActionOption {
   def: ActionDef;
   ok: boolean;
   why?: string;
@@ -92,7 +90,7 @@ export function armyStratagem(state: GameState, id: string): ArmyStratagem | und
 }
 
 /** Any action by id, a faction stratagem's included. */
-export function findAction(state: GameState, id: string): ActionDef | undefined {
+function findAction(state: GameState, id: string): ActionDef | undefined {
   const army = ARMY.exec(id);
   if (army) {
     const s = state.armies?.[army[1]!]?.stratagems.find((x) => x.id === army[2]);
@@ -222,211 +220,4 @@ export function applyPlayerAction(state: GameState, ev: PlayerActionTaken): Game
 // Ability reminders
 // ---------------------------------------------------------------------------
 
-export interface AbilityReminder {
-  unitId: UnitId;
-  owner: PlayerId;
-  ability: Ability;
-  /** Set when a player has applied it this phase. */
-  applied: boolean;
-  /** A core rule of the system (`ruleReminders`), not one of the unit's own abilities. */
-  rule?: true;
-}
-
 export const appliedKey = (ability: string) => `applied.${ability}`;
-
-/** A weapon keyword's glossary entry ("Lethal Hits"), listed as a rule by BSData. */
-export function isWeaponRule(system: GameSystem, ability: Ability): boolean {
-  const name = ability.name.trim().toLowerCase();
-  return system.rules.some(
-    (r) =>
-      r.match &&
-      r.appliesTo?.includes("weapon") &&
-      !r.appliesTo.includes("unit") &&
-      pattern(r.match).test(name),
-  );
-}
-
-/** Abilities that only describe a weapon keyword the unit carries (BSData lists those as abilities). */
-export function describesWeaponKeyword(system: GameSystem, unit: Unit, ability: Ability): boolean {
-  const name = ability.name.trim().toLowerCase();
-  if (isWeaponRule(system, ability)) return true;
-  const stem = name.replace(/[-\s]*(x|\d+\+?|d\d+)?$/i, "");
-  return Object.values(unit.sheet?.weapons ?? {}).some((w) =>
-    w.keywords.some((k) => k.toLowerCase().startsWith(stem)),
-  );
-}
-
-/**
- * Whether the engine already handles the ability: the player automated it,
- * or it binds to a system rule that does something (not just a manual reminder).
- */
-export function isAutomated(system: GameSystem, ability: Ability): boolean {
-  if (ability.auto) return true;
-  const text = `${ability.name} ${ability.text}`.trim();
-  const refs = [...bindRules(system.rules, [text], "unit"), ...bindRules(system.rules, [text], "model")];
-  return lookupRules(system, refs).some(
-    (b) => b.def.played === "code" || b.def.effects.some((e) => e.do.some((a) => a.do !== "manual")),
-  );
-}
-
-/** Abilities the players resolve themselves, without the weapon-keyword glossary entries. */
-function manualAbilities(system: GameSystem, unit: Unit): Ability[] {
-  const seen = new Set<string>();
-  return (unit.sheet?.abilities ?? []).filter((a) => {
-    if (seen.has(a.name)) return false;
-    seen.add(a.name);
-    return !describesWeaponKeyword(system, unit, a) && !isAutomated(system, a);
-  });
-}
-
-/** The timing entries an ability's text fits, first match per phase or attack role. */
-function timingsOf(system: GameSystem, ability: Ability): AbilityTiming[] {
-  const out: AbilityTiming[] = [];
-  const keys = new Set<string>();
-  for (const t of system.abilityTimings ?? []) {
-    const key = t.attack ? `attack:${t.attack}` : t.on ? `on:${t.on}:${t.phase}` : `phase:${t.phase}`;
-    if (keys.has(key)) continue;
-    // Armies imported before no-break spaces were made plain still have them.
-    const text = ability.text.replace(/\u00a0/g, " ");
-    if (pattern(t.match).test(text) || pattern(t.match).test(ability.name)) {
-      keys.add(key);
-      out.push(t);
-    }
-  }
-  return out;
-}
-
-/** Whether a unit is at the moment a timing names: activated, after a move in its activation, or reacting. */
-function atMoment(unit: Unit, on: NonNullable<AbilityTiming["on"]>): boolean {
-  const s = unit.status ?? {};
-  if (on === "reaction") return !!s.reacting;
-  if (on === "move") return !!s.acting && Number(s.moves ?? 0) > 0;
-  return !!s.acting && !s.reacting;
-}
-
-/** Whether a timing's (or rule reminder's) `if` holds for the unit; one that can't be judged holds. */
-function holdsFor(state: GameState, unit: Unit, cond: AbilityTiming["if"], other?: UnitId): boolean {
-  if (cond === undefined) return true;
-  const system = systemOf(state);
-  const target = other ? state.units[other] : undefined;
-  const ctx = evalCtx(state, system, {
-    self: unitView(state, system, unit),
-    ...(target ? { target: unitView(state, system, target) } : {}),
-  });
-  try {
-    return bool(cond, ctx);
-  } catch {
-    return true;
-  }
-}
-
-/**
- * Abilities whose text says they matter now, for both players: in the
- * current phase, or (timings with `on`) for the unit activated, moving or
- * reacting.
- */
-export function abilityReminders(state: GameState): AbilityReminder[] {
-  const system = systemOf(state);
-  const slot = currentSlot(state);
-  const phase = state.turn.round === 0 ? "deployment" : slot?.id;
-  if (!phase) return [];
-  const out: AbilityReminder[] = [];
-  const shared = sharedPhase(state);
-  for (const unit of Object.values(state.units)) {
-    if (!isAlive(state, unit)) continue;
-    const active = seatOf(state, unit.owner) === state.turn.activeSeat || shared;
-    const sideFits = (side: AbilityTiming["side"]) =>
-      state.turn.round === 0 || !side || side === "either" || (side === "active") === active;
-    // The system's own rules that matter for this unit now (a Transport, a unit in reserves).
-    for (const r of system.ruleReminders ?? [])
-      if (
-        r.phase === phase &&
-        (r.on ? atMoment(unit, r.on) : sideFits(r.side)) &&
-        holdsFor(state, unit, r.if)
-      )
-        out.push({
-          unitId: unit.id,
-          owner: unit.owner,
-          ability: { name: r.name, text: r.text },
-          applied: !!unit.status?.[appliedKey(r.name)],
-          rule: true,
-        });
-    for (const ability of manualAbilities(system, unit)) {
-      if (!damagedFits(state, unit, ability)) continue;
-      const fits = timingsOf(system, ability).some(
-        (t) =>
-          (t.on
-            ? !t.attack && (!t.phase || t.phase === phase) && atMoment(unit, t.on)
-            : t.phase === phase && sideFits(t.side)) && holdsFor(state, unit, t.if),
-      );
-      if (fits)
-        out.push({
-          unitId: unit.id,
-          owner: unit.owner,
-          ability,
-          applied: !!unit.status?.[appliedKey(ability.name)],
-        });
-    }
-  }
-  return out;
-}
-
-/**
- * "Damaged: 1-4 Wounds Remaining" only matters once a model is that hurt; a
- * fresh walker shouldn't remind anyone of it on every attack (dogfood).
- */
-function damagedFits(state: GameState, unit: Unit, ability: Ability): boolean {
-  const m = /^damaged:\s*(\d+)\s*[-–]\s*(\d+)\s*wounds?\b/i.exec(ability.name);
-  if (!m) return true;
-  const [lo, hi] = [Number(m[1]), Number(m[2])];
-  return unit.modelIds.some((id) => {
-    const model = state.models[id];
-    if (!model || model.destroyed) return false;
-    const w = woundsRemaining(model);
-    return w >= lo && w <= hi;
-  });
-}
-
-/** Abilities to remind players of during an attack, for the attacking and the attacked unit. */
-export function attackReminders(
-  state: GameState,
-  attackerId: UnitId,
-  targetId: UnitId,
-  weaponKind: string,
-): AbilityReminder[] {
-  const system = systemOf(state);
-  const out: AbilityReminder[] = [];
-  for (const [id, role] of [
-    [attackerId, "attacker"],
-    [targetId, "defender"],
-  ] as const) {
-    const unit = state.units[id];
-    if (!unit) continue;
-    for (const ability of manualAbilities(system, unit))
-      if (
-        damagedFits(state, unit, ability) &&
-        timingsOf(system, ability).some(
-          (t) =>
-            t.attack === role &&
-            (!t.weaponKind || t.weaponKind === weaponKind) &&
-            holdsFor(state, unit, t.if, role === "attacker" ? targetId : attackerId),
-        )
-      )
-        out.push({
-          unitId: id,
-          owner: unit.owner,
-          ability,
-          applied: !!unit.status?.[appliedKey(ability.name)],
-        });
-    // A faction stratagem used on it that the app doesn't run: its effect, to play by hand.
-    for (const s of state.armies?.[unit.owner]?.stratagems ?? [])
-      if (!s.auto && unit.status?.[`strat.${s.id}`])
-        out.push({
-          unitId: id,
-          owner: unit.owner,
-          ability: { name: s.name, text: s.effect ?? s.text },
-          applied: !!unit.status?.[appliedKey(s.name)],
-        });
-  }
-  return out;
-}

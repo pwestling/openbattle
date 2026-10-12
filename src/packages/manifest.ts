@@ -38,22 +38,6 @@ export function readManifest(source: string): ManifestResult {
   return check(value);
 }
 
-/** Another `export const <name> = <literal>` in a package, read as data the same way (undefined if absent). */
-export function readLiteral(
-  source: string,
-  name: string,
-): { value: unknown; start: number; end: number } | { error: string } | undefined {
-  const m = new RegExp(`export\\s+const\\s+${name}\\s*(?::[^=]+)?=\\s*`).exec(source);
-  if (!m) return undefined;
-  try {
-    const parser = new LiteralParser(source, m.index + m[0].length);
-    // Where the literal is written (start, end), so the workshop can write it back (#79).
-    return { value: parser.value(), start: m.index + m[0].length, end: parser.at };
-  } catch (e) {
-    return { error: `${name} must be a plain literal (${e instanceof Error ? e.message : String(e)})` };
-  }
-}
-
 function check(v: unknown): ManifestResult {
   if (!v || typeof v !== "object" || Array.isArray(v)) return { error: NOT_LITERAL };
   const o = v as Record<string, unknown>;
@@ -199,16 +183,7 @@ class LiteralParser {
   }
 }
 
-/** The short fingerprint players compare: the first eight hex characters in two groups. */
-export function fingerprint(hash: string): string {
-  return `${hash.slice(0, 4)} ${hash.slice(4, 8)}`;
-}
-
 export async function sha256(bytes: ArrayBuffer | Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", bytes as BufferSource);
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-export function formatBytes(n: number): string {
-  return n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`;
 }

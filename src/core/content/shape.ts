@@ -65,17 +65,3 @@ export function shapeProblems(system: unknown): string[] {
   }
   return out;
 }
-
-/** The line (1-based) of a problem's path in a package's source: where its last key is first written. */
-export function lineOf(source: string, problem: string): number | null {
-  const path = /^system\.([\w.[\]]+)/.exec(problem)?.[1];
-  const key = path
-    ?.replace(/\[\d+\]/g, "")
-    .split(".")
-    .at(-1);
-  if (!key) return null;
-  const start = source.search(/\bconst\s+system\b|\bsystem\s*[:=]\s*{/);
-  const at = source.slice(Math.max(0, start)).search(new RegExp(`\\b${key}\\s*:`));
-  if (at < 0) return null;
-  return source.slice(0, Math.max(0, start) + at).split("\n").length;
-}

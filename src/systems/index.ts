@@ -5,7 +5,6 @@ import { registerFunctions } from "../core/content/calls";
 import { hookProcedures, registerCode, registerCodeActions, registerHooks } from "../core/script";
 import type { GameModule, Mission } from "../sdk";
 import type { SystemModule } from "./app";
-import { wh40kModule } from "./wh40k/module";
 
 export type { SystemModule } from "./app";
 
@@ -14,7 +13,7 @@ export type { SystemModule } from "./app";
  * pairs a system's rules data with the app glue in `app` and its code
  * procedures (core/script.ts).
  */
-const BUILT_IN: GameModule<SystemModule>[] = [wh40kModule];
+const BUILT_IN: GameModule<SystemModule>[] = [];
 
 const MODULES = new Map<string, GameModule<SystemModule>>();
 
@@ -83,13 +82,8 @@ export function clearPackageMissions(): void {
   MISSION_FROM.clear();
 }
 
-/** The hash of the package that added a mission to a system, if a package did. */
-export function missionFrom(system: string, mission: string): string | undefined {
-  return MISSION_FROM.get(system)?.get(mission);
-}
-
 /** The game module for a system id, if one is registered. */
-export function gameModule(id: string | undefined): GameModule<SystemModule> | undefined {
+function gameModule(id: string | undefined): GameModule<SystemModule> | undefined {
   return MODULES.get(id ?? DEFAULT_SYSTEM);
 }
 

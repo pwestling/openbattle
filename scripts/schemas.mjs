@@ -16,25 +16,13 @@ import { join } from "node:path";
 
 /** Every format with a generated schema: its name, major version, the type that defines it and where. */
 export const SCHEMAS = [
-  // Files a player saves, opens and shares (docs/protocols/files.md).
-  { name: "army", major: 1, path: "src/packages/shelf.ts", type: "ArmyFile" },
-  { name: "table", major: 1, path: "src/tables/library.ts", type: "TableFile" },
-  { name: "figures", major: 1, path: "src/figures/pack.ts", type: "FigurePack" },
-  { name: "standee", major: 1, path: "src/standees/file.ts", type: "StandeeFile" },
-  { name: "record", major: 1, path: "src/ui/replayFile.ts", type: "ReplayFile" },
-  { name: "campaign", major: 1, path: "src/campaign/book.ts", type: "CampaignBook" },
-  { name: "player", major: 1, path: "src/player/card.ts", type: "PlayerFile" },
-  { name: "mail", major: 1, path: "src/mail/file.ts", type: "MailFile" },
+  // The game's log, as saved (docs/protocols/files.md).
+  { name: "record", major: 1, path: "src/core/types.ts", type: "GameRecord" },
   // Packages (docs/protocols/packages.md).
   { name: "manifest", major: 1, path: "src/packages/manifest.ts", type: "Manifest" },
-  { name: "faction", major: 1, path: "src/packages/factionFormat.ts", type: "FactionPack" },
   // What peers and servers exchange (docs/protocols/peer-protocol.md, servers.md).
   { name: "peer-message", major: 2, path: "src/net/transport.ts", type: "NetMessage" },
   { name: "side-message", major: 1, path: "src/net/transport.ts", type: "SideMessage" },
-  { name: "signed-result", major: 1, path: "src/ranked/verify.ts", type: "SignedResult" },
-  { name: "table-post", major: 1, path: "src/opentables/post.ts", type: "TablePost" },
-  { name: "event-doc", major: 1, path: "src/events/event.ts", type: "EventDoc" },
-  { name: "entry-doc", major: 1, path: "src/events/event.ts", type: "EntryDoc" },
   { name: "site-config", major: 1, path: "src/net/config.ts", type: "SiteConfig" },
 ];
 

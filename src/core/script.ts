@@ -131,11 +131,6 @@ export function registerCodeActions(system: Id, actions: CodeAction[]): void {
   codeActions.set(system, own);
 }
 
-/** A code action's name, for words about it (the turn story, #85). */
-export function codeActionName(system: Id, id: Id): string | undefined {
-  return codeActions.get(system)?.get(id)?.name;
-}
-
 /**
  * Why a code action can't be started now (its phases, `applies` or
  * `available` say no), or undefined when it can or `procedure` isn't one.
@@ -566,15 +561,6 @@ export function hookProcedures(
   if (h.beforeGame) table.beforeGame = [add("beforeGame", h.beforeGame)];
   if (h.afterGame) table.afterGame = [add("afterGame", h.afterGame)];
   return { procedures, table };
-}
-
-/** A system's campaign hooks, module and packages together, in the order they were registered. */
-export function campaignHooks(system: Id): { beforeGame: Id[]; afterGame: Id[] } {
-  const tables = [...(hooks.get(system)?.values() ?? [])];
-  return {
-    beforeGame: tables.flatMap((t) => t.beforeGame ?? []),
-    afterGame: tables.flatMap((t) => t.afterGame ?? []),
-  };
 }
 
 /**

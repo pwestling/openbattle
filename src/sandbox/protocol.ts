@@ -2,7 +2,7 @@ import type { GameEvent, GameRecord, Intent, Layout, LoggedEvent, Objective, Zon
 import type { GameSystem } from "../core/content/schema";
 import type { MissionCard, PanelSpec, ScoringRule } from "../sdk";
 import type { SystemModule } from "../systems/app";
-import type { ImportedRoster } from "../systems/wh40k/roster";
+import type { ImportedRoster } from "../core/roster";
 import type { Rng } from "../core/actions";
 import type { SystemAdditions } from "../core/content/systems";
 import type { HookTable } from "../core/script";
@@ -21,15 +21,7 @@ export type ToSandbox =
   | { id: number; t: "actions"; unitId: string; player: string }
   /** A package game's app glue that depends on the game: rank rules, what's left undone, its panel. */
   | { id: number; t: "appState" }
-  | { id: number; t: "importRoster"; fileName: string; data: Uint8Array }
-  /** A computer opponent's next move in a package game (src/bot): a BotMove, or null. */
-  | { id: number; t: "bot"; level: "random" | "steady" | "sharp"; seat: number; player: string; seed: number }
-  /** Game review (#61) of a package game, in a sandbox of its own that loaded the game's packages: its share of the decisions. */
-  | { id: number; t: "review"; record: GameRecord; part: [number, number] }
-  /** The module workshop's soak worker only (src/workshop/soakWorker.ts): a bot game of a draft package. */
-  | { id: number; t: "soak"; source: string; seed: number; untilRound?: number }
-  /** The workshop's soak worker only: load a draft and say what went wrong (Loaded). */
-  | { id: number; t: "check"; source: string };
+  | { id: number; t: "importRoster"; fileName: string; data: Uint8Array };
 
 export type FromSandbox =
   | { id: number; t: "ok"; value?: unknown }

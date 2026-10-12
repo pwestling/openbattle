@@ -27,24 +27,11 @@
 //   TURN_CHECK    host:port the health check sends a STUN request to
 //                 (default: the first TURN_URLS host)
 //   TURN_TTL      lifetime of a TURN login in seconds (86400)
-//   MAILBOX_URL   the play-by-mail mailbox (server/mailbox.mjs) to tell the app
-//                 about; "on" means <the site>/mailbox, as the compose file runs it
-//   SEEDER_URL    a seed node (server/seeder.mjs) that keeps shared files; "on"
-//                 means <the site>/seed, as the compose file runs it
-//   OPEN_TABLES   "on" turns on Open tables, a public board of games looking for
-//                 players, kept here (server/board.mjs, at /relay/board). Off by
-//                 default: a self-hosted site doesn't show the board otherwise
-//   BOARD_RESULTS a file that keeps the board's ranked results (#65) past a restart,
-//                 one JSON line each; without it they live in memory (players' own
-//                 browsers keep and pass them back on too)
-//   BOARD_ORIGIN  another site allowed to use that board from its pages (CORS),
-//                 e.g. a dev server; same-site pages never need it
+
 import { createHmac } from "node:crypto";
 import dgram from "node:dgram";
-import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { createWsRelayServer } from "@trystero-p2p/ws-relay/server";
-import { createBoard } from "./board.mjs";
 
 const env = process.env;
 const port = Number(env.PORT ?? 8787);
@@ -56,31 +43,6 @@ const list = (v) =>
 const turnUrls = list(env.TURN_URLS);
 const ttl = Number(env.TURN_TTL ?? 86400);
 const started = Date.now();
-const resultsFile = env.BOARD_RESULTS;
-const board =
-  env.OPEN_TABLES === "on"
-    ? createBoard({
-        ...(resultsFile
-          ? {
-              results: {
-                load: () =>
-                  existsSync(resultsFile)
-                    ? readFileSync(resultsFile, "utf8")
-                        .split("\n")
-                        .flatMap((line) => {
-                          try {
-                            return line ? [JSON.parse(line)] : [];
-                          } catch {
-                            return [];
-                          }
-                        })
-                    : [],
-                add: (r) => appendFileSync(resultsFile, JSON.stringify(r) + "\n"),
-              },
-            }
-          : {}),
-      })
-    : null;
 
 // The secret signs TURN logins: anyone who knows it can use the TURN server.
 if (env.TURN_SECRET !== undefined && (env.TURN_SECRET === "change-me" || env.TURN_SECRET.length < 16)) {
@@ -113,36 +75,11 @@ function turnLogin() {
   return { urls: turnUrls, username, credential };
 }
 
-function mailboxUrl(req) {
-  if (!env.MAILBOX_URL) return null;
-  if (env.MAILBOX_URL !== "on") return env.MAILBOX_URL;
-  const base = siteUrl(req);
-  return base ? new URL("/mailbox", base).toString() : null;
-}
-
-function seederUrl(req) {
-  if (!env.SEEDER_URL || env.SEEDER_URL === "off") return null;
-  if (env.SEEDER_URL !== "on") return env.SEEDER_URL;
-  const base = siteUrl(req);
-  return base ? new URL("/seed", base).toString() : null;
-}
-
-function boardUrl(req) {
-  const base = siteUrl(req);
-  return board && base ? new URL("/relay/board", base).toString() : null;
-}
-
 function siteConfig(req) {
   const signal = signalUrl(req);
-  const mailbox = mailboxUrl(req);
-  const seeder = seederUrl(req);
-  const tables = boardUrl(req);
   return {
     signal: signal ? [signal] : [],
     turn: turnUrls.length && env.TURN_SECRET ? [turnLogin()] : [],
-    ...(mailbox ? { mailbox } : {}),
-    ...(seeder ? { seeders: [seeder] } : {}),
-    ...(tables ? { openTables: true, board: tables } : {}),
   };
 }
 
@@ -181,19 +118,6 @@ const server = createServer(async (req, res) => {
     res.end(JSON.stringify(body));
   };
   if (path === "/config.json") return json(siteConfig(req));
-  const from = String(req.headers["x-forwarded-for"] ?? req.socket.remoteAddress ?? "")
-    .split(",")[0]
-    .trim();
-  if (board && env.BOARD_ORIGIN && (path.startsWith("/board") || path.startsWith("/v1/board"))) {
-    res.setHeader("access-control-allow-origin", env.BOARD_ORIGIN);
-    res.setHeader("access-control-allow-headers", "content-type");
-    res.setHeader("access-control-allow-methods", "GET, POST");
-    if (req.method === "OPTIONS") {
-      res.writeHead(204);
-      return res.end();
-    }
-  }
-  if (board && (await board.handle(req, res, path, from))) return;
   if (path === "/health.json") {
     const target = turnTarget();
     const turn = target ? await stunPing(target) : null;
@@ -214,6 +138,5 @@ const server = createServer(async (req, res) => {
 createWsRelayServer({ server, onError: (err) => console.error(err) });
 server.listen(port, () => {
   console.log(`Open Battle relay listening on ws://localhost:${port}`);
-  if (board) console.log("Open tables: on, at /relay/board");
   if (turnUrls.length) console.log(`TURN: ${turnUrls.join(", ")}${env.TURN_SECRET ? " (with logins)" : ""}`);
 });

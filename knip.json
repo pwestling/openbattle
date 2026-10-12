@@ -1,15 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "entry": [
-    "src/viewer/main.tsx",
-    "src/sdk/index.ts",
-    "src/sandbox/worker.ts",
-    "src/workshop/soakWorker.ts",
-    "scripts/*.mjs",
-    "server/*.mjs",
-    "examples/**/*.js"
-  ],
+  "entry": ["src/sdk/index.ts", "src/sandbox/worker.ts", "scripts/*.mjs", "server/*.mjs", "examples/**/*.js"],
   "project": ["src/**/*.{ts,tsx}", "scripts/**/*.mjs", "server/**/*.mjs"],
-  "ignore": ["src/sandbox/virtual.d.ts", "src/share/webtorrent.d.ts"],
+  "ignore": ["src/sandbox/virtual.d.ts"],
   "ignoreExportsUsedInFile": false
 }

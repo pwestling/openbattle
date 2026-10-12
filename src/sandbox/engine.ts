@@ -1,6 +1,3 @@
-import { botPolicy, type Level } from "../bot/player";
-import type { Policy } from "../bot/policy";
-import type { BotMove } from "../soak/bot";
 import {
   appendEvent,
   applyEvent,
@@ -63,7 +60,7 @@ function missionData(mission: Mission, table: { width: number; depth: number }):
 }
 
 /** How the engine turns a package's source into its module (a blob import in the worker). */
-export type ImportSource = (source: string) => Promise<{ default?: unknown }>;
+type ImportSource = (source: string) => Promise<{ default?: unknown }>;
 
 /**
  * The game engine as it runs inside the package sandbox: the built-in
@@ -104,8 +101,7 @@ export class SandboxEngine {
           // Terrain named by template is made into pieces here, so every caller of layout gets them.
           const app = raw && {
             ...raw,
-            layout: (t: Parameters<PackageApp["layout"]>[0]) =>
-              expandLayout(raw.layout(t), raw.templateCategory),
+            layout: (t: Parameters<PackageApp["layout"]>[0]) => expandLayout(raw.layout(t)),
           };
           const m = { ...given, ...(app ? { app } : {}) };
           registerModule(m);
@@ -293,28 +289,6 @@ export class SandboxEngine {
     const app = this.apps.get(systemOf(this.state).id);
     if (!app?.importRoster) throw new Error("This game has no army list reader");
     return JSON.parse(JSON.stringify(await app.importRoster(fileName, data)));
-  }
-
-  /** Computer opponents playing this game (src/bot), by seat and level, for the game they started in. */
-  private bots: { initial: GameState | null; by: Map<string, Policy> } = { initial: null, by: new Map() };
-
-  /**
-   * A computer opponent's next move in a package game (#45): it runs here,
-   * where the package's code is, so it can try its moves out.
-   */
-  botMove(level: Level, seat: number, player: string, seed: number): BotMove | null {
-    if (this.bots.initial !== this.record.initial)
-      this.bots = { initial: this.record.initial, by: new Map() };
-    const key = `${seat}:${level}`;
-    let bot = this.bots.by.get(key);
-    if (!bot) {
-      bot = botPolicy(level, this.state, seat, { seed });
-      this.bots.by.set(key, bot);
-    }
-    const move = bot.move(this.record, this.state, { seat, player });
-    // It learns of its own moves here, as it would watching the table, so it knows when to move on (UX 351).
-    if (move) bot.saw?.(this.state, move);
-    return move;
   }
 
   /** The packages' code actions for a unit in this phase, as the unit card lists them. */

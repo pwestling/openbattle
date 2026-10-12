@@ -2,9 +2,9 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "urn:open-battle:schema:record@1",
   "title": "Open Battle record v1",
-  "$ref": "#/definitions/ReplayFile",
+  "$ref": "#/definitions/GameRecord",
   "definitions": {
-    "ReplayFile": {
+    "GameRecord": {
       "type": "object",
       "properties": {
         "format": {
@@ -19,35 +19,12 @@
           "items": {
             "$ref": "#/definitions/LoggedEvent"
           }
-        },
-        "attachments": {
-          "type": "object",
-          "properties": {
-            "assets": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            },
-            "packages": {
-              "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "annotations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ReplayNote"
-          }
         }
       },
       "required": [
-        "events",
         "format",
-        "initial"
+        "initial",
+        "events"
       ]
     },
     "GameState": {
@@ -5289,39 +5266,36 @@
         "packages": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/RankedPackage"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "hash": {
+                "type": "string"
+              },
+              "game": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "version",
+              "hash"
+            ]
           }
         }
       },
       "required": [
         "packages"
-      ]
-    },
-    "RankedPackage": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "version": {
-          "type": "string"
-        },
-        "hash": {
-          "type": "string"
-        },
-        "game": {
-          "type": "boolean",
-          "const": true
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "version",
-        "hash"
       ]
     },
     "DeclineWhy": {
@@ -9967,155 +9941,6 @@
           "required": [
             "type",
             "answer"
-          ]
-        }
-      ]
-    },
-    "ReplayNote": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "seq": {
-          "type": "number"
-        },
-        "by": {
-          "type": "string"
-        },
-        "color": {
-          "type": "string"
-        },
-        "text": {
-          "type": "string"
-        },
-        "marks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/NoteMark"
-          }
-        },
-        "at": {
-          "type": "number"
-        },
-        "author": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "seq",
-        "by",
-        "color",
-        "text",
-        "marks",
-        "at"
-      ]
-    },
-    "NoteMark": {
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "type": "string",
-              "const": "arrow"
-            },
-            "from": {
-              "type": "object",
-              "properties": {
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "x",
-                "y"
-              ]
-            },
-            "to": {
-              "type": "object",
-              "properties": {
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "x",
-                "y"
-              ]
-            }
-          },
-          "required": [
-            "kind",
-            "from",
-            "to"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "type": "string",
-              "const": "area"
-            },
-            "at": {
-              "type": "object",
-              "properties": {
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "x",
-                "y"
-              ]
-            },
-            "radius": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "kind",
-            "at",
-            "radius"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "kind": {
-              "type": "string",
-              "const": "pin"
-            },
-            "at": {
-              "type": "object",
-              "properties": {
-                "x": {
-                  "type": "number"
-                },
-                "y": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "x",
-                "y"
-              ]
-            }
-          },
-          "required": [
-            "kind",
-            "at"
           ]
         }
       ]

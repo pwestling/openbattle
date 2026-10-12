@@ -1,11 +1,10 @@
-import { fortyK } from "./examples/forty-k";
 import type { GameSystem, Id } from "./schema";
 
 /**
- * Game systems the engine can run. 40k is built
- * in; others register at startup or when a player imports one.
+ * Game systems the engine can run. None are built in: a game is a rules
+ * package, registered when its package loads.
  */
-const systems = new Map<Id, GameSystem>([[fortyK.id, fortyK]]);
+const systems = new Map<Id, GameSystem>();
 
 /** Every registered system, for the lobby's picker. */
 export function listSystems(): GameSystem[] {
@@ -95,9 +94,4 @@ function placeholder(id: Id): GameSystem {
     placeholders.set(id, s);
   }
   return s;
-}
-
-/** Whether a system id is only a stand-in (its package isn't loaded). */
-export function isPlaceholder(id: Id): boolean {
-  return !systems.has(id);
 }

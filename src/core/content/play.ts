@@ -22,7 +22,6 @@ import {
 import type { ActionDef, EffectAction, Expr, GameSystem, Id } from "./schema";
 import { currentSlot, systemOf, type TurnSlot } from "./turn";
 import { sharedPhase } from "./simultaneous";
-import { opposed } from "../teams";
 
 /**
  * Taking a system's actions in play: which actions a unit can take now, what
@@ -53,7 +52,7 @@ export interface Payment {
   placed?: { key: string; faces: number[] };
 }
 
-export interface ActionOption {
+interface ActionOption {
   def: ActionDef;
   ok: boolean;
   /** Why it can't be taken now. */
@@ -116,10 +115,6 @@ function usesActivations(system: GameSystem, slot: TurnSlot | null): boolean {
 
 function seatOf(state: GameState, player: PlayerId): number | undefined {
   return state.players[player]?.seat;
-}
-
-function playerAtSeat(state: GameState, seat: number): PlayerId | undefined {
-  return Object.values(state.players).find((p) => p.seat === seat)?.id;
 }
 
 /** The event a reaction answers, as expressions see it ("event.action", "event.unit", "event.target"). */
@@ -282,7 +277,7 @@ export function setPlaced(state: GameState, player: PlayerId, key: string, faces
 }
 
 /** The pool whose dice can be placed on cards: a dice pool with a `total` (FSD's AD Pool). */
-export function placeablePool(system: GameSystem): Id | undefined {
+function placeablePool(system: GameSystem): Id | undefined {
   return system.resources?.find((r) => r.kind === "dicePool" && r.total !== undefined)?.id;
 }
 
@@ -290,7 +285,7 @@ export function placeablePool(system: GameSystem): Id | undefined {
  * The action a weapon's slots pay for (FSD: its special action), with the
  * slots and whether that action is switched off now (a damaged system).
  */
-export function weaponSlots(
+function weaponSlots(
   state: GameState,
   unitId: UnitId,
   weaponId: string,
@@ -324,7 +319,7 @@ export function weaponSlots(
  * cleanup window, or at the start of their own alternating turn (before
  * anything is acting).
  */
-export function placeWindow(state: GameState, player: PlayerId): boolean {
+function placeWindow(state: GameState, player: PlayerId): boolean {
   const system = systemOf(state);
   if (!placeablePool(system)) return false;
   const slot = currentSlot(state);
@@ -526,49 +521,13 @@ export function unitActions(state: GameState, unitId: UnitId, req: ActionRequest
   return out;
 }
 
-/**
- * Enemy units an action can target, with whether its `target` allows them
- * and, when it doesn't, why (the first `notWhen` that holds). `weaponId`
- * puts the chosen weapon in scope as "weapon", so a filter can read its
- * rules (40k Indirect Fire targets units out of sight).
- */
-export function actionTargets(
-  state: GameState,
-  unitId: UnitId,
-  actionId: Id,
-  weaponId?: string,
-): { unitId: UnitId; ok: boolean; distance: number; why?: string }[] {
-  const unit = state.units[unitId];
-  if (!unit) return [];
-  const system = systemOf(state);
-  const def = system.actions.find((a) => a.id === actionId);
-  const self = unitView(state, system, unit);
-  const w = weaponId ? unit.sheet?.weapons[weaponId] : undefined;
-  const ctx = evalCtx(state, system, { self, ...(w ? { weapon: weaponView(state, system, unit, w) } : {}) });
-  const geometry = tableGeometry(state, system);
-  return Object.values(state.units)
-    .filter((u) => opposed(state, u.owner, unit.owner))
-    .map((u) => {
-      const it = unitView(state, system, u);
-      const c = { ...ctx, scope: { ...ctx.scope, it } };
-      const distance = it.models.length
-        ? Number(geometry({ kind: "distance", from: "self", to: "it", measure: "centre" }, c))
-        : Infinity;
-      const why = def?.target?.notWhen?.find((n) => safeBool(n.if, c))?.why;
-      const ok = it.models.length > 0 && (!def?.target || safeBool(def.target.filter, c)) && !why;
-      return { unitId: u.id, ok, distance, ...(why ? { why } : {}) };
-    })
-    .filter((t) => t.distance < Infinity)
-    .sort((a, b) => Number(b.ok) - Number(a.ok) || a.distance - b.distance);
-}
-
 /** The run environment for the state's system. */
 export function procedureEnv(state: GameState, rng?: () => number): RunEnv {
   return { system: systemOf(state), state, ...(rng ? { rng } : {}) };
 }
 
 /** Roles for a unit's procedure: the acting unit, its weapon and the target. */
-export function procedureRoles(
+function procedureRoles(
   system: GameSystem,
   procedure: Id,
   unitId: UnitId,
@@ -854,10 +813,4 @@ export function endReaction(state: GameState, run: ProcedureRun | null): GameSta
   // The answered action had nothing to resolve (a move): the reaction's results land now.
   else next = applyDeferred(next);
   return next;
-}
-
-/** Name of the player in a seat, for "waiting on" prompts. */
-export function seatName(state: GameState, seat: number): string {
-  const id = playerAtSeat(state, seat);
-  return (id && state.players[id]?.name) || `Player ${seat + 1}`;
 }

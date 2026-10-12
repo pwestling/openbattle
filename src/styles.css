@@ -1,17 +1,80 @@
-/*
- * The app's styles, one sheet per area of the screen (#70), in cascade
- * order: a later sheet wins a tie, so keep new rules in the sheet for
- * their area, and an override after what it overrides.
- */
-@import "./styles/01-base.css";
-@import "./styles/02-front-door.css";
-@import "./styles/03-table-panels.css";
-@import "./styles/04-play-panels.css";
-@import "./styles/05-dice.css";
-@import "./styles/06-table-extras.css";
-@import "./styles/07-phones-and-showcase.css";
-@import "./styles/08-room-and-campaign.css";
-@import "./styles/10-workshop-and-share.css";
-@import "./styles/11-open-tables-and-touch.css";
-@import "./styles/12-review-live-ranked.css";
-@import "./styles/13-events-standees.css";
+:root {
+  color-scheme: dark;
+  font:
+    14px/1.4 system-ui,
+    sans-serif;
+  background: #0f1117;
+  color: #e5e7eb;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+  display: grid;
+  gap: 12px;
+}
+section {
+  border: 1px solid #2a2f3a;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+h1,
+h2 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+  background: #1b1f2a;
+  border: 1px solid #343b4b;
+  border-radius: 4px;
+  padding: 3px 8px;
+}
+textarea {
+  width: 100%;
+  min-height: 70px;
+  font-family: ui-monospace, monospace;
+  box-sizing: border-box;
+}
+button {
+  cursor: pointer;
+}
+pre {
+  margin: 0;
+  max-height: 280px;
+  overflow: auto;
+  font-size: 12px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 12px;
+}
+td,
+th {
+  text-align: left;
+  padding: 1px 8px 1px 0;
+  vertical-align: top;
+}
+.muted {
+  color: #8b93a5;
+}
+.bad {
+  color: #f87171;
+}
+.ok {
+  color: #4ade80;
+}

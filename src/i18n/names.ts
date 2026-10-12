@@ -9,8 +9,3 @@ export function displayName(name: string): string {
   const seat = /^Player (\d+)$/.exec(name)?.[1];
   return seat ? t("Player {n}", { n: seat }) : name;
 }
-
-/** `displayName` of a player who may not be there. */
-export function playerName(p: { name: string } | undefined): string | undefined {
-  return p && displayName(p.name);
-}

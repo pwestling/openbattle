@@ -1,6 +1,6 @@
-import { applyEvent, sides, undoneSeqs, type GameRecord, type GameState } from "../core";
+import { applyEvent, undoneSeqs, type GameRecord, type GameState } from "../core";
 import { currentSlot, systemOf } from "../core/content/turn";
-import type { Mission, ScoringMoment } from "../sdk";
+import type { ScoringMoment } from "../sdk";
 
 /**
  * Scoring moments and the scores waiting on a player. The app works out each
@@ -20,15 +20,6 @@ interface Moment {
   state: GameState;
   /** The event that ended it. */
   seq: number;
-}
-
-export interface Pending {
-  key: string;
-  seat: number;
-  round: number;
-  rule: string;
-  vp: number;
-  why: string;
 }
 
 /** Every scoring moment so far: each move to the next phase ends one, and maybe a round or the battle. */
@@ -70,78 +61,3 @@ export const momentMatches = (at: ScoringMoment, m: Moment) =>
     : "roundEnd" in at
       ? m.kind === "roundEnd" && m.round >= (at.fromRound ?? 1)
       : m.kind === "gameEnd";
-
-/** Scores the mission suggests that nobody has confirmed or passed on yet, oldest first. */
-export function pendingScores(record: GameRecord, game: GameState, mission: Mission | undefined): Pending[] {
-  if (!mission) return [];
-  const done = new Set((game.scores ?? []).map((s) => s.key));
-  const out: Pending[] = [];
-  const all = moments(record);
-  // Cards turned up after the battle ended weren't played: they score nothing.
-  const end = all.find((m) => m.kind === "gameEnd")?.seq ?? Infinity;
-  const late = new Set(
-    record.events.flatMap(({ seq, event }) =>
-      seq > end && event.type === "secret/reveal" && event.key.startsWith("mission:")
-        ? [`${event.key}:${String(event.value)}`]
-        : [],
-    ),
-  );
-  for (const m of all)
-    for (const rule of mission.scoring) {
-      if (!momentMatches(rule.at, m)) continue;
-      for (const seat of m.kind === "phaseEnd" ? [m.seat!] : sides(m.state)) {
-        const key = `${rule.id}:${m.round}:${seat}`;
-        if (done.has(key)) continue;
-        const s = rule.suggest(m.state, seat);
-        if (!s) continue;
-        out.push({ key, seat, round: m.round, rule: rule.name, ...s });
-      }
-    }
-  // Secret mission cards revealed and not yet scored: scored as the table stands now.
-  for (const [player, mine] of Object.entries(game.secrets ?? {})) {
-    const seat = game.players[player]?.seat;
-    if (seat === undefined) continue;
-    for (const [secretKey, e] of Object.entries(mine)) {
-      if (!secretKey.startsWith("mission:") || !e.revealed) continue;
-      const key = `card:${player}:${secretKey}`;
-      if (done.has(key)) continue;
-      const card = mission.deck?.find((c) => c.id === e.revealed!.value);
-      if (!card || late.has(`${secretKey}:${card.id}`)) continue;
-      out.push({ key, seat, round: game.turn.round, rule: card.name, ...card.suggest(game, seat) });
-    }
-  }
-  return out;
-}
-
-/** VP by round and side from the confirmed scores, for the result screen. */
-export function vpByRound(game: GameState): {
-  rounds: number[];
-  bySeat: Record<number, Record<number, number>>;
-} {
-  const bySeat: Record<number, Record<number, number>> = {};
-  const rounds = new Set<number>();
-  for (const s of game.scores ?? []) {
-    if (!s.vp) continue;
-    rounds.add(s.round);
-    bySeat[s.seat] ??= {};
-    bySeat[s.seat]![s.round] = (bySeat[s.seat]![s.round] ?? 0) + s.vp;
-  }
-  // Every round from the first scored to the last, a round nobody scored in included (naive players 11:
-  // R1, R3, R4 read as a missing round).
-  const scored = [...rounds];
-  const first = Math.min(...scored);
-  const last = Math.max(...scored);
-  return {
-    rounds: scored.length ? Array.from({ length: last - first + 1 }, (_, i) => first + i) : [],
-    bySeat,
-  };
-}
-
-/**
- * Once the battle is over, the scores still worth asking about: a suggested 0 changes nothing, so
- * the end card doesn't ask for it (naive players 11: "Scores to confirm" under a final result read
- * as the game not being over).
- */
-export function scoresThatCount(pending: Pending[]): Pending[] {
-  return pending.filter((p) => p.vp !== 0);
-}

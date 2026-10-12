@@ -16,23 +16,6 @@
  *                  a TURN login service (server/turn-worker.mjs, #77): fresh,
  *                  short-lived logins fetched as the page opens; without it,
  *                  or while it doesn't answer, there's no TURN (STUN only)
- *   ?mailbox=https://battle.example.com/mailbox
- *                  where play-by-mail turns are posted (server/mailbox.mjs)
- *                                          VITE_MAILBOX_URL
- *   ?openTables=0  hide Open tables, the public board of games (#50)
- *                                          VITE_OPEN_TABLES=off
- *   ?openTables=1&board=https://battle.example.com/relay/board
- *                  turn it on with a given board (server/board.mjs), e.g. for
- *                  smoke tests against a local relay (BOARD_ORIGIN there)
- *   ?trackers=wss://tracker.example        VITE_TRACKERS
- *                  WebTorrent trackers for shared files (default: public ones)
- *   ?seeders=https://battle.example.com/seed
- *                  seed nodes that keep shared files (server/seeder.mjs)
- *                                          VITE_SEEDERS
- *
- * Open tables posts to the public Nostr relays. A self-hosted site (or a page
- * pointed at a private relay with ?signal=) has it off unless its config.json
- * turns it on, and then it uses the site's own board (server/board.mjs).
  */
 export interface NetConfig {
   /** Self-hosted WebSocket signalling relays; when set, Nostr is not used. */
@@ -42,26 +25,10 @@ export interface NetConfig {
   turn: RTCIceServer[];
   /** Only connect through TURN (a test of the TURN server). */
   forceTurn?: boolean;
-  /** A play-by-mail mailbox (server/mailbox.mjs); without one, turns travel as files. */
-  mailbox?: string;
-  /** Open tables (#50): whether the public board of games shows. */
-  openTables: boolean;
-  /** A self-hosted site's board (server/board.mjs); without it the board is on Nostr. */
-  board?: string;
-  /** WebTorrent trackers for shared files (src/share/torrent.ts); public ones by default. */
-  trackers: string[];
-  /** Seed nodes (server/seeder.mjs) that keep a copy of what's shared; none by default. */
-  seeders: string[];
 }
 
-/** What a site's config.json may say, beyond the relays. */
 /** A site's config.json (docs/protocols/servers.md). @public */
-export interface SiteConfig extends Partial<Omit<NetConfig, "openTables">> {
-  openTables?: boolean;
-}
-
-/** Public WebTorrent trackers: they only introduce browsers, like the signalling relays. */
-const PUBLIC_TRACKERS = ["wss://tracker.openwebtorrent.com", "wss://tracker.webtorrent.dev"];
+export type SiteConfig = Partial<NetConfig>;
 
 const list = (v: string | null | undefined) =>
   (v ?? "")
@@ -71,8 +38,6 @@ const list = (v: string | null | undefined) =>
 
 /** What the site's config.json said, once loaded. */
 let site: SiteConfig = {};
-/** A self-hosted build reads its config.json; it gets no public board unless that says so. */
-const selfHosted = !!import.meta.env.VITE_SITE_CONFIG;
 
 /**
  * Fetch the site's config.json when this build asks for one. A self-hosted
@@ -91,11 +56,6 @@ export async function loadSiteConfig(
       ...(Array.isArray(body.signal) && body.signal.length ? { signal: body.signal } : {}),
       ...(Array.isArray(body.nostr) && body.nostr.length ? { nostr: body.nostr } : {}),
       ...(Array.isArray(body.turn) && body.turn.length ? { turn: body.turn } : {}),
-      ...(typeof body.mailbox === "string" && body.mailbox ? { mailbox: body.mailbox } : {}),
-      ...(body.openTables === true ? { openTables: true } : {}),
-      ...(typeof body.board === "string" && /^https?:\/\//.test(body.board) ? { board: body.board } : {}),
-      ...(Array.isArray(body.trackers) && body.trackers.length ? { trackers: body.trackers } : {}),
-      ...(Array.isArray(body.seeders) && body.seeders.length ? { seeders: body.seeders } : {}),
     };
   } catch {
     // An unreachable or malformed config.json is the same as none.
@@ -142,15 +102,7 @@ export function netConfig(search = typeof location === "undefined" ? "" : locati
   const username = q.get("turnUser") ?? env.VITE_TURN_USER;
   const credential = q.get("turnPass") ?? env.VITE_TURN_PASS;
   const fromUrl = (key: string) => (q.has(key) ? list(q.get(key)) : null);
-  const mailbox = q.get("mailbox") ?? site.mailbox ?? (env.VITE_MAILBOX_URL as string | undefined);
   const signal = fromUrl("signal") ?? site.signal ?? list(env.VITE_SIGNAL_URL);
-  // Off when asked, on a self-hosted site that didn't turn it on, or on a private relay.
-  const openTables =
-    q.get("openTables") === "0" || env.VITE_OPEN_TABLES === "off"
-      ? false
-      : selfHosted
-        ? site.openTables === true
-        : !signal.length || q.get("openTables") === "1";
   return {
     signal,
     nostr: fromUrl("nostr") ?? site.nostr ?? list(env.VITE_NOSTR_RELAYS),
@@ -158,28 +110,5 @@ export function netConfig(search = typeof location === "undefined" ? "" : locati
       ? [{ urls: turnUrls, ...(username ? { username, credential } : {}) }]
       : (site.turn ?? minted?.turn ?? []),
     ...(q.get("forceTurn") === "1" ? { forceTurn: true } : {}),
-    ...(mailbox ? { mailbox } : {}),
-    openTables,
-    trackers:
-      fromUrl("trackers") ??
-      site.trackers ??
-      (list(env.VITE_TRACKERS).length ? list(env.VITE_TRACKERS) : PUBLIC_TRACKERS),
-    seeders: fromUrl("seeders") ?? site.seeders ?? list(env.VITE_SEEDERS),
-    ...(openTables && (q.get("board") ?? (selfHosted ? site.board : undefined))
-      ? { board: q.get("board") ?? site.board }
-      : {}),
   };
 }
-
-/** The URL parameters to keep on an invite link so the guest uses the same relays. */
-export const NET_PARAMS = [
-  "signal",
-  "nostr",
-  "turn",
-  "turnUser",
-  "turnPass",
-  "forceTurn",
-  "mailbox",
-  "board",
-  "openTables",
-];
