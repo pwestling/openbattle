@@ -28,6 +28,10 @@ pnpm format && pnpm lint && pnpm typecheck && pnpm schemas:check && pnpm test
 - New game systems: `src/systems/<id>/` ([docs/system-modules.md](docs/system-modules.md)), or a package file ([docs/packages.md](docs/packages.md)).
 - Our own CC BY games live in `games/`.
 
+## Delegating to subagents
+
+For file searches, information gathering and simple tasks across the codebase that fit in under about 100k tokens of context, fan out Haiku 5.5 subagents (`model: "haiku"`) instead of doing the reading in the main session. Split independent questions across agents and launch them in one message so they run in parallel. Give each a narrow scope and say what to report back (paths, line numbers, a short conclusion, not file dumps). Keep design decisions, cross-cutting changes and anything needing more than ~100k tokens of context in the main session.
+
 ## Skills
 
 `.claude/skills/` has guided workflows: `rules-package`, `system-module`, `ip-check`, `verify-change` and `propose-change`.
