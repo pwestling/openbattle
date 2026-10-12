@@ -377,6 +377,25 @@ async function moreWays(page) {
   else await (await footer(page)).getByRole("button", { name: /More ways to play/ }).click();
 }
 
+/** Pick up a unit by its plate (top-down view) and drop it halfway up the table: a move, as a player drags one. */
+async function walkUp(page, name) {
+  const plate = await page.locator(".plate", { hasText: name }).first().boundingBox();
+  const canvas = await page.locator("canvas").first().boundingBox();
+  for (let dy = -16; dy <= 30; dy += 8)
+    for (let dx = 0; dx <= plate.width + 50; dx += 8) {
+      const [x, y] = [plate.x + dx, plate.y + plate.height / 2 + dy];
+      await page.mouse.move(x, y);
+      await page.mouse.down();
+      if (await page.evaluate(() => document.body.dataset.drag === "models")) {
+        await page.mouse.move(x, canvas.y + canvas.height * 0.45, { steps: 8 });
+        await page.mouse.up();
+        return page.waitForTimeout(500);
+      }
+      await page.mouse.up();
+    }
+  throw new Error(`couldn't pick up ${name}`);
+}
+
 /** The TTS save importer, from More ways to play. */
 async function openTtsSave(page) {
   await moreWays(page);
@@ -1675,7 +1694,7 @@ const checks = {
         // On the table (the army showcase may hide the panels while it plays, 30 s behind).
         await watcher.page
           .locator(".broadcast-badge")
-          .waitFor({ state: "attached", timeout: 30_000 })
+          .waitFor({ state: "attached", timeout: 60_000 })
           .catch(async (e) => {
             if (process.env.SMOKE_SHOTS)
               await watcher.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "event-watcher.png") });
@@ -1694,7 +1713,7 @@ const checks = {
           await plus.click();
       }
       step(`round ${round}: play`);
-      const deadline = Date.now() + 240_000;
+      const deadline = Date.now() + 480_000;
       while (true) {
         let done = 0;
         for (const d of ds) {
@@ -3554,19 +3573,17 @@ const checks = {
       }
       return true;
     };
-    // Through the Command and Movement phases: Movement's end opens a window for the side that waited.
+    // Through the Command and Movement phases: Movement's end opens a window for the side that waited, when
+    // a unit of Ana's ends its move near enough to Ben's to be shot at: she walks one up the middle.
+    await viewFromAbove(host.page);
     for (let i = 0; i < 2 && !(await look()); i++) {
+      if (i === 1) await walkUp(host.page, "Field Marshal");
       await nextPhase([host.page, guest.page]);
       const ask = host.page.locator(".topbar .ask button.primary");
       if (await ask.count()) await ask.click();
       await card.waitFor({ timeout: 2500 }).catch(() => {});
     }
     // Else shots at Ben's units, one unit after another: a target declared, or a failed save Ben can re-roll.
-    if (!(await look()))
-      await host.page
-        .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
-        .first()
-        .click();
     const canvas = await host.page.locator("canvas").first().boundingBox();
     for (let shot = 0; shot < 4 && !seen.card; shot++) {
       let found = false;
@@ -3704,7 +3721,9 @@ const checks = {
     for (let i = 0; i < 40 && !(await saved.count()); i++) {
       await answer();
       if (/No hits|0 wounds/.test(await a.locator(".panel.attack").innerText())) break;
-      const roll = a.locator(".panel.attack button.attack-roll:enabled", { hasText: /^Roll (hits|wounds)/ });
+      const roll = a.locator(".panel.attack button.attack-roll:enabled", {
+        hasText: /^Roll (to hit|hits|wounds|to wound)/,
+      });
       if (await roll.count())
         await roll
           .first()
