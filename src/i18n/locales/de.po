@@ -443,8 +443,8 @@ msgctxt "game"
 msgid "They held. Combat can drag on into the next turn."
 msgstr "Sie haben standgehalten. Ein Nahkampf kann sich bis in den nächsten Spielzug ziehen."
 
-#: src/App.tsx:68
-#: src/next/NextApp.tsx:18
+#: src/App.tsx:69
+#: src/next/NextApp.tsx:21
 #, fuzzy
 msgid "Setting up the table…"
 msgstr "Der Tisch wird aufgebaut …"
@@ -537,13 +537,13 @@ msgstr "Du hast gegen {name} gespielt."
 #: src/bot/YourArmy.tsx:145
 #: src/bot/YourArmy.tsx:147
 #: src/events/EventsUI.tsx:599
-#: src/next/ComputerArmy.tsx:83
+#: src/next/ComputerArmy.tsx:93
 #, fuzzy
 msgid "Your army"
 msgstr "Deine Armee"
 
 #: src/bot/YourArmy.tsx:108
-#: src/next/ComputerArmy.tsx:77
+#: src/next/ComputerArmy.tsx:87
 #, fuzzy
 msgid "{n} unit"
 msgid_plural "{n} units"
@@ -553,7 +553,7 @@ msgstr[1] "{n} Einheiten"
 #: src/bot/YourArmy.tsx:109
 #: src/bot/YourArmy.tsx:155
 #: src/bot/YourArmy.tsx:167
-#: src/next/ComputerArmy.tsx:78
+#: src/next/ComputerArmy.tsx:88
 #: src/printplay/RulesPage.tsx:178
 #: src/ui/Showcase.tsx:45
 #, fuzzy
@@ -621,7 +621,7 @@ msgid "Sample army: {name}"
 msgstr "Beispielarmee: {name}"
 
 #: src/bot/YourArmy.tsx:153
-#: src/next/ComputerArmy.tsx:87
+#: src/next/ComputerArmy.tsx:97
 #, fuzzy
 msgid "A sample army"
 msgstr "Eine Beispielarmee"
@@ -638,8 +638,8 @@ msgstr "die Armee des Computers hat {n} Pkt."
 
 #: src/bot/YourArmy.tsx:53
 #: src/bot/YourArmy.tsx:57
-#: src/next/ComputerArmy.tsx:39
-#: src/next/ComputerArmy.tsx:43
+#: src/next/ComputerArmy.tsx:42
+#: src/next/ComputerArmy.tsx:46
 #, fuzzy
 msgid "That file has no units this game can read."
 msgstr "Diese Datei enthält keine Einheiten, die dieses Spiel lesen kann."
@@ -921,7 +921,7 @@ msgid "Exhibition"
 msgstr "Schaukampf"
 
 #: src/broadcast/exhibition.ts:99
-#: src/next/Door.tsx:358
+#: src/next/Door.tsx:365
 #: src/ui/Lobby.tsx:658
 #: src/ui/Lobby.tsx:862
 #: src/ui/Lobby.tsx:881
@@ -1156,7 +1156,7 @@ msgstr "Exportieren"
 #: src/events/EventsUI.tsx:69
 #: src/figures/FigureLibrary.tsx:82
 #: src/figures/FigureLibrary.tsx:82
-#: src/next/Door.tsx:580
+#: src/next/Door.tsx:595
 #, fuzzy
 msgid "Close"
 msgstr "Schließen"
@@ -3440,7 +3440,7 @@ msgstr "Open Battle nutzt {used} von {quota}, die dieser Browser erlaubt."
 
 #: src/figures/FigureLibrary.tsx:77
 #: src/figures/FigureLibrary.tsx:81
-#: src/next/Door.tsx:592
+#: src/next/Door.tsx:607
 #, fuzzy
 msgid "Figure library"
 msgstr "Figurenbibliothek"
@@ -3941,8 +3941,8 @@ msgid "your opponent"
 msgstr "dein Gegner"
 
 #: src/mail/MailLobby.tsx:104
-#: src/next/Door.tsx:314
-#: src/next/Door.tsx:524
+#: src/next/Door.tsx:321
+#: src/next/Door.tsx:538
 #: src/next/SaveDoor.tsx:166
 #: src/opentables/OpenTables.tsx:591
 #: src/opentables/OpenTables.tsx:788
@@ -4177,77 +4177,81 @@ msgstr "Ein Wurf oder Ergebnis darin passt nicht zu dem, was seine Züge und Wü
 msgid "count it on your table"
 msgstr "am Tisch auszählen"
 
-#: src/next/ComputerArmy.tsx:110
-msgid "The computer's army is {n} pts: match my points"
-msgstr ""
-
-#: src/next/ComputerArmy.tsx:114
-msgid "Start against {who}"
-msgstr ""
-
-#: src/next/ComputerArmy.tsx:116
-msgid "{name} plays the far side."
-msgstr ""
-
-#: src/next/ComputerArmy.tsx:88
-msgid "Sample · {line}"
-msgstr ""
-
-#: src/next/ComputerArmy.tsx:90
+#: src/next/ComputerArmy.tsx:100
 msgid "Your shelf · {line}"
 msgstr ""
 
-#: src/next/ComputerArmy.tsx:91
+#: src/next/ComputerArmy.tsx:105
+msgid "From {package} · {line}"
+msgstr ""
+
+#: src/next/ComputerArmy.tsx:111
 msgid "Just read · {line}"
 msgstr ""
 
-#: src/next/ComputerArmy.tsx:94
+#: src/next/ComputerArmy.tsx:114
 msgid "Import a list…"
 msgstr ""
 
-#: src/next/Door.tsx:136
-msgid "Our own free skirmish game. Warbands included, nothing to import."
+#: src/next/ComputerArmy.tsx:130
+msgid "The computer's army is {n} pts: match my points"
+msgstr ""
+
+#: src/next/ComputerArmy.tsx:134
+msgid "Start against {who}"
+msgstr ""
+
+#: src/next/ComputerArmy.tsx:136
+msgid "{name} plays the far side."
+msgstr ""
+
+#: src/next/ComputerArmy.tsx:98
+msgid "Sample · {line}"
 msgstr ""
 
 #: src/next/Door.tsx:142
+msgid "Our own free skirmish game. Warbands included, nothing to import."
+msgstr ""
+
+#: src/next/Door.tsx:148
 msgid "Our own free game of climbing crews at low tide. Crews included."
 msgstr ""
 
-#: src/next/Door.tsx:149
+#: src/next/Door.tsx:155
 msgid "Squads move, shoot, charge and fight."
 msgstr ""
 
-#: src/next/Door.tsx:288
+#: src/next/Door.tsx:295
 #: src/next/SaveDoor.tsx:180
 #: src/ui/Lobby.tsx:798
 #, fuzzy
 msgid "Open the table"
 msgstr "Tisch öffnen"
 
-#: src/next/Door.tsx:290
+#: src/next/Door.tsx:297
 #: src/ui/Lobby.tsx:798
 #, fuzzy
 msgid "Set up both sides"
 msgstr "Beide Seiten aufstellen"
 
-#: src/next/Door.tsx:293
+#: src/next/Door.tsx:300
 msgid "Open the table for two phones"
 msgstr ""
 
-#: src/next/Door.tsx:294
+#: src/next/Door.tsx:301
 msgid "Start on this screen"
 msgstr ""
 
-#: src/next/Door.tsx:311
+#: src/next/Door.tsx:318
 msgid "You're invited to a game"
 msgstr ""
 
-#: src/next/Door.tsx:312
+#: src/next/Door.tsx:319
 msgid "Join the table"
 msgstr ""
 
-#: src/next/Door.tsx:319
-#: src/next/Door.tsx:529
+#: src/next/Door.tsx:326
+#: src/next/Door.tsx:543
 #: src/next/SaveDoor.tsx:171
 #: src/ui/Lobby.tsx:417
 #: src/ui/Lobby.tsx:769
@@ -4255,233 +4259,233 @@ msgstr ""
 msgid "What should the others call you?"
 msgstr "Wie sollen die anderen dich nennen?"
 
-#: src/next/Door.tsx:323
+#: src/next/Door.tsx:330
 msgid "Next: your army, at the table."
 msgstr ""
 
-#: src/next/Door.tsx:326
+#: src/next/Door.tsx:333
 msgid "Join the table ▸"
 msgstr ""
 
-#: src/next/Door.tsx:336
+#: src/next/Door.tsx:343
 #: src/ui/Lobby.tsx:434
 #, fuzzy
 msgid "Just watch"
 msgstr "Nur zuschauen"
 
-#: src/next/Door.tsx:357
+#: src/next/Door.tsx:364
 #: src/next/SaveDoor.tsx:142
 #: src/ui/Lobby.tsx:654
 #, fuzzy
 msgid "A friend online"
 msgstr "Jemand online"
 
-#: src/next/Door.tsx:357
+#: src/next/Door.tsx:364
 msgid "You get a link to send. They need nothing installed."
 msgstr ""
 
-#: src/next/Door.tsx:358
+#: src/next/Door.tsx:365
 #: src/ui/Lobby.tsx:658
 #, fuzzy
 msgid "Easy, Steady or Sharp."
 msgstr "Leicht, Solide oder Scharf."
 
-#: src/next/Door.tsx:361
+#: src/next/Door.tsx:368
 #: src/next/SaveDoor.tsx:145
 msgid "Both sides, this screen"
 msgstr ""
 
-#: src/next/Door.tsx:363
+#: src/next/Door.tsx:370
 msgid "Two sample armies set up; pass the screen each turn."
 msgstr ""
 
-#: src/next/Door.tsx:364
+#: src/next/Door.tsx:371
 #: src/ui/Lobby.tsx:665
 #, fuzzy
 msgid "You set up both armies and play both."
 msgstr "Du stellst beide Armeen auf und spielst beide."
 
-#: src/next/Door.tsx:367
+#: src/next/Door.tsx:374
 msgid "A real table, your models"
 msgstr ""
 
-#: src/next/Door.tsx:367
+#: src/next/Door.tsx:374
 msgid "Phones keep the cards, wounds, CP, VP and dice."
 msgstr ""
 
-#: src/next/Door.tsx:375
+#: src/next/Door.tsx:385
 msgid "Your last game"
 msgstr ""
 
-#: src/next/Door.tsx:375
+#: src/next/Door.tsx:385
 msgid "Resume"
 msgstr ""
 
-#: src/next/Door.tsx:378
+#: src/next/Door.tsx:388
 msgid "{game}: the battle is over"
 msgstr ""
 
-#: src/next/Door.tsx:380
+#: src/next/Door.tsx:390
 msgid "{game}, round {n}"
 msgstr ""
 
-#: src/next/Door.tsx:381
+#: src/next/Door.tsx:391
 msgid "{game}, setting up"
 msgstr ""
 
-#: src/next/Door.tsx:391
+#: src/next/Door.tsx:401
 #, fuzzy
 msgid "What are you playing?"
 msgstr "Was spielst du?"
 
-#: src/next/Door.tsx:404
+#: src/next/Door.tsx:414
 msgid "Fewer games ▴"
 msgstr ""
 
-#: src/next/Door.tsx:405
+#: src/next/Door.tsx:415
 msgid "More games: {names} ▸"
 msgstr ""
 
-#: src/next/Door.tsx:412
+#: src/next/Door.tsx:422
 msgid "More games"
 msgstr ""
 
-#: src/next/Door.tsx:425
+#: src/next/Door.tsx:435
 #: src/next/SaveDoor.tsx:135
 msgid "Who against?"
 msgstr ""
 
-#: src/next/Door.tsx:435
+#: src/next/Door.tsx:445
 msgid "Not for this game yet"
 msgstr ""
 
-#: src/next/Door.tsx:448
-#: src/next/Door.tsx:451
+#: src/next/Door.tsx:458
+#: src/next/Door.tsx:461
 #: src/ui/Lobby.tsx:693
 #: src/ui/Lobby.tsx:694
 #, fuzzy
 msgid "How hard?"
 msgstr "Wie schwer?"
 
-#: src/next/Door.tsx:454
+#: src/next/Door.tsx:464
 msgid "Plays loosely. Good for a first game."
 msgstr ""
 
-#: src/next/Door.tsx:455
+#: src/next/Door.tsx:465
 msgid "Plays to win."
 msgstr ""
 
-#: src/next/Door.tsx:456
+#: src/next/Door.tsx:466
 msgid "Thinks harder about every move."
 msgstr ""
 
-#: src/next/Door.tsx:483
+#: src/next/Door.tsx:493
 msgid "New to it? Learn with a coach ▸"
 msgstr ""
 
-#: src/next/Door.tsx:496
+#: src/next/Door.tsx:506
 #: src/next/SaveDoor.tsx:163
 msgid "Get ready"
 msgstr ""
 
-#: src/next/Door.tsx:503
+#: src/next/Door.tsx:513
 #: src/ui/Lobby.tsx:741
 #, fuzzy
 msgid "Phones"
 msgstr "Handys"
 
-#: src/next/Door.tsx:506
+#: src/next/Door.tsx:516
 msgid "One phone or screen for both of us"
 msgstr ""
 
-#: src/next/Door.tsx:507
+#: src/next/Door.tsx:517
 msgid "A phone each: you get a link for the other phone"
 msgstr ""
 
-#: src/next/Door.tsx:536
+#: src/next/Door.tsx:550
 msgid "Next: the table opens with a link to send. Your army goes on it there."
 msgstr ""
 
-#: src/next/Door.tsx:539
+#: src/next/Door.tsx:553
 msgid "Both armies go on the table and the battle starts. Pass the screen each turn."
 msgstr ""
 
-#: src/next/Door.tsx:540
+#: src/next/Door.tsx:554
 #: src/ui/Lobby.tsx:789
 #, fuzzy
 msgid "An empty table: put both armies on it, then start."
 msgstr "Ein leerer Tisch: stell beide Armeen auf und fang dann an."
 
-#: src/next/Door.tsx:541
+#: src/next/Door.tsx:555
 msgid "No 3D table: your phone keeps count while you play with your models."
 msgstr ""
 
-#: src/next/Door.tsx:560
+#: src/next/Door.tsx:574
 msgid "Find an opponent"
 msgstr ""
 
-#: src/next/Door.tsx:564
+#: src/next/Door.tsx:578
 msgid "More ways to play ▸"
 msgstr ""
 
-#: src/next/Door.tsx:572
+#: src/next/Door.tsx:587
 msgid "Classic layout"
 msgstr ""
 
-#: src/next/Door.tsx:577
-#: src/next/Door.tsx:579
+#: src/next/Door.tsx:592
+#: src/next/Door.tsx:594
 #: src/ui/Lobby.tsx:893
 #, fuzzy
 msgid "More ways to play"
 msgstr "Weitere Spielmöglichkeiten"
 
-#: src/next/Door.tsx:585
+#: src/next/Door.tsx:600
 msgid "Open a Tabletop Simulator save"
 msgstr ""
 
-#: src/next/Door.tsx:586
+#: src/next/Door.tsx:601
 msgid "Terrain, armies and decks arrive as one game."
 msgstr ""
 
-#: src/next/Door.tsx:593
+#: src/next/Door.tsx:608
 msgid "Your models, packs and storage."
 msgstr ""
 
-#: src/next/Door.tsx:596
+#: src/next/Door.tsx:611
 #: src/workshop/Workshop.tsx:271
 #: src/workshop/Workshop.tsx:274
 #, fuzzy
 msgid "Module workshop"
 msgstr "Modulwerkstatt"
 
-#: src/next/Door.tsx:597
+#: src/next/Door.tsx:612
 msgid "Write your own game system."
 msgstr ""
 
-#: src/next/Door.tsx:636
+#: src/next/Door.tsx:652
 msgid "Tabletop battles in your browser, between friends. No account."
 msgstr ""
 
-#: src/next/Door.tsx:648
+#: src/next/Door.tsx:664
 msgid "Got an invite?"
 msgstr ""
 
-#: src/next/Door.tsx:651
+#: src/next/Door.tsx:667
 msgid "Paste the link or code"
 msgstr ""
 
-#: src/next/Door.tsx:652
+#: src/next/Door.tsx:668
 msgid "Paste an invite link or code"
 msgstr ""
 
-#: src/next/Door.tsx:656
+#: src/next/Door.tsx:672
 #: src/opentables/OpenTables.tsx:615
 #: src/ui/Lobby.tsx:553
 #, fuzzy
 msgid "Join"
 msgstr "Beitreten"
 
-#: src/next/Door.tsx:659
+#: src/next/Door.tsx:675
 #: src/player/PlayerCard.tsx:34
 #: src/player/PlayerCard.tsx:121
 #: src/player/PlayerCard.tsx:303
@@ -4490,17 +4494,17 @@ msgstr "Beitreten"
 msgid "Your player card"
 msgstr "Deine Spielerkarte"
 
-#: src/next/Door.tsx:660
+#: src/next/Door.tsx:676
 msgid "Player card"
 msgstr ""
 
-#: src/next/Door.tsx:667
+#: src/next/Door.tsx:683
 #: src/ui/Lobby.tsx:532
 #, fuzzy
 msgid "Text size and language"
 msgstr "Textgröße und Sprache"
 
-#: src/next/Door.tsx:669
+#: src/next/Door.tsx:685
 msgid "Aa"
 msgstr ""
 

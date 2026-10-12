@@ -216,6 +216,8 @@ function show(path: string, close = true): void {
     if (a === "tts") openTts();
     else openLibrary(a === "storage" ? "storage" : "figures");
   } else if (close && useLibraryOpen.getState().tab) closeLibrary();
+  // A screen over the front door (the workshop, the player card…) leaves the door's own choices as they were.
+  if (["workshop", "event", "player", "ladder", "figures"].includes(screen ?? "")) return;
   const front = ["tables", "rules", "play"].includes(screen ?? "") ? path : "/";
   if (useRoute.getState().path !== front) useRoute.setState({ path: front });
 }
