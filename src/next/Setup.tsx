@@ -19,6 +19,8 @@ import { pickUnit } from "./StepBar";
 import { useInviteCopied } from "./start";
 import { systemModule } from "../systems";
 import { isPlaceholder } from "../core/content/systems";
+import { EventSlot } from "./EventSlot";
+import { useDeployed } from "../ui/shelfActions";
 import { systemOf } from "../core/content/turn";
 import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
 
@@ -29,7 +31,7 @@ import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
 function sampleFor(players: Player[]): (() => void) | null {
   const { game } = useStore.getState();
   // Until the game's rules package is running there's no sample to give (a guest joining a package game).
-  if (!game.system || isPlaceholder(game.system)) return null;
+  if (game.system && isPlaceholder(game.system)) return null;
   let mod;
   try {
     mod = systemModule(game.system);
@@ -43,15 +45,11 @@ function sampleFor(players: Player[]): (() => void) | null {
       const { game: now, dispatch } = useStore.getState();
       const seat = p.seat ?? 0;
       const roster = armies.length ? armies[seat % armies.length]! : mod.sample(seat === 1 ? 1 : 0);
-      for (const intent of spawnIntents(
-        now,
-        p.id,
-        roster.units,
-        `${p.id}-${crypto.randomUUID().slice(0, 6)}`,
-        roster.name,
-        false,
-      ))
+      const prefix = `${p.id}-${crypto.randomUUID().slice(0, 6)}`;
+      for (const intent of spawnIntents(now, p.id, roster.units, prefix, roster.name, false))
         dispatch(intent, p.id);
+      // Deployed as the army picker deploys: it can go on the shelf, and an event checks it against the entry.
+      useDeployed.setState({ [p.id]: { roster, prefix } });
       if (roster.army) dispatch({ type: "player/army", army: roster.army }, p.id);
       const color = armyColor(useStore.getState().game, p.id, roster.color);
       if (color) dispatch(color, p.id);
@@ -376,6 +374,7 @@ export function Setup() {
               : gameTitle(game)}
           </strong>
         </div>
+        <EventSlot />
         {online && <RoomCard />}
         <ol className="obn-check">
           {lines.map((l) => (

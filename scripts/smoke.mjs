@@ -28,7 +28,6 @@ const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
 const CLASSIC = new Set([
   "hotseat-resume",
-  "events",
   "standees",
   "photo-match",
   "companion-invite",
@@ -496,6 +495,43 @@ async function readyUp(pages, { start = true } = {}) {
     await pages[0].waitForTimeout(300);
   }
   throw new Error(`setup never finished: ${await pages[0].locator(".obn-bar").innerText()}`);
+}
+
+/** Several tables set up at once (new layout): each screen presses its lit step until every one is in round 1. */
+async function readyAll(pages) {
+  for (let i = 0; i < 60; i++) {
+    let on = 0;
+    for (const page of pages) {
+      if (
+        await page
+          .locator(".obn-strip .obn-round")
+          .getByText(/Round 1\b/i)
+          .count()
+      ) {
+        on++;
+        continue;
+      }
+      const lit = page.locator(".obn-bar .obn-lit").first();
+      // Rules are advisory: a table that isn't happy with the deployment can still go ahead, as the classic test did.
+      const anyway = page.locator(".obn-bar .obn-plain", { hasText: /^(Ready|Start) anyway$/ }).first();
+      const label = (await lit.count()) ? ((await lit.textContent()) ?? "") : "";
+      if (label && !/Copy invite link/.test(label)) await lit.click({ timeout: 3000 }).catch(() => {});
+      else if (i > 10 && (await anyway.count())) await anyway.click({ timeout: 3000 }).catch(() => {});
+    }
+    if (on === pages.length) return;
+    await pages[0].waitForTimeout(400);
+  }
+  const bars = await Promise.all(
+    pages.map((p) =>
+      p
+        .locator(".obn-bar")
+        .innerText()
+        .catch(() => "?"),
+    ),
+  );
+  throw new Error(
+    `not every table reached round 1: ${bars.map((b) => b.replace(/\n/g, " | ")).join(" ## ")}`,
+  );
 }
 
 /** The battle's first round has begun, in either UI. */
@@ -1263,9 +1299,33 @@ const checks = {
     // The name is asked at once, while the table connects (UX 403), and used once seated.
     await joinAs(guest.page, "Ben");
     await host.page.locator(".room").getByText("connected").waitFor({ timeout: 30_000 });
-    if (guest.page.ui === "classic")
-      await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
-    else await vpPlus(guest.page, 1);
+    await guest.page
+      .locator(guest.page.ui === "classic" ? ".topbar .player" : ".obn-strip .obn-side")
+      .nth(1)
+      .waitFor();
+    await host.page
+      .locator(host.page.ui === "classic" ? ".topbar" : ".obn-strip")
+      .getByText("Ben")
+      .first()
+      .waitFor({ timeout: 15_000 });
+    await host.context.close();
+    await guest.context.close();
+    return [...host.page.errors, ...guest.page.errors];
+  },
+
+  // #64: a public table, posted with watchers allowed, filled, then watched
+  // from Live now on a third device. The board is the relay's own.
+  async "live-now"() {
+    const q = `?${SIGNAL}&openTables=1&board=${encodeURIComponent(`http://localhost:${RELAY}/board`)}`;
+    const host = await device();
+    const guest = await device();
+    const watcher = await device();
+    const tables = async (page) => {
+      await lobby(page, q);
+      await openTables(page);
+    };
+    await tables(host.page);
+    await host.page.getByRole("button", { name: "Host a table and post it" }).click();
     const form = host.page.locator(".post-table");
     await form.locator("label", { hasText: "Your name" }).locator("input").fill("Ana");
     if (!(await form.locator("label", { hasText: "Allow watchers" }).locator("input").isChecked()))
@@ -1407,13 +1467,25 @@ const checks = {
       // A shelf army: deploy Rift Lanterns' sample warband at a table of one's own and save it.
       await lobby(d.page, q);
       await hostOnline(d.page, name, "Rift Lanterns");
-      await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
-      await d.page
-        .getByRole("button", { name: /^Deploy for/ })
-        .first()
-        .click();
-      // Once every side has an army, adding and saving armies fold under "Armies" (UX 83).
-      await d.page.locator(".panel.hud summary", { hasText: "Armies" }).click();
+      if (d.page.ui === "classic") {
+        await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
+        await d.page
+          .getByRole("button", { name: /^Deploy for/ })
+          .first()
+          .click();
+        // Once every side has an army, adding and saving armies fold under "Armies" (UX 83).
+        await d.page.locator(".panel.hud summary", { hasText: "Armies" }).click();
+      } else {
+        // The checklist's lit step puts the sample army down; its Change opens the army picker with Save.
+        await d.page.locator(".obn-bar .obn-lit", { hasText: /Copy invite link/ }).click({ timeout: 30_000 });
+        await d.page
+          .locator(".obn-bar .obn-lit", { hasText: /Use the sample army/ })
+          .click({ timeout: 30_000 });
+        await d.page
+          .locator(".obn-check li", { hasText: "Your army" })
+          .getByRole("button", { name: "Change" })
+          .click();
+      }
       await d.page.getByRole("button", { name: "Save army to your shelf" }).click();
       await d.page.getByText("This army is on your shelf as it is now.").waitFor();
     }
@@ -1476,36 +1548,34 @@ const checks = {
       step(`round ${round}: checks`);
       for (const d of ds) {
         await d.page.locator(".event-seat li.good").nth(1).waitFor({ timeout: 30_000 });
-        await d.page.locator(".topbar .ranked-chip").waitFor({ timeout: 30_000 });
+        await d.page.locator(".ranked-chip").waitFor({ timeout: 30_000 });
       }
       step(`round ${round}: start battles`);
-      for (const d of ds) {
-        // Each table's host starts it.
-        if (
-          !(await d.page
-            .locator(".room .people")
-            .getByText(/^you · host/)
-            .count())
-        )
-          continue;
-        const start = d.page.locator(".topbar").getByRole("button", { name: /Start battle/ });
-        if (process.env.SMOKE_SHOTS)
-          await d.page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${d.name}-${round}.png` });
-        await start.click();
-        const anyway = d.page.getByRole("button", { name: /Start anyway/ });
-        if (await anyway.count()) await anyway.first().click();
-      }
+      if (ds[0].page.ui !== "classic") await readyAll(ds.map((d) => d.page));
+      else
+        for (const d of ds) {
+          // Each table's host starts it.
+          if (
+            !(await d.page
+              .locator(".room .people")
+              .getByText(/^you · host/)
+              .count())
+          )
+            continue;
+          const start = d.page.locator(".topbar").getByRole("button", { name: /Start battle/ });
+          if (process.env.SMOKE_SHOTS)
+            await d.page.screenshot({ path: `${process.env.SMOKE_SHOTS}/${d.name}-${round}.png` });
+          await start.click();
+          const anyway = d.page.getByRole("button", { name: /Start anyway/ });
+          if (await anyway.count()) await anyway.first().click();
+        }
       // Every guest's table matches its host's, though the game's rules package loaded as they joined.
       await sleep(3000);
       for (const d of ds)
         if (await d.page.locator(".net-banner.desync").count())
           throw new Error(`round ${round}: ${d.name}'s table doesn't match the host's`);
       for (const d of ds) {
-        await d.page
-          .locator(".topbar")
-          .getByText(/Round 1/)
-          .first()
-          .waitFor({ timeout: 20_000 });
+        await roundOne(d.page, 20_000);
         await d.page.keyboard.press("Escape");
       }
       // Round 1: someone watches a top table from Live now, behind the game.
@@ -1515,10 +1585,23 @@ const checks = {
         const live = watcher.page.locator(".live-game", { hasText: "Smoke Cup" }).first();
         await live.waitFor({ timeout: 45_000 });
         await live.getByRole("button", { name: "Watch" }).click();
-        await watcher.page.locator(".broadcast-badge").waitFor({ timeout: 30_000 });
+        // On the table (the army showcase may hide the panels while it plays, 30 s behind).
+        await watcher.page
+          .locator(".broadcast-badge")
+          .waitFor({ state: "attached", timeout: 30_000 })
+          .catch(async (e) => {
+            if (process.env.SMOKE_SHOTS)
+              await watcher.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "event-watcher.png") });
+            throw e;
+          });
       }
       // Each table's first side scores a point, then everyone passes to the end.
       for (const d of ds) {
+        if (d.page.ui !== "classic") {
+          if ((await d.page.locator(".obn-strip .obn-side").first().innerText()).includes(d.name))
+            await vpPlus(d.page, 0);
+          continue;
+        }
         const plus = d.page.locator(".topbar .player").first().getByRole("button", { name: "+" });
         if ((await d.page.locator(".topbar .player").first().innerText()).includes(d.name))
           await plus.click();
@@ -1530,6 +1613,10 @@ const checks = {
         for (const d of ds) {
           if (await d.page.locator(".ranked-sign").count()) {
             done++;
+            continue;
+          }
+          if (d.page.ui !== "classic") {
+            await passOn(d.page);
             continue;
           }
           const pass = d.page.locator(".topbar").getByRole("button", { name: "Pass", exact: true });

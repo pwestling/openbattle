@@ -6,6 +6,7 @@ import { t, tn } from "../i18n";
 import { pendingScores, scoresThatCount } from "../missions/scoring";
 import { NET_PARAMS } from "../net/config";
 import { bothSigned, RankedSign } from "../ranked/RankedGame";
+import { EventSlot } from "./EventSlot";
 import { reviewThisGame } from "../replay/review";
 import { useSandbox } from "../sandbox/runtime";
 import { openShare } from "../share/store";
@@ -97,6 +98,7 @@ export function NextEnd() {
       )}
       <Result />
       <RankedSign />
+      <EventSlot />
       {settled && !watching && (
         <button className="obn-lit" onClick={toDoor}>
           {t("Play again")} ▸
