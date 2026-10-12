@@ -129,7 +129,7 @@ export function Strip({ onMenu }: { onMenu: () => void }) {
               : t("Round {round}", { round: game.turn.round })}
         <WatchingChip />
         <RankedChip />
-        {role === "spectator" && <span className="obn-chip">{t("Watching")}</span>}
+        {role === "spectator" && <span className="obn-chip">{!session ? t("Replay") : t("Watching")}</span>}
       </div>
       <div className="obn-tools">
         {/* No ⚠ count up here (naive players 4): a warning shows on the move or attack it is about. */}

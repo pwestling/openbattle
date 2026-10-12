@@ -51,7 +51,6 @@ const CLASSIC = new Set([
   "reroll-card",
   "reactions",
   "volley",
-  "planning",
   "dice-myself",
   "stratagem-tab",
 ]);
@@ -226,6 +225,55 @@ async function twoAt40k() {
     await page.keyboard.press("Escape");
   }
   return { host, guest };
+}
+
+/** #81 in the new layout: whoever waits plans from the step bar, and the other side sees only that they are. */
+async function planningNext() {
+  const host = await device();
+  const guest = await device();
+  await lobby(host.page, `?${SIGNAL}`);
+  await hostOnline(host.page, "Ana");
+  await host.page.locator(".room").waitFor();
+  await guest.page.goto(host.page.url());
+  await joinAs(guest.page, "Ben");
+  await host.page.locator(".room").getByText("Ben").first().waitFor({ timeout: 30_000 });
+  await readyUp([host.page, guest.page]);
+  await roundOne(guest.page);
+  const plan = (page) => page.locator(".obn-bar").getByRole("button", { name: "Plan my turn" });
+  let waiting = null;
+  for (let i = 0; i < 60 && !waiting; i++) {
+    for (const page of [host.page, guest.page]) {
+      if (!waiting && (await plan(page).count())) waiting = page;
+      // Both sides' Command comes first: each says Done.
+      const done = page.locator(".obn-bar .obn-lit", { hasText: /^Done/ });
+      if (!waiting && (await done.count()))
+        await done
+          .first()
+          .click({ timeout: 3000 })
+          .catch(() => {});
+    }
+    if (!waiting) await host.page.waitForTimeout(500);
+  }
+  if (!waiting) {
+    if (process.env.SMOKE_SHOTS) {
+      await host.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "planning-ana.png") });
+      await guest.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "planning-ben.png") });
+    }
+    throw new Error("neither bar offers Plan my turn");
+  }
+  const other = waiting === host.page ? guest.page : host.page;
+  const name = waiting === host.page ? "Ana" : "Ben";
+  await plan(waiting).click();
+  await waiting.locator(".obn-bar", { hasText: "Drag your models to plan moves" }).waitFor({ timeout: 5000 });
+  await other.locator(".others-planning", { hasText: `${name} is planning` }).waitFor({ timeout: 10_000 });
+  if (process.env.SMOKE_SHOTS)
+    await waiting.screenshot({ path: join(process.env.SMOKE_SHOTS, "planning-next.png") });
+  await waiting.locator(".obn-bar").getByRole("button", { name: "Done planning" }).click();
+  await other.locator(".others-planning").waitFor({ state: "detached", timeout: 10_000 });
+  console.log(`  planning: ${name} planned from the bar`);
+  await host.context.close();
+  await guest.context.close();
+  return [...host.page.errors, ...guest.page.errors];
 }
 
 /** On to the next phase: in a phase both sides take together (#81), each screen says it's done. */
@@ -409,11 +457,9 @@ async function openTtsSave(page) {
     .click();
 }
 
-/** Where "Open a file…" is: the classic lobby, or the new door's More ways to play sheet. */
+/** Where "Open a file…" is: the classic lobby, or the new door's footer ("Open a save or file…", UX 530). */
 async function fileOpener(page) {
-  if (page.ui === "classic") return page.locator(".lobby");
-  await moreWays(page);
-  return page.locator(".obn-more");
+  return page.locator(page.ui === "classic" ? ".lobby" : ".obn-foot");
 }
 
 /** Where the phase stands: the round and the phase lit on the new layout's rail (or the classic top bar's turn). */
@@ -1037,7 +1083,7 @@ const checks = {
     await (
       await fileOpener(page)
     )
-      .locator("label.file", { hasText: "Open a file…" })
+      .locator("label.file", { hasText: /^Open a (save or )?file…/ })
       .locator("input")
       .setInputFiles(path);
     await page.getByRole("button", { name: "Share…" }).click();
@@ -2394,7 +2440,7 @@ const checks = {
     await (
       await fileOpener(page)
     )
-      .locator("label.file", { hasText: "Open a file…" })
+      .locator("label.file", { hasText: /^Open a (save or )?file…/ })
       .locator("input")
       .setInputFiles(path);
     await page.locator(".replaybar").waitFor();
@@ -2473,7 +2519,7 @@ const checks = {
     await (
       await fileOpener(page)
     )
-      .locator("label.file", { hasText: "Open a file…" })
+      .locator("label.file", { hasText: /^Open a (save or )?file…/ })
       .locator("input")
       .setInputFiles(path);
     await page
@@ -3746,6 +3792,7 @@ const checks = {
   },
 
   async planning() {
+    if (ui !== "classic") return planningNext();
     const { host, guest } = await twoAt40k();
     const g = guest.page;
     await g.getByRole("button", { name: "Plan my turn" }).click();

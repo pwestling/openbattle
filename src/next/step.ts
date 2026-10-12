@@ -409,6 +409,16 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
         empty: nothingToPlay(game, [me]),
       };
     const back = together.ready.find((p) => isMine(p));
+    // A watcher gets commentary, not a player's line (UX 527): the bar's recap tells what happened.
+    if (!mine.length)
+      return {
+        tone: "wait",
+        seat,
+        rail,
+        say: t("{side}'s turn: {phase}", { side: who, phase: gameText(phase) }),
+        sub: others.length ? t("Waiting for {names}", { names: formatList(others) }) : "",
+        buttons: [],
+      };
     return {
       tone: "wait",
       seat,
@@ -542,7 +552,7 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       seat,
       rail,
       say: t("{side}'s turn: {phase}", { side: who, phase: gameText(phase) }),
-      sub: t("Watch the table. Your saves and reactions come to you here."),
+      sub: mine.length ? t("Watch the table. Your saves and reactions come to you here.") : "",
       buttons: [],
     };
 

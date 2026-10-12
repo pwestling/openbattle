@@ -12,6 +12,7 @@ import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
 import { workOrder } from "../core/content/nextWork";
 import { useCoach } from "../teach/store";
+import { setPlanning, usePlan } from "../ui/plan";
 import { useLit } from "./lit";
 import { recapLine } from "./recap";
 import { stepFor, type StepButton } from "./step";
@@ -151,6 +152,15 @@ export function StepBar() {
     return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skipKey]);
+  // Planning your next turn on the other side's (#81): the bar's quiet choice while you wait.
+  const planning = usePlan((s) => s.on);
+  const self = useStore((s) => (s.mode === "hotseat" ? null : (s.session?.selfId ?? null)));
+  const selfSeat = self && mine.includes(self) ? game.players[self]?.seat : undefined;
+  const canPlan =
+    step.tone === "wait" &&
+    selfSeat !== undefined &&
+    game.turn.round >= 1 &&
+    game.turn.activeSeat !== selfSeat;
   const litNext = step.tone === "job" ? (step.next ?? null) : null;
   useEffect(() => {
     useLit.setState({ unitId: litNext });
@@ -175,6 +185,8 @@ export function StepBar() {
     (sidePlayers(game, rollerSeat(game) ?? -1).some((p) => mine.includes(p.id)) &&
       !!mirror?.el.closest(".panel.attack"));
   const echo = !own && step.tone === "job" && mirror && rollsHere ? mirror : null;
+  // When the dice are this screen's to roll, the instruction keeps the sub line and the recap waits (UX 531).
+  const myRoll = rolling && sidePlayers(game, rollerSeat(game) ?? -1).some((p) => mine.includes(p.id));
   const lit = own || !!echo;
   return (
     <section
@@ -200,7 +212,15 @@ export function StepBar() {
         <div className="obn-say" role="status" aria-live="polite">
           <strong>{step.say}</strong>
           {/* What just happened takes the sub line's place, so the bar keeps one height (Jobs review). */}
-          {recap ? <span className="obn-recap">{recap}</span> : step.sub && <span>{step.sub}</span>}
+          {canPlan && planning ? (
+            <span>
+              {t("Drag your models to plan moves; pick a unit, then click an enemy to plan its shots.")}
+            </span>
+          ) : recap && !myRoll ? (
+            <span className="obn-recap">{recap}</span>
+          ) : (
+            step.sub && <span>{step.sub}</span>
+          )}
           {/* One unit left shows too: its chip is the lit step (UX N25). */}
           {step.units && (step.units.length > 1 || !!step.next) && (
             <div className="obn-left" aria-label={t("Units")}>
@@ -225,6 +245,11 @@ export function StepBar() {
               onClick={() => useSolo.setState({ letGo: useStore.getState().record.events.length })}
             >
               {t("Let {name} fight on", { name: displayName(bot!.name) })}
+            </button>
+          )}
+          {canPlan && (
+            <button className="obn-plain" aria-pressed={planning} onClick={() => setPlanning(!planning)}>
+              {planning ? t("Done planning") : t("Plan my turn")}
             </button>
           )}
           {stuck && (

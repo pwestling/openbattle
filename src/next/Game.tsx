@@ -9,7 +9,7 @@ import { MailBar } from "../mail/MailBar";
 import { MyTableKeeper, TableArrivals } from "../opentables/OpenTables";
 import { RankedKeeper } from "../ranked/RankedGame";
 import { SharedDiceKeeper } from "../ranked/dice";
-import { NoteCaption } from "../replay/NotesPanel";
+import { NoteCaption, NotesPanel } from "../replay/NotesPanel";
 import { Moments } from "../broadcast/Moments";
 import { useStore } from "../store";
 import { systemModule } from "../systems";
@@ -131,6 +131,7 @@ export function NextGame() {
       <RoundCard />
       <ReplayTitle />
       <NoteCaption />
+      {!editing && <NotesPanel />}
       <DiceTray />
       {!editing && !hotseat && <TalkPanel />}
       <FloatingReactions />

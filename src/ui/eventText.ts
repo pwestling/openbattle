@@ -602,6 +602,10 @@ function describeEvent({ by, event }: LoggedEvent, before: GameState, game: Game
       return t("Roll closed");
     case "turn/pass":
       return t("{name} passed", { name: who });
+    case "turn/ready":
+      return event.ready
+        ? t("{name} is ready", { name: nameOf(event.player) })
+        : t("{name} isn't done yet", { name: nameOf(event.player) });
     case "turn/endActivation":
       return event.unit
         ? t("{unit} moved and ended its go", { unit: unitName(event.unit) })

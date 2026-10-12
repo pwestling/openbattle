@@ -306,6 +306,12 @@
   padding-top: 12px;
   border-top: 1px solid var(--obn-line);
 }
+/* "Open a save or file…" reads like the footer's other links (UX 530). */
+.obn-foot label.file {
+  color: var(--obn-text);
+  text-decoration: underline;
+  text-decoration-color: var(--obn-line);
+}
 .obn-version {
   margin-left: auto;
   font-size: 0.85rem;
@@ -989,4 +995,18 @@ body:has(.obn-game) .table-tag.ok {
 .obn-game > div:first-child canvas {
   -webkit-mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 62%, rgb(0 0 0 / 55%) 100%);
   mask-image: radial-gradient(ellipse 75% 72% at 50% 50%, #000 62%, rgb(0 0 0 / 55%) 100%);
+}
+
+/* Watching live, the scrubber and the talk row keep the bottom left: the bar sits right of them, above the scrubber (UX 528). */
+.obn-game:has(.replaybar:not(.tucked)) .obn-bar {
+  left: auto;
+  right: 12px;
+  bottom: 64px;
+  transform: none;
+  width: min(780px, calc(100vw - 24px - 312px));
+}
+@media (max-width: 760px) {
+  .obn-game:has(.replaybar:not(.tucked)) .obn-bar {
+    width: calc(100vw - 24px);
+  }
 }

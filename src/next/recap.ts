@@ -7,9 +7,9 @@ import { story } from "../core/content/story";
  * story()'s brief (#85), told from your last run of events on.
  */
 export function recapLine(record: GameRecord, game: GameState, mine: PlayerId[]): string | null {
-  if (!mine.length) return null;
   const undone = undoneSeqs(record);
   const events = record.events.filter((e) => !undone.has(e.seq) && e.event.type !== "undo");
+  if (!mine.length) return watcherLine(record, game, events);
   // The other side's run of events since your last one: none means you've moved on.
   let i = events.length;
   while (i > 0 && !mine.includes(events[i - 1]!.by ?? "")) i--;
@@ -20,4 +20,14 @@ export function recapLine(record: GameRecord, game: GameState, mine: PlayerId[])
   while (j > 0 && mine.includes(events[j - 1]!.by ?? "")) j--;
   const fromSeq = events[j - 1]?.seq ?? 0;
   return story(record, fromSeq, Infinity, mine[0]!, { start: stateAt(record, fromSeq) }).brief;
+}
+
+/** A watcher's commentary (UX 527): what the side acting now has done in its current run. */
+function watcherLine(record: GameRecord, game: GameState, events: GameRecord["events"]): string | null {
+  const by = events.at(-1)?.by;
+  if (!by || !game.players[by]) return null;
+  let i = events.length;
+  while (i > 0 && events[i - 1]!.by === by) i--;
+  const fromSeq = events[i - 1]?.seq ?? 0;
+  return story(record, fromSeq, Infinity, null, { start: stateAt(record, fromSeq) }).brief;
 }

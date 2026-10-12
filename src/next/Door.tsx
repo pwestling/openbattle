@@ -27,6 +27,7 @@ import { usePlayRoute, useRouteFlag } from "../ui/route";
 import { FRONT, gameTitle, systemLabel } from "../ui/systemLabels";
 import { APP_BUILD } from "../version";
 import { openWorkshop } from "../workshop/open";
+import { TextSizePicker } from "../ui/TextSizePicker";
 import { InstallLink, OfflineForFriends, OfflineNote, UpdateToast } from "../sw/UpdateToast";
 import { ComputerArmy } from "./ComputerArmy";
 import type { OwnArmy } from "../bot/startSolo";
@@ -557,8 +558,9 @@ export function Door() {
         </div>
       )}
       <footer className="obn-foot">
-        {/* Files and the other ways to play wait until a game is picked (naive players 9): a first
-            visit sees only the games. */}
+        {/* The other ways to play wait until a game is picked (naive players 9). A file, such as the
+            weekly game's TTS save, opens from the first screen (UX 530). */}
+        <OpenFile onTts={setSave} label={t("Open a save or file…")} />
         {system && (
           <>
             {boardOn() && (
@@ -571,8 +573,8 @@ export function Door() {
             </button>
           </>
         )}
-        {/* One version string is enough (Jobs review): What's new, the classic layout and text size are gone
-            from the door; files and the language are under More ways to play. */}
+        {/* One version string is enough (Jobs review): What's new and the classic layout are gone from
+            the door; the language is under More ways to play. */}
         <span className="obn-muted obn-version">
           {/* i18n-ignore */}
           Open Battle {APP_BUILD.split("+")[0]}
@@ -603,7 +605,6 @@ export function Door() {
           </button>
           <OpenLink />
           <InstallLink />
-          <OpenFile onTts={setSave} />
           <LanguagePicker />
         </div>
       )}
@@ -636,6 +637,7 @@ function Header({
   setInvite: (s: string) => void;
   name: string;
 }) {
+  const [aa, setAa] = useState(false);
   return (
     <header className="obn-head">
       <div className="obn-brand">
@@ -668,6 +670,17 @@ function Header({
       <button className="obn-quiet" onClick={openPlayerCard} title={t("Your player card")}>
         {name.trim() || t("Player card")}
       </button>
+      {/* Text size before anything else, for whoever can't read the door at this size (UX 533). */}
+      <span className="obn-pop">
+        <button className="obn-quiet" aria-expanded={aa} onClick={() => setAa(!aa)} title={t("Text size")}>
+          {t("Aa")}
+        </button>
+        {aa && (
+          <span className="obn-popmenu">
+            <TextSizePicker />
+          </span>
+        )}
+      </span>
     </header>
   );
 }

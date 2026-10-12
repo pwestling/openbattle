@@ -8,7 +8,7 @@ import { openTts } from "../figures/open";
  * replay, an army or Yellowscribe list, a table, a figure pack, a standee),
  * recognised by what's inside, and opened where it belongs.
  */
-export function OpenFile({ onTts }: { onTts?: (save: File) => void } = {}) {
+export function OpenFile({ onTts, label }: { onTts?: (save: File) => void; label?: string } = {}) {
   const [note, setNote] = useState("");
   const open = async (file: File) => {
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -34,7 +34,7 @@ export function OpenFile({ onTts }: { onTts?: (save: File) => void } = {}) {
         className="file"
         title={t("A replay, army, Yellowscribe list, table, figure pack or standee saved from Open Battle")}
       >
-        {t("Open a file…")}
+        {label ?? t("Open a file…")}
         <input
           type="file"
           accept=".json,.standee,application/json"

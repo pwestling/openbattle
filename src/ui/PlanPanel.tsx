@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { NEXT } from "../next/flag";
 import { t, tn } from "../i18n";
 import { useCanControl, useStore } from "../store";
 import { useTalk } from "../talk/talk";
@@ -48,12 +49,20 @@ export function PlanPanel() {
     const planned = [...new Set([...Object.keys(moves), ...Object.keys(shots)])].filter(
       (id) => game.units[id],
     );
+    // The new layout's step bar holds the toggle and the hint; only the list of plans shows here.
+    if (NEXT && !planned.length) return null;
     return (
       <div className={on ? "plan-panel on" : "plan-panel"} data-testid="plan-panel">
-        <button className={on ? "small primary" : "small"} aria-pressed={on} onClick={() => setPlanning(!on)}>
-          {on ? t("Done planning") : t("Plan my turn")}
-        </button>
-        {on && (
+        {!NEXT && (
+          <button
+            className={on ? "small primary" : "small"}
+            aria-pressed={on}
+            onClick={() => setPlanning(!on)}
+          >
+            {on ? t("Done planning") : t("Plan my turn")}
+          </button>
+        )}
+        {on && !NEXT && (
           <span className="plan-hint">
             {t("Drag your models to plan moves; pick a unit, then click an enemy to plan its shots.")}
           </span>

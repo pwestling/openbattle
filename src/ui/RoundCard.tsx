@@ -1,4 +1,5 @@
 import { VIEWER } from "../viewer/flag";
+import { NEXT } from "../next/flag";
 import { reelLength, startReel } from "../broadcast/Moments";
 import { playFromStart } from "./ReplayBar";
 import { displayName } from "../i18n/names";
@@ -130,7 +131,7 @@ export function ReplayTitle() {
       <div className="row wrap replay-start">
         {reel > 0 && (
           <button
-            className="primary"
+            className={NEXT ? "obn-lit" : "primary"}
             onClick={() => {
               setOpen(false);
               startReel();
@@ -142,7 +143,7 @@ export function ReplayTitle() {
           </button>
         )}
         <button
-          className={reel > 0 ? "" : "primary"}
+          className={reel > 0 ? "" : NEXT ? "obn-lit" : "primary"}
           onClick={() => {
             setOpen(false);
             playFromStart();
