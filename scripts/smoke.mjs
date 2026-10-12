@@ -26,6 +26,8 @@ const SIGNAL = `signal=${encodeURIComponent(`ws://localhost:${RELAY}`)}`;
 const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
+// Checks of classic-only paths: the new layout has no re-roll popup, real-dice option or hover shot tag, keeps
+// the stratagem hand hidden until playable, and moves on past a Charge phase no one can charge in.
 const CLASSIC = new Set([
   "whats-new",
   "hotseat-resume",
@@ -478,6 +480,18 @@ async function joinAs(page, name) {
   }
   await page.getByPlaceholder(/What should the others call you/).fill(name);
   await page.getByRole("button", { name: /^Join the table/ }).click();
+}
+
+/** The table seen from above: the View button (classic) or the ⋯ menu's (new layout). */
+async function viewFromAbove(page) {
+  if (page.ui === "classic")
+    return page
+      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
+      .first()
+      .click();
+  await page.locator(".obn-menu").click();
+  await page.getByRole("button", { name: "Top-down view" }).click();
+  await page.keyboard.press("Escape");
 }
 
 /** "⋯ Game" opened: in the new layout it sits in the ⋯ menu. */
@@ -1230,7 +1244,7 @@ const checks = {
     else
       await page
         .locator(".obn-resume")
-        .getByText(/round 1/)
+        .getByText(/round \d/)
         .waitFor();
     if (page.errors.length) throw new Error(page.errors[0]);
     await context.close();
@@ -3246,17 +3260,9 @@ const checks = {
     await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
-    await page
-      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
-      .first()
-      .click();
+    await viewFromAbove(page);
     // Command, Movement, then Shooting.
-    for (let i = 0; i < 2; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(200);
-    }
+    await toPhase(page, /Shooting/i);
     const box = await page.locator("canvas").first().boundingBox();
     // Each of your units in turn, sweeping the table for an enemy the tag offers to shoot.
     let found = null;
@@ -3353,19 +3359,10 @@ const checks = {
     await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
-    for (let i = 0; i < 3; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(200);
-    }
-    await page.locator(".topbar .phases .on, .topbar", { hasText: "Charge" }).first().waitFor();
-    await page
-      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
-      .first()
-      .click();
+    await toPhase(page, /Charge/i);
+    await viewFromAbove(page);
     await page.waitForTimeout(800);
-    const log = page.locator(".panel.hud");
+    const log = page.locator(page.ui === "classic" ? ".panel.hud" : ".obn-bar");
     const before = await log.innerText();
     // Ours onto theirs.
     const from = await page.locator(".plate", { hasText: "Line Troopers" }).first().boundingBox();
@@ -3428,17 +3425,26 @@ const checks = {
       await page.getByRole("button", { name: "View ▾" }).click();
       return on === "true";
     };
-    await page.keyboard.down("x");
-    const held = await xray();
-    await page.keyboard.up("x");
-    if (!held) throw new Error("holding X didn't turn X-ray on");
-    if (await xray()) throw new Error("X-ray stayed on after letting go of X");
-    for (let i = 0; i < 2; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(200);
+    if (page.ui === "classic") {
+      await page.keyboard.down("x");
+      const held = await xray();
+      await page.keyboard.up("x");
+      if (!held) throw new Error("holding X didn't turn X-ray on");
+      if (await xray()) throw new Error("X-ray stayed on after letting go of X");
+    } else {
+      // No View menu in the new layout: the table itself shows it (see-through terrain while held).
+      const shot = async () => (await page.locator("canvas").first().screenshot()).toString("base64");
+      await page.waitForTimeout(500);
+      const before = await shot();
+      await page.keyboard.down("x");
+      await page.waitForTimeout(500);
+      const held = await shot();
+      await page.keyboard.up("x");
+      await page.waitForTimeout(500);
+      if (held === before) throw new Error("holding X didn't turn X-ray on");
+      if ((await shot()) === held) throw new Error("X-ray stayed on after letting go of X");
     }
+    await toPhase(page, /Shooting/i);
     await page.keyboard.press("]");
     await page
       .locator(".canvas-wrap canvas, canvas")
@@ -3461,16 +3467,8 @@ const checks = {
     await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
-    for (let i = 0; i < 2; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(200);
-    }
-    await page
-      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
-      .first()
-      .click();
+    await toPhase(page, /Shooting/i);
+    await viewFromAbove(page);
     const canvas = await page.locator("canvas").first().boundingBox();
     let found = false;
     for (let u = 0; u < 6 && !found; u++) {
@@ -3844,10 +3842,7 @@ const checks = {
     // An attack: after the first roll, the next one's dice wait in the tray; holding the tray shakes them.
     await dice("Roll the dice myself");
     await next();
-    await page
-      .locator('.topbar button[title="Top-down view"], .panel.hud button', { hasText: "Top-down view" })
-      .first()
-      .click();
+    await viewFromAbove(page);
     const canvas = await page.locator("canvas").first().boundingBox();
     let found = false;
     for (let u = 0; u < 6 && !found; u++) {
@@ -3886,12 +3881,7 @@ const checks = {
     await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
-    for (let i = 0; i < 2; i++) {
-      await page.locator('.topbar button[title="Next phase"]').click();
-      const anyway = page.locator(".topbar .ask button.primary");
-      if (await anyway.count()) await anyway.click();
-      await page.waitForTimeout(200);
-    }
+    await toPhase(page, /Shooting/i);
     await page.locator(".stratagem-hand .hand-strip, .stratagem-hand .fan").first().hover();
     const ready = page.locator(".stratagem-hand .hand-card.ready").first();
     await ready.waitFor({ timeout: 5000 });
@@ -3990,6 +3980,8 @@ for (const [name, run] of Object.entries(checks)) {
           .catch(() => {});
     }
   }
+  // A failed check leaves its browsers open: close them, or every later check runs on a crowded GPU.
+  for (const c of browser.contexts()) await c.close().catch(() => {});
 }
 await browser.close();
 for (const p of [server, relay])
