@@ -1,1 +1,0 @@
-var e=typeof document<`u`&&!!document.getElementById(`open-battle-replay`);export{e as t};
