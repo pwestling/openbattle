@@ -24,12 +24,6 @@ interface Solo {
   paused: boolean;
   /** Why the computer made its last move, shown in the hint (UX 352). */
   why: string | null;
-  /** When the computer rolls the player's own roll (their saves) for them, if they haven't (UX 404). */
-  deadline: number | null;
-  /** How long that wait is, for the ring that counts it down. */
-  wait: number;
-  /** The player's setting: the computer rolls their saves straight away. */
-  rollsMine: boolean;
   /**
    * The log length at which the player let the computer fight on past their own pick in the
    * fight order (UX N29); until then, in its turn, it waits for the player's pick.
@@ -46,9 +40,6 @@ export const useSolo = create<Solo>(() => ({
   seed: 1,
   paused: false,
   why: null,
-  deadline: null,
-  wait: 0,
-  rollsMine: readRollsMine(),
   letGo: null,
 }));
 
@@ -56,27 +47,6 @@ export const useSolo = create<Solo>(() => ({
 export const GLIDE_MS = 900;
 
 const LEVEL_KEY = "open-battle:bot-level";
-const ROLLS_KEY = "open-battle:bot-rolls-mine";
-
-function readRollsMine(): boolean {
-  try {
-    return localStorage.getItem(ROLLS_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-/** "Roll my saves for me" (UX 404): kept on this device. */
-export function setRollsMine(on: boolean): void {
-  try {
-    if (on) localStorage.setItem(ROLLS_KEY, "1");
-    else localStorage.removeItem(ROLLS_KEY);
-  } catch {
-    // Kept for this game only.
-  }
-  useSolo.setState({ rollsMine: on });
-}
-
 /** The level picked last time on this device (Easy if none). */
 export function savedLevel(): Level {
   try {
@@ -104,7 +74,6 @@ export function armSolo(level: Level, seat = 1): void {
     seed: Date.now() % 2 ** 31,
     paused: false,
     why: null,
-    deadline: null,
     letGo: null,
   });
   // The camera follows the action, the computer's included (UX 348).

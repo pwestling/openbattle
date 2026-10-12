@@ -18,19 +18,25 @@ interface Volley {
   total: number;
 }
 
-/** This screen's shooting habits (#81), remembered: saves rolled as the wounds land, hits and wounds in one go. */
+/** This screen's shooting habits (#81), remembered: saves rolled for you, hits and wounds in one go. */
 interface ShotHabits {
-  /** Defending: roll your saves as soon as a person's wounds land, without a click. */
-  savesAsTheyLand: boolean;
+  /**
+   * Defending: your saves roll as soon as the wounds land, against a person or the computer. Only
+   * when chosen: otherwise a roll waits for your press, for as long as it takes (Porter, 2026-10-12).
+   */
+  rollSaves: boolean;
   /** Attacking a person: one roll button does the hits and then the wounds. */
   oneGo: boolean;
 }
 const HABITS_KEY = "open-battle:shot-habits";
 function loadHabits(): ShotHabits {
-  const habits = { savesAsTheyLand: true, oneGo: false };
+  const habits = { rollSaves: false, oneGo: false };
   try {
     const saved = JSON.parse(localStorage.getItem(HABITS_KEY) ?? "{}") as Partial<ShotHabits>;
-    if (typeof saved.savesAsTheyLand === "boolean") habits.savesAsTheyLand = saved.savesAsTheyLand;
+    // The old "saves as they land" was on unless unticked, so it isn't carried over as a choice; the
+    // old "Roll my saves for me" against the computer was ticked by hand, so it is.
+    if (typeof saved.rollSaves === "boolean") habits.rollSaves = saved.rollSaves;
+    else if (localStorage.getItem("open-battle:bot-rolls-mine") === "1") habits.rollSaves = true;
     if (typeof saved.oneGo === "boolean") habits.oneGo = saved.oneGo;
   } catch {
     // Private windows and blocked storage keep the defaults.

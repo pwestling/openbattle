@@ -1,6 +1,6 @@
 import { touch } from "./touch";
 import { PoolPicker, usesFaces } from "./SystemPanels";
-import { RollsMineToggle, SelfRollCountdown } from "../bot/SelfRoll";
+import { RollsMineToggle } from "../bot/SelfRoll";
 import { RollButton } from "../companion/RealDice";
 import { useMemo, useState } from "react";
 import {
@@ -329,7 +329,7 @@ export function ProcedurePanel() {
   const botRolls = computerPlays(game, roller);
   const botAnswers = computerPlays(game, defender);
   const botActs = computerPlays(game, proc.by);
-  // The computer's action, your roll (saves): it rolls it for you if you don't (UX 404).
+  // The computer's action, your roll (saves): yours to press, or rolled for you if you chose that.
   const yours = botActs && !botRolls && !run.done;
   const notes = run.outcomes.filter((o) => o.kind === "note" || o.kind === "reminder");
   const actor = game.units[proc.unitId];
@@ -412,7 +412,6 @@ export function ProcedurePanel() {
           {next && !run.pending && !botRolls && (
             <RollButton className="primary" intent={{ type: "procedure/roll" }} as={roller}>
               {t("Roll {step}", { step: stepName(next.id, run.tokens.length) })}
-              {yours && <SelfRollCountdown />}
             </RollButton>
           )}
           {yours && next && !run.pending && <RollsMineToggle />}

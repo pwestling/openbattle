@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useShotHabits } from "../ui/volley";
 import { fightOrder } from "../systems/wh40k/fight";
 import { noteReason } from "./reasons";
 import { useHold } from "../ui/hold";
@@ -22,11 +23,6 @@ const BOT_PACE = 500;
 const ROLL_PACE = 1100;
 /** After the dice tray lands a roll: time to read the result before the computer moves on (PX solo 2, A). */
 const AFTER_DICE = 900;
-/**
- * A roll that is the player's to make (their saves): the computer leaves it to them, and rolls
- * it for them only after this long. Rolling saves is all they do in the computer's turn (PX).
- */
-const PLAYER_ROLL_WAIT = 8000;
 
 /**
  * Solo against the computer (#45): plays the computer's side one move at a
@@ -47,7 +43,9 @@ export function SoloBot() {
   const tray = useHold((s) => s.held !== null || s.busy);
   const wasTray = useRef(false);
   const on = !!level && !paused && mine === session && !!session;
-  const rollsMine = useSolo((s) => s.rollsMine);
+  // A roll that is the player's (their saves) waits for their press, however long it takes, unless they
+  // chose "Roll my saves for me" (Porter, 2026-10-12: never a roll on a timer).
+  const rollsMine = useShotHabits((s) => s.rollSaves);
   const letGo = useSolo((s) => s.letGo);
 
   useEffect(() => {
@@ -55,43 +53,27 @@ export function SoloBot() {
       wasTray.current = true;
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = null;
-      if (useSolo.getState().deadline !== null) useSolo.setState({ deadline: null });
       return;
-    }
-    // Ticked "Roll my saves for me" while the computer waited on them: it rolls them now.
-    if (rollsMine && timer.current !== null && useSolo.getState().deadline !== null) {
-      window.clearTimeout(timer.current);
-      timer.current = null;
-      useSolo.setState({ deadline: null });
     }
     if (!on || scrub !== null || timer.current !== null) return;
     const rolling = !!(game.attack || game.procedure || game.script?.waiting);
     const acting = rolling ? actingSeat(game) : null;
-    // Nothing to save, or the player asked the computer to roll for them: no wait (UX 404).
+    // The player's own roll: theirs to press (nothing to save, or rolled for them if they chose that).
     const theirs =
       acting !== null &&
       acting !== useSolo.getState().seat &&
       !useSolo.getState().both &&
       !rollsMine &&
       !nothingToRoll(game);
+    if (theirs) return;
     const landed = wasTray.current;
     wasTray.current = false;
-    if (theirs) useSolo.setState({ deadline: Date.now() + PLAYER_ROLL_WAIT, wait: PLAYER_ROLL_WAIT });
     timer.current = window.setTimeout(
       () => {
         timer.current = null;
-        if (useSolo.getState().deadline !== null) useSolo.setState({ deadline: null });
         void play();
       },
-      theirs
-        ? PLAYER_ROLL_WAIT
-        : landed
-          ? AFTER_DICE
-          : rolling
-            ? ROLL_PACE
-            : glided(game)
-              ? GLIDE_MS + BOT_PACE
-              : BOT_PACE,
+      landed ? AFTER_DICE : rolling ? ROLL_PACE : glided(game) ? GLIDE_MS + BOT_PACE : BOT_PACE,
     );
   }, [on, game, scrub, tray, rollsMine, letGo]);
 
@@ -99,7 +81,6 @@ export function SoloBot() {
     () => () => {
       if (timer.current !== null) window.clearTimeout(timer.current);
       timer.current = null;
-      useSolo.setState({ deadline: null });
     },
     [],
   );
@@ -183,10 +164,13 @@ async function play(): Promise<void> {
     solo.letGo !== record.events.length
   )
     return;
-  // The player's own roll (their saves), left to them for a while: the computer rolls it for them now.
-  // The Easy opponent never rolls a learner's dice by itself, so it would wait on them for ever (UX 404).
-  const yours = rollTheirs(game, solo.seat);
+  // The player's own roll (their saves): rolled for them only when they chose that, or with no dice in it.
+  const yours =
+    solo.both || useShotHabits.getState().rollSaves || nothingToRoll(game)
+      ? rollTheirs(game, solo.seat)
+      : null;
   if (yours) return dispatch(yours.intent, yours.as);
+  if (rollTheirs(game, solo.seat)) return;
   let move: BotMove | null;
   // Each decision shows as "bot:think" in the browser's performance timeline (scripts/bot.mjs reads them).
   const thinking = performance.now();
@@ -225,7 +209,7 @@ async function play(): Promise<void> {
   dispatch(move.intent, move.as);
   if (move.then) {
     const after = useStore.getState();
-    // Never straight on into the player's own roll: that waits for them (PLAYER_ROLL_WAIT).
+    // Never straight on into the player's own roll: that waits for them.
     const acting = after.game.attack || after.game.procedure ? actingSeat(after.game) : null;
     const theirs = acting !== null && acting !== solo.seat;
     if (!theirs && (remote || legal(after.record, after.game, move.then)))

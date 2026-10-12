@@ -1,5 +1,5 @@
 import { becauseText, damageValue, stepValue } from "./autoText";
-import { RollsMineToggle, SelfRollCountdown } from "../bot/SelfRoll";
+import { RollsMineToggle } from "../bot/SelfRoll";
 import { touch } from "./touch";
 import { playerName } from "../i18n/names";
 import { useCoach, computerPlays } from "../teach/store";
@@ -443,7 +443,7 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
   // In a lesson the computer rolls its own dice: the learner only sees them land.
   const botRolls = computerPlays(game, roller);
   const botAttacks = computerPlays(game, attacker?.owner);
-  // The computer's attack, your saves: it rolls them for you if you don't (UX 404).
+  // The computer's attack, your saves: yours to roll, or rolled for you if you chose that.
   const yourSaves = botAttacks && !botRolls && attack.stage === "save";
   // Rolling real dice (#37, any game since UX 501) goes a stage at a time, so each batch is asked for.
   const ownDice = useRealDice();
@@ -497,7 +497,7 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
       (attack.wounds ?? 0) - (attack.unsavable ?? 0),
       spec.save - Math.max(-1, Math.min(1, spec.saveMod ?? 0)),
     );
-  const autoSaves = defending && habits.savesAsTheyLand && !ownDice && !shake && !decisive;
+  const autoSaves = defending && habits.rollSaves && !ownDice && !shake && !decisive;
   const held = useReactionHeld();
   const savesComing = autoSaves && attack.stage === "save" && !held;
   useEffect(() => {
@@ -642,7 +642,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
                 onRolled={thenWounds}
               >
                 {oneGo ? t("Roll hits and wounds") : savesComing ? t("Roll now") : stageLabel(attack.stage)}
-                {yourSaves && <SelfRollCountdown />}
               </RollButton>
               {savesComing && <span className="muted small">{t("Your saves roll by themselves")}</span>}
               {!botAttacks && !ownDice && !oneGo && (
@@ -660,17 +659,10 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
                   {t("Always in one go")}
                 </label>
               )}
-              {defending && attack.stage === "save" && !ownDice && !shake && (
-                <label className="saves-land small muted">
-                  <input
-                    type="checkbox"
-                    checked={habits.savesAsTheyLand}
-                    onChange={(e) => setShotHabit({ savesAsTheyLand: e.target.checked })}
-                  />{" "}
-                  {t("Roll my saves as the wounds land")}
-                </label>
+              {/* One setting for saves, against a person or the computer (Porter: no timed rolls). */}
+              {((defending && attack.stage === "save" && !ownDice && !shake) || yourSaves) && (
+                <RollsMineToggle />
               )}
-              {yourSaves && <RollsMineToggle />}
             </>
           )}
           {/* Calling off an attack is the attacker's choice; the other player gets Done at the end (dogfood). */}

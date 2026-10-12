@@ -84,7 +84,6 @@ export function startExhibition(): void {
       seed: Date.now() % 2 ** 31,
       paused: false,
       why: null,
-      deadline: null,
     });
     useStore.setState({ director: true });
     void post(system, roomId);
