@@ -566,6 +566,11 @@
   color: var(--obn-muted);
   font-size: 0.9rem;
 }
+/* What just happened out of your hands, until you do the next thing (naive players 6). */
+.obn-say > .obn-recap {
+  font-size: 0.85rem;
+  font-style: italic;
+}
 .obn-left {
   display: flex;
   flex-wrap: wrap;
@@ -596,8 +601,7 @@
 .obn button.obn-unit.picked::before {
   content: "✓ ";
 }
-.obn-buttons,
-.obn-ask {
+.obn-buttons {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -611,9 +615,6 @@
 .obn-buttons button.obn-lit {
   padding: 10px 20px;
   font-size: 1.05rem;
-}
-.obn-ask span {
-  color: var(--obn-warn);
 }
 
 /* The sheet: the classic unit card and attack panel, on the right */
@@ -807,6 +808,19 @@
   .obn-say > span {
     display: none;
   }
+  /* What just happened stays on a phone too (naive players 6), and the words get the row. */
+  .obn-say > .obn-recap {
+    display: block;
+  }
+  .obn-say {
+    flex: 1 1 100%;
+  }
+  /* One popup at a time (naive players 13): the round summary waits while a score or a reaction is
+     asked, and the casualty pile's label stays off the small table. */
+  body:has(.obn-bar.scoring, .reaction-cards, .panel.reaction) .round-card,
+  body:has(.obn-game) .casualty-pile {
+    display: none;
+  }
   .obn .unitcard,
   .obn .panel.attack {
     top: auto;
@@ -943,4 +957,38 @@ body:has(.obn-game) .table-tag.ok {
 .obn-game:has(.obn-end) .round-card:not(.replay-title),
 .obn-game:has(.obn-end) .stratagem-hand {
   display: none;
+}
+
+/* The Sound and dice menu fits a phone (naive players: clipped off the left edge at 390px). */
+@media (max-width: 600px) {
+  .obn .sound-menu {
+    position: fixed;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    min-width: 0;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 60;
+  }
+}
+
+/* The ? sheet: three lines on how to play (naive players 7). */
+.obn-help {
+  max-width: 460px;
+}
+.obn-help ol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+  padding-left: 1.3em;
+  line-height: 1.45;
+}
+
+/* The unit card's reference under one ⋯ (naive players 1). */
+.obn .card-more > summary {
+  cursor: pointer;
+  color: var(--obn-muted);
+  margin: 6px 0 2px;
 }

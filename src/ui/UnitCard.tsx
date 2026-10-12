@@ -40,6 +40,8 @@ import { currentSlot, systemOf } from "../core/content/turn";
 import { AttachSelect, CoreAbilities, StandingWith } from "./CoreAbilities";
 import { FigurePicker } from "./FigurePicker";
 import { AbilityLine, OncePerBattle } from "./AutoAbilities";
+import { CardMore } from "./CardMore";
+import { NEXT } from "../next/flag";
 import { replayRoll, useGame, useRareStars } from "./hooks";
 import { opposed } from "../core/teams";
 import { RollButton } from "../companion/RealDice";
@@ -127,9 +129,9 @@ export function eyeView(unitId: string) {
 /** The selected unit's datasheet, state and actions. */
 /**
  * Pull an over-long move back along each model's path until no model has
- * moved further than the limit this phase. Advisory: only on request (here and in ui-next's step bar).
+ * moved further than the limit this phase. Advisory: only on request.
  */
-export function snapToLimit(unitId: string, limit: number) {
+function snapToLimit(unitId: string, limit: number) {
   const { game, dispatch } = useStore.getState();
   const unit = game.units[unitId];
   if (!unit) return;
@@ -451,7 +453,9 @@ export function UnitCard() {
               {t('Moved {moved}" of {allowed}" this phase.', { moved: moved.toFixed(1), allowed })}{" "}
             </span>
           )}
+          {/* The new layout says it as a warning, and Undo takes the move back (naive players 5). */}
           {mine &&
+            !NEXT &&
             (game.turn.round > 0 || !!status.scouting) &&
             allowed !== null &&
             moved > allowed + 0.05 && (
@@ -477,168 +481,175 @@ export function UnitCard() {
       <UnitWarnings unitId={unit.id} skip={["moveDistance"]} />
       <FightOrderNote unitId={unit.id} />
 
-      {!companion && (look || elevation > 0) && (
-        <div className="row wrap">
-          {look && (
-            <>
-              <button
-                className={losFrom === unit.id ? "on" : ""}
-                onClick={() => set({ losFrom: losFrom === unit.id ? null : unit.id })}
-              >
-                {t("Line of sight")}
-              </button>
-              <button onClick={() => eyeView(unit.id)}>{t("Model's eye view")}</button>
-              <button
-                className={ranges === unit.id ? "on" : ""}
-                title={t("Move (blue) and longest weapon range (yellow) around each model")}
-                onClick={() => set({ ranges: ranges === unit.id ? null : unit.id, rangeWeapon: null })}
-              >
-                {t("Ranges")}
-              </button>
-              {ranges === unit.id && (
-                <select
-                  value={rangeWeapon ?? ""}
-                  onChange={(e) => set({ rangeWeapon: e.target.value || null })}
+      <CardMore>
+        {!companion && (look || elevation > 0) && (
+          <div className="row wrap">
+            {look && (
+              <>
+                <button
+                  className={losFrom === unit.id ? "on" : ""}
+                  onClick={() => set({ losFrom: losFrom === unit.id ? null : unit.id })}
                 >
-                  <option value="">{t("Longest range")}</option>
-                  {weapons
-                    .filter((w) => w.kind === "ranged")
-                    .map((w) => (
-                      <option key={w.id} value={w.id}>
-                        {w.name} {w.chars.RANGE}
-                      </option>
-                    ))}
-                </select>
-              )}
-            </>
-          )}
-          {elevation > 0 && (
-            <span className="muted">{t('On a floor {height}" up', { height: elevation.toFixed(1) })}</span>
-          )}
-        </div>
-      )}
+                  {t("Line of sight")}
+                </button>
+                <button onClick={() => eyeView(unit.id)}>{t("Model's eye view")}</button>
+                <button
+                  className={ranges === unit.id ? "on" : ""}
+                  title={t("Move (blue) and longest weapon range (yellow) around each model")}
+                  onClick={() => set({ ranges: ranges === unit.id ? null : unit.id, rangeWeapon: null })}
+                >
+                  {t("Ranges")}
+                </button>
+                {ranges === unit.id && (
+                  <select
+                    value={rangeWeapon ?? ""}
+                    onChange={(e) => set({ rangeWeapon: e.target.value || null })}
+                  >
+                    <option value="">{t("Longest range")}</option>
+                    {weapons
+                      .filter((w) => w.kind === "ranged")
+                      .map((w) => (
+                        <option key={w.id} value={w.id}>
+                          {w.name} {w.chars.RANGE}
+                        </option>
+                      ))}
+                  </select>
+                )}
+              </>
+            )}
+            {elevation > 0 && (
+              <span className="muted">{t('On a floor {height}" up', { height: elevation.toFixed(1) })}</span>
+            )}
+          </div>
+        )}
 
-      <NoStats unit={unit} />
-      {profiles.size > 0 && (
-        <table className="stats">
-          <thead>
-            <tr>
-              <th />
-              {STATS.map((s) => (
-                // i18n-ignore: characteristic abbreviations, as on the datasheet
-                <th key={s}>{s === "INV" ? "Inv" : s}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[...profiles.values()].map((m) => (
-              <tr key={m.profile!.name}>
-                <td>{m.profile!.name}</td>
-                {STATS.map((s) => (
-                  <td key={s}>{m.profile!.chars[s] ?? "–"}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-
-      {(["ranged", "melee"] as const).map((kind) => {
-        const list = weapons.filter((w) => w.kind === kind);
-        if (!list.length) return null;
-        return (
-          <table key={kind} className="weapons">
+        <NoStats unit={unit} />
+        {profiles.size > 0 && (
+          <table className="stats">
             <thead>
               <tr>
-                <th>{kind === "ranged" ? t("Ranged") : t("Melee")}</th>
-                <th>#</th>
-                {/* i18n-ignore: characteristic abbreviations, as on the datasheet */}
-                <th>Rng</th>
-                <th>A</th>
-                {/* i18n-ignore */}
-                <th>{kind === "ranged" ? "BS" : "WS"}</th>
-                <th>S</th>
-                {/* i18n-ignore */}
-                <th>AP</th>
-                <th>D</th>
                 <th />
+                {STATS.map((s) => (
+                  // i18n-ignore: characteristic abbreviations, as on the datasheet
+                  <th key={s}>{s === "INV" ? "Inv" : s}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {list.map((w) => (
-                <WeaponRow
-                  key={w.id}
-                  weapon={w}
-                  count={carriers(game, unit, w.id).length}
-                  canUse={mine}
-                  {...(known && phase !== (kind === "ranged" ? "Shooting" : "Fight")
-                    ? {
-                        outOfPhase:
-                          kind === "ranged"
-                            ? t("Not the Shooting phase (it still works)")
-                            : t("Not the Fight phase (it still works)"),
-                      }
-                    : {})}
-                  onUse={() => setDraft({ attackerId: unit.id, kind, weaponId: w.id, picking: true })}
-                />
+              {[...profiles.values()].map((m) => (
+                <tr key={m.profile!.name}>
+                  <td>{m.profile!.name}</td>
+                  {STATS.map((s) => (
+                    <td key={s}>{m.profile!.chars[s] ?? "–"}</td>
+                  ))}
+                </tr>
               ))}
             </tbody>
           </table>
-        );
-      })}
+        )}
 
-      {unit.sheet && unit.sheet.abilities.length > 0 && (
-        <details>
-          <summary>{t("Abilities ({n})", { n: unit.sheet.abilities.length })}</summary>
-          {unit.sheet.abilities.map((a) => (
-            <AbilityLine key={a.name} unit={unit} ability={a} mine={mine} />
-          ))}
+        {(["ranged", "melee"] as const).map((kind) => {
+          const list = weapons.filter((w) => w.kind === kind);
+          if (!list.length) return null;
+          return (
+            <table key={kind} className="weapons">
+              <thead>
+                <tr>
+                  <th>{kind === "ranged" ? t("Ranged") : t("Melee")}</th>
+                  <th>#</th>
+                  {/* i18n-ignore: characteristic abbreviations, as on the datasheet */}
+                  <th>Rng</th>
+                  <th>A</th>
+                  {/* i18n-ignore */}
+                  <th>{kind === "ranged" ? "BS" : "WS"}</th>
+                  <th>S</th>
+                  {/* i18n-ignore */}
+                  <th>AP</th>
+                  <th>D</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {list.map((w) => (
+                  <WeaponRow
+                    key={w.id}
+                    weapon={w}
+                    count={carriers(game, unit, w.id).length}
+                    canUse={mine}
+                    {...(known && phase !== (kind === "ranged" ? "Shooting" : "Fight")
+                      ? {
+                          outOfPhase:
+                            kind === "ranged"
+                              ? t("Not the Shooting phase (it still works)")
+                              : t("Not the Fight phase (it still works)"),
+                        }
+                      : {})}
+                    onUse={() => setDraft({ attackerId: unit.id, kind, weaponId: w.id, picking: true })}
+                  />
+                ))}
+              </tbody>
+            </table>
+          );
+        })}
+
+        {unit.sheet && unit.sheet.abilities.length > 0 && (
+          <details>
+            <summary>{t("Abilities ({n})", { n: unit.sheet.abilities.length })}</summary>
+            {unit.sheet.abilities.map((a) => (
+              <AbilityLine key={a.name} unit={unit} ability={a} mine={mine} />
+            ))}
+          </details>
+        )}
+        {unit.sheet && unit.sheet.keywords.length > 0 && (
+          <p className="muted small">{unit.sheet.keywords.join(", ")}</p>
+        )}
+
+        {!companion && <FigurePicker unit={unit} models={all} editable={mine} />}
+
+        <details open={companion}>
+          <summary>{t("Models and wounds")}</summary>
+          <ul className="models">
+            {all.map((m) => (
+              <ModelRow
+                key={m.id}
+                model={m}
+                unit={unit}
+                editable={canControl(unit.owner) && scrub === null}
+              />
+            ))}
+          </ul>
+          {mine && !companion && (
+            <label className="row small">
+              {t("Model height for line of sight")}{" "}
+              <input
+                type="number"
+                min={0.5}
+                max={20}
+                step={0.5}
+                value={Number(height.toFixed(1))}
+                onChange={(e) => {
+                  const h = Number(e.target.value);
+                  if (h > 0) dispatch({ type: "unit/height", id: unit.id, height: h }, as);
+                }}
+              />
+              "
+            </label>
+          )}
+          {mine && <StandingWith unit={unit} />}
+          {mine && <AttachSelect unit={unit} />}
+          {mine && (
+            <button
+              className="danger"
+              onClick={() =>
+                confirm(t("Remove {unit} from the game?", { unit: unit.name })) &&
+                dispatch({ type: "unit/remove", id: unit.id }, as)
+              }
+            >
+              {t("Remove unit")}
+            </button>
+          )}
         </details>
-      )}
-      {unit.sheet && unit.sheet.keywords.length > 0 && (
-        <p className="muted small">{unit.sheet.keywords.join(", ")}</p>
-      )}
-
-      {!companion && <FigurePicker unit={unit} models={all} editable={mine} />}
-
-      <details open={companion}>
-        <summary>{t("Models and wounds")}</summary>
-        <ul className="models">
-          {all.map((m) => (
-            <ModelRow key={m.id} model={m} unit={unit} editable={canControl(unit.owner) && scrub === null} />
-          ))}
-        </ul>
-        {mine && !companion && (
-          <label className="row small">
-            {t("Model height for line of sight")}{" "}
-            <input
-              type="number"
-              min={0.5}
-              max={20}
-              step={0.5}
-              value={Number(height.toFixed(1))}
-              onChange={(e) => {
-                const h = Number(e.target.value);
-                if (h > 0) dispatch({ type: "unit/height", id: unit.id, height: h }, as);
-              }}
-            />
-            "
-          </label>
-        )}
-        {mine && <StandingWith unit={unit} />}
-        {mine && <AttachSelect unit={unit} />}
-        {mine && (
-          <button
-            className="danger"
-            onClick={() =>
-              confirm(t("Remove {unit} from the game?", { unit: unit.name })) &&
-              dispatch({ type: "unit/remove", id: unit.id }, as)
-            }
-          >
-            {t("Remove unit")}
-          </button>
-        )}
-      </details>
+      </CardMore>
     </div>
   );
 }

@@ -10,6 +10,8 @@ import { deployChecks } from "./deployment";
 import { useTransfers } from "../packages/share";
 import { RulesLine } from "./Packages";
 import { NetCheck } from "./NetCheck";
+import { NEXT } from "../next/flag";
+import { INVITE_KEY } from "../next/start";
 import { NET_PARAMS } from "../net/config";
 import { openSeats, PostTable } from "../opentables/OpenTables";
 import { tableGone, useOpenTables } from "../opentables/board";
@@ -41,6 +43,14 @@ function StillLooking() {
     return () => clearTimeout(timer);
   }, [fromBoard]);
   if (!stuck) return null;
+  // The new layout: one line and Try again (naive players 12); the network check is for the classic one.
+  if (NEXT)
+    return (
+      <div className="still-looking">
+        <p>{t("Still looking for the host's table.")}</p>
+        <button onClick={() => location.reload()}>{t("Try again")}</button>
+      </div>
+    );
   return (
     <div className="still-looking">
       <p>
@@ -185,7 +195,18 @@ export function RoomCard() {
                   ? t("Joining {name}'s game…", { name: game.players[net.hostId]!.name })
                   : t("Joining the host's game…")
                 : t("Looking for the game's host…")}{" "}
-              <button className="link" onClick={() => (location.href = location.pathname)}>
+              <button
+                className="link"
+                onClick={() => {
+                  // The invite waits in the front door's box (naive players 12: going back lost it).
+                  try {
+                    if (roomId) sessionStorage.setItem(INVITE_KEY, roomId);
+                  } catch {
+                    // Not kept.
+                  }
+                  location.href = location.pathname;
+                }}
+              >
                 {t("Back to the lobby")}
               </button>
               {!net?.hostId && <StillLooking />}

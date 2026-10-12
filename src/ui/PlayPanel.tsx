@@ -16,6 +16,7 @@ import {
 import { phaseHint, phaseName, systemOf } from "../core/content/turn";
 import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
+import { NEXT } from "../next/flag";
 import { t, tn, gameText } from "../i18n";
 import { systemModule } from "../systems";
 import { describeAuto } from "./autoText";
@@ -374,26 +375,8 @@ export function Reminders({
         const r = g[0]!;
         const applied = g.every((x) => x.applied);
         const names = g.map((x) => game.units[x.unitId]?.name ?? "");
-        return (
-          <li key={`${r.owner}|${r.ability.name}|${r.unitId}`} className={applied ? "applied" : ""}>
-            <details>
-              <summary>
-                {/* An army-wide rule every unit carries is one line, not one per unit (dogfood). */}
-                <span style={{ color: game.players[r.owner]?.color }}>
-                  {names.length > 2
-                    ? tn(names.length - 1, "{unit} and {n} other unit", "{unit} and {n} other units", {
-                        unit: names[0]!,
-                      })
-                    : names.join(t(" and "))}
-                </span>
-                : {r.ability.name}
-                {applied && " ✓"}
-              </summary>
-              {names.length > 2 && <p className="small muted">{names.join(", ")}</p>}
-              <div className="small rules-text">
-                <RulesText text={r.ability.text} />
-              </div>
-            </details>
+        const hand = (
+          <>
             {live && canControl(r.owner) && !applied && (
               <button
                 className="small"
@@ -416,6 +399,31 @@ export function Reminders({
                 ⚙ {t("Teach it")}
               </button>
             )}
+          </>
+        );
+        return (
+          <li key={`${r.owner}|${r.ability.name}|${r.unitId}`} className={applied ? "applied" : ""}>
+            <details>
+              <summary>
+                {/* An army-wide rule every unit carries is one line, not one per unit (dogfood). */}
+                <span style={{ color: game.players[r.owner]?.color }}>
+                  {names.length > 2
+                    ? tn(names.length - 1, "{unit} and {n} other unit", "{unit} and {n} other units", {
+                        unit: names[0]!,
+                      })
+                    : names.join(t(" and "))}
+                </span>
+                : {r.ability.name}
+                {applied && " ✓"}
+              </summary>
+              {names.length > 2 && <p className="small muted">{names.join(", ")}</p>}
+              <div className="small rules-text">
+                <RulesText text={r.ability.text} />
+              </div>
+              {/* The new layout keeps one lit button per step: these hand overrides open with the rule. */}
+              {NEXT && hand}
+            </details>
+            {!NEXT && hand}
           </li>
         );
       })}

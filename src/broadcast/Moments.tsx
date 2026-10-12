@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { NEXT } from "../next/flag";
 import { sideName, sidePlayers, sides, type GameRecord, type GameState } from "../core";
 import { momentsOf, type Moment } from "../core/moments";
 import { useStore } from "../store";
@@ -427,7 +428,8 @@ export function Moments() {
   if (index !== null && reel[index]) {
     const m = reel[index];
     return (
-      <MomentCard moment={m} step={t("{i} of {n}", { i: index + 1, n: reel.length })}>
+      // No "1 of 3" pager in the new layout (naive players 11): Next says there's more.
+      <MomentCard moment={m} {...(NEXT ? {} : { step: t("{i} of {n}", { i: index + 1, n: reel.length }) })}>
         {/* Players can hurry the reel, on every player's screen (PX B4); viewers watch it play (UX 143). */}
         {!watching && (
           <>

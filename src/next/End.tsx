@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { reelLength, startReel } from "../broadcast/Moments";
 import { useReel } from "../broadcast/reel";
 import { t, tn } from "../i18n";
-import { pendingScores } from "../missions/scoring";
+import { pendingScores, scoresThatCount } from "../missions/scoring";
 import { NET_PARAMS } from "../net/config";
 import { bothSigned, RankedSign } from "../ranked/RankedGame";
 import { reviewThisGame } from "../replay/review";
@@ -46,7 +46,7 @@ export function NextEnd() {
   const mission = missionOf(game);
   const over = battleOver(game) && scrub === null;
   const pending = useMemo(
-    () => (over ? pendingScores(record, game, mission) : []),
+    () => (over ? scoresThatCount(pendingScores(record, game, mission)) : []),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [over, record, game, mission, answers],
   );

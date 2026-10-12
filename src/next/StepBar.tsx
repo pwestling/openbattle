@@ -8,10 +8,11 @@ import { focusOn } from "../render/focus";
 import { useSandbox } from "../sandbox/runtime";
 import { useCanControl, useJoining, useStore } from "../store";
 import { UndoButton } from "../ui/Hud";
-import { snapToLimit } from "../ui/UnitCard";
 import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
 import { workOrder } from "../core/content/nextWork";
+import { useLit } from "./lit";
+import { recapLine } from "./recap";
 import { stepFor, type StepButton } from "./step";
 
 /** Select a unit and bring it into view. */
@@ -130,24 +131,23 @@ export function StepBar() {
     }
   }, [pending, game, dispatch]);
   const draft = useStore((s) => s.draft);
+  const mineKey = mine.join("\n");
+  const recap = useMemo(
+    () => recapLine(record, game, mineKey ? mineKey.split("\n") : []),
+    [record, game, mineKey],
+  );
   const stuck = useStuckFinish();
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
   const playChip = usePlayChip();
-  const [asking, setAsking] = useState<StepButton | null>(null);
-  // A question asked about one moment doesn't carry over to the next.
-  const key = `${game.turn.round}/${game.turn.phase}/${game.turn.activeSeat}`;
-  const [askedAt, setAskedAt] = useState(key);
-  if (askedAt !== key) {
-    setAskedAt(key);
-    setAsking(null);
-  }
+  const litNext = step.tone === "job" ? (step.next ?? null) : null;
+  useEffect(() => {
+    useLit.setState({ unitId: litNext });
+    return () => useLit.setState({ unitId: null });
+  }, [litNext]);
   if (step.tone === "over" || step.tone === "setup" || scrub !== null) return null;
   const color = sidePlayers(game, step.seat)[0]?.color;
   const press = (b: StepButton) => {
-    if (b.confirm && asking !== b) return setAsking(b);
-    setAsking(null);
-    if (b.snap) snapToLimit(b.snap.unitId, b.snap.limit);
     if (b.intent) dispatch(b.intent, b.as);
   };
   // With the next unit picked, its card holds the lit step: the bar repeats it, so the gold stays here (UX N7).
@@ -167,7 +167,7 @@ export function StepBar() {
   const lit = own || !!echo;
   return (
     <section
-      className={`obn-bar ${step.tone}`}
+      className={`obn-bar ${step.tone}${step.buttons.some((b) => b.intent?.type === "score/confirm") ? " scoring" : ""}`}
       style={{ ["--side" as string]: color }}
       aria-label={t("Next step")}
       data-lit={lit ? "bar" : "none"}
@@ -187,6 +187,7 @@ export function StepBar() {
       )}
       <div className="obn-bar-row">
         <div className="obn-say" role="status" aria-live="polite">
+          {recap && <span className="obn-recap">{recap}</span>}
           <strong>{step.say}</strong>
           {(step.sub || (playChip && step.tone === "job")) && (
             <span>
@@ -217,55 +218,37 @@ export function StepBar() {
             </div>
           )}
         </div>
-        {asking ? (
-          <div className="obn-ask" role="alert">
-            <span>{asking.confirm}</span>
+        <div className="obn-buttons">
+          {step.tone === "job" && <UndoButton />}
+          {letGo && (
             <button
               className="obn-plain"
-              onClick={() => {
-                setAsking(null);
-                if (asking.intent) dispatch(asking.intent, asking.as);
-              }}
+              onClick={() => useSolo.setState({ letGo: useStore.getState().record.events.length })}
             >
-              {t("{label} anyway", { label: asking.label })}
+              {t("Let {name} fight on", { name: displayName(bot!.name) })}
             </button>
-            <button className="obn-quiet" onClick={() => setAsking(null)}>
-              {t("Not yet")}
+          )}
+          {stuck && (
+            <button className="obn-plain" onClick={() => dispatch(stuck.intent, stuck.as)}>
+              {t("Go on")} ▸
             </button>
-          </div>
-        ) : (
-          <div className="obn-buttons">
-            {step.tone === "job" && <UndoButton />}
-            {letGo && (
-              <button
-                className="obn-plain"
-                onClick={() => useSolo.setState({ letGo: useStore.getState().record.events.length })}
-              >
-                {t("Let {name} fight on", { name: displayName(bot!.name) })}
-              </button>
-            )}
-            {stuck && (
-              <button className="obn-plain" onClick={() => dispatch(stuck.intent, stuck.as)}>
-                {t("Go on")} ▸
-              </button>
-            )}
-            {echo && (
-              <button className="obn-lit" onClick={() => echo.el.click()}>
-                {echo.label} ▸
-              </button>
-            )}
-            {step.buttons.map((b) => (
-              <button
-                key={b.label}
-                className={b.lit && !step.next ? "obn-lit" : "obn-plain"}
-                onClick={() => press(b)}
-              >
-                {b.label}
-                {b.lit && !step.next ? " ▸" : ""}
-              </button>
-            ))}
-          </div>
-        )}
+          )}
+          {echo && (
+            <button className="obn-lit" onClick={() => echo.el.click()}>
+              {echo.label} ▸
+            </button>
+          )}
+          {step.buttons.map((b) => (
+            <button
+              key={b.label}
+              className={b.lit && !step.next ? "obn-lit" : "obn-plain"}
+              onClick={() => press(b)}
+            >
+              {b.label}
+              {b.lit && !step.next ? " ▸" : ""}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );

@@ -312,10 +312,14 @@ export function StratagemHand({ tucked = false }: { tucked?: boolean } = {}) {
   }, []);
 
   if (!player) return <Reveals />;
+  // Tucked (the new layout): no hand and no CP coins until a stratagem can be played now, and then
+  // only those (naive players 2). The rest are under "Stratagems and abilities" in the step bar.
+  if (tucked && ready === 0 && !held && !picked) return <Reveals />;
+  const pool = tucked ? options.filter(playable) : options;
   const cp = game.resources[player.id]?.CP;
   const folded = !held && !picked && !peek && (ready === 0 || narrow() || tucked);
-  const visible = spread || options.length <= FAN ? options : options.slice(0, FAN - 1);
-  const stacked = options.length - visible.length;
+  const visible = spread || pool.length <= FAN ? pool : pool.slice(0, FAN - 1);
+  const stacked = pool.length - visible.length;
   const speed = { "--hand-speed": fast ? 0.5 : 1 } as CSSProperties;
 
   return (

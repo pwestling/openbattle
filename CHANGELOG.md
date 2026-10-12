@@ -5,6 +5,7 @@ What changed in each release of Open Battle. The in-app **What's new** on the st
 ## Unreleased
 
 - **A new layout, built from scratch.** One step bar at the bottom says what to do now and lights the one thing to press next. The front door is a column-by-column flow, setup is a checklist, and the end of the battle shows the result first. The old layout is still there: add `?ui=classic` to the address, or pick "Classic layout" at the front door.
+- **Less on screen in the new layout.** The unit card shows the unit and what it can do now, with its stats and weapons under one ⋯. Stratagems and CP show up only when one can be played. Tap an enemy to shoot or charge it with the unit the bar lights. Done ends a phase without asking. The bar says what the other side did while you waited, and the ? sheet is three lines on how to play.
 - **Your dice roll only when you press Roll.** Nothing rolls by itself on a timer, and the "Roll my saves for me" and "Always in one go" ticks are gone. The computer still rolls its own dice.
 - **A charge made by dragging counts as a charge.** Rolling the charge and dragging the unit into contact now marks it as having charged, so it fights first and "after charging" abilities and stratagems see it.
 - **Shooting at a friend goes quicker.** When someone shoots your unit with several weapons, your screen says so ("Ana is shooting your Ember Kin with 3 weapons", then which weapon it's on), and you roll your saves when you're ready.

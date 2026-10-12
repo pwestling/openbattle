@@ -23,6 +23,8 @@ import { APP_BUILD } from "../version";
 export const NAME_KEY = "open-battle:name";
 export const SYSTEM_KEY = "open-battle:system";
 export const WHO_KEY = "open-battle:who";
+/** An invite the player stepped back from, for the door's box (this tab only). */
+export const INVITE_KEY = "open-battle:invite";
 
 export type Who = "friend" | "computer" | "both" | "table";
 export const WHOS: Who[] = ["friend", "computer", "both", "table"];

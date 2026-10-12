@@ -24,7 +24,6 @@ import { Coach } from "../ui/Coach";
 import { ReportBanner } from "../ui/Crash";
 import { DiceTray, landDice } from "../ui/DiceTray";
 import { useHold } from "../ui/hold";
-import { KeysSheet } from "../ui/Keys";
 import { PackagePanel } from "../ui/PackagePanel";
 import { PackageCards } from "../ui/Packages";
 import { useTableKeys } from "../ui/peekKeys";
@@ -49,6 +48,7 @@ import { UnitCard } from "../ui/UnitCard";
 import { useHotseatMark } from "../ui/resumeHotseat";
 import { OnAir, VoiceRoom } from "../voice/VoiceBar";
 import { Drawer } from "./Drawer";
+import { NextHelp } from "./Help";
 import { NextEnd, useEndStats } from "./End";
 import { Setup } from "./Setup";
 import { StepBar } from "./StepBar";
@@ -161,7 +161,7 @@ export function NextGame() {
       <TableArrivals />
       <RankedKeeper />
       <SharedDiceKeeper />
-      <KeysSheet />
+      <NextHelp />
       <CampaignKeeper />
       <ClockKeeper />
       <CampaignBookDialog />

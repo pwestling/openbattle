@@ -1,4 +1,6 @@
 import { toggleGroup, updatePieces, useTableEdit } from "../tables/edit";
+import { NEXT } from "../next/flag";
+import { useLit } from "../next/lit";
 import { tableDrag } from "./dragging";
 import { Sightlines } from "../tables/Sightlines";
 import { FocusCamera } from "./FocusCamera";
@@ -1287,7 +1289,7 @@ function Scene() {
     if (
       !draft &&
       live &&
-      e?.pointerType !== "touch" &&
+      (NEXT || e?.pointerType !== "touch") &&
       selected &&
       m.unitId &&
       game.units[selected] &&
@@ -1296,6 +1298,17 @@ function Scene() {
       const verb = tableVerb(game, selected, m.unitId);
       if (verb && (verb.ok || shift)) {
         doTableVerb(verb, selected, m.unitId);
+        return;
+      }
+    }
+    // Nothing of yours picked (the new layout): an enemy tapped is a target for the unit the step bar
+    // lights, never its card (naive players 5). Out of reach, the attack says why (rules are advisory).
+    const lit = NEXT ? useLit.getState().unitId : null;
+    const own = !!selected && !!game.units[selected] && canControl(game.units[selected]!.owner);
+    if (!draft && live && !own && lit && m.unitId && game.units[lit] && canControl(game.units[lit]!.owner)) {
+      const verb = tableVerb(game, lit, m.unitId);
+      if (verb && verb.verb !== "fight") {
+        doTableVerb(verb, lit, m.unitId);
         return;
       }
     }

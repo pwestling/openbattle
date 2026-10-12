@@ -29,6 +29,8 @@ import { useCharged } from "../render/charges";
 import { StatusMenu } from "./StatusMenu";
 import { formatList, formatNumber, t, tn, gameText } from "../i18n";
 import { lengthText } from "./distance";
+import { CardMore } from "./CardMore";
+import { NEXT } from "../next/flag";
 import { systemModule } from "../systems";
 
 /**
@@ -175,26 +177,9 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
   const chargedText =
     charged !== null ? t("Charged {distance}", { distance: lengthText(system, charged) }) : null;
 
-  return (
-    <div
-      className="panel unitcard"
-      tabIndex={-1}
-      aria-label={t("Selected unit")}
-      {...swipeAway(() => useStore.getState().select(null))}
-    >
-      <div className="row spread">
-        <h2 style={{ color: owner?.color }}>
-          <span className="side-shape" aria-hidden="true">
-            {playerShape(game, unit.owner)}
-          </span>{" "}
-          {unit.name}
-        </h2>
-        <button onClick={() => select(null)}>✕</button>
-      </div>
-      <p className="muted">
-        {owner?.name} · {tn(all.length, "{alive}/{n} model", "{alive}/{n} bases", { alive: alive.length })}
-        {unit.sheet?.points ? " · " + t("{points} pts", { points: unit.sheet.points }) : ""}
-      </p>
+  // The stats: under the name in the classic layout (UX 401), under ⋯ in the new one.
+  const stats = (
+    <>
       <NoStats unit={unit} />
       {/* The stats straight under the name, above the actions (UX 401). */}
       {/* Never wider than the card (UX 400): at most STAT_COLUMNS to a row, and numbered groups
@@ -262,6 +247,30 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
           </p>
         ) : null,
       )}
+    </>
+  );
+
+  return (
+    <div
+      className="panel unitcard"
+      tabIndex={-1}
+      aria-label={t("Selected unit")}
+      {...swipeAway(() => useStore.getState().select(null))}
+    >
+      <div className="row spread">
+        <h2 style={{ color: owner?.color }}>
+          <span className="side-shape" aria-hidden="true">
+            {playerShape(game, unit.owner)}
+          </span>{" "}
+          {unit.name}
+        </h2>
+        <button onClick={() => select(null)}>✕</button>
+      </div>
+      <p className="muted">
+        {owner?.name} · {tn(all.length, "{alive}/{n} model", "{alive}/{n} bases", { alive: alive.length })}
+        {unit.sheet?.points ? " · " + t("{points} pts", { points: unit.sheet.points }) : ""}
+      </p>
+      {!NEXT && stats}
 
       {Part && (
         <Suspense fallback={null}>
@@ -354,106 +363,109 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
       )}
       <UnitWarnings unitId={unit.id} skip={allowance !== null ? ["moveDistance", "wheelDistance"] : []} />
 
-      {!companion && (
-        <div className="row wrap">
-          <button
-            className={losFrom === unit.id ? "on" : ""}
-            onClick={() => set({ losFrom: losFrom === unit.id ? null : unit.id })}
-          >
-            {t("Line of sight")}
-          </button>
-          <button onClick={() => eyeView(unit.id)}>{t("Model's eye view")}</button>
-          {mine && (
-            <>
-              <button title={t("Rotate left (Q)")} onClick={() => rotateUnit(unit.id, -1)}>
-                ⟲
-              </button>
-              <button title={t("Rotate right (E)")} onClick={() => rotateUnit(unit.id, 1)}>
-                ⟳
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {weapons.length > 0 && (
-        <table className="weapons">
-          <thead>
-            <tr>
-              <th>{t("Weapon")}</th>
-              {weaponChars.map((c) => (
-                <th key={c.id} title={c.name}>
-                  {header(c)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {weapons.map((w) => {
-              const v = readCharacteristics(system, "weapon", w.chars);
-              return (
-                <tr key={w.id}>
-                  <td>
-                    {w.name}
-                    {w.keywords.length > 0 && <div className="muted small">{w.keywords.join(", ")}</div>}
-                    <SlotDice unit={unit} weaponId={w.id} mine={mine} />
-                    {mine && <PrepareButton unit={unit} weaponId={w.id} />}
-                  </td>
-                  {weaponChars.map((c) => (
-                    <td key={c.id}>{shown(c, v[c.id], w.chars)}</td>
-                  ))}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
-      <AbilityList
-        abilities={unit.sheet?.abilities ?? []}
-        spent={(name) => !!unit.status?.[`spent.${name}`]}
-      />
-      {unit.sheet && unit.sheet.keywords.length > 0 && (
-        <p className="muted small">{unit.sheet.keywords.join(", ")}</p>
-      )}
-
-      <details>
-        <summary>{t("Bases")}</summary>
-        <ul className="models">
-          {all.map((m) => (
-            <li key={m.id} className={m.destroyed ? "dead" : ""}>
-              <span>{m.label}</span>
-              <span>
-                {m.destroyed
-                  ? t("removed")
-                  : t('{height}" tall', {
-                      height: formatNumber(modelHeight(m), {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1,
-                      }),
-                    })}
-              </span>
-              {mine && (
-                <button
-                  className="small"
-                  onClick={() =>
-                    dispatch(
-                      {
-                        type: "model/wounds",
-                        id: m.id,
-                        woundsLost: m.destroyed ? 0 : 1,
-                        destroyed: !m.destroyed,
-                      },
-                      unit.owner,
-                    )
-                  }
-                >
-                  {m.destroyed ? t("Return") : t("Remove")}
+      <CardMore>
+        {NEXT && stats}
+        {!companion && (
+          <div className="row wrap">
+            <button
+              className={losFrom === unit.id ? "on" : ""}
+              onClick={() => set({ losFrom: losFrom === unit.id ? null : unit.id })}
+            >
+              {t("Line of sight")}
+            </button>
+            <button onClick={() => eyeView(unit.id)}>{t("Model's eye view")}</button>
+            {mine && (
+              <>
+                <button title={t("Rotate left (Q)")} onClick={() => rotateUnit(unit.id, -1)}>
+                  ⟲
                 </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      </details>
+                <button title={t("Rotate right (E)")} onClick={() => rotateUnit(unit.id, 1)}>
+                  ⟳
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {weapons.length > 0 && (
+          <table className="weapons">
+            <thead>
+              <tr>
+                <th>{t("Weapon")}</th>
+                {weaponChars.map((c) => (
+                  <th key={c.id} title={c.name}>
+                    {header(c)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {weapons.map((w) => {
+                const v = readCharacteristics(system, "weapon", w.chars);
+                return (
+                  <tr key={w.id}>
+                    <td>
+                      {w.name}
+                      {w.keywords.length > 0 && <div className="muted small">{w.keywords.join(", ")}</div>}
+                      <SlotDice unit={unit} weaponId={w.id} mine={mine} />
+                      {mine && <PrepareButton unit={unit} weaponId={w.id} />}
+                    </td>
+                    {weaponChars.map((c) => (
+                      <td key={c.id}>{shown(c, v[c.id], w.chars)}</td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+        <AbilityList
+          abilities={unit.sheet?.abilities ?? []}
+          spent={(name) => !!unit.status?.[`spent.${name}`]}
+        />
+        {unit.sheet && unit.sheet.keywords.length > 0 && (
+          <p className="muted small">{unit.sheet.keywords.join(", ")}</p>
+        )}
+
+        <details>
+          <summary>{t("Bases")}</summary>
+          <ul className="models">
+            {all.map((m) => (
+              <li key={m.id} className={m.destroyed ? "dead" : ""}>
+                <span>{m.label}</span>
+                <span>
+                  {m.destroyed
+                    ? t("removed")
+                    : t('{height}" tall', {
+                        height: formatNumber(modelHeight(m), {
+                          minimumFractionDigits: 1,
+                          maximumFractionDigits: 1,
+                        }),
+                      })}
+                </span>
+                {mine && (
+                  <button
+                    className="small"
+                    onClick={() =>
+                      dispatch(
+                        {
+                          type: "model/wounds",
+                          id: m.id,
+                          woundsLost: m.destroyed ? 0 : 1,
+                          destroyed: !m.destroyed,
+                        },
+                        unit.owner,
+                      )
+                    }
+                  >
+                    {m.destroyed ? t("Return") : t("Remove")}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </details>
+      </CardMore>
     </div>
   );
 }

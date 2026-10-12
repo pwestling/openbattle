@@ -11,7 +11,6 @@ import { useHelp } from "../ui/help";
 import { useGame } from "../ui/hooks";
 import { NetBanner } from "../ui/NetBanner";
 import { seatShape } from "../ui/sides";
-import { WarningsButton } from "../ui/TableWarnings";
 import { Counter, DicePool, SoundToggle, WatchingChip, YourTurnFlash } from "../ui/TopBar";
 import { useVoice } from "../voice/voice";
 
@@ -133,7 +132,7 @@ export function Strip({ onMenu }: { onMenu: () => void }) {
         {role === "spectator" && <span className="obn-chip">{t("Watching")}</span>}
       </div>
       <div className="obn-tools">
-        <WarningsButton />
+        {/* No ⚠ count up here (naive players 4): a warning shows on the move or attack it is about. */}
         <SoundToggle />
         <button
           className="obn-quiet"

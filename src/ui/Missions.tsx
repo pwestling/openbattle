@@ -2,7 +2,7 @@ import { displayName } from "../i18n/names";
 import { useEffect, useMemo, useState } from "react";
 import { DEFAULT_SYSTEM, sideName, sidePlayers, sides, type GameState, type Intent } from "../core";
 import { secretsWithPrefix } from "../core/secrets";
-import { pendingScores, vpByRound, type Pending } from "../missions/scoring";
+import { pendingScores, scoresThatCount, vpByRound, type Pending } from "../missions/scoring";
 import type { Mission } from "../sdk";
 import { keepSecret, localSecret, useLocalSecrets } from "../secrets/local";
 import { missionFrom, systemModule } from "../systems";
@@ -413,7 +413,7 @@ export function Result() {
   // A package mission's suggestions arrive from its sandbox after the event that asked for them.
   const answers = useSandbox((s) => s.app);
   const pending = useMemo(
-    () => pendingScores(record, game, mission),
+    () => scoresThatCount(pendingScores(record, game, mission)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [record, game, mission, answers],
   );

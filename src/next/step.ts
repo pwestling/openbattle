@@ -7,7 +7,6 @@ import {
   type PlayerId,
   type Unit,
 } from "../core";
-import { abilityReminders } from "../core/content/player";
 import { findProcedure } from "../core/content/runner";
 import { actingUnits, unitActions } from "../core/content/play";
 import { simultaneousPhase } from "../core/content/simultaneous";
@@ -57,12 +56,8 @@ export interface StepButton {
   as?: PlayerId;
   /** Lit: the one thing to press next. */
   lit?: boolean;
-  /** Asked before it goes, when it skips work that's left ("2 units haven't shot"). */
-  confirm?: string;
   /** Not an intent: a local action the bar's owner handles. */
   local?: "copy" | "undo";
-  /** Pull a unit's move back to its limit, along its legs (the unit card's Snap back). */
-  snap?: { unitId: string; limit: number };
 }
 
 interface StepUnit {
@@ -434,22 +429,6 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     const others = together.waiting
       .filter((p) => !isMine(p))
       .map((p) => displayName(game.players[p]?.name ?? ""));
-    // The jobs themselves, named (UX N12): this phase's abilities still to use.
-    const jobs = me
-      ? abilityReminders(game)
-          .filter((r) => r.owner === me && !r.applied)
-          .map((r) =>
-            t("{ability} on {unit}", {
-              ability: gameText(r.ability.name),
-              unit: game.units[r.unitId]?.name ?? "",
-            }),
-          )
-      : [];
-    const jobLine = jobs.length
-      ? tn(jobs.length, "To use: {names}", "To use: {names}", {
-          names: formatList([...new Set(jobs)].slice(0, 4)),
-        })
-      : null;
     if (me)
       return {
         tone: "job",
@@ -461,16 +440,11 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
                 name: displayName(game.players[me]?.name ?? ""),
                 phase: gameText(phase),
               })
-            : t("{phase}: your jobs, then Done", { phase: gameText(phase) }),
-        sub:
-          [
-            jobLine,
-            others.length
-              ? t("{names} is doing theirs at the same time.", { names: formatList(others) })
-              : null,
-          ]
-            .filter(Boolean)
-            .join(" · ") || hint,
+            : t("{phase}: Done when you're ready", { phase: gameText(phase) }),
+        // No "To use: …" list of abilities here (naive players 2): they're under Stratagems and abilities.
+        sub: others.length
+          ? t("{names} is doing theirs at the same time.", { names: formatList(others) })
+          : hint,
         buttons: [{ label: t("Done"), lit: true, as: me, intent: { type: "turn/ready" } }],
       };
     const back = together.ready.find((p) => isMine(p));
@@ -539,7 +513,6 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
           label: t("Pass"),
           as: actor,
           intent: { type: "turn/pass" },
-          confirm: t("You have units that haven't gone. Pass anyway?"),
         },
       ],
     };
@@ -565,9 +538,6 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
                 label: doneLabel(phase, last),
                 as: actor,
                 intent: { type: "turn/next" },
-                confirm: t("{player} hasn't picked yet. Move on anyway?", {
-                  player: displayName(game.players[picker]?.name ?? ""),
-                }),
               },
             ]
           : [],
@@ -599,7 +569,6 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
                 label: doneLabel(phase, last),
                 as: actor,
                 intent: { type: "turn/next" },
-                confirm: t("Units can still fight. Move on anyway?"),
               },
             ]
           : [],
@@ -625,29 +594,23 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     label: doneLabel(phase, last),
     as: actor,
     intent: { type: "turn/next" },
-    // Work left means the next unit is lit and Done asks first (standing still is a fine answer).
+    // Work left means the next unit is lit, not Done; Done still ends the phase, with no question
+    // (naive players 10): the lit unit says what's left, and Undo covers a slip.
     lit: !left.length,
-    confirm: left.length
-      ? moving
-        ? tn(left.length, "{n} unit hasn't moved. Done anyway?", "{n} units haven't moved. Done anyway?")
-        : tn(
-            left.length,
-            "{n} unit can still act. Move on anyway?",
-            "{n} units can still act. Move on anyway?",
-          )
-      : undefined,
   };
+  // The one gesture for the lit unit (naive players 5): drag it, or tap an enemy for it.
+  const lit = left[0]?.name ?? "";
   const say = moving
     ? left.length
-      ? t("Drag a unit to move it")
+      ? t("Drag {unit}'s base to move it", { unit: lit })
       : t("Every unit has moved")
     : /shoot/i.test(phase)
       ? left.length
-        ? t("Pick a unit to shoot with, then click its target")
+        ? t("Tap an enemy for {unit} to shoot", { unit: lit })
         : t("Every unit has shot")
       : /charge/i.test(phase)
         ? left.length
-          ? t("Pick a unit to charge with, then drag it onto its target")
+          ? t("Tap an enemy for {unit} to charge", { unit: lit })
           : t("No unit can charge now")
         : fighting && !units.length
           ? t("No fights this turn")
@@ -671,21 +634,18 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
       buttons: [{ ...done, lit: false }],
     };
   }
-  // A charge moved further than its roll (UX N34): the bar says so and Snap back is the step. The rules
-  // are advisory, so Done still goes on, asking first, and the charge counts.
+  // A charge moved further than its roll (UX N34): the bar says so as a warning, and Undo takes it
+  // back (naive players 5: "Snap back" read as an instruction). The rules are advisory: Done goes on.
   const over = /charge/i.test(phase) ? overCharge(game, units, isMine) : null;
   if (over)
     return {
       tone: "job",
       seat,
       rail,
-      say: t("{unit} moved {moved}″ on a charge roll of {n}″", over),
-      sub: t("Snap it back to the roll, or charge anyway."),
+      say: t("{unit} moved {moved}″ of its {n}″ charge roll", over),
+      sub: t("Undo takes the move back. Done charges anyway."),
       units,
-      buttons: [
-        { label: t('Snap back to {n}"', { n: over.n }), lit: true, snap: { unitId: over.id, limit: over.n } },
-        { ...done, lit: false, confirm: t("{unit} went further than its roll. Charge anyway?", over) },
-      ],
+      buttons: [{ ...done, lit: true }],
     };
   // A charge rolled and made (UX N24): moving in is the step, by hand on the table; nothing to press.
   const charging = /charge/i.test(phase) ? madeCharge(game, units, isMine) : null;

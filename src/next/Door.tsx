@@ -43,6 +43,7 @@ import {
   NAME_KEY,
   SYSTEM_KEY,
   WHO_KEY,
+  INVITE_KEY,
   WHOS,
   type Who,
 } from "./start";
@@ -95,7 +96,18 @@ export function Door() {
     if (autoJoin(saved) === "name") setAskName(true);
   }, [saved]);
   const [name, setName] = useState(savedName);
-  const [invite, setInvite] = useState(() => new URLSearchParams(location.search).get("room") ?? "");
+  const [invite, setInvite] = useState(() => {
+    const room = new URLSearchParams(location.search).get("room");
+    if (room) return room;
+    // Back from a join that was still looking: the invite is in the box again (naive players 12).
+    try {
+      const kept = sessionStorage.getItem(INVITE_KEY);
+      sessionStorage.removeItem(INVITE_KEY);
+      return kept ?? "";
+    } catch {
+      return "";
+    }
+  });
   // The last level played (Easy the first time) is picked already, so Start is lit at once (UX N39).
   const [level, setLevel] = useState<Level | null>(savedLevel);
   const [phones, setPhones] = useState<"one" | "each">("one");
@@ -134,7 +146,7 @@ export function Door() {
     {
       id: DEFAULT_SYSTEM,
       title: FRONT[DEFAULT_SYSTEM]!.title,
-      blurb: t("Squads move, shoot, charge and fight. Bring your army list, or use the sample."),
+      blurb: t("Squads move, shoot, charge and fight."),
     },
     ...ours,
   ];
@@ -538,15 +550,21 @@ export function Door() {
         </div>
       )}
       <footer className="obn-foot">
-        <OpenFile onTts={setSave} />
-        {boardOn() && (
-          <button className="obn-link" onClick={() => setTables(true)}>
-            {t("Find an opponent")}
-          </button>
+        {/* Files and the other ways to play wait until a game is picked (naive players 9): a first
+            visit sees only the games. */}
+        {system && (
+          <>
+            <OpenFile onTts={setSave} />
+            {boardOn() && (
+              <button className="obn-link" onClick={() => setTables(true)}>
+                {t("Find an opponent")}
+              </button>
+            )}
+            <button className="obn-link" aria-expanded={more} onClick={() => setMore(!more)}>
+              {t("More ways to play ▸")}
+            </button>
+          </>
         )}
-        <button className="obn-link" aria-expanded={more} onClick={() => setMore(!more)}>
-          {t("More ways to play ▸")}
-        </button>
         <span className="obn-muted obn-version">
           {/* i18n-ignore */}
           Open Battle {APP_BUILD.split("+")[0]} ·{" "}

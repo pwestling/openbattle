@@ -154,5 +154,22 @@ export function vpByRound(game: GameState): {
     bySeat[s.seat] ??= {};
     bySeat[s.seat]![s.round] = (bySeat[s.seat]![s.round] ?? 0) + s.vp;
   }
-  return { rounds: [...rounds].sort((a, b) => a - b), bySeat };
+  // Every round from the first scored to the last, a round nobody scored in included (naive players 11:
+  // R1, R3, R4 read as a missing round).
+  const scored = [...rounds];
+  const first = Math.min(...scored);
+  const last = Math.max(...scored);
+  return {
+    rounds: scored.length ? Array.from({ length: last - first + 1 }, (_, i) => first + i) : [],
+    bySeat,
+  };
+}
+
+/**
+ * Once the battle is over, the scores still worth asking about: a suggested 0 with no question
+ * changes nothing, so the end card doesn't ask for it (naive players 11: "Scores to confirm" under
+ * a final result read as the game not being over).
+ */
+export function scoresThatCount(pending: Pending[]): Pending[] {
+  return pending.filter((p) => !(p.guessed && !p.ask && p.vp === 0));
 }
