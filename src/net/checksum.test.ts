@@ -104,4 +104,29 @@ describe("state checksum", () => {
     expect(status?.desync ?? null).toBeNull();
     expect(client.checksumAt(20)).toBe(host.checksumAt(20));
   });
+  it("drops a mismatch once a later checkpoint agrees (the host folded again with its rules)", async () => {
+    const net = createLoopbackNetwork();
+    let status: NetStatus | undefined;
+    const host = new Session({ transport: net.connect("h"), role: "host", onChange: () => {}, graceMs: 10 });
+    const client = new Session({
+      transport: net.connect("c"),
+      role: "client",
+      onChange: () => {},
+      graceMs: 10,
+      onNet: (s) => (status = s),
+    });
+    await sleep(30);
+    host.dispatch({ type: "player/join", player: { id: "h", name: "Ann", color: "#00f", seat: 0 } });
+    // The host's table is the stand-in's until its rules package loads.
+    const real = host.current;
+    (host as unknown as { state: GameState }).state = { ...real, table: { ...real.table, width: 61 } };
+    for (let i = 0; i < 10; i++) host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
+    await sleep(30);
+    expect(status?.desync).toMatchObject({ seq: 10 });
+    host.refold();
+    for (let i = 0; i < 10; i++) host.dispatch({ type: "dice/roll", count: 1, sides: 6 });
+    await sleep(30);
+    expect(client.checksumAt(20)).toBe(host.checksumAt(20));
+    expect(status?.desync ?? null).toBeNull();
+  });
 });

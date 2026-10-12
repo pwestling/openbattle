@@ -41,7 +41,6 @@ const CLASSIC = new Set([
   "tts-board-turn",
   "tts-cards",
   "tts-online",
-  "declutter",
   "table-verbs",
   "stratagem-hand",
   "drag-charge",
@@ -52,7 +51,6 @@ const CLASSIC = new Set([
   "planning",
   "dice-myself",
   "stratagem-tab",
-  "qd6-card",
 ]);
 /** The UI the running check's browsers open in: "next" or "classic". */
 let ui = "next";
@@ -519,7 +517,7 @@ async function readyAll(pages) {
       else if (i > 10 && (await anyway.count())) await anyway.click({ timeout: 3000 }).catch(() => {});
     }
     if (on === pages.length) return;
-    await pages[0].waitForTimeout(400);
+    await pages[0].waitForTimeout(Number(process.env.READY_GAP ?? 400));
   }
   const bars = await Promise.all(
     pages.map((p) =>
@@ -584,7 +582,7 @@ const IPAD = { viewport: { width: 1180, height: 820 }, isMobile: true, hasTouch:
 
 /** On a tablet, by touch: past the showcase, then the top-down view from the table's long-press menu. */
 async function touchTable(page, t, top = true) {
-  await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 30000 });
+  await roundOne(page, 30_000);
   for (let i = 0; i < 60 && (await page.evaluate(() => document.body.classList.contains("showcase"))); i++) {
     await t.tap(600, 420);
     await sleep(400);
@@ -1148,11 +1146,11 @@ const checks = {
     await page.locator(".ask").getByText("No mission").waitFor();
     await page.getByRole("button", { name: "Pick one" }).click();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForTimeout(1500);
     await page.reload();
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await roundOne(page, 20_000);
     if (await page.locator(".lobby").count()) throw new Error("the reload went back to the lobby");
     if (page.errors.length) throw new Error(page.errors[0]);
     await context.close();
@@ -1239,7 +1237,7 @@ const checks = {
       if (await page.getByText(/The computer's army is about/).count())
         throw new Error("still lopsided after matching");
       await page.getByRole("button", { name: "Start", exact: true }).click();
-      await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+      await roundOne(page, 20_000);
       await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
         timeout: 30000,
       });
@@ -1468,13 +1466,24 @@ const checks = {
       await lobby(d.page, q);
       await hostOnline(d.page, name, "Rift Lanterns");
       if (d.page.ui === "classic") {
-        await d.page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: 1 });
+        // The setup steps open the army picker on "Pick it now" (UX 515).
+        const pickIt = d.page.getByRole("button", { name: "Pick it now" });
+        if (await pickIt.count()) await pickIt.click();
+        await d.page
+          .locator('.panel.hud select[aria-label="Sample army"]')
+          .selectOption({ index: 1 })
+          .catch(async (e) => {
+            if (process.env.SMOKE_SHOTS)
+              await d.page.screenshot({ path: join(process.env.SMOKE_SHOTS, "event-classic-army.png") });
+            throw e;
+          });
         await d.page
           .getByRole("button", { name: /^Deploy for/ })
           .first()
           .click();
         // Once every side has an army, adding and saving armies fold under "Armies" (UX 83).
-        await d.page.locator(".panel.hud summary", { hasText: "Armies" }).click();
+        const armies = d.page.locator(".panel.hud summary", { hasText: "Armies" });
+        if (await armies.count()) await armies.click();
       } else {
         // The checklist's lit step puts the sample army down; its Change opens the army picker with Save.
         await d.page.locator(".obn-bar .obn-lit", { hasText: /Copy invite link/ }).click({ timeout: 30_000 });
@@ -1572,8 +1581,25 @@ const checks = {
       // Every guest's table matches its host's, though the game's rules package loaded as they joined.
       await sleep(3000);
       for (const d of ds)
-        if (await d.page.locator(".net-banner.desync").count())
+        if (await d.page.locator(".net-banner.desync").count()) {
+          if (process.env.SMOKE_VERBOSE) console.log(await d.page.locator(".net-banner.desync").innerText());
+          if (process.env.SMOKE_DUMP)
+            for (const x of ds)
+              writeFileSync(
+                join(process.env.SMOKE_DUMP, `${x.name}.json`),
+                await x.page.evaluate(() => {
+                  const st = window.openBattle?.getState();
+                  return JSON.stringify({
+                    room: st?.roomId,
+                    role: st?.net?.role,
+                    game: st?.game,
+                    events: st?.record?.events?.map((e) => [e.seq, e.event.type, e.event.intent?.type ?? ""]),
+                    checks: st?.session?.checkHistory,
+                  });
+                }),
+              );
           throw new Error(`round ${round}: ${d.name}'s table doesn't match the host's`);
+        }
       for (const d of ds) {
         await roundOne(d.page, 20_000);
         await d.page.keyboard.press("Escape");
@@ -2080,8 +2106,8 @@ const checks = {
       hasTouch: true,
     });
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }), true);
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle", true);
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     const offScreen = () =>
@@ -2169,7 +2195,7 @@ const checks = {
       throw new Error("the Rift Lanterns game didn't finish");
 
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }), true);
+    await tryDemo(page, "Sci-fi battle", true);
     // The 3D view first (where most play happens): a twist must work there (PX re-check of #60).
     await touchTable(page, t, false);
     const next = page.locator(".topbar .turn button", { hasText: "▶" });
@@ -2673,8 +2699,8 @@ const checks = {
   async "tts-controls"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     const focused = () => page.evaluate(() => document.activeElement?.tagName);
@@ -3158,8 +3184,8 @@ const checks = {
     await lobby(page);
     await page.waitForTimeout(1000);
     await check("lobby", 28);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").waitFor();
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page);
     for (let i = 0; i < 60 && (await page.evaluate(() => document.body.classList.contains("showcase"))); i++)
       await page.waitForTimeout(500);
     for (let i = 0; i < 3; i++) {
@@ -3184,8 +3210,8 @@ const checks = {
   async "table-verbs"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     await page
@@ -3231,8 +3257,8 @@ const checks = {
   async "stratagem-hand"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     // Command Re-roll waits for a roll, so the fan starts folded: open it.
@@ -3291,8 +3317,8 @@ const checks = {
   async "drag-charge"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     for (let i = 0; i < 3; i++) {
@@ -3357,8 +3383,8 @@ const checks = {
   async "table-keys"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     // Hold X: X-ray on while held, off on letting go (the View menu's tick says so).
@@ -3399,8 +3425,8 @@ const checks = {
   async "reroll-card"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     for (let i = 0; i < 2; i++) {
@@ -3735,8 +3761,8 @@ const checks = {
   async "dice-myself"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     const dice = async (label) => {
@@ -3824,8 +3850,8 @@ const checks = {
   async "stratagem-tab"() {
     const { page, context } = await device();
     await lobby(page);
-    await tryDemo(page, page.locator(".demos .demo", { hasText: "Sci-fi battle" }));
-    await page.locator(".topbar").getByText("Round 1").waitFor({ timeout: 20000 });
+    await tryDemo(page, "Sci-fi battle");
+    await roundOne(page, 20_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, { timeout: 30000 });
     await page.keyboard.press("Escape");
     for (let i = 0; i < 2; i++) {
@@ -3855,10 +3881,7 @@ const checks = {
     const { page, context } = await device();
     await lobby(page);
     await tryDemo(page, "Quality d6");
-    await page
-      .locator(".topbar")
-      .getByText(/Round 1/)
-      .waitFor({ timeout: 60_000 });
+    await roundOne(page, 60_000);
     await page.waitForFunction(() => !document.body.classList.contains("showcase"), null, {
       timeout: 30_000,
     });
@@ -3914,7 +3937,7 @@ const checks = {
 let failed = 0;
 for (const [name, run] of Object.entries(checks)) {
   if (only.length && !only.includes(name)) continue;
-  ui = args.includes("--classic") || CLASSIC.has(name) ? "classic" : "next";
+  ui = args.includes("--classic") || (CLASSIC.has(name) && !args.includes("--next")) ? "classic" : "next";
   const t0 = Date.now();
   try {
     const errors = (await run()) ?? [];

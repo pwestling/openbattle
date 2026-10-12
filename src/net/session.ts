@@ -756,7 +756,16 @@ export class Session {
   private verify(check: Check): void {
     const mine = this.checksumAt(check.seq);
     this.logCheck({ seq: check.seq, host: check.hash, ...(mine !== undefined ? { mine } : {}) });
-    if (mine === undefined || mine === check.hash) return;
+    if (mine === undefined) return;
+    if (mine === check.hash) {
+      // The tables agree again: the earlier mismatch was the host's table on its rules' stand-in,
+      // checked before its package loaded and it folded the log again.
+      if (this.desync && check.seq > this.desync.seq) {
+        this.desync = null;
+        this.notify();
+      }
+      return;
+    }
     if (this.desync) return;
     this.desyncs++;
     this.desync = { seq: check.seq, count: this.desyncs, host: check.hash, mine };
