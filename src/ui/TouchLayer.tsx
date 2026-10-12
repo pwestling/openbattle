@@ -4,7 +4,7 @@ import { phaseName } from "../core/content/turn";
 import { systemModule } from "../systems";
 import { belowHalf } from "../systems/wh40k/module";
 import { mainWeapon } from "../systems/wh40k/rules";
-import { RollButton } from "../companion/RealDice";
+import { RollButton } from "./RollButton";
 import { doTableVerb, tableVerb } from "./tableVerbs";
 import { t } from "../i18n";
 import { talkOrNote } from "../replay/notes";

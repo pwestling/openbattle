@@ -87,11 +87,6 @@ export function sendCamera(
   useStore.getState().session?.sendSide({ t: "talk/cam", cam, ...(name ? { name } : {}) });
 }
 
-/** Tell the table this player is shaking their dice, or has let go. */
-export function sendShaking(on: boolean): void {
-  useStore.getState().session?.sendSide({ t: "talk/shake", on });
-}
-
 /** Show the table the models in this player's hand, or that they let go (null). */
 export function sendDrag(models: [string, number, number][] | null): void {
   useStore.getState().session?.sendSide({ t: "talk/drag", models });
@@ -281,13 +276,6 @@ function receive(message: SideMessage, from: string): void {
   } else if (message.t === "talk/moment") {
     if (Number.isInteger(message.seq) && typeof message.kind === "string")
       useTalk.setState({ cue: { seq: message.seq, kind: message.kind, by: from, at: Date.now() } });
-  } else if (message.t === "talk/shake") {
-    // Only a player at the table shakes dice.
-    if (!useStore.getState().game.players[from]) return;
-    useTalk.setState((s) => {
-      const { [from]: _gone, ...rest } = s.shaking;
-      return { shaking: message.on === true ? { ...rest, [from]: Date.now() } : rest };
-    });
   } else if (message.t === "talk/plan") {
     // Only a player at the table plans a turn.
     if (!useStore.getState().game.players[from]) return;

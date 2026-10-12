@@ -63,7 +63,7 @@ export function NextEnd() {
     ? []
     : pending.flatMap((p) => {
         const by = sidePlayers(game, p.seat).find((x) => canControl(x.id));
-        return by && p.guessed && !p.ask ? [{ p, by: by.id }] : [];
+        return by ? [{ p, by: by.id }] : [];
       });
   const scoreAll = () => {
     for (const { p, by } of scorable)

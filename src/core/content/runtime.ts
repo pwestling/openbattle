@@ -334,7 +334,7 @@ function autoRef(a: Ability): RuleRef {
 }
 
 /** Whether an automated ability is switched on for its unit right now. */
-export function autoActive(unit: Unit, a: Ability): boolean {
+function autoActive(unit: Unit, a: Ability): boolean {
   if (!a.auto) return false;
   if (a.auto.whileLeading && !unit.status?.attached) return false;
   if (a.auto.oncePerBattle && !unit.status?.[`auto.${a.name}`]) return false;

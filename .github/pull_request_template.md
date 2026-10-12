@@ -4,7 +4,7 @@
 
 ## How it was tested
 
-<!-- pnpm smoke <name>, a game played by hand... -->
+<!-- a game played by hand... -->
 
 ## Checks
 

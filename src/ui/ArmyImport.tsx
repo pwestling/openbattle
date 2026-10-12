@@ -501,14 +501,11 @@ export function ArmyImport({ players }: { players: { id: PlayerId; name: string;
                   ))}
                 </tbody>
               </table>
-              {/* At a real table the models are on it already: their bases aren't the app's to guess (PX). */}
-              {!game.settings.companion && (
-                <p className="muted">
-                  {ranked
-                    ? t("Bases are a guess from each unit's troop type; check them against your models.")
-                    : t("Bases are a guess from keywords and wounds; check them against your models.")}
-                </p>
-              )}
+              <p className="muted">
+                {ranked
+                  ? t("Bases are a guess from each unit's troop type; check them against your models.")
+                  : t("Bases are a guess from keywords and wounds; check them against your models.")}
+              </p>
               <FactionPacks roster={roster} setRoster={setRoster} />
               <ImportAutomation roster={roster} setRoster={setRoster} />
               <div className="row modal-actions">

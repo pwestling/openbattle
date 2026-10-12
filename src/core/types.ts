@@ -658,12 +658,6 @@ export interface GameSettings {
   clock?: ClockSettings | null;
   /** An online event's game (#67): which event, round and table, so its ranked result settles that pairing. */
   event?: EventTable | null;
-  /**
-   * Table companion (#37): the players have real models on a real table. No
-   * 3D board; range, sight and moves are theirs to judge, and positions here
-   * mean nothing.
-   */
-  companion?: boolean;
 }
 
 /** Victory points a side scored at one scoring moment (or chose not to). */

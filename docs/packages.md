@@ -221,7 +221,7 @@ The `system` may name the verbs the turn story ([story.md](story.md)) tells its 
 
 The module's `bot` (`BotTuning` in `src/sdk`) tunes the computer player for the game. Among its fields, `evaluate(state, seat, view)` adds the game's own sense of the table to the computer's (the `view` answers sight and cover as rules do), `moveInches(state, unit)` says how far a unit goes in a move, and `climbs: true` has it try moves up onto terrain floors (a game where height matters).
 
-[`examples/packages/arena.js`](../examples/packages/arena.js) is a complete small game, and [`games/rift-lanterns`](../games/rift-lanterns/README.md) is a whole one, with factions, missions and stand-in figures. [`games/brinewatch`](../games/brinewatch/README.md) is a second, with action points, guards, hidden deployment and a campaign.
+[`examples/packages/arena.js`](../examples/packages/arena.js) is a complete small game,.
 
 ## The sandbox
 

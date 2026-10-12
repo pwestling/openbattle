@@ -1,6 +1,6 @@
 import { touch } from "./touch";
 import { PoolPicker, usesFaces } from "./SystemPanels";
-import { RollButton } from "../companion/RealDice";
+import { RollButton } from "./RollButton";
 import { useMemo, useState } from "react";
 import {
   actionTargets,

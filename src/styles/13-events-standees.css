@@ -785,9 +785,7 @@ body.verb-ok canvas {
   flex-wrap: wrap;
   gap: 6px;
 }
-.reroll-card .die-face {
-  min-width: 2.2em;
-}
+
 @keyframes reroll-up {
   from {
     transform: translateY(24px) rotate(2deg);
@@ -897,12 +895,6 @@ body.verb-ok canvas {
 
 .plan-panel.go {
   flex-direction: row;
-}
-
-.plan-hint {
-  color: var(--muted, #9ca3af);
-  font-size: 12px;
-  text-align: center;
 }
 
 .plan-list {

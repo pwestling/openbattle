@@ -40,14 +40,14 @@ import { AbilityLine, OncePerBattle } from "./AutoAbilities";
 import { CardMore } from "./CardMore";
 import { replayRoll, useGame, useRareStars } from "./hooks";
 import { opposed } from "../core/teams";
-import { RollButton } from "../companion/RealDice";
+import { RollButton } from "./RollButton";
 import { ChargeDeclare } from "./ChargeDeclare";
 import { StatusMenu } from "./StatusMenu";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
 import { t } from "../i18n";
 
 const STATS = ["M", "T", "SV", "W", "LD", "OC", "INV"];
-export const flags = (): [string, string][] => [
+const flags = (): [string, string][] => [
   ["moved", t("Moved")],
   ["fellBack", t("Fell back")],
   ["shot", t("Shot")],
@@ -193,8 +193,6 @@ export function UnitCard() {
   const profiles = new Map<string, Model>();
   for (const m of all) if (m.profile && !profiles.has(m.profile.name)) profiles.set(m.profile.name, m);
   const weapons = Object.values(unit.sheet?.weapons ?? {});
-  // At a real table (#37), the board's measuring and moving tools go: the players have the table.
-  const companion = !!game.settings.companion;
   const roll = (label: string, count: number): Intent => ({
     type: "dice/roll",
     count,
@@ -313,7 +311,7 @@ export function UnitCard() {
           {primary.map(([key, button]) => (
             <Fragment key={key}>{button}</Fragment>
           ))}
-          {onFloors && !companion && (
+          {onFloors && (
             <>
               <button title={t("Up a floor (R)")} onClick={() => climbUnit(unit.id, 1)}>
                 ▲ {t("Floor")}
@@ -341,17 +339,15 @@ export function UnitCard() {
           {others.map(([key, button]) => (
             <Fragment key={key}>{button}</Fragment>
           ))}
-          {!companion && (
-            <>
-              <button title={t("Rotate left (Q)")} onClick={() => rotateUnit(unit.id, -1)}>
-                ⟲
-              </button>
-              <button title={t("Rotate right (E)")} onClick={() => rotateUnit(unit.id, 1)}>
-                ⟳
-              </button>
-              <span className="muted small">{t("Q / E turn it")}</span>
-            </>
-          )}
+          <>
+            <button title={t("Rotate left (Q)")} onClick={() => rotateUnit(unit.id, -1)}>
+              ⟲
+            </button>
+            <button title={t("Rotate right (E)")} onClick={() => rotateUnit(unit.id, 1)}>
+              ⟳
+            </button>
+            <span className="muted small">{t("Q / E turn it")}</span>
+          </>
         </div>
       )}
       <div className="chips">
@@ -386,33 +382,31 @@ export function UnitCard() {
       <OncePerBattle unit={unit} mine={mine} />
       <CodeActions unit={unit} />
       {moveNote && <p className="small move-note">{moveNote}</p>}
-      {!companion && (
-        <p className="muted">
-          {(game.turn.round > 0 || !!status.scouting) && allowed !== null && (movingNow || moved > 0.05) && (
-            <span className={moved > allowed + 0.05 ? "warn" : ""}>
-              {t('Moved {moved}" of {allowed}" this phase.', { moved: moved.toFixed(1), allowed })}{" "}
-            </span>
-          )}
-          {blocked.length > 0 && (
-            <span className="warn">
-              {t("Moved through {terrain}.", {
-                terrain: blocked.map((p) => p.name.toLowerCase()).join(", "),
-              })}{" "}
-            </span>
-          )}
-          {engaged.length > 0 && (
-            <span className="warn">
-              {t("Engaged with {units}.", { units: engaged.map((id) => game.units[id]?.name).join(", ") })}
-            </span>
-          )}
-        </p>
-      )}
+      <p className="muted">
+        {(game.turn.round > 0 || !!status.scouting) && allowed !== null && (movingNow || moved > 0.05) && (
+          <span className={moved > allowed + 0.05 ? "warn" : ""}>
+            {t('Moved {moved}" of {allowed}" this phase.', { moved: moved.toFixed(1), allowed })}{" "}
+          </span>
+        )}
+        {blocked.length > 0 && (
+          <span className="warn">
+            {t("Moved through {terrain}.", {
+              terrain: blocked.map((p) => p.name.toLowerCase()).join(", "),
+            })}{" "}
+          </span>
+        )}
+        {engaged.length > 0 && (
+          <span className="warn">
+            {t("Engaged with {units}.", { units: engaged.map((id) => game.units[id]?.name).join(", ") })}
+          </span>
+        )}
+      </p>
       {/* Coherency, moves, Deep Strike: the table checks (src/ui/warnings.ts). */}
       <UnitWarnings unitId={unit.id} skip={["moveDistance"]} />
       <FightOrderNote unitId={unit.id} />
 
       <CardMore>
-        {!companion && (look || elevation > 0) && (
+        {(look || elevation > 0) && (
           <div className="row wrap">
             {look && (
               <>
@@ -534,9 +528,9 @@ export function UnitCard() {
           <p className="muted small">{unit.sheet.keywords.join(", ")}</p>
         )}
 
-        {!companion && <FigurePicker unit={unit} models={all} editable={mine} />}
+        <FigurePicker unit={unit} models={all} editable={mine} />
 
-        <details open={companion}>
+        <details>
           <summary>{t("Models and wounds")}</summary>
           <ul className="models">
             {all.map((m) => (
@@ -548,7 +542,7 @@ export function UnitCard() {
               />
             ))}
           </ul>
-          {mine && !companion && (
+          {mine && (
             <label className="row small">
               {t("Model height for line of sight")}{" "}
               <input

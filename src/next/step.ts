@@ -354,27 +354,20 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     const by = sidePlayers(game, score.seat).find((x) => isMine(x.id))!.id;
     const base = { type: "score/confirm" as const, key: score.key, seat: score.seat, round: score.round };
     const why = `${score.rule}: ${score.why}`;
-    const buttons: StepButton[] = score.ask
-      ? score.ask.answers.map((a, i) => ({
-          label: a.label,
-          as: by,
-          lit: i === 0,
-          intent: { ...base, vp: a.vp, why: `${score.rule}: ${a.why ?? score.why}` },
-        }))
-      : [
-          {
-            label: t("Score {vp} VP", { vp: score.vp }),
-            as: by,
-            lit: true,
-            intent: { ...base, vp: score.vp, why },
-          },
-        ];
+    const buttons: StepButton[] = [
+      {
+        label: t("Score {vp} VP", { vp: score.vp }),
+        as: by,
+        lit: true,
+        intent: { ...base, vp: score.vp, why },
+      },
+    ];
     return {
       tone: "job",
       seat: score.seat,
       rail,
-      say: score.ask ? score.ask.question : t("Score {rule}: {vp} VP", { rule: score.rule, vp: score.vp }),
-      sub: score.ask ? score.rule : score.why,
+      say: t("Score {rule}: {vp} VP", { rule: score.rule, vp: score.vp }),
+      sub: score.why,
       buttons,
     };
   }

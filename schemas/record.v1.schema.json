@@ -5431,9 +5431,6 @@
               "type": "null"
             }
           ]
-        },
-        "companion": {
-          "type": "boolean"
         }
       },
       "required": [
@@ -6630,9 +6627,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }
@@ -9063,9 +9057,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }

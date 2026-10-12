@@ -1288,9 +1288,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }
@@ -6817,9 +6814,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }
@@ -10145,9 +10139,6 @@
               "type": "null"
             }
           ]
-        },
-        "companion": {
-          "type": "boolean"
         }
       },
       "required": [

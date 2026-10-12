@@ -70,8 +70,6 @@ export type SideMessage =
     }
   /** A commentator brings up a moment-of-the-game card (after the game), by its seq and kind. */
   | { t: "talk/moment"; seq: number; kind: string }
-  /** A player holds their dice to shake them, or let go (src/companion/Shake.tsx): "Ana is shaking…". */
-  | { t: "talk/shake"; on: boolean }
   /** The end-of-game reel's card on show (src/broadcast/Moments.tsx): the host leads, Next anywhere moves all. */
   | { t: "talk/reel"; index: number }
   /**

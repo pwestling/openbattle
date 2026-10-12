@@ -3,7 +3,7 @@ import { touch } from "./touch";
 import { playerName } from "../i18n/names";
 import { useCoach, computerPlays } from "../teach/store";
 import { focusSoon } from "./focusSoon";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   passes,
   type AttackSpec,
@@ -32,9 +32,7 @@ import { useGame } from "./hooks";
 import { ActionSetup, ProcedurePanel } from "./ProcedurePanels";
 import { opposed } from "../core/teams";
 import { t, tn } from "../i18n";
-import { RollButton, useRealDice, useShakeDice } from "../companion/RealDice";
-import { WaitingDice } from "../companion/Shake";
-import { TableAttackSetup } from "../companion/TableAttack";
+import { RollButton } from "./RollButton";
 import { fireNext, useVolley, volleyWeapons } from "./volley";
 import { useTalk } from "../talk/talk";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
@@ -50,14 +48,8 @@ export function AttackPanel() {
   if (game.procedure) return <ProcedurePanel />;
   if (game.attack) return <AttackInProgress attack={game.attack} live={scrub === null} />;
   if (draft?.action && scrub === null) return <ActionSetup draft={{ ...draft, action: draft.action }} />;
-  if (draft && scrub === null) return <AttackSetup draft={draft} />;
+  if (draft && scrub === null) return <BoardAttackSetup draft={draft} />;
   return null;
-}
-
-function AttackSetup({ draft }: { draft: AttackDraft }) {
-  const game = useGame();
-  if (game.settings.companion) return <TableAttackSetup draft={draft} />;
-  return <BoardAttackSetup draft={draft} />;
 }
 
 function BoardAttackSetup({ draft }: { draft: AttackDraft }) {
@@ -254,15 +246,12 @@ function VolleyPick({ attackerId, targetId }: { attackerId: string; targetId: st
   );
 }
 
-export function SpecEditor({
+function SpecEditor({
   suggestion,
   onDeclare,
-  declare,
 }: {
   suggestion: AttackSuggestion;
   onDeclare: (spec: AttackSpec) => void;
-  /** The declare button, when it isn't the board's (the table companion's rolls the attacks itself). */
-  declare?: (spec: AttackSpec) => ReactNode;
 }) {
   const [spec, setSpec] = useState(suggestion.spec);
   const game = useGame();
@@ -321,9 +310,7 @@ export function SpecEditor({
             : t("Out of range")}
         </p>
       )}
-      {declare ? (
-        declare(spec)
-      ) : s.inRange === 0 && spec.kind === "ranged" ? (
+      {s.inRange === 0 && spec.kind === "ranged" ? (
         <button disabled title={t("No model has the target in range, so there are no attacks to roll")}>
           {t("Declare attack")}
         </button>
@@ -337,7 +324,7 @@ export function SpecEditor({
         </button>
       )}
       {/* In a lesson, and on a tablet (UX 422), the numbers fold away: the form is just weapon, target and Declare (PX review). */}
-      <details className="more-options" open={!coaching && !game.settings.companion && !touch()}>
+      <details className="more-options" open={!coaching && !touch()}>
         <summary>{t("More options")}</summary>
         <div className="grid">
           <label>
@@ -411,7 +398,7 @@ const stageLabel = (stage: AttackState["stage"]): string =>
     done: "",
   })[stage];
 
-/** In the companion, what the other phone shows while this stage's roller rolls (UX 276). */
+/** What the other screen shows while this stage's roller rolls (UX 276). */
 const waitingFor = (stage: AttackState["stage"], name: string): string =>
   ({
     hit: t("Waiting for {name} to roll to hit", { name }),
@@ -436,23 +423,14 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
   const canControl = useCanControl();
   const theirs = !!roller && attack.stage === "save" && !canControl(roller);
   // Each player rolls their own steps: the other screen waits (UX 276, PX A1). Online the attacker may
-  // still roll the saves for a slow defender; at a real table each phone rolls its own.
-  const waiting =
-    !!roller &&
-    !canControl(roller) &&
-    attack.stage !== "done" &&
-    (!!game.settings.companion || attack.stage !== "save");
+  // still roll the saves for a slow defender.
+  const waiting = !!roller && !canControl(roller) && attack.stage !== "done" && attack.stage !== "save";
   const rollerName = roller ? playerName(game.players[roller]) || t("Your opponent") : "";
   // In a lesson the computer rolls its own dice: the learner only sees them land.
   const botRolls = computerPlays(game, roller);
   const botAttacks = computerPlays(game, attacker?.owner);
-  // Rolling real dice (#37, any game since UX 501) goes a stage at a time, so each batch is asked for.
-  const ownDice = useRealDice();
-  // Rolling it yourself (UX 501): your dice wait in the tray for the roll in front of you, your saves included.
-  const shake = useShakeDice() && !ownDice;
   // Online against a person, "Roll everything" stops before the saves: they're the defender's to roll (PX A2).
   const savesTheirs =
-    !game.settings.companion &&
     !!target &&
     !canControl(target.owner) &&
     !computerPlays(game, target.owner) &&
@@ -468,8 +446,7 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
     !!attacker &&
     canControl(target.owner) &&
     !canControl(attacker.owner) &&
-    !computerPlays(game, attacker.owner) &&
-    !game.settings.companion;
+    !computerPlays(game, attacker.owner);
   const talkVolley = useTalk((s) => s.volley);
   const shooterName = (attacker && playerName(game.players[attacker.owner])) || t("Your opponent");
   const incoming =
@@ -590,17 +567,10 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
           )}
           {attack.stage !== "done" && !botRolls && !theirs && !waiting && (
             <>
-              {shake && (
-                <WaitingDice
-                  intent={{ type: "attack/roll" }}
-                  as={roller}
-                  roll={() => dispatch({ type: "attack/roll" }, roller)}
-                />
-              )}
               <RollButton className="primary attack-roll" intent={{ type: "attack/roll" }} as={roller}>
                 {stageLabel(attack.stage)}
               </RollButton>
-              {!botAttacks && !ownDice && (
+              {!botAttacks && (
                 <button onClick={rollAll}>
                   {savesTheirs ? t("Roll hits and wounds") : t("Roll everything")}
                 </button>

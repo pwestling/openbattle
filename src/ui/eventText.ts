@@ -384,7 +384,6 @@ function describeEvent({ by, event }: LoggedEvent, before: GameState, game: Game
           (st.visionArc >= 360 ? t("vision all around") : t("vision {deg}° arc", { deg: st.visionArc })),
         st.modelsBlock !== undefined &&
           (st.modelsBlock ? t("models block sight") : t("models don't block sight")),
-        st.companion && t("playing with real models (table companion)"),
       ].filter(Boolean);
       return t("{name} set {settings}", { name: who, settings: parts.join(", ") || t("game settings") });
     }

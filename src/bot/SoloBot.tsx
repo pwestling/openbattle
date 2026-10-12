@@ -134,7 +134,7 @@ async function play(): Promise<void> {
   const player = sidePlayers(game, solo.seat)[0]?.id;
   if (!player) return;
   // Its own side's scores, as the mission suggests them.
-  const due = pendingScores(record, game, missionOf(game)).find((p) => p.seat === solo.seat && !p.ask);
+  const due = pendingScores(record, game, missionOf(game)).find((p) => p.seat === solo.seat);
   if (due) {
     dispatch(
       { type: "score/confirm", key: due.key, seat: due.seat, round: due.round, vp: due.vp, why: due.why },

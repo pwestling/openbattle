@@ -17,14 +17,7 @@ import {
 import { registerFunctions } from "../core/content/calls";
 import { extendSystem, getSystem, listSystems, type SystemAdditions } from "../core/content/systems";
 import { currentSlot, systemOf } from "../core/content/turn";
-import {
-  gameView,
-  hookProcedures,
-  pointsShort,
-  registerCode,
-  registerCodeActions,
-  toldFor,
-} from "../core/script";
+import { gameView, hookProcedures, pointsShort, registerCode, registerCodeActions } from "../core/script";
 import { systemMatches } from "../packages/library";
 import { readManifest } from "../packages/manifest";
 import type { CodeAction, GameModule, Mission, PackageApp, PackageContents, PanelSpec } from "../sdk";
@@ -343,7 +336,6 @@ export class SandboxEngine {
           available: available === true ? true : String(available),
           targets,
           targeted: !!a.targets,
-          ...toldFor(a, view, actor, targets),
         };
       });
   }

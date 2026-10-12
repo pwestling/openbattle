@@ -15,7 +15,6 @@ A package is one ES module with no imports, run in a sandboxed worker and shared
    - campaign rules: `examples/packages/battle-scars.js`
    - a small whole game with hooks and a side panel: `examples/packages/arena.js`
    - workshop templates: `examples/workshop/{skirmish,ranked,activations}.js`
-   - finished games: `games/rift-lanterns/rift-lanterns.js`, `games/brinewatch/brinewatch.js`
 3. **Write the manifest as a plain literal.** The app reads it without running the file, so no variables, calls, spreads or template strings. Set `api` to `MODULE_API` from `src/sdk/index.ts`, give a stable `id` (`author.name`), a semver `version`, and an `adds` sentence that tells a stranger what the code will do.
 4. **Write the rules** against the types in `src/sdk/index.ts`:
    - keywords and simple modifiers as data (`rules`), anything with branches or loops as a generator procedure;

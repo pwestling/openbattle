@@ -129,13 +129,6 @@ export interface CodeAction {
   available(view: GameView, actor: Actor): true | string;
   targets?(view: GameView, actor: Actor): Target[];
   /**
-   * At a real table (`view.atTable`, the table companion) nothing can be
-   * measured, so the players say: yes/no questions asked before the action
-   * starts, for this target. The answers reach `run` as `args.told[id]`; a
-   * question with `need` answered no stops the action ("Can they see it?").
-   */
-  told?(view: GameView, actor: Actor, target: Id | undefined): TableQuestion[];
-  /**
    * Action points it spends, in a game whose activations count them (the
    * alternate slot's `actionsPerActivation`, e.g. 2 a go): 1 when missing,
    * 0 for a free action. The engine refuses it when the unit has fewer left,
@@ -144,14 +137,6 @@ export interface CodeAction {
    */
   cost?: number;
   run: CodeProcedure;
-}
-
-/** A yes/no question the players answer from their real table (see `CodeAction.told`). */
-export interface TableQuestion {
-  id: Id;
-  question: string;
-  /** Without a yes, the action can't be taken. */
-  need?: boolean;
 }
 
 /**
@@ -251,12 +236,6 @@ export interface GameView {
   inCover(from: Id, to: Id): boolean;
   arc(of: Id, other: Id): Id | null;
   engaged(unitId: Id): Id[];
-  /**
-   * Played with real models on a real table (the table companion): the
-   * positions aren't the table's, so `distance`, `visible` and `inCover` mean
-   * nothing. Ask the players instead (`CodeAction.told`, `ctx.ask`).
-   */
-  atTable: boolean;
   /** This module's own state, `state.modules[id]`. */
   own: Record<string, unknown>;
   /** The whole game state, read-only (a worker holds the same replica). */
@@ -415,19 +394,6 @@ export interface ScoringRule {
   at: ScoringMoment;
   /** The side's score at that moment, as the table stood then; null when it scores nothing. */
   suggest(game: GameState, seat: number): { vp: number; why: string } | null;
-  /** At a real table (table companion), what to ask the player instead, the app working out the VP. */
-  ask?: ScoreQuestion;
-  /**
-   * False when `suggest` measures nothing on the table (it counts units wiped out, say): a real
-   * table can then use it as it is, instead of asking.
-   */
-  measures?: boolean;
-}
-
-/** A scoring rule's question for players at a real table (UX 278), and what each answer scores. */
-export interface ScoreQuestion {
-  question: string;
-  answers: { label: string; vp: number; why: string }[];
 }
 
 export interface MissionCard {
@@ -437,8 +403,6 @@ export interface MissionCard {
   text: string;
   /** Its score when revealed, as the table stands. */
   suggest(game: GameState, seat: number): { vp: number; why: string };
-  /** At a real table, the question that scores it. */
-  ask?: ScoreQuestion;
 }
 
 /** A game's rules in words (PackageApp.rulebook). */

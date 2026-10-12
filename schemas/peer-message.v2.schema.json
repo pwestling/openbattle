@@ -1319,9 +1319,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }
@@ -6851,9 +6848,6 @@
                       "type": "null"
                     }
                   ]
-                },
-                "companion": {
-                  "type": "boolean"
                 }
               }
             }
@@ -10171,9 +10165,6 @@
               "type": "null"
             }
           ]
-        },
-        "companion": {
-          "type": "boolean"
         }
       },
       "required": [
@@ -10431,22 +10422,6 @@
             "t",
             "seq",
             "kind"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "t": {
-              "type": "string",
-              "const": "talk/shake"
-            },
-            "on": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "t",
-            "on"
           ]
         },
         {

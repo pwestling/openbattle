@@ -78,7 +78,7 @@ import { t, tn } from "../i18n";
   comment on its line (`{/* i18n-ignore */}` in JSX).
 
 `pnpm i18n` updates `src/i18n/messages.pot` from the code and adds new strings, untranslated, to every
-catalog. CI runs `pnpm i18n:check`. It fails when the catalogs are out of date with the code, or when
+catalog. Run `pnpm i18n:check` by hand. It fails when the catalogs are out of date with the code, or when
 JSX text or a `title`, `placeholder`, `aria-label`, `alt` or `label` attribute isn't wrapped. After
 changing interface text, run `pnpm i18n` and commit the catalogs. Strings with no translation show in
 English until someone translates them.

@@ -42,7 +42,7 @@ Forks are welcome; the code is MIT. A fork that changes the protocol, the reduce
 
 ## Contributions
 
-Contributions come in under the licence they go out under: by opening a pull request you agree your work is released under the [MIT License](LICENSE) (code) or [CC BY 4.0](games/rift-lanterns/README.md) (our games' rules and art). There is no CLA and no sign-off line to add.
+Contributions come in under the licence they go out under: by opening a pull request you agree your work is released under the [MIT License](LICENSE) (code) or [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) (any rules and art of ours). There is no CLA and no sign-off line to add.
 
 ## Publisher IP
 

@@ -3,7 +3,6 @@ import { useStore } from "../store";
 import { systemModule } from "../systems";
 import { mainWeapon } from "../systems/wh40k/rules";
 import { phaseName } from "../core/content/turn";
-import { realDiceOn } from "../companion/RealDice";
 import { pointerModel, useTtsControls } from "./ttsControls";
 import { useChargeAsk } from "./tableVerbs";
 import { eyeView } from "./UnitCard";
@@ -66,7 +65,7 @@ function verb(key: string): boolean {
     s.setDraft({ attackerId: unit.id, kind: "ranged", picking: true, all: true });
     return true;
   }
-  if (key === "a" && !tts && phase === "Movement" && !realDiceOn()) {
+  if (key === "a" && !tts && phase === "Movement") {
     s.dispatch({ type: "dice/roll", count: 1, sides: 6, label: "advance", unitId: unit.id }, unit.owner);
     return true;
   }

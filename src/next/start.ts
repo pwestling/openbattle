@@ -26,8 +26,8 @@ export const WHO_KEY = "open-battle:who";
 /** An invite the player stepped back from, for the door's box (this tab only). */
 export const INVITE_KEY = "open-battle:invite";
 
-export type Who = "friend" | "computer" | "both" | "table";
-export const WHOS: Who[] = ["friend", "computer", "both", "table"];
+export type Who = "friend" | "computer" | "both";
+export const WHOS: Who[] = ["friend", "computer", "both"];
 
 /** The name this browser plays under: what was typed last, else the player card's. */
 export function savedName(): string {
@@ -83,8 +83,8 @@ function namePackage(system: string): void {
 
 const mode = () => (new URLSearchParams(location.search).get("local") === "1" ? "local" : "online");
 
-/** A friend online: open a room and its invite link. `companion` seats phones at a real table. */
-export async function hostRoom(system: string, name: string, companion = false): Promise<void> {
+/** A friend online: open a room and its invite link. */
+export async function hostRoom(system: string, name: string): Promise<void> {
   useInviteCopied.setState({ copied: false });
   remember(name, system);
   const roomId = crypto.randomUUID().slice(0, 8);
@@ -93,7 +93,6 @@ export async function hostRoom(system: string, name: string, companion = false):
   whenStarted(() => {
     namePackage(system);
     presetMission();
-    if (companion) useStore.getState().dispatch({ type: "settings/set", settings: { companion: true } });
   });
 }
 
@@ -111,15 +110,6 @@ export function bothSides(system: string, name: string, near?: OwnArmy): void {
   useStore.getState().start({ role: "host", mode: "hotseat", name, system });
   namePackage(system);
   presetMission();
-}
-
-/** Real models on a real table, one screen for both players. */
-export function atTable(system: string, name: string): void {
-  remember(name, system);
-  useStore.getState().start({ role: "host", mode: "hotseat", name, system });
-  namePackage(system);
-  presetMission();
-  useStore.getState().dispatch({ type: "settings/set", settings: { companion: true } });
 }
 
 /** Back into the saved game. */

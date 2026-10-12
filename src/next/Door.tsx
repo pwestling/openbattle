@@ -27,7 +27,6 @@ import type { OwnArmy } from "../bot/startSolo";
 import { PackageArmyChoice } from "../ui/PackageArmies";
 import { SaveDoor } from "./SaveDoor";
 import {
-  atTable,
   autoJoin,
   bothSides,
   hostRoom,
@@ -105,7 +104,6 @@ export function Door() {
   });
   // The last level played (Easy the first time) is picked already, so Start is lit at once (UX N39).
   const [level, setLevel] = useState<Level | null>(savedLevel);
-  const [phones, setPhones] = useState<"one" | "each">("one");
   // Both sides on this screen: the near side's army, when a trusted package brings one (#82b).
   const [near, setNear] = useState<OwnArmy | null>(null);
   const [more, setMore] = useState(false);
@@ -197,7 +195,6 @@ export function Door() {
   );
   const lesson = lessons.find((l) => lessonSystem(l) === system);
   const computer = !!system && !!FRONT[system];
-  const tableOk = !!system && !fromPackages.some((p) => p.manifest.systems[0] === system);
 
   const savedAt = useMemo(() => {
     if (!saved) return null;
@@ -244,27 +241,14 @@ export function Door() {
       // Not kept.
     }
   };
-  const needsName = who === "friend" || (who === "table" && phones === "each");
+  const needsName = who === "friend";
   const go = () => {
     if (!system) return;
     const n = name.trim();
     if (who === "friend") void hostRoom(system, n);
     else if (who === "both") bothSides(system, n, near ?? undefined);
-    else if (who === "table") {
-      if (phones === "one") atTable(system, n);
-      else void hostRoom(system, n, true);
-    }
   };
-  const goLabel =
-    who === "friend"
-      ? t("Open the table")
-      : who === "both"
-        ? t("Set up both sides")
-        : who === "table"
-          ? phones === "each"
-            ? t("Open the table for two phones")
-            : t("Start on this screen")
-          : "";
+  const goLabel = who === "friend" ? t("Open the table") : who === "both" ? t("Set up both sides") : "";
 
   if (askName)
     return (
@@ -336,7 +320,6 @@ export function Door() {
         : t("You set up both armies and play both."),
       true,
     ],
-    ["table", t("A real table, your models"), t("Phones keep the cards, wounds, CP, VP and dice."), tableOk],
   ];
 
   return (
@@ -470,26 +453,6 @@ export function Door() {
                 <ComputerArmy key={level} system={system} level={level} />
               ) : (
                 <>
-                  {who === "table" && (
-                    <div className="obn-stack" role="radiogroup" aria-label={t("Phones")} onKeyDown={arrows}>
-                      {(
-                        [
-                          ["one", t("One phone or screen for both of us")],
-                          ["each", t("A phone each: you get a link for the other phone")],
-                        ] as const
-                      ).map(([id, label]) => (
-                        <button
-                          key={id}
-                          role="radio"
-                          aria-checked={phones === id}
-                          className={`obn-pick small${phones === id ? " on" : ""}`}
-                          onClick={() => setPhones(id)}
-                        >
-                          <strong>{label}</strong>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   {who === "both" && FRONT[system] && (
                     <PackageArmyChoice key={system} system={system} onChange={setNear} />
                   )}

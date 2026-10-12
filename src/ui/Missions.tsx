@@ -11,7 +11,7 @@ import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
 import { bothSigned } from "../ranked/RankedGame";
 import { battleOver } from "./StatsScreen";
-import { t, tc, tn, translated } from "../i18n";
+import { t, tc, tn } from "../i18n";
 
 /** The game's chosen mission (SystemModule.missions), if any. */
 export function missionOf(game: GameState): Mission | undefined {
@@ -34,8 +34,7 @@ function confirmScore(
       round: p.round,
       vp: vp ?? 0,
       why: `${p.rule}: ${why}`,
-      // At a real table there was no suggestion to note (UX 278).
-      ...(vp === undefined ? { skipped: true } : p.guessed && vp !== p.vp ? { suggested: p.vp } : {}),
+      ...(vp === undefined ? { skipped: true } : vp !== p.vp ? { suggested: p.vp } : {}),
     },
     by,
   );
@@ -110,7 +109,7 @@ export function ScoreChips({ seat }: { seat: number }) {
   const game = useGame();
   const { dispatch, scrub, role, stats } = useStore();
   const canControl = useCanControl();
-  const pending = usePending().filter((p) => p.seat === seat && !p.ask && p.vp > 0);
+  const pending = usePending().filter((p) => p.seat === seat && p.vp > 0);
   if (!pending.length || scrub !== null || (stats ?? battleOver(game))) return null;
   const mine = role !== "spectator" ? sidePlayers(game, seat).find((x) => canControl(x.id)) : undefined;
   const name = displayName(sidePlayers(game, seat)[0]?.name ?? "") || sideName(game, seat);
@@ -153,17 +152,17 @@ export function ScorePanel({ inline }: { inline?: boolean }) {
   const { dispatch, scrub, role, stats } = useStore();
   const canControl = useCanControl();
   const all = usePending();
-  // During play the plain asks sit by each side's VP in the top bar (ScoreChips); the panel keeps the rest.
-  const pending = inline ? all : all.filter((p) => p.ask);
+  // During play the scores sit by each side's VP in the top bar (ScoreChips); the panel is for the result screen.
+  const pending = inline ? all : [];
   const [edits, setEdits] = useState<Record<string, number>>({});
   // One screen for both sides (hotseat, Play now): the mission's suggestion counts straight away, and
-  // the top bar's − and + correct it (UX 333). At a real table the players say what they hold.
-  const auto = useStore((s) => s.mode === "hotseat" && s.session !== null) && !game.settings.companion;
+  // the top bar's − and + correct it (UX 333).
+  const auto = useStore((s) => s.mode === "hotseat" && s.session !== null);
   useEffect(() => {
     // The floating panel does it; the result screen's copy of it doesn't, so nothing goes twice.
     if (!auto || inline || scrub !== null) return;
     for (const p of all) {
-      const by = p.guessed && !p.ask ? sidePlayers(game, p.seat)[0]?.id : undefined;
+      const by = sidePlayers(game, p.seat)[0]?.id;
       if (by) confirmScore(dispatch, p, by, p.vp);
     }
   }, [auto, inline, scrub, all, game, dispatch]);
@@ -183,22 +182,7 @@ export function ScorePanel({ inline }: { inline?: boolean }) {
             <span>
               {t("Round {n}", { n: p.round })} · <strong>{sideName(game, p.seat)}</strong> · {p.rule}: {p.why}
             </span>
-            {mine && p.ask ? (
-              <div className="row wrap score-ask">
-                {p.ask.answers.map((a) => (
-                  <button
-                    key={a.label}
-                    title={t("{vp} VP", { vp: a.vp })}
-                    onClick={() => confirmScore(dispatch, p, mine.id, a.vp, a.why)}
-                  >
-                    {translated(a.label)}
-                  </button>
-                ))}
-                <button className="quiet" onClick={() => confirm(true)}>
-                  {t("Pass")}
-                </button>
-              </div>
-            ) : mine ? (
+            {mine ? (
               <div className="row">
                 <input
                   type="number"
@@ -214,12 +198,10 @@ export function ScorePanel({ inline }: { inline?: boolean }) {
               </div>
             ) : (
               <span className="muted small">
-                {p.guessed
-                  ? t("Suggested {vp} VP · waiting for {side} to confirm", {
-                      vp: p.vp,
-                      side: sideName(game, p.seat),
-                    })
-                  : t("Waiting for {side} to score it", { side: sideName(game, p.seat) })}
+                {t("Suggested {vp} VP · waiting for {side} to confirm", {
+                  vp: p.vp,
+                  side: sideName(game, p.seat),
+                })}
               </span>
             )}
           </div>

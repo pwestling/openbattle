@@ -1,5 +1,4 @@
 import { useReactionHeld } from "./reactionHold";
-import { DiceChoice } from "../companion/RealDice";
 import { RankedChip } from "../ranked/RankedGame";
 import { displayName, playerName } from "../i18n/names";
 import { ClockBar, SideClock } from "./Clocks";
@@ -646,7 +645,6 @@ export function SoundToggle() {
           <label className="check">
             <input type="checkbox" checked={fast} onChange={toggleFast} /> {t("Fast dice")}
           </label>
-          {mineKey && <DiceChoice />}
           {mineKey && mineKey.split(",").map((id) => <DicePicker key={id} player={id} />)}
         </div>
       )}

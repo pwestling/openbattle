@@ -313,7 +313,7 @@
   opacity: 0.7;
 }
 
-/* Fingers at the table (UX 327): the top bar's controls at least 44px, as in the companion and the workshop.
+/* Fingers at the table (UX 327): the top bar's controls at least 44px.
    The score counters' − and + stay small: they are corrections, and full size would wrap the bar to three rows. */
 @media (pointer: coarse) {
   .topbar button:not(.counter button),
@@ -339,13 +339,6 @@
 }
 
 /* Play the computer (#45): "How hard?" in the game's card (UX 350). */
-.lobby .how-hard {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  margin-top: 8px;
-}
 
 /* Share the battle (#46): the panel over the replay bar, and the pill while a clip records. */
 .panel.share-panel {
@@ -449,16 +442,7 @@
     animation: none;
   }
 }
-.lobby .how-hard button {
-  width: 100%;
-  text-align: left;
-  min-height: 36px;
-}
-.lobby .how-hard .quiet {
-  width: auto;
-  align-self: flex-end;
-  min-height: 0;
-}
+
 .replay-start {
   margin-top: 6px;
   gap: 8px;
@@ -473,178 +457,13 @@ body:has(.round-card:not(.replay-title):not(.package-card)) .whatnow {
 }
 
 /* Rift Lanterns' rules page (#47): the rulebook made from the module, to read, with Print and play. */
-.rules-page {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  overflow-y: auto;
-  background: rgb(8 9 12 / 82%);
-  padding: 24px 16px calc(48px + env(safe-area-inset-bottom));
-}
-.rules-sheet {
-  max-width: 760px;
-  margin: 0 auto;
-  background: #f6f1e7;
-  color: #1d1f24;
-  border-radius: 10px;
-  padding: 24px 28px 32px;
-  line-height: 1.5;
-  text-align: left;
-}
+
 /* The title and ✕ stay in reach however far down the page (UX 360). */
-.rules-sheet header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: -24px -28px 0;
-  padding: 16px 28px 8px;
-  background: #f6f1e7;
-  border-bottom: 1px solid #e3d9c4;
-}
-.rules-sheet header .close {
-  min-width: 44px;
-  min-height: 44px;
-  font-size: 1.3rem;
-  color: #1d1f24;
-  background: #ebe2cf;
-  border: 1px solid #d9cdb4;
-  border-radius: 8px;
-}
+
 /* A light second button on the cream page, not dark on dark (UX 357). */
-.rules-sheet .print-row button:not(.primary),
-.rules-sheet .play-row button:not(.primary) {
-  color: #1d1f24;
-  background: #fffaf0;
-  border: 1px solid #c9bb9c;
-}
-.rules-sheet .print-row button,
-.rules-sheet .play-row button {
-  min-height: 40px;
-}
+
 /* The sheet's dark ink would carry into the blue buttons: white on blue, as everywhere else (UX 364). */
-.rules-sheet button.primary {
-  color: #fff;
-}
-.rules-sheet .play-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 2px solid #d9cdb4;
-}
-.rules-page:focus {
-  outline: none;
-}
-.rules-sheet h1 {
-  margin: 0;
-  font-size: 2rem;
-}
-.rules-sheet strong {
-  color: inherit;
-}
-.rules-sheet h2 {
-  margin: 1.6em 0 0.4em;
-  font-size: 1.3rem;
-  color: #1d1f24;
-  text-transform: none;
-  letter-spacing: normal;
-  border-bottom: 2px solid #d9cdb4;
-  padding-bottom: 2px;
-}
-.rules-sheet h3 {
-  margin: 0 0 4px;
-}
-.rules-sheet .muted {
-  color: #5d6068;
-}
-.rules-sheet .print-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 0;
-  padding: 10px 12px;
-  background: #ebe2cf;
-  border-radius: 8px;
-}
-.rules-sheet .intro {
-  font-size: 1.1rem;
-}
-.rules-sheet .warband {
-  border-left: 4px solid;
-  padding: 4px 0 4px 12px;
-  margin: 16px 0;
-}
-.rules-sheet .units {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 10px;
-}
-.rules-sheet .unit > div {
-  min-width: 0;
-  flex: 1;
-}
-.rules-sheet .unit {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-  background: #fffaf0;
-  border-radius: 6px;
-  padding: 6px;
-}
-.rules-sheet .figure {
-  width: 56px;
-  min-height: 56px;
-  object-fit: contain;
-  flex: none;
-}
-.rules-sheet table.stats {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 4px;
-  font-size: 0.9rem;
-}
-.rules-sheet table.stats th,
-.rules-sheet table.stats td {
-  border: 1px solid #d9cdb4;
-  padding: 1px 2px;
-  text-align: center;
-  color: #1d1f24;
-  background: transparent;
-  font-size: 0.8rem;
-}
-.rules-sheet .map {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 6px;
-}
-.rules-sheet .quickref {
-  background: #ebe2cf;
-  border-radius: 8px;
-  padding: 2px 16px 8px;
-}
-@media (max-width: 640px) {
-  .rules-page {
-    padding: 0;
-  }
-  .rules-sheet {
-    border-radius: 0;
-    padding: 16px;
-  }
-  .rules-sheet header {
-    margin: -16px -16px 0;
-    padding: 10px 16px 6px;
-  }
-  .rules-sheet .play-row button {
-    flex: 1 1 100%;
-  }
-}
+
 /* The replay page's start card has the screen: the caption waits until it closes (UX 354). */
 body:has(.replay-title) .caption {
   display: none;
@@ -727,20 +546,6 @@ body:has(.replay-title) .caption {
   flex: none;
   margin: 0;
 }
-/* The companion's units list: whose go it is (UX 363). */
-.companion-units section.going {
-  border-left: 3px solid currentColor;
-  padding-left: 8px;
-}
-.companion-units .go-now {
-  margin-left: 8px;
-  padding: 1px 8px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  color: #111318;
-  background: #fbbf24;
-  vertical-align: middle;
-}
 /* While a square or tall clip records, the caption stacks: round line above the event (UX 356). */
 body.clip-narrow .caption {
   flex-direction: column;
@@ -748,21 +553,7 @@ body.clip-narrow .caption {
   gap: 2px;
   max-width: 420px;
 }
-/* On the companion, a rule's question sits in the page, not floating over it. */
-.companion .panel.script {
-  position: static;
-  transform: none;
-  max-width: none;
-  margin: 8px 0;
-  border-width: 2px;
-}
-.companion .panel.script .chips button {
-  min-height: 44px;
-  flex: 1;
-}
-.rules-sheet .map.hero {
-  margin: 12px 0 4px;
-}
+
 /* The model under the pointer: a name, so it reads like the name plates, not a ruler readout (PX solo 4). */
 .ruler.model-hover {
   font-family: inherit;

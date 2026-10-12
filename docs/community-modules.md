@@ -8,10 +8,8 @@ Game systems and rules packages other players have written, listed by link. Open
 
 ## Modules
 
-| Module                                                                                                            | Version | Author                   | Systems       | What it adds                                                                                                                                                                                                                             | Fingerprint |
-| ----------------------------------------------------------------------------------------------------------------- | ------- | ------------------------ | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [Rift Lanterns](https://raw.githubusercontent.com/pwestling/openbattle/main/games/rift-lanterns/rift-lanterns.js) | 1.3.2   | Open Battle contributors | rift-lanterns | Our own skirmish game: four warbands, three missions, a starter table. CC BY 4.0; [rules](../games/rift-lanterns/RULES.md), print and play in the app. It also ships with the app.                                                       | `34d0 ff13` |
-| [Brinewatch](https://raw.githubusercontent.com/pwestling/openbattle/main/games/brinewatch/brinewatch.js)          | 1.0.0   | Open Battle contributors | brinewatch    | Our second skirmish game: crews of named models, two action points a go, guards, hidden lurkers, three missions and a campaign. CC BY 4.0; [rules](../games/brinewatch/RULES.md), print and play in the app. It also ships with the app. | `1e58 a93b` |
+| Module | Version | Author | Systems | What it adds | Fingerprint |
+| ------ | ------- | ------ | ------- | ------------ | ----------- |
 
 To open a module in the workshop, paste its link into **Open from a link**, or add `?workshop=<its raw link>` to Open Battle's address.
 
@@ -19,13 +17,11 @@ To open a module in the workshop, paste its link into **Open from a link**, or a
 
 The workshop starts new drafts from these. They're in this repository, so they're a good place to read how a whole game fits in one file.
 
-| Template                                                       | What it shows                                                          |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Skirmish](../examples/workshop/skirmish.js)                   | Model-by-model movement, a code action within 1", wounds               |
-| [Ranked](../examples/workshop/ranked.js)                       | Regiment blocks, arcs, a clash using the front rank and rank bonus     |
-| [Alternating activations](../examples/workshop/activations.js) | A round of alternating unit activations, range and shooting            |
-| [Rift Lanterns](../games/rift-lanterns/rift-lanterns.js)       | A finished game: factions, missions, stand-in figures, a starter table |
-| [Brinewatch](../games/brinewatch/brinewatch.js)                | A finished game: action points, guards, secrets, floors, a campaign    |
+| Template                                                       | What it shows                                                      |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [Skirmish](../examples/workshop/skirmish.js)                   | Model-by-model movement, a code action within 1", wounds           |
+| [Ranked](../examples/workshop/ranked.js)                       | Regiment blocks, arcs, a clash using the front rank and rank bonus |
+| [Alternating activations](../examples/workshop/activations.js) | A round of alternating unit activations, range and shooting        |
 
 [Arena](../examples/packages/arena.js), a small game with hooks and a side panel, isn't a template, but it opens in the workshop from its link like any module.
 

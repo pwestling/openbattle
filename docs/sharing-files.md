@@ -44,8 +44,7 @@ Rules packages and faction packs have their own links and consent: see
 [packages.md](packages.md) and [faction-packs.md](faction-packs.md).
 
 Code: `src/share/links.ts`, `src/share/torrent.ts`, `src/share/bucket.ts`, `src/share/OpenLink.tsx`
-and `server/seeder.mjs`. `node scripts/share-smoke.mjs` (after `pnpm build`)
-has two browsers share through a local tracker and seed node.
+and `server/seeder.mjs`.
 
 ## Your own bucket
 

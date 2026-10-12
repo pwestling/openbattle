@@ -128,7 +128,7 @@ export function clearTray(): void {
  * still, shake while held, and the next roll is thrown from where they are.
  * Presentation only, on this screen: the roll itself is the host's, as ever.
  */
-export const trayHand = {
+const trayHand = {
   /** Dice into the hand: `n` of them (a heap past 12), the roller's own set, from their side of the tray. */
   take(n: number, sides: number, look: DiceSet, defender: boolean, caption: string): void {
     current?.take(n, sides, look, defender, caption);

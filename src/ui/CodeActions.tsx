@@ -2,7 +2,7 @@ import { battleOver } from "./StatsScreen";
 import { useState } from "react";
 import type { Unit } from "../core";
 import { currentSlot, plainActivations } from "../core/content/turn";
-import { gameView, toldFor } from "../core/script";
+import { gameView } from "../core/script";
 import { useCanControl, useStore } from "../store";
 import { usePackageActions } from "../sandbox/runtime";
 import type { ActionRow } from "../sandbox/protocol";
@@ -21,8 +21,6 @@ export function CodeActions({ unit }: { unit: Unit }) {
   const { dispatch, scrub } = useStore();
   const canControl = useCanControl();
   const [picked, setPicked] = useState<Record<string, string>>({});
-  // At a real table, the players' answers per action and target (CodeAction.told).
-  const [told, setTold] = useState<Record<string, Record<string, boolean>>>({});
   const fromPackages = usePackageActions(unit);
   const mod = gameModule(game.system);
   // After Battle over the table is for looking back: no actions to start.
@@ -45,7 +43,6 @@ export function CodeActions({ unit }: { unit: Unit }) {
             available,
             targets,
             targeted: !!a.targets,
-            ...toldFor(a, view, actor, targets),
           };
         })
     : [];
@@ -60,10 +57,6 @@ export function CodeActions({ unit }: { unit: Unit }) {
     const ok = a.available;
     const targets = a.targets;
     const target = picked[a.id] ?? targets[0]?.unitId;
-    const questions = a.told?.[target ?? ""] ?? [];
-    const key = `${a.id}:${target ?? ""}`;
-    const answers = told[key] ?? {};
-    const missing = questions.find((q) => q.need && !answers[q.id]);
     const why = ok !== true ? ok : busy ? "Another rule is still being resolved" : null;
     // Not this side's to take: say so rather than grey it out with no reason (UX 363).
     const notYours = !mine ? t("Not your unit") : !onTurn(unit) ? t("Not this side's go") : null;
@@ -73,9 +66,7 @@ export function CodeActions({ unit }: { unit: Unit }) {
         <div key={a.id} className="code-action">
           <div className="row">
             <button
-              // Lit once everything it needs is answered (PX print and play).
-              className={questions.length && !missing && !notYours && !why ? "primary" : undefined}
-              disabled={!!notYours || !!why || (a.targeted && !target) || !!missing}
+              disabled={!!notYours || !!why || (a.targeted && !target)}
               title={notYours ?? why ?? undefined}
               onClick={() =>
                 dispatch(
@@ -85,9 +76,6 @@ export function CodeActions({ unit }: { unit: Unit }) {
                     args: {
                       unit: unit.id,
                       ...(target ? { target } : {}),
-                      ...(questions.length
-                        ? { told: Object.fromEntries(questions.map((q) => [q.id, !!answers[q.id]])) }
-                        : {}),
                     },
                   },
                   unit.owner,
@@ -112,24 +100,6 @@ export function CodeActions({ unit }: { unit: Unit }) {
             {targets.length === 1 && <span className="muted"> {targets[0]!.label}</span>}
             {(notYours || why) && <span className="muted small"> {notYours ?? why}</span>}
           </div>
-          {!notYours && !why && questions.length > 0 && (
-            // One question a row, the box first; the ones that may be left unticked say so (UX 359).
-            <div className="told" role="group" aria-label={t("On the table")}>
-              {questions.map((q) => (
-                <label key={q.id} className={q.need && !answers[q.id] ? "need" : ""}>
-                  <input
-                    type="checkbox"
-                    checked={!!answers[q.id]}
-                    onChange={(e) => setTold({ ...told, [key]: { ...answers, [q.id]: e.target.checked } })}
-                  />
-                  <span>
-                    {q.question}
-                    {!q.need && <span className="muted small"> {t("(optional)")}</span>}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
         </div>
       ),
     };

@@ -10,7 +10,6 @@ import { Announcer } from "./ui/Announcer";
 import { ClockKeeper } from "./ui/Clocks";
 import { CampaignBookDialog, CampaignKeeper } from "./campaign/CampaignUI";
 import { lazy, useEffect, Suspense } from "react";
-import { CompanionScreen } from "./companion/CompanionScreen";
 import { t } from "./i18n";
 import { useStore } from "./store";
 import { useTalk } from "./talk/talk";
@@ -43,7 +42,6 @@ import { RerollCard } from "./ui/RerollCard";
 import { MayReact, ReactionCard } from "./ui/ReactionCard";
 import { OthersPlanning, PlanPanel } from "./ui/PlanPanel";
 import { useTableKeys } from "./ui/peekKeys";
-import { OthersShaking } from "./companion/Shake";
 import { StratagemHand } from "./ui/StratagemHand";
 import { DragTag, TableTag } from "./ui/TableTag";
 import { useTableTalk } from "./talk/talk";
@@ -62,7 +60,7 @@ import { climbUnit, rotateUnit, UnitCard } from "./ui/UnitCard";
 import { deleteKey } from "./ui/ttsControls";
 import { useTouch } from "./render/touchState";
 
-/** three.js and the 3D table load on their own: the table companion (#37) never draws them. */
+/** three.js and the 3D table load on their own. */
 export const loadBoard = () => import("./render/Board");
 const Board = lazy(() => loadBoard().then((m) => ({ default: m.Board })));
 /** An online event's game (#67): its bar loads only at an event's table. */
@@ -256,25 +254,6 @@ export function GameScreen({ started }: { started: boolean }) {
     return () => removeEventListener("keydown", onKey);
   }, []);
   useTableKeys();
-  const companion = useStore((s) => !!s.game.settings.companion);
-  // Real models on a real table (#37): no board, the phone screen instead.
-  if (started && companion && !BROADCAST)
-    return (
-      <>
-        <CompanionScreen />
-        <ReportBanner />
-        <TableWarningsPanel />
-        <DiceTray />
-        <VoiceRoom />
-        <StatsScreen />
-        <PackageCards />
-        <SandboxNotice />
-        <CampaignKeeper />
-        <ClockKeeper />
-        <CampaignBookDialog />
-        <Announcer />
-      </>
-    );
   // The table is the front door's backdrop too; the panels come with a game.
   return (
     <>
@@ -339,7 +318,6 @@ export function GameScreen({ started }: { started: boolean }) {
           {!editing && !VIEWER && <MayReact />}
           {!editing && !VIEWER && !hotseat && <PlanPanel />}
           {!VIEWER && <OthersPlanning />}
-          {!VIEWER && <OthersShaking />}
           {!editing && !VIEWER && <TouchLayer />}
           <VoiceRoom />
           <Moments />

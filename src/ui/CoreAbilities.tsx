@@ -94,24 +94,11 @@ export function CoreAbilities({ unit }: { unit: Unit }) {
           {mine && !deploying && (!anyReserve || status.acting) && (
             <button
               className="primary"
-              title={
-                game.settings.companion
-                  ? t("Then drag the unit onto the table, more than {distance} from every enemy model", {
-                      distance: awayText,
-                    })
-                  : t(
-                      "Click the table to set it down, more than {distance} from every enemy model. Esc puts it back.",
-                      {
-                        distance: awayText,
-                      },
-                    )
-              }
-              onClick={() =>
-                // At a real table the models go down by hand; on screen the squad comes up onto the pointer (PX B1).
-                game.settings.companion
-                  ? dispatch({ type: "unit/reserve", id: unit.id, reserve: false }, unit.owner)
-                  : useArriving.setState({ unitId: unit.id })
-              }
+              title={t(
+                "Click the table to set it down, more than {distance} from every enemy model. Esc puts it back.",
+                { distance: awayText },
+              )}
+              onClick={() => useArriving.setState({ unitId: unit.id })}
             >
               {t("Arrive")}
             </button>

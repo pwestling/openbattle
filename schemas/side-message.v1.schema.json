@@ -261,22 +261,6 @@
           "properties": {
             "t": {
               "type": "string",
-              "const": "talk/shake"
-            },
-            "on": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "t",
-            "on"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "t": {
-              "type": "string",
               "const": "talk/reel"
             },
             "index": {

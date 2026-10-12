@@ -3,7 +3,7 @@ import { useState } from "react";
 import { unitGap, type Intent, type Unit } from "../core";
 import { actionTargets, unitActions } from "../core/content/play";
 import { formatList, t } from "../i18n";
-import { RollButton } from "../companion/RealDice";
+import { RollButton } from "./RollButton";
 import { useGame } from "./hooks";
 import { engagedWith } from "../systems/wh40k/rules";
 import { chargeNeeded } from "../systems/wh40k/charge";

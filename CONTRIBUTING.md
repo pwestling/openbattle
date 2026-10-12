@@ -17,10 +17,10 @@ To try an online game on one machine, open two tabs: host in one and join in the
 
 ## Before you push
 
-CI runs these, so run them locally first:
+There is no CI. Run these locally:
 
 ```sh
-pnpm format       # Prettier (CI runs pnpm format:check)
+pnpm format       # Prettier
 pnpm lint         # ESLint
 pnpm typecheck    # tsc -b, the real type check
 ```
@@ -28,7 +28,6 @@ pnpm typecheck    # tsc -b, the real type check
 Two notes:
 
 - Type check with `pnpm typecheck` (or `pnpm tsc -b`). The root `tsconfig.json` only holds project references, so `tsc --noEmit -p .` checks nothing and always passes.
-- CI also runs `pnpm soak`, which plays 20 seeded bot games per system with dropped connections, host changes, undo and branching thrown in. It takes a few minutes, so you don't have to run it every time, but do run it if you touch the engine, the network session or a system module. A failure names its seed; `SOAK_FROM=<seed> SOAK_SEEDS=1 pnpm soak` replays just that game, and `SOAK_TRACE=1` prints every move. A nightly job runs 200 seeds per system.
 
 ## Code layout
 

@@ -2,7 +2,6 @@ import { useState, type CSSProperties } from "react";
 import { undoneSeqs, type GameRecord, type GameState, type Intent, type PlayerId } from "../core";
 import { playerActions, type PlayerActionOption } from "../core/content/player";
 import { reactionWindow } from "../core/content/reactions";
-import { useRealDice } from "../companion/RealDice";
 import { gameText, t } from "../i18n";
 import { useCanControl, useStore } from "../store";
 import { create } from "zustand";
@@ -35,7 +34,6 @@ interface Offer {
   seq: number;
   roller: PlayerId;
   option: PlayerActionOption;
-  sides: number;
   /** The first failed die of each face, to re-roll. */
   faces: { face: number; die: number }[];
 }
@@ -65,7 +63,7 @@ function rerollOffer(
   });
   if (!faces.length) return null;
   faces.sort((a, b) => a.face - b.face);
-  return { seq: last.seq, roller, option, sides: step.plan.sides, faces };
+  return { seq: last.seq, roller, option, faces };
 }
 
 export function RerollCard() {
@@ -74,22 +72,19 @@ export function RerollCard() {
   const dispatch = useStore((s) => s.dispatch);
   const canControl = useCanControl();
   const shown = useHandShown();
-  const ownDice = useRealDice();
   const notAsked = useNotAsked((s) => s.games.includes(gameKey(record)));
   const [passed, setPassed] = useState<number | null>(null);
-  const [telling, setTelling] = useState<number | null>(null);
   // An engine reaction window has its own cards by the dice (#80): this one is for games without one.
   const offer = shown && !notAsked && !reactionWindow(game) ? rerollOffer(game, record, canControl) : null;
   if (!offer || passed === offer.seq) return null;
   const name = gameText(offer.option.def.name);
 
-  const reroll = (die: number, told?: number) => {
+  const reroll = (die: number) => {
     dispatch({ type: "player/action", action: offer.option.def.id }, offer.roller);
     const intent = { type: "attack/reroll", seq: offer.seq, die } as Intent;
-    dispatch((told !== undefined ? { ...intent, told: [told] } : intent) as Intent, offer.roller);
+    dispatch(intent, offer.roller);
     coin();
     thunk(1);
-    setTelling(null);
   };
   const style = { "--side": game.players[offer.roller]?.color } as CSSProperties;
 
@@ -97,44 +92,22 @@ export function RerollCard() {
     <div className="reroll-card" role="group" aria-label={t("{name}?", { name })} style={style}>
       <span className="cost">{offer.option.cost}</span>
       <strong>{name}</strong>
-      {telling === null ? (
-        <>
-          <div className="row">
-            {offer.faces.map(({ face, die }) => (
-              <button
-                key={face}
-                className="small primary"
-                onClick={() => (ownDice ? setTelling(die) : reroll(die))}
-              >
-                {t("Re-roll a {face}", { face })}
-              </button>
-            ))}
-            <button className="small" onClick={() => setPassed(offer.seq)}>
-              {t("No")}
-            </button>
-          </div>
-          <button
-            className="link quiet"
-            onClick={() => useNotAsked.setState((s) => ({ games: [...s.games, gameKey(record)] }))}
-          >
-            {t("Don't ask me this game")}
+      <div className="row">
+        {offer.faces.map(({ face, die }) => (
+          <button key={face} className="small primary" onClick={() => reroll(die)}>
+            {t("Re-roll a {face}", { face })}
           </button>
-        </>
-      ) : (
-        <>
-          <span>{t("Roll one die. What did it show?")}</span>
-          <div className="row">
-            {Array.from({ length: offer.sides }, (_, i) => (
-              <button key={i} className="small die-face" onClick={() => reroll(telling, i + 1)}>
-                {i + 1}
-              </button>
-            ))}
-            <button className="small quiet" onClick={() => setTelling(null)}>
-              {t("Back")}
-            </button>
-          </div>
-        </>
-      )}
+        ))}
+        <button className="small" onClick={() => setPassed(offer.seq)}>
+          {t("No")}
+        </button>
+      </div>
+      <button
+        className="link quiet"
+        onClick={() => useNotAsked.setState((s) => ({ games: [...s.games, gameKey(record)] }))}
+      >
+        {t("Don't ask me this game")}
+      </button>
     </div>
   );
 }

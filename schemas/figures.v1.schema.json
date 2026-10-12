@@ -20,7 +20,47 @@
         "figures": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/PackFigure"
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "kind": {
+                "$ref": "#/definitions/AssetKind"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "units": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              },
+              "thumb": {
+                "type": "string"
+              },
+              "data": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "kind",
+              "tags",
+              "units",
+              "data"
+            ]
           }
         },
         "hash": {
@@ -33,49 +73,6 @@
         "savedAt",
         "figures",
         "hash"
-      ]
-    },
-    "PackFigure": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "kind": {
-          "$ref": "#/definitions/AssetKind"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "units": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "description": {
-          "type": "string"
-        },
-        "thumb": {
-          "type": "string"
-        },
-        "data": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "kind",
-        "tags",
-        "units",
-        "data"
       ]
     },
     "AssetKind": {

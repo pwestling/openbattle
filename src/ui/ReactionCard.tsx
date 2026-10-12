@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import type { GameState, Intent, PlayerId, ReactionTrigger } from "../core";
 import {
   mayReact,
@@ -7,7 +7,6 @@ import {
   type PlayableReaction,
   type ReactionWindowView,
 } from "../core/content/reactions";
-import { useRealDice } from "../companion/RealDice";
 import { gameText, t } from "../i18n";
 import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
@@ -71,8 +70,6 @@ export function ReactionCard() {
   const scrub = useStore((s) => s.scrub);
   const dispatch = useStore((s) => s.dispatch);
   const canControl = useCanControl();
-  const ownDice = useRealDice();
-  const [telling, setTelling] = useState<{ id: string; die: number } | null>(null);
   const mine = scrub === null ? myWindow(game, canControl) : null;
   if (!mine) return null;
   const { open, me } = mine;
@@ -84,15 +81,13 @@ export function ReactionCard() {
   if (!cards.length) return null;
   const style = { "--side": game.players[me]?.color } as CSSProperties;
 
-  const play = (r: PlayableReaction, unit?: string, die?: number, told?: number) => {
+  const play = (r: PlayableReaction, unit?: string, die?: number) => {
     dispatch(r.needsUnit && unit ? ({ ...r.play, targetId: unit } as Intent) : r.play, me);
     if (r.reroll && die !== undefined) {
-      const intent = { type: "attack/reroll", seq: r.reroll.seq, die } as Intent;
-      dispatch((told !== undefined ? { ...intent, told: [told] } : intent) as Intent, me);
+      dispatch({ type: "attack/reroll", seq: r.reroll.seq, die } as Intent, me);
     }
     coin();
     thunk(1);
-    setTelling(null);
   };
 
   return (
@@ -109,61 +104,36 @@ export function ReactionCard() {
           ? r.reroll.dice.filter((d, i, all) => all.findIndex((x) => x.value === d.value) === i)
           : [];
         faces.sort((a, b) => a.value - b.value);
-        const asking = telling?.id === r.id;
         return (
           <div key={r.id} className="reroll-card reaction-card dice-ask" style={style}>
             {r.cost && <span className="cost">{r.cost}</span>}
             <strong>{gameText(r.name)}</strong>
-            {asking ? (
-              <>
-                <span>{t("Roll one die. What did it show?")}</span>
-                <div className="row">
-                  {Array.from({ length: open.trigger.sides ?? 6 }, (_, i) => (
-                    <button
-                      key={i}
-                      className="small die-face"
-                      onClick={() => play(r, undefined, telling.die, i + 1)}
-                    >
-                      {i + 1}
+            <div className="row">
+              {r.reroll
+                ? faces.map(({ value, die }) => (
+                    <button key={die} className="small primary" onClick={() => play(r, undefined, die)}>
+                      {t("Re-roll a {face}", { face: value })}
                     </button>
-                  ))}
-                  <button className="small quiet" onClick={() => setTelling(null)}>
-                    {t("Back")}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="row">
-                {r.reroll
-                  ? faces.map(({ value, die }) => (
-                      <button
-                        key={die}
-                        className="small primary"
-                        onClick={() => (ownDice ? setTelling({ id: r.id, die }) : play(r, undefined, die))}
-                      >
-                        {t("Re-roll a {face}", { face: value })}
+                  ))
+                : r.needsUnit
+                  ? r.units.slice(0, 4).map((u) => (
+                      <button key={u} className="small primary" onClick={() => play(r, u)}>
+                        {r.units.length > 1 ? unitName(game, u) : t("Play it")}
                       </button>
                     ))
-                  : r.needsUnit
-                    ? r.units.slice(0, 4).map((u) => (
-                        <button key={u} className="small primary" onClick={() => play(r, u)}>
-                          {r.units.length > 1 ? unitName(game, u) : t("Play it")}
-                        </button>
-                      ))
-                    : [
-                        <button key="play" className="small primary" onClick={() => play(r)}>
-                          {t("Play it")}
-                        </button>,
-                      ]}
-                <button
-                  className="link quiet small"
-                  title={t("Don't ask me this game")}
-                  onClick={() => dispatch({ type: "reaction/mute", action: r.id, mute: true }, me)}
-                >
-                  {t("Don't ask me this game")}
-                </button>
-              </div>
-            )}
+                  : [
+                      <button key="play" className="small primary" onClick={() => play(r)}>
+                        {t("Play it")}
+                      </button>,
+                    ]}
+              <button
+                className="link quiet small"
+                title={t("Don't ask me this game")}
+                onClick={() => dispatch({ type: "reaction/mute", action: r.id, mute: true }, me)}
+              >
+                {t("Don't ask me this game")}
+              </button>
+            </div>
           </div>
         );
       })}

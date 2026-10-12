@@ -104,16 +104,15 @@ export function StepBar() {
   useEffect(() => {
     for (const p of pending) {
       const bot = sidePlayers(game, p.seat).find((x) => soloPlays(game, x.id));
-      if (!bot || p.ask) continue;
+      if (!bot) continue;
       dispatch(
         {
           type: "score/confirm",
           key: p.key,
           seat: p.seat,
           round: p.round,
-          vp: p.guessed ? p.vp : 0,
+          vp: p.vp,
           why: `${p.rule}: ${p.why}`,
-          ...(p.guessed ? {} : { skipped: true }),
         },
         bot.id,
       );

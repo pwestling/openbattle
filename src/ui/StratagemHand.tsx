@@ -46,8 +46,7 @@ export function useHandShown(): boolean {
   const role = useStore((s) => s.role);
   const scrub = useStore((s) => s.scrub);
   const canControl = useCanControl();
-  if (role === "spectator" || scrub !== null || game.turn.round === 0 || game.settings.companion)
-    return false;
+  if (role === "spectator" || scrub !== null || game.turn.round === 0) return false;
   if (!systemOf(game).actions.some((a) => a.by === "player" && !a.custom)) return false;
   return handPlayer(game, canControl) !== null;
 }

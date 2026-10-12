@@ -23,11 +23,8 @@ Players need only a browser. One player hosts, shares a link, and the browsers t
 - **Table talk and voice.** Pings, arrows, areas, chat and reactions on the table, plus push-to-talk or open-mic voice over the same peer connections.
 - **Broadcast view.** A stream view with a commentator's camera, a spectator delay, and end-of-game moment cards.
 - **Rules packages.** Players can load sandboxed rules packages that add rules to a game, or a whole new game, shared peer to peer and checked by hash.
-- **Rift Lanterns, our own game.** An original skirmish game that ships with the app, free to share under CC BY 4.0: four warbands with stand-in figures, three missions and a starter table. **Play now** on the start page; nothing to import. [Rules](games/rift-lanterns/README.md).
-- **Brinewatch, our second.** A skirmish game of crews of five to ten models, each model taking its own go of two action points: guards that shoot what moves, towers to climb for vantage, Lurkers hidden in secret hideouts, and a three-game campaign with experience, honours and scars. CC BY 4.0, ships with the app. [Rules](games/brinewatch/README.md).
-- **Module workshop.** Write a game system in the browser: an editor with the SDK's completions, starter templates (skirmish, ranked, alternating activations, and Rift Lanterns to take apart), a test table that reloads on every save, the soak bot, and export as a package file or a pull request for the [community modules](docs/community-modules.md) gallery.
+- **Module workshop.** Write a game system in the browser: an editor with the SDK's completions, starter templates (skirmish, ranked, alternating activations), a test table that reloads on every save, the soak bot, and export as a package file or a pull request for the [community modules](docs/community-modules.md) gallery.
 - **Rules are advisory.** The app measures, rolls and reminds, but never blocks a move. Every wound, status and score can be edited, and Undo takes back your last action.
-- **Table companion.** Playing with real models on a real table? Open the companion on a phone (one for both of you, or one each). It keeps the turn, the wounds and the score, takes the dice you roll by hand, and asks what it can't see, such as how many models are in range.
 - **Learn to play.** A guided first game for each system against the computer, with a coach saying what to do next.
 - **Campaigns, events and play by mail.** A shared campaign book with a league table, map and unit stories; chess clocks and Swiss rounds for event nights; and games that last for days through signed turn files.
 - **Annotated replays.** Notes and marks on moments, chapters, and review rooms where a coach leads and others follow.
@@ -35,8 +32,6 @@ Players need only a browser. One player hosts, shares a link, and the browsers t
 - **Reportable.** The in-app **Report a problem** button downloads a replay of the game with the errors that went with it.
 
 ![A guided first game: the coach explains the turn](docs/screenshots/lesson.png)
-
-<img src="docs/screenshots/companion.png" width="300" alt="The table companion on a phone: typing in the faces of 16 real dice">
 
 ![Line of sight from a selected squad: green fully visible, yellow partly visible or in cover](docs/screenshots/line-of-sight.png)
 
@@ -75,7 +70,6 @@ Click one of the **Try it now** cards to play both sides of a demo game on one s
 | `pnpm relay`     | Self-hosted signalling relay                       |
 | `pnpm perf`      | Rendering benchmark with sample armies             |
 | `pnpm perf:load` | Landing page load benchmark on a throttled network |
-| `pnpm smoke`     | Browser smoke tests through each way into the app  |
 
 ## Hosting your own
 

@@ -17,16 +17,16 @@ pnpm format && pnpm lint && pnpm typecheck && pnpm schemas:check
 ```
 
 - Type check with `pnpm typecheck` (`tsc -b`). `tsc --noEmit -p .` checks nothing here.
-- There are no unit tests and no soak runs: they were deleted on purpose while the play experience is rebuilt. Do not add them back unasked.
+- Tests, soak runs and CI were deleted on purpose while the play experience is rebuilt. Do not add them back unasked.
 - `pnpm schemas:check` fails when a type behind a protocol changed without its schema. Additive change: `pnpm schemas` and commit. Breaking change: a new major version (docs/protocols/README.md).
-- `pnpm i18n:check` runs in CI: wrap new on-screen text in `t()` (see [docs/translating.md](docs/translating.md)).
-- `pnpm smoke <name>` drives the built app in a browser for one path.
+- `pnpm i18n:check`: wrap new on-screen text in `t()` (see [docs/translating.md](docs/translating.md)).
+- `pnpm deadcode` (knip) must stay clean: delete what is unused rather than exporting it.
+- There is no CI (only the deploy workflow), no unit tests, no soak and no browser smoke test. Check a change by playing it.
 
 ## Where things go
 
 - CSS goes in the area's sheet under `src/styles/`, never a new `styles.css`.
 - New game systems: `src/systems/<id>/` ([docs/system-modules.md](docs/system-modules.md)), or a package file ([docs/packages.md](docs/packages.md)).
-- Our own CC BY games live in `games/`.
 
 ## Delegating to subagents
 

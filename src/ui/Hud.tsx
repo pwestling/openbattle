@@ -325,16 +325,16 @@ export function UndoButton() {
   const { record, session, mode, dispatch, game } = useStore();
   const undone = undoneSeqs(record);
   const selfId = session?.selfId;
-  const lastOwn = [...record.events].reverse().find(
-    (e) =>
-      (mode === "hotseat" || e.by === selfId) &&
-      e.event.type !== "undo" &&
-      e.event.type !== "player/join" &&
-      e.event.type !== "layout/set" &&
-      // Choosing the table companion isn't a move to take back.
-      !(e.event.type === "settings/set" && e.event.settings.companion !== undefined) &&
-      !undone.has(e.seq),
-  );
+  const lastOwn = [...record.events]
+    .reverse()
+    .find(
+      (e) =>
+        (mode === "hotseat" || e.by === selfId) &&
+        e.event.type !== "undo" &&
+        e.event.type !== "player/join" &&
+        e.event.type !== "layout/set" &&
+        !undone.has(e.seq),
+    );
   const takeBack = lastOwn ? undoGroup(record, lastOwn.seq, undone, game) : null;
   return (
     <button
@@ -423,7 +423,7 @@ let nameDraft = "";
  * Invite links join straight in, as "Player N": until the player names
  * themselves, ask, so the sides read "Ana & Cy" rather than "Ana & Player 3".
  */
-export function NameCard({ player }: { player: Player }) {
+function NameCard({ player }: { player: Player }) {
   const { dispatch } = useStore();
   // The player card's name first (UX 83), then a name this device gave before.
   const [stored] = useState(

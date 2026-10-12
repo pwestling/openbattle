@@ -2,7 +2,6 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { BetterMoveHint } from "../review/ReviewPanel";
 import { SoloBot } from "../bot/SoloBot";
 import { CampaignBookDialog, CampaignKeeper } from "../campaign/CampaignUI";
-import { OthersShaking } from "../companion/Shake";
 import { onKey } from "../GameScreen";
 import { t } from "../i18n";
 import { MailBar } from "../mail/MailBar";
@@ -142,7 +141,6 @@ export function NextGame() {
       {!editing && <MayReact />}
       {!editing && !hotseat && <PlanPanel />}
       <OthersPlanning />
-      <OthersShaking />
       {!editing && <TouchLayer />}
       <VoiceRoom />
       <OnAir />

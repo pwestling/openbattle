@@ -324,14 +324,7 @@ input.frontage {
   font-size: 0.8em;
   color: #a1a1aa;
 }
-.packages .package-list {
-  list-style: none;
-  margin: 4px 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+
 .packages .menu,
 .game-packages .menu {
   position: relative;
@@ -353,9 +346,7 @@ input.frontage {
   border: 1px solid #3f3f46;
   border-radius: 6px;
 }
-.package-details code {
-  word-break: break-all;
-}
+
 .game-packages {
   display: flex;
   flex-direction: column;
