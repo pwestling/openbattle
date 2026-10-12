@@ -16,7 +16,6 @@ import {
 import { phaseHint, phaseName, systemOf } from "../core/content/turn";
 import { useCanControl, useStore } from "../store";
 import { useGame } from "./hooks";
-import { NEXT } from "../next/flag";
 import { t, tn, gameText } from "../i18n";
 import { systemModule } from "../systems";
 import { describeAuto } from "./autoText";
@@ -420,10 +419,9 @@ export function Reminders({
               <div className="small rules-text">
                 <RulesText text={r.ability.text} />
               </div>
-              {/* The new layout keeps one lit button per step: these hand overrides open with the rule. */}
-              {NEXT && hand}
+              {/* One lit button per step: these hand overrides open with the rule. */}
+              {hand}
             </details>
-            {!NEXT && hand}
           </li>
         );
       })}

@@ -39,7 +39,7 @@ interface StretchCheck {
  * revealed seed and the other players' seeds as they stood at each event.
  * A rules package's event is checked by the seed its sandbox was given.
  */
-export function checkStretch(record: GameRecord, reveal: LoggedEvent): StretchCheck | null {
+function checkStretch(record: GameRecord, reveal: LoggedEvent): StretchCheck | null {
   if (reveal.event.type !== "dice/reveal") return null;
   const seed = reveal.event.seed;
   const host = reveal.event.player;

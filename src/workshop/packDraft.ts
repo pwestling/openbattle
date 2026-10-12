@@ -233,7 +233,7 @@ const IDENT = /^[A-Za-z_$][\w$]*$/;
 const WIDTH = 100;
 
 /** A value as a JS literal, laid out as a person would: short things on one line. */
-export function toLiteral(v: unknown, indent = ""): string {
+function toLiteral(v: unknown, indent = ""): string {
   if (v === null || typeof v !== "object") return JSON.stringify(v ?? null);
   const inner = indent + "  ";
   const isArray = Array.isArray(v);

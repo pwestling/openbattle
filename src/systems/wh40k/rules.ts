@@ -51,7 +51,7 @@ export function num(text: string | undefined): number | null {
 }
 
 /** Closest base-to-base distance from one model to any model of a unit. */
-export function distanceToUnit(model: Model, targets: Model[]): number {
+function distanceToUnit(model: Model, targets: Model[]): number {
   let best = Infinity;
   const r = reach(model);
   for (const t of targets) {
@@ -270,8 +270,8 @@ export const CATEGORY_RULES: Record<
   },
 };
 
-export const HIDDEN_RANGE = 15;
-export const HIGHER_GROUND = 3;
+const HIDDEN_RANGE = 15;
+const HIGHER_GROUND = 3;
 
 export interface TargetSight {
   modelId: string;

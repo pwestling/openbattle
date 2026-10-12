@@ -1,7 +1,6 @@
 import { PackageBrings } from "./PackageArmies";
 import { displayName, playerName } from "../i18n/names";
 import { readLessonPackage } from "../teach/lesson";
-import { installOwnGame, ownGame } from "../games/riftLanterns";
 import { systemLabel } from "./systemLabels";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -166,113 +165,6 @@ function ConsentSheet({
   );
 }
 
-/** The lobby's "Rules packages": built-in rules, then this device's packages for the chosen game. */
-export function PackageLibrary({ system, onPick }: { system: string; onPick?: (system: string) => void }) {
-  const packages = useLibrary((s) => s.packages);
-  const [all, setAll] = useState(false);
-  useEffect(() => void useLibrary.getState().load(), []);
-  const builtIn = listSystems().filter((s) => all || s.id === system);
-  const shown = all ? packagesFor(packages, undefined) : packagesFor(packages, system);
-  const hidden = Object.keys(packages).length - shown.length;
-  return (
-    <details className="packages">
-      <summary>{t("Rules packages")}</summary>
-      <div className="row spread">
-        {/* A game loaded from a package is what the player wants to play next: pick it in the Game list. */}
-        <LoadButton onTrusted={(p) => p.manifest.kind === "system" && onPick?.(p.manifest.systems[0]!)} />
-        {(hidden > 0 || all) && (
-          <button className="link" onClick={() => setAll(!all)}>
-            {all ? t("Only this game's") : t("Show all ({n} more)", { n: hidden })}
-          </button>
-        )}
-      </div>
-      <ul className="package-list">
-        {builtIn.map((s) => (
-          <li key={s.id}>
-            {s.name} <span className="muted small">{t("built in · app {build}", { build: APP_BUILD })}</span>
-          </li>
-        ))}
-        {shown.map((p) => (
-          <PackageRow key={p.hash} pkg={p} />
-        ))}
-      </ul>
-    </details>
-  );
-}
-
-function PackageRow({ pkg }: { pkg: StoredPackage }) {
-  const [details, setDetails] = useState(false);
-  const [asking, setAsking] = useState(false);
-  const lib = useLibrary.getState();
-  return (
-    <li>
-      <div className="row spread">
-        <span>
-          {label(pkg.manifest)}
-          {pkg.own ? ` ${t("(yours)")}` : ""} <Fp hash={pkg.hash} />{" "}
-          {pkg.manifest.kind === "lesson" ? (
-            <span className="muted small">{t("lessons · in Learn to play")}</span>
-          ) : pkg.trusted ? (
-            <span className="muted small">{t("trusted")}</span>
-          ) : (
-            <button className="link" onClick={() => setAsking(true)}>
-              {t("Trust…")}
-            </button>
-          )}
-        </span>
-        <details className="menu">
-          <summary aria-label={t("More for {package}", { package: pkg.manifest.name })}>⋯</summary>
-          <div className="menu-items">
-            <button onClick={() => setDetails(!details)}>{t("Details")}</button>
-            {pkg.trusted && pkg.manifest.kind !== "lesson" && (
-              <button onClick={() => lib.trust(pkg.hash, false)}>{t("Stop trusting")}</button>
-            )}
-            <button
-              onClick={() =>
-                confirm(
-                  t("Remove {package}?", { package: `${pkg.manifest.name} ${pkg.manifest.version}` }),
-                ) && lib.remove(pkg.hash)
-              }
-            >
-              {t("Remove")}
-            </button>
-          </div>
-        </details>
-      </div>
-      {details && (
-        <div className="muted small package-details">
-          <div>
-            {/* i18n-ignore */}
-            SHA-256 <code>{pkg.hash}</code>{" "}
-            <button className="link" onClick={() => void navigator.clipboard?.writeText(pkg.hash)}>
-              {t("Copy")}
-            </button>
-          </div>
-          <div>
-            {t("{kind} for {games} · API {api} · {size}", {
-              kind:
-                pkg.manifest.kind === "system"
-                  ? t("Game system")
-                  : pkg.manifest.kind === "lesson"
-                    ? t("Lessons")
-                    : pkg.manifest.kind === "faction"
-                      ? t("Faction pack")
-                      : t("Extension"),
-              games: pkg.manifest.systems.join(", ") || t("any game"),
-              api: String(pkg.manifest.api),
-              size: formatBytes(pkg.bytes),
-            })}
-          </div>
-          {pkg.manifest.adds && <div>{t("Adds: {what}", { what: pkg.manifest.adds })}</div>}
-          <PackageBrings pkg={pkg} />
-          {pkg.manifest.changelog && <div>{t("Changes: {what}", { what: pkg.manifest.changelog })}</div>}
-        </div>
-      )}
-      {asking && <ConsentSheet pkg={pkg} onClose={() => setAsking(false)} />}
-    </li>
-  );
-}
-
 /**
  * Game settings: which rules packages this game uses, from the library. Before
  * the battle the host just ticks them; after it starts, a change is proposed
@@ -433,11 +325,6 @@ export function PackageCards() {
     return last?.type === "game/packages" ? last : undefined;
   }, [isReplay, record]);
   const packages = isReplay ? replayPackages : game.packages;
-  // Our own games ship with the app: a table playing one needn't ask anyone for it (watchers from Live now).
-  const ours = packages && ownGame(packages.system.id) ? packages.system.id : null;
-  useEffect(() => {
-    if (ours) void installOwnGame(ours);
-  }, [ours]);
   if (!loaded) return null;
   return (
     <>

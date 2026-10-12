@@ -26,7 +26,7 @@ export interface ReplayFile extends GameRecord {
 const HASH = /^[0-9a-f]{64}$/;
 
 /** Every uploaded asset (figures, terrain models) and rules package the record ever uses. */
-export function replayRefs(record: GameRecord): { assets: string[]; packages: string[] } {
+function replayRefs(record: GameRecord): { assets: string[]; packages: string[] } {
   const assets = new Set<string>();
   const packages = new Set<string>();
   const walk = (v: unknown, key?: string) => {

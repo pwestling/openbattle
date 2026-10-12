@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
-import { NEXT } from "../next/flag";
 import { sideName, sidePlayers, sides, type GameRecord, type GameState } from "../core";
 import { momentsOf, type Moment } from "../core/moments";
 import { useStore } from "../store";
@@ -429,7 +428,7 @@ export function Moments() {
     const m = reel[index];
     return (
       // No "1 of 3" pager in the new layout (naive players 11): Next says there's more.
-      <MomentCard moment={m} {...(NEXT ? {} : { step: t("{i} of {n}", { i: index + 1, n: reel.length }) })}>
+      <MomentCard moment={m}>
         {/* Players can hurry the reel, on every player's screen (PX B4); viewers watch it play (UX 143). */}
         {!watching && (
           <>
@@ -453,16 +452,13 @@ export function Moments() {
 }
 
 /** The lower third: big title with the player's colour, one line, and when. */
-function MomentCard({ moment, step, children }: { moment: Moment; step?: string; children?: ReactNode }) {
+function MomentCard({ moment, children }: { moment: Moment; children?: ReactNode }) {
   const color = useStore((s) => (moment.player ? s.game.players[moment.player]?.color : undefined));
   return (
     <div className="moment-card" style={{ borderColor: color ?? "#b45309" }} role="status">
       <div className="title">{moment.title}</div>
       <div className="line">{moment.line}</div>
-      <div className="foot muted">
-        {moment.when}
-        {step ? ` · ${step}` : ""}
-      </div>
+      <div className="foot muted">{moment.when}</div>
       {children && <div className="row">{children}</div>}
     </div>
   );

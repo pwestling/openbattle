@@ -9,7 +9,7 @@ import { readLiteral } from "./manifest";
  * `faction`, never run. An entry the reader can't take is a warning, not a
  * failure: the package's other armies and rules still load.
  */
-export function readPackageArmies(source: string): { armies: ArmyListV1[]; warnings: string[] } {
+function readPackageArmies(source: string): { armies: ArmyListV1[]; warnings: string[] } {
   const data = readLiteral(source, "armies");
   if (!data) return { armies: [], warnings: [] };
   if ("error" in data) return { armies: [], warnings: [data.error] };

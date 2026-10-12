@@ -30,7 +30,7 @@ const fromB64url = (s: string) =>
 export const isEncrypted = (bytes: Uint8Array) => MAGIC.every((b, i) => bytes[i] === b);
 
 /** Encrypt a file with a new key; the key comes back base64url, for a link's #fragment. */
-export async function encrypt(bytes: Uint8Array): Promise<{ payload: Uint8Array; key: string }> {
+async function encrypt(bytes: Uint8Array): Promise<{ payload: Uint8Array; key: string }> {
   const raw = crypto.getRandomValues(new Uint8Array(32));
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await crypto.subtle.importKey("raw", raw, "AES-GCM", false, ["encrypt"]);

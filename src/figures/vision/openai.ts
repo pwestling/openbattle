@@ -38,7 +38,7 @@ type Content =
   | { type: "input_image"; image_url: string; detail: "low" | "high" | "auto" };
 
 /** The Responses API request body for a match. */
-export function openaiBody(request: PreparedRequest) {
+function openaiBody(request: PreparedRequest) {
   const content: Content[] = [
     {
       type: "input_text",
@@ -93,7 +93,7 @@ function outputText(body: ResponsesBody): string {
  * Turn the model's answer back into assignments by unit row and figure id,
  * dropping labels it made up and keeping the surest pick for each unit.
  */
-export function readOpenaiAnswer(body: ResponsesBody, request: PreparedRequest): Assignment[] {
+function readOpenaiAnswer(body: ResponsesBody, request: PreparedRequest): Assignment[] {
   const text = outputText(body);
   if (!text)
     throw new MatchError("answer", body.status === "incomplete" ? "The answer was cut short." : undefined);

@@ -86,7 +86,7 @@ export function deployOwn(mine: OwnArmy, get: () => GameState, send: Send, their
 }
 
 /** A seat's units in the order its sample list gave them. */
-export function seatUnits(state: GameState, seat: number) {
+function seatUnits(state: GameState, seat: number) {
   const players = new Set(sidePlayers(state, seat).map((p) => p.id));
   return Object.values(state.units).filter((u) => players.has(u.owner));
 }

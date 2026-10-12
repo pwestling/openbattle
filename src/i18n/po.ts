@@ -68,30 +68,3 @@ export function parsePo(text: string): PoEntry[] {
   flush();
   return out;
 }
-
-const quote = (s: string) => {
-  const body = JSON.stringify(s);
-  // Long strings and those with line breaks wrap as gettext tools write them.
-  if (!s.includes("\n") && body.length < 76) return body;
-  const parts = s.split(/(?<=\n)/).flatMap((p) => p.match(/.{1,70}(\s|$)|.{1,70}/g) ?? [p]);
-  return `""\n${parts.map((p) => JSON.stringify(p)).join("\n")}`;
-};
-
-export function writePo(entries: PoEntry[]): string {
-  return (
-    entries
-      .map((e) => {
-        const lines = [...e.comments];
-        if (e.fuzzy) lines.push("#, fuzzy");
-        if (e.context !== undefined) lines.push(`msgctxt ${quote(e.context)}`);
-        lines.push(`msgid ${quote(e.id)}`);
-        if (e.plural !== undefined) {
-          lines.push(`msgid_plural ${quote(e.plural)}`);
-          const n = Math.max(2, e.str.length);
-          for (let i = 0; i < n; i++) lines.push(`msgstr[${i}] ${quote(e.str[i] ?? "")}`);
-        } else lines.push(`msgstr ${quote(e.str[0] ?? "")}`);
-        return lines.join("\n");
-      })
-      .join("\n\n") + "\n"
-  );
-}

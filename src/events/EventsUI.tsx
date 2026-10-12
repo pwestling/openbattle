@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { formatDate, t, tn } from "../i18n";
 import { displayName } from "../i18n/names";
+import { DEFAULT_SYSTEM } from "../core";
 import { listSystems } from "../core/content";
 import { useLibrary } from "../packages/library";
 import { shelfSystem, useShelf } from "../packages/shelf";
 import { myKey, useCard } from "../player/card";
 import { useResultsOften } from "../ranked/store";
 import { systemModule } from "../systems";
-import { RIFT_LANTERNS } from "../games/riftLanterns";
 import { plainSystemName, systemLabel, systemTitle } from "../ui/systemLabels";
 import {
   armyHash,
@@ -185,7 +185,7 @@ function RunEvent() {
   const [name, setName] = useState(() =>
     cardName ? t("{name}'s event", { name: cardName }) : t("Club night"),
   );
-  const [system, setSystem] = useState(() => localStorage.getItem("open-battle:system") ?? RIFT_LANTERNS);
+  const [system, setSystem] = useState(() => localStorage.getItem("open-battle:system") ?? DEFAULT_SYSTEM);
   const [points, setPoints] = useState("");
   const [rounds, setRounds] = useState(3);
   const [start, setStart] = useState(() =>

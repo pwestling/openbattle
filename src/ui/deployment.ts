@@ -61,7 +61,7 @@ export function deployChecks(record: GameRecord, game: GameState, player: Player
 }
 
 /** Even-odd test; points on the edge count as inside closely enough. */
-export function insidePolygon(p: Vec2, poly: Vec2[]): boolean {
+function insidePolygon(p: Vec2, poly: Vec2[]): boolean {
   let inside = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
     const a = poly[i]!;

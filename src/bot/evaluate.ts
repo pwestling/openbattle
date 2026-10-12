@@ -117,7 +117,7 @@ function health(state: GameState, u: Unit): number {
 }
 
 /** What a side's army is worth now. */
-export function armyValue(state: GameState, seat: number, tuning?: BotTuning, finish = 0): number {
+function armyValue(state: GameState, seat: number, tuning?: BotTuning, finish = 0): number {
   let v = 0;
   for (const u of Object.values(state.units)) {
     if (seatOf(state, u) !== seat) continue;

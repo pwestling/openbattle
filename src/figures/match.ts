@@ -29,7 +29,7 @@ const NOISE = new Set([
 ]);
 
 /** A name's meaningful words: lower case, singular, no numbers. */
-export function words(name: string): string[] {
+function words(name: string): string[] {
   return name
     .toLowerCase()
     .split(/[^a-z]+/)

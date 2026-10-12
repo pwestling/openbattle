@@ -4,7 +4,6 @@ import type { Level } from "../bot/player";
 import { characterName, levelName } from "../bot/solo";
 import { startSolo, type OwnArmy } from "../bot/startSolo";
 import { DEFAULT_SYSTEM } from "../core";
-import { ownGame } from "../games/riftLanterns";
 import { t, tn } from "../i18n";
 import { useShelf } from "../packages/shelf";
 import { systemModule } from "../systems";
@@ -31,7 +30,7 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
   const shelf = Object.values(armies)
     .filter((a) => (a.system || DEFAULT_SYSTEM) === system)
     .sort((a, b) => b.savedAt - a.savedAt);
-  const module = ownGame(system) ? null : systemModule(system);
+  const module = systemModule(system);
   const sample = module?.sample(0);
   const theirs = module?.sample(1);
   const readFile = async (file: File) => {
@@ -109,19 +108,17 @@ export function ComputerArmy({ system, level }: { system: string; level: Level }
           ),
         )}
         {read && choice("read", read.name, t("Just read · {line}", { line: ptsLine(read) }))}
-        {!ownGame(system) && (
-          <label className="obn-link obn-file">
-            {t("Import a list…")}
-            <input
-              type="file"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void readFile(f);
-              }}
-            />
-          </label>
-        )}
+        <label className="obn-link obn-file">
+          {t("Import a list…")}
+          <input
+            type="file"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void readFile(f);
+            }}
+          />
+        </label>
         {error && <p className="obn-warn">{error}</p>}
       </div>
       {far && (

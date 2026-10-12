@@ -67,7 +67,7 @@ export async function loadLanguage(id = preferredLanguage()): Promise<void> {
 }
 
 /** Use a catalog's text (also for tests). Drafts are used: they're better than English for most players. */
-export function applyCatalog(po: string): void {
+function applyCatalog(po: string): void {
   messages = new Map();
   for (const e of parsePo(po))
     if (e.id && e.str.some(Boolean)) messages.set(entryKey(e.id, e.context), e.str);

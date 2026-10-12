@@ -101,7 +101,7 @@ function persist(): void {
 }
 
 /** Two lists of notes as one: by id, the later-written copy of each. */
-export function joinNotes(a: ReplayNote[], b: ReplayNote[]): ReplayNote[] {
+function joinNotes(a: ReplayNote[], b: ReplayNote[]): ReplayNote[] {
   const byId = new Map<string, ReplayNote>();
   for (const n of [...a, ...b]) {
     const was = byId.get(n.id);

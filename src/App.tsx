@@ -4,22 +4,18 @@ import { t } from "./i18n";
 import { loadTrystero, useStore } from "./store";
 import { CrashGuard } from "./ui/Crash";
 import { SavedToast } from "./ui/SavedNote";
-import { Lobby } from "./ui/Lobby";
 import { useLibraryOpen } from "./figures/open";
 import { useWorkshopOpen } from "./workshop/open";
 import { useEventOpen, useRunsEvents } from "./events/open";
-import { watchRoute } from "./ui/route";
-import { NEXT } from "./next/flag";
 
 /**
  * The 3D table, three.js and every in-game panel load as their own chunk,
- * after the front door: the lobby is on screen and clickable while they come
+ * after the front door: the door is on screen and clickable while they come
  * (perf/budget.md, load). An idle prefetch means they're usually here before
  * anyone clicks.
  */
 const loadGame = () => import("./GameScreen");
-const GameScreen = lazy(() => loadGame().then((m) => ({ default: m.GameScreen })));
-/** Open Battle Next (ui-next): the from-scratch UI, the default (`?ui=classic` for the old one), in its own chunk. */
+/** The front door and game screen, in their own chunk. */
 const NextApp = lazy(() => import("./next/NextApp").then((m) => ({ default: m.NextApp })));
 /** The figure library (#33) loads when it's first opened. */
 const FigureLibrary = lazy(() =>
@@ -40,9 +36,6 @@ export function App() {
   const player = usePlayerOpen((s) => s.view !== null);
   const eventOpen = useEventOpen((s) => s.id !== null || s.running);
   const runsEvents = useRunsEvents((s) => s.on);
-  // The address follows the screens, from here on: the front door has rejoined a reloaded game by now (children's effects run first).
-  // ui-next's door loads in its own chunk, after this: NextApp watches the route itself, once its door is up.
-  useEffect(() => (NEXT ? undefined : watchRoute()), []);
   useEffect(() => {
     const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 200));
     idle(() => {
@@ -68,10 +61,9 @@ export function App() {
         <Suspense
           fallback={started ? <div className="loading-table">{t("Setting up the table…")}</div> : null}
         >
-          {NEXT ? <NextApp started={started} /> : <GameScreen started={started} />}
+          <NextApp started={started} />
         </Suspense>
       </CrashGuard>
-      {!started && !NEXT && <Lobby />}
       {/* A new version only between games, never mid-battle (#34). */}
       <SavedToast />
       {workshop && (

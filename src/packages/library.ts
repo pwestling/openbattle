@@ -161,7 +161,7 @@ export function systemMatches(declared: string, system: string): boolean {
   return system === declared || system.startsWith(`${declared}-`) || declared.startsWith(`${system}-`);
 }
 
-export function compareVersions(a: string, b: string): number {
+function compareVersions(a: string, b: string): number {
   const pa = a.split(/[.+-]/).map((x) => Number(x) || 0);
   const pb = b.split(/[.+-]/).map((x) => Number(x) || 0);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {

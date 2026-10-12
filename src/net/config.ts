@@ -72,7 +72,7 @@ const list = (v: string | null | undefined) =>
 /** What the site's config.json said, once loaded. */
 let site: SiteConfig = {};
 /** A self-hosted build reads its config.json; it gets no public board unless that says so. */
-let selfHosted = !!import.meta.env.VITE_SITE_CONFIG;
+const selfHosted = !!import.meta.env.VITE_SITE_CONFIG;
 
 /**
  * Fetch the site's config.json when this build asks for one. A self-hosted
@@ -133,17 +133,6 @@ export function loadTurnLogins(url = import.meta.env.VITE_TURN_CONFIG as string 
   setInterval(() => {
     if (!minted || Date.now() - minted.at > (minted.ttl * 1000) / 2) void mint(url);
   }, 60_000);
-}
-
-/** Once the first fetch of TURN logins has settled (the connection check waits for it). */
-export function turnLoginsLoaded(): Promise<void> {
-  return minting ?? Promise.resolve();
-}
-
-/** For tests. */
-export function setSiteConfig(config: SiteConfig, hosted = true): void {
-  site = config;
-  selfHosted = hosted;
 }
 
 export function netConfig(search = typeof location === "undefined" ? "" : location.search): NetConfig {

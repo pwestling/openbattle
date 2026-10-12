@@ -3,7 +3,6 @@ import { armSolo } from "../bot/solo";
 import type { OwnArmy } from "../bot/startSolo";
 import { BROADCAST } from "../broadcast/broadcast";
 import { EXHIBITION, startExhibition } from "../broadcast/exhibition";
-import { installOwnGame, ownGame, playOwnAtTable, playOwnGame } from "../games/riftLanterns";
 import { NET_PARAMS } from "../net/config";
 import { useLibrary } from "../packages/library";
 import { useCard } from "../player/card";
@@ -87,7 +86,6 @@ const mode = () => (new URLSearchParams(location.search).get("local") === "1" ? 
 /** A friend online: open a room and its invite link. `companion` seats phones at a real table. */
 export async function hostRoom(system: string, name: string, companion = false): Promise<void> {
   useInviteCopied.setState({ copied: false });
-  if (ownGame(system)) await installOwnGame(system);
   remember(name, system);
   const roomId = crypto.randomUUID().slice(0, 8);
   linkTo(roomId);
@@ -109,7 +107,6 @@ export function joinRoom(roomId: string, name: string, role: "client" | "spectat
 /** Both sides on this screen: the sample armies set up where there are any, else an empty table. */
 export function bothSides(system: string, name: string, near?: OwnArmy): void {
   remember(name, system);
-  if (ownGame(system)) return void playOwnGame(system, near);
   if (FRONT[system]) return startDemo(system, near);
   useStore.getState().start({ role: "host", mode: "hotseat", name, system });
   namePackage(system);
@@ -119,7 +116,6 @@ export function bothSides(system: string, name: string, near?: OwnArmy): void {
 /** Real models on a real table, one screen for both players. */
 export function atTable(system: string, name: string): void {
   remember(name, system);
-  if (ownGame(system)) return void playOwnAtTable(system);
   useStore.getState().start({ role: "host", mode: "hotseat", name, system });
   namePackage(system);
   presetMission();

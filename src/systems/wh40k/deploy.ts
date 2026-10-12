@@ -16,7 +16,7 @@ import {
 } from "../../core";
 
 /** What the importer produces for one unit (see roster.ts). */
-export interface SpawnableUnit {
+interface SpawnableUnit {
   name: string;
   sheet: UnitSheet;
   models: {

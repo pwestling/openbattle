@@ -62,7 +62,7 @@ export function bucketReady(b: Bucket | null): b is Bucket {
 }
 
 /** Where a file goes in the bucket (path style), and where it can be read. */
-export function bucketUrls(b: Bucket, sha: string): { put: string; get: string } {
+function bucketUrls(b: Bucket, sha: string): { put: string; get: string } {
   const object = `${PREFIX}/${sha}`;
   return {
     put: `${trim(b.endpoint)}/${encodeURIComponent(b.bucket.trim())}/${object}`,

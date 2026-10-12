@@ -134,7 +134,7 @@ function chargeTarget(state: GameState, unit: Unit): Unit | undefined {
 }
 
 /** P(sum of n dice of `sides` faces >= need). */
-export function atLeastSum(n: number, sides: number, need: number): number {
+function atLeastSum(n: number, sides: number, need: number): number {
   let dist = [1];
   for (let i = 0; i < n; i++) {
     const next = new Array<number>(dist.length + sides).fill(0);
@@ -147,7 +147,7 @@ export function atLeastSum(n: number, sides: number, need: number): number {
 }
 
 /** P(highest of n dice >= need). */
-export function atLeastMax(n: number, sides: number, need: number): number {
+function atLeastMax(n: number, sides: number, need: number): number {
   const k = Math.ceil(need);
   if (k <= 1) return 1;
   if (k > sides) return 0;

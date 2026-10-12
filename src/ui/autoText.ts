@@ -184,7 +184,7 @@ export function stepValue(
 }
 
 /** A damage roll with a flat change: "D6" with +1 is "D6+1". */
-export function shiftDamage(amount: string, by: number): string {
+function shiftDamage(amount: string, by: number): string {
   const m = /^(.*?)([+-]\d+)?$/.exec(amount.trim());
   const dice = m?.[1] ?? amount;
   const flat = Number(m?.[2] ?? 0) + by;

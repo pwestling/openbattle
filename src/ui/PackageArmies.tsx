@@ -57,7 +57,7 @@ export const packageOf = (army: PackageArmy): StoredPackage | undefined =>
   useLibrary.getState().packages[army.from.hash];
 
 /** "Ash Wardens · from Ember Courts": an army with the package it came from. */
-export const packageArmyLabel = (a: PackageArmy) =>
+const packageArmyLabel = (a: PackageArmy) =>
   t("{army} · from {package}", { army: a.list.name, package: a.from.name });
 
 /** What a package brings besides rules, in a line ("Brings 2 armies"), and what of it couldn't be read. */

@@ -23,7 +23,7 @@ export interface Manifest {
 
 type ManifestResult = { manifest: Manifest } | { error: string };
 
-export const NOT_LITERAL = "manifest must be a plain literal";
+const NOT_LITERAL = "manifest must be a plain literal";
 
 export function readManifest(source: string): ManifestResult {
   const m = /export\s+const\s+manifest\s*(?::[^=]+)?=\s*/.exec(source);

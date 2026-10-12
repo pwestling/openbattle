@@ -39,7 +39,7 @@ export function decisionKind(m: BotMove | null): DecisionKind {
  * bench/*.bench.test.ts files check it; REVIEW_BENCH=1 for all six seeds).
  * Games and kinds not listed show no costly or strong marks.
  */
-export const TRUSTED: Readonly<Record<string, readonly DecisionKind[]>> = {
+const TRUSTED: Readonly<Record<string, readonly DecisionKind[]>> = {
   "forty-k-11": ["attack", "move", "charge"],
   // Shots and fights: 26 of 30 (87%) over six seeds, a die or two each, so not yet.
   brinewatch: ["move"],

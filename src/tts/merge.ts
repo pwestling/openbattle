@@ -33,7 +33,7 @@ const key = (s: string) =>
     .replace(/s\b/g, "");
 
 /** 3 for the same name, 2 when one holds the other, 1 for most words shared, 0 for none. */
-export function nameScore(a: string, b: string): number {
+function nameScore(a: string, b: string): number {
   const [x, y] = [key(a), key(b)];
   if (!x || !y) return 0;
   if (x === y) return 3;

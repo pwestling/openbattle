@@ -10,7 +10,7 @@
  * or the page alike. A mask is one byte per pixel: 255 keep, 0 cut.
  */
 
-export interface Pixels {
+interface Pixels {
   width: number;
   height: number;
   /** RGBA, row by row. */
@@ -258,22 +258,6 @@ function components(n: number, w: number, h: number, inside: (i: number) => bool
   }
   void h;
   return out;
-}
-
-/** Paint the mask with a round brush: keep (255) or cut (0). In place. */
-export function brush(
-  mask: Mask,
-  w: number,
-  h: number,
-  x: number,
-  y: number,
-  radius: number,
-  keep: boolean,
-): void {
-  const r2 = radius * radius;
-  for (let yy = Math.max(0, Math.floor(y - radius)); yy <= Math.min(h - 1, Math.ceil(y + radius)); yy++)
-    for (let xx = Math.max(0, Math.floor(x - radius)); xx <= Math.min(w - 1, Math.ceil(x + radius)); xx++)
-      if ((xx - x) ** 2 + (yy - y) ** 2 <= r2) mask[yy * w + xx] = keep ? 255 : 0;
 }
 
 export interface Box {

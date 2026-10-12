@@ -17,7 +17,7 @@ const GRID = 160;
 /** How far, in cells, the smoothed outline may stray from the traced one. */
 const SMOOTH = 0.7;
 /** The card's thickness, in inches. */
-export const THICKNESS = 0.04;
+const THICKNESS = 0.04;
 
 interface StandeeShape {
   positions: Float32Array;
@@ -30,7 +30,7 @@ interface StandeeShape {
  * Trace the outlines of a mask (marching squares on a coarse grid over `box`):
  * closed loops in grid cells, outer outlines one way round and holes the other.
  */
-export function traceOutlines(mask: Mask, w: number, box: Box): { loops: Pt[][]; cell: number } {
+function traceOutlines(mask: Mask, w: number, box: Box): { loops: Pt[][]; cell: number } {
   const cell = Math.max(1, Math.max(box.width, box.height) / GRID);
   const gw = Math.ceil(box.width / cell) + 2;
   const gh = Math.ceil(box.height / cell) + 2;

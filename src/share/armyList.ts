@@ -13,9 +13,9 @@ import type { ImportedRoster, ImportedUnit } from "../systems/wh40k/roster";
 export const ARMY_LIST_FORMAT = "open-battle/army-list@1";
 
 /** A special rule: "Tough(3)", or its name, rating and the player's own text. */
-export type ArmyListRule = string | { name: string; rating?: number | string; text?: string };
+type ArmyListRule = string | { name: string; rating?: number | string; text?: string };
 
-export interface ArmyListWeapon {
+interface ArmyListWeapon {
   name: string;
   /** How many the unit carries; one a model when missing. */
   count?: number;
@@ -92,7 +92,7 @@ function baseOf(b: unknown): BaseShape | undefined {
 }
 
 /** One unit for the table: its models carry the unit's characteristics, and its weapons spread over them. */
-export function armyListUnit(u: ArmyListUnit): ImportedUnit {
+function armyListUnit(u: ArmyListUnit): ImportedUnit {
   const size = Math.max(1, Math.min(200, Math.floor(Number(u.size) || 1)));
   const ids = new Set<string>();
   const weapons = (Array.isArray(u.weapons) ? u.weapons : [])

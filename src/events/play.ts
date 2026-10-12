@@ -6,7 +6,6 @@ import { shelfSystem, useShelf, type SavedArmy } from "../packages/shelf";
 import { myKey } from "../player/card";
 import { useStore } from "../store";
 import { gameModule, systemModule } from "../systems";
-import { installOwnGame, ownGame } from "../games/riftLanterns";
 import { refOf } from "../ui/Packages";
 import { APP_BUILD } from "../version";
 import { armyHash, roomFor, type EventDoc } from "./event";
@@ -39,7 +38,6 @@ export async function playPairing(event: EventDoc, round: number, pairing: Event
   const q = new URLSearchParams({ room: roomId });
   for (const k of NET_PARAMS) if (here.get(k)) q.set(k, here.get(k)!);
   enterRoom(q);
-  if (ownGame(event.system)) await installOwnGame(event.system);
   closeEvent();
   localStorage.setItem("open-battle:name", me.name);
   useStore.getState().start({

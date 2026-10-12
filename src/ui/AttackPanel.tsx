@@ -37,7 +37,6 @@ import { WaitingDice } from "../companion/Shake";
 import { TableAttackSetup } from "../companion/TableAttack";
 import { fireNext, useVolley, volleyWeapons } from "./volley";
 import { useTalk } from "../talk/talk";
-import { NEXT } from "../next/flag";
 import { FightOrderNote } from "../systems/wh40k/FightOrderNote";
 
 /**
@@ -67,7 +66,7 @@ function BoardAttackSetup({ draft }: { draft: AttackDraft }) {
   const attacker = game.units[draft.attackerId];
   // A fight with one enemy in reach fights it: nothing to ask (Jobs review). Two or more, the player picks.
   useEffect(() => {
-    if (!NEXT || draft.kind !== "melee" || draft.targetId || !attacker) return;
+    if (draft.kind !== "melee" || draft.targetId || !attacker) return;
     const foes = engagedWith(game, attacker);
     if (foes.length === 1) setDraft({ ...draft, targetId: foes[0], picking: false });
   }, [draft, attacker, game, setDraft]);
@@ -571,13 +570,6 @@ function AttackInProgress({ attack, live }: { attack: AttackState; live: boolean
       {volley && volley.attackerId === spec.attackerUnitId && (
         <p className="muted small row">
           {t("Weapon {i} of {n}", { i: volley.total - volley.weapons.length, n: volley.total })}
-          {/* The rest of the volley can wait: this attack goes on, the next isn't declared (UX 509). The new
-              layout keeps one button per step (naive players 3). */}
-          {!NEXT && (
-            <button className="quiet small" onClick={() => useVolley.setState({ queue: null })}>
-              {t("Stop here")}
-            </button>
-          )}
         </p>
       )}
       {canAct && !(botRolls && botAttacks) && (

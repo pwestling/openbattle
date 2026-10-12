@@ -190,7 +190,7 @@ function fileStem(url: string): string | undefined {
 }
 
 /** The name TTS gives a URL's copy in its Mods folder, less the extension. */
-export const cacheName = (url: string) => url.replace(/[^A-Za-z0-9]/g, "");
+const cacheName = (url: string) => url.replace(/[^A-Za-z0-9]/g, "");
 
 /**
  * Steam moved its cloud files from cloud-3.steamusercontent.com to

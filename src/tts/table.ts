@@ -332,7 +332,7 @@ export function placeOnTable(pose: TtsPose, centre: [number, number, number], sc
  * as it loads them (N = diag(−1, 1, 1)): B = N·Rx·Rz·S·N, with S the stretch
  * left over once `scale` (the even part) is taken out.
  */
-export function bakeOf(o: TtsObject, scale: number): number[] | undefined {
+function bakeOf(o: TtsObject, scale: number): number[] | undefined {
   const t = o.Transform ?? {};
   const deg = (v: number | undefined) => ((((v ?? 0) % 360) + 540) % 360) - 180;
   const ax = deg(t.rotX);

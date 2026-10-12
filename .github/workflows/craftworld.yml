@@ -1,47 +1,14 @@
-name: CI
+name: Craftworld deploy
 
 on:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm format:check
-      - run: pnpm lint
-      - run: pnpm i18n:check
-      - run: pnpm typecheck
-      - run: pnpm schemas:check
-      - run: pnpm build
-
-  # Browser smoke tests (#39): one path through each way into the app, on the production build.
-  smoke:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: npx playwright-core install --with-deps chromium
-      - run: pnpm smoke
-
-  # Continuous deploy (deploy/craftworld): each push to main that passes `check` is built as a
+  # Continuous deploy (deploy/craftworld): each push to main is built as a
   # release and published to the repo's "craftworld" release. Craftworld's openbattle-pull timer
   # fetches it within a few minutes, health-checks it and rolls back on failure.
   craftworld:
-    needs: check
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

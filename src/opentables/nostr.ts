@@ -21,7 +21,7 @@ const RESULT_D = "open-battle/result/";
 const EVENT_TAG = "open-battle-event";
 const EVENT_D = "open-battle/event/";
 /** Reports from this many keys hide a post. */
-export const REPORTS_TO_HIDE = 3;
+const REPORTS_TO_HIDE = 3;
 const RETRY_MS = [5_000, 15_000, 60_000];
 
 interface NostrEvent {
@@ -45,7 +45,7 @@ async function sha256(text: string): Promise<Uint8Array> {
 const serial = (e: Omit<NostrEvent, "id" | "sig">) =>
   JSON.stringify([0, e.pubkey, e.created_at, e.kind, e.tags, e.content]);
 
-export async function signEvent(
+async function signEvent(
   secret: Uint8Array,
   kind: number,
   tags: string[][],
@@ -58,7 +58,7 @@ export async function signEvent(
 }
 
 /** Relays check signatures, but a relay could lie: check them again. */
-export async function verifyEvent(e: NostrEvent): Promise<boolean> {
+async function verifyEvent(e: NostrEvent): Promise<boolean> {
   try {
     if (!/^[a-f0-9]{64}$/.test(e.pubkey) || !/^[a-f0-9]{128}$/.test(e.sig)) return false;
     const id = await sha256(serial(e));

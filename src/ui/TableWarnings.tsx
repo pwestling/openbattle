@@ -2,7 +2,6 @@ import { useEffect, useMemo } from "react";
 import type { GameState } from "../core";
 import { create } from "zustand";
 import { t } from "../i18n";
-import { NEXT } from "../next/flag";
 import { focusOn } from "../render/focus";
 import { useCanControl, useStore } from "../store";
 import { aliveModels } from "../systems/wh40k/rules";
@@ -60,11 +59,11 @@ function WarningRow({ w, onShow }: { w: TableWarning; onShow?: (w: TableWarning)
   const canControl = useCanControl();
   const unit = w.unitId ? game.units[w.unitId] : undefined;
   const yours = !!unit && canControl(unit.owner) && scrub === null && role !== "spectator";
-  // On the new layout's card a warning is one line of text: releasing the drag already overrode it (Jobs review).
-  if (NEXT && !onShow) return <li className={w.severity}>{w.message}</li>;
+  // On the card a warning is one line of text: releasing the drag already overrode it (Jobs review).
+  if (!onShow) return <li className={w.severity}>{w.message}</li>;
   const text = (
     <>
-      {onShow && unit && (
+      {unit && (
         <span style={{ color: game.players[unit.owner]?.color }}>
           {playerShape(game, unit.owner)} {unit.name}:{" "}
         </span>
@@ -76,13 +75,9 @@ function WarningRow({ w, onShow }: { w: TableWarning; onShow?: (w: TableWarning)
     <li className={w.severity}>
       {/* The check's name as a label ahead of the sentence, not trailing it (UX 331). */}
       <span className="check-label small">{checkName(game, w.checkId)}</span>{" "}
-      {onShow ? (
-        <button className="link" title={t("Show this unit")} onClick={() => onShow(w)}>
-          {text}
-        </button>
-      ) : (
-        <span>{text}</span>
-      )}
+      <button className="link" title={t("Show this unit")} onClick={() => onShow(w)}>
+        {text}
+      </button>
       <span className="row">
         {yours && unit && (
           <button

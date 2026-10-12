@@ -270,7 +270,7 @@ export function isAutomated(system: GameSystem, ability: Ability): boolean {
 }
 
 /** Abilities the players resolve themselves, without the weapon-keyword glossary entries. */
-export function manualAbilities(system: GameSystem, unit: Unit): Ability[] {
+function manualAbilities(system: GameSystem, unit: Unit): Ability[] {
   const seen = new Set<string>();
   return (unit.sheet?.abilities ?? []).filter((a) => {
     if (seen.has(a.name)) return false;

@@ -26,7 +26,6 @@ import { SetupSteps } from "./SetupSteps";
 import { TemplateTools } from "./TemplateTools";
 import { battleOver } from "./StatsScreen";
 import { reviewThisGame } from "../replay/review";
-import { NEXT, switchUi } from "../next/flag";
 import { useGame } from "./hooks";
 import { useCoach } from "../teach/store";
 import { narrow } from "./narrow";
@@ -312,11 +311,6 @@ export function GameMenu({ record }: { record: GameRecord }) {
         </button>
       )}
       <ReportButton className="" />
-      {!NEXT && (
-        <button role="menuitem" onClick={() => switchUi(true)}>
-          {t("Switch to the new layout")}
-        </button>
-      )}
       {session && (
         <button role="menuitem" onClick={leave}>
           {t("Leave game")}

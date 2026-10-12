@@ -16,7 +16,7 @@ import { useFigures, type FigureEntry } from "./library";
  */
 const PACK_FORMAT = "open-battle/figures@1";
 
-export interface PackFigure {
+interface PackFigure {
   id: string;
   name: string;
   kind: AssetKind;
@@ -43,7 +43,7 @@ async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export const packHash = (figures: PackFigure[]) =>
+const packHash = (figures: PackFigure[]) =>
   sha256(stableJson([...figures].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))));
 
 /** A short form of a pack's hash, to compare by eye. */

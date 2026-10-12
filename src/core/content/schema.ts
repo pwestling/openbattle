@@ -16,7 +16,7 @@
  * players decide.
  */
 
-import type { BaseShape, Table } from "../types";
+import type { Table } from "../types";
 
 export type Id = string;
 /** A plain tag such as "INFANTRY" or "FLY". Matching is case-insensitive. */
@@ -944,55 +944,3 @@ export interface RuleReminder {
 // ---------------------------------------------------------------------------
 // Content packs and rosters
 // ---------------------------------------------------------------------------
-
-export interface ContentPack {
-  id: Id;
-  name: string;
-  version: string;
-  /** The GameSystem this pack is for. */
-  system: Id;
-  /** Where the data came from, e.g. a BSData catalogue and revision. */
-  source?: string;
-  units: Record<Id, UnitDef>;
-  models: Record<Id, ModelDef>;
-  weapons: Record<Id, WeaponDef>;
-  /** Faction rules, abilities and stratagems not in the core system. */
-  rules?: RuleDef[];
-  actions?: ActionDef[];
-}
-
-export interface UnitDef {
-  id: Id;
-  name: string;
-  keywords: Keyword[];
-  /** Model types and how many of each the unit may contain. */
-  models: { model: Id; min: number; max: number }[];
-  rules: RuleRef[];
-  shape?: UnitShape;
-  /** Units this one may join, e.g. a leader attaching to a squad. */
-  attachesTo?: { units: Id[]; as: Id }[];
-}
-
-export interface ModelDef {
-  id: Id;
-  name: string;
-  keywords?: Keyword[];
-  characteristics: Record<Id, Value>;
-  /** Same shape as the core model's base: round, oval or rect, in millimetres. */
-  base: BaseShape;
-  /** Figures on a multi-figure stand (FSD infantry teams, Conquest stands). */
-  figures?: number;
-  /** Weapons carried by default; rosters may change them. */
-  weapons: Id[];
-  rules?: RuleRef[];
-  /** Optional 3D asset supplied by the player. */
-  mesh?: string;
-}
-
-export interface WeaponDef {
-  id: Id;
-  name: string;
-  kind: Id;
-  characteristics: Record<Id, Value>;
-  rules: RuleRef[];
-}

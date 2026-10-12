@@ -5,7 +5,6 @@ import { actionTargets, unitActions } from "../core/content/play";
 import { formatList, t } from "../i18n";
 import { RollButton } from "../companion/RealDice";
 import { useGame } from "./hooks";
-import { NEXT } from "../next/flag";
 import { engagedWith } from "../systems/wh40k/rules";
 import { chargeNeeded } from "../systems/wh40k/charge";
 
@@ -25,8 +24,6 @@ export function ChargeDeclare({ unit, primary, as }: { unit: Unit; primary: bool
     if (asked) useChargeAsk.setState({ ask: null });
     setPicked(p);
   };
-  // Nothing in reach, and the player pressed Charge anyway: every enemy is pickable (advisory rules, UX 434).
-  const [anyway, setAnyway] = useState(false);
   const roll = typeof unit.status?.charge === "number" ? unit.status.charge : null;
   // The units the roll was declared against, kept on the unit by the roll itself (so every peer sees them).
   const declared = Object.keys(unit.status ?? {})
@@ -79,31 +76,6 @@ export function ChargeDeclare({ unit, primary, as }: { unit: Unit; primary: bool
             );
           });
           if (targets.some((x) => x.ok)) return list;
-          if (anyway)
-            return (
-              <>
-                <p className="warn small">{t("Charge anyway?")}</p>
-                {targets.map((x) => {
-                  const other = game.units[x.unitId];
-                  if (!other) return null;
-                  const on = picking.includes(x.unitId);
-                  return (
-                    <button
-                      key={x.unitId}
-                      className={on ? "small on" : "small"}
-                      aria-pressed={on}
-                      title={x.why ?? undefined}
-                      onClick={() =>
-                        setPicking(on ? picking.filter((id) => id !== x.unitId) : [...picking, x.unitId])
-                      }
-                    >
-                      {other.name}{" "}
-                      <span className="muted small">{`${unitGap(game, unit, other).toFixed(1)}"`}</span>
-                    </button>
-                  );
-                })}
-              </>
-            );
           const gaps = targets.flatMap((x) => {
             const other = game.units[x.unitId];
             return other ? [unitGap(game, unit, other)] : [];
@@ -149,26 +121,24 @@ export function ChargeDeclare({ unit, primary, as }: { unit: Unit; primary: bool
         : t("Charge fails: needed {n}", { n: needed(declared) });
   // Already in combat: no charge to declare (UX 413: it offered one at 0.0", then logged it "made").
   const inCombat = !declared.length && engagedWith(game, unit).length > 0;
-  // Nothing within 12": the button says so, and pressing it asks "Charge anyway?" (UX 434).
+  // Nothing within 12": no charge to offer, so no button (Jobs review, UX 434).
   const outOfReach =
     !inCombat && !declared.length && !actionTargets(game, unit.id, "charge").some((x) => x.ok);
-  // The new layout has no charge out of reach: nothing in 12" means nothing to charge (Jobs review).
-  if (NEXT && outOfReach) return null;
+  if (outOfReach) return null;
   return (
     <>
       <button
         // Rolled already: moving in is next, so pressing again (a re-roll) is no longer the step (UX N24).
-        className={primary && !inCombat && !outOfReach && landed === null ? "primary" : ""}
+        className={primary && !inCombat && landed === null ? "primary" : ""}
         disabled={inCombat}
         title={inCombat ? t("Already in combat: it can't charge") : undefined}
         onClick={() => {
-          setAnyway(outOfReach);
           const ok = actionTargets(game, unit.id, "charge").filter((x) => x.ok);
           // The nearest enemy that can be charged, ticked to start with.
           setPicking(ok[0] ? [ok[0].unitId] : []);
         }}
       >
-        {outOfReach ? t('Charge: no enemy within 12"') : t("Charge (2D6)")}
+        {t("Charge (2D6)")}
       </button>
       {inCombat && <span className="muted small">{t("Already in combat: it can't charge")}</span>}
       {outcome && (

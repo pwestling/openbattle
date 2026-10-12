@@ -9,8 +9,6 @@ import { isLeader, standingWith } from "./CoreAbilities";
 import { deployChecks } from "./deployment";
 import { useTransfers } from "../packages/share";
 import { RulesLine } from "./Packages";
-import { NetCheck } from "./NetCheck";
-import { NEXT } from "../next/flag";
 import { INVITE_KEY } from "../next/start";
 import { NET_PARAMS } from "../net/config";
 import { openSeats, PostTable } from "../opentables/OpenTables";
@@ -43,22 +41,11 @@ function StillLooking() {
     return () => clearTimeout(timer);
   }, [fromBoard]);
   if (!stuck) return null;
-  // The new layout: one line and Try again (naive players 12); the network check is for the classic one.
-  if (NEXT)
-    return (
-      <div className="still-looking">
-        <p>{t("Still looking for the host's table.")}</p>
-        <button onClick={() => location.reload()}>{t("Try again")}</button>
-      </div>
-    );
+  // One line and Try again (naive players 12).
   return (
     <div className="still-looking">
-      <p>
-        {t(
-          "Still looking. The host may have closed their page, or the link is from an old game. If the host is there, your connection may be the problem:",
-        )}
-      </p>
-      <NetCheck auto />
+      <p>{t("Still looking for the host's table.")}</p>
+      <button onClick={() => location.reload()}>{t("Try again")}</button>
     </div>
   );
 }

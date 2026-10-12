@@ -24,7 +24,7 @@ function point(n: number): Dist {
   return d;
 }
 
-export function mean(d: Dist): number {
+function mean(d: Dist): number {
   return d.reduce((s, p, n) => s + p * n, 0);
 }
 
@@ -41,7 +41,7 @@ function convolve(a: Dist, b: Dist): Dist {
 }
 
 /** Distribution of a dice sum such as "2D6+1" (negative totals count as 0). */
-export function sumDist(sum: DiceSum, rerollOnes = false): Dist {
+function sumDist(sum: DiceSum, rerollOnes = false): Dist {
   let offset = 0;
   let d: Dist = [1];
   for (const t of sum) {
@@ -76,7 +76,7 @@ export function sumDist(sum: DiceSum, rerollOnes = false): Dist {
  * One attack's damage: re-rolled as the plan says ("ones" each 1; "failed" or
  * "any" a roll below average), and never below the floor.
  */
-export function damageDist(sum: DiceSum, reroll: string | undefined, floor = 0): Dist {
+function damageDist(sum: DiceSum, reroll: string | undefined, floor = 0): Dist {
   let d = sumDist(sum, reroll === "ones");
   if (reroll === "failed" || reroll === "any") {
     const avg = mean(d);
@@ -188,14 +188,14 @@ export function followUpNeed(step: Step | undefined, plan: StepPlan | undefined)
   }
 }
 
-export interface StepOdds {
+interface StepOdds {
   id: string;
   kind: Step["kind"];
   /** Average number of dice (hits, wounds, unsaved wounds) coming out of the step. */
   expected: number;
 }
 
-export interface Odds {
+interface Odds {
   steps: StepOdds[];
   /** Average models slain, when the procedure deals damage. */
   slain?: number;

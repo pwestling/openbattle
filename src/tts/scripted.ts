@@ -24,7 +24,7 @@ const list = <T>(v: unknown): T[] =>
   Array.isArray(v) ? (v as T[]) : v && typeof v === "object" ? (Object.values(v) as T[]) : [];
 
 /** The unit data in a model's script, in Yellowscribe's JSON shape; null when there is none. */
-export function scriptUnit(script: string): YsUnit | null {
+function scriptUnit(script: string): YsUnit | null {
   if (!/\bunitData\s*=/.test(script)) return null;
   const t = luaTable(script, "unitData");
   if (!t || typeof t.unitName !== "string") return null;

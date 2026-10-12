@@ -18,9 +18,9 @@ import type { SignedResult } from "./verify";
  * in any PAIR_WINDOW_MS (more is farming, not playing).
  */
 
-export const START = 1500;
-export const K = 32;
-export const PAIR_CAP = 3;
+const START = 1500;
+const K = 32;
+const PAIR_CAP = 3;
 const PAIR_WINDOW_MS = 24 * 3600_000;
 /** Fewer games than this and the rating is still finding its level. */
 export const PROVISIONAL = 5;
@@ -48,7 +48,7 @@ export interface Rating {
 }
 
 /** The chance the first player beats the second, by rating. */
-export const expected = (a: number, b: number) => 1 / (1 + 10 ** ((b - a) / 400));
+const expected = (a: number, b: number) => 1 / (1 + 10 ** ((b - a) / 400));
 
 /** One game's change for the first player: score 1 a win, 0.5 a draw, 0 a loss. */
 export const change = (a: number, b: number, score: number) => K * (score - expected(a, b));
@@ -77,7 +77,7 @@ const sameSet = (a: string[], b: string[]) =>
   a.length === b.length && [...a].sort().every((x, i) => x === [...b].sort()[i]);
 
 /** The named ruleset a result was played under, if it is one. */
-export function rulesetOf(r: RankedResult, rulesets: Ruleset[] = RULESETS): Ruleset | undefined {
+function rulesetOf(r: RankedResult, rulesets: Ruleset[] = RULESETS): Ruleset | undefined {
   const app = r.rules?.app;
   if (!r.rules || !app) return undefined;
   const hashes = r.rules.packages.map((p) => p.hash);
@@ -123,7 +123,7 @@ export function ladderAbout(
 }
 
 /** The results that count on ladder `on` (ladderKey), in counting order: each replay once, the pair cap applied. */
-export function counted(results: SignedResult[], on: string): SignedResult[] {
+function counted(results: SignedResult[], on: string): SignedResult[] {
   const seen = new Set<string>();
   const pairs = new Map<string, number[]>();
   const out: SignedResult[] = [];

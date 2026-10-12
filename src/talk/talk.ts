@@ -131,7 +131,7 @@ const point = (p: unknown): p is { x: number; y: number } =>
   Math.abs((p as { y: number }).y) < 500;
 
 /** A peer's item, if it is well formed; anything else is dropped. */
-export function cleanItem(item: unknown): TalkItem | null {
+function cleanItem(item: unknown): TalkItem | null {
   if (!item || typeof item !== "object") return null;
   const i = item as Record<string, unknown>;
   if (typeof i.id !== "string" || i.id.length > 40) return null;

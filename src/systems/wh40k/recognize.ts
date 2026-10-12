@@ -9,7 +9,6 @@
  */
 import { bindRules, lookupRules } from "../../core/content/runtime";
 import type { Effect, EffectAction, Expr, GameSystem, Value } from "../../core/content/schema";
-import { isAutomated } from "../../core/content/player";
 import type { Ability, AbilityAuto, Army, AutoPart } from "../../core/types";
 
 type AttackPart = Extract<AutoPart, { kind: "attack" }>;
@@ -422,46 +421,4 @@ export function automateArmy(army: Army, system: GameSystem): Army {
       return auto ? { ...st, auto } : st;
     }),
   };
-}
-
-interface AbilityProposal {
-  unitId: string;
-  /** Index in the unit's abilities. */
-  index: number;
-  ability: Ability;
-  auto: AbilityAuto;
-}
-
-interface Coverage {
-  /** Abilities the engine runs: core rules it knows, plus confirmed ones. */
-  automated: number;
-  total: number;
-  /** Rules read from the text, waiting for the player to confirm. */
-  proposals: AbilityProposal[];
-}
-
-/** Count each distinct ability (by unit and name) once; weapon keyword glossary entries aren't abilities. */
-export function coverage(
-  units: { id: string; abilities: Ability[] }[],
-  system: GameSystem,
-  isGlossary: (a: Ability) => boolean = () => false,
-): Coverage {
-  let automated = 0;
-  let total = 0;
-  const proposals: AbilityProposal[] = [];
-  for (const u of units) {
-    const seen = new Set<string>();
-    u.abilities.forEach((a, index) => {
-      if (seen.has(a.name) || isGlossary(a)) return;
-      seen.add(a.name);
-      total++;
-      if (isAutomated(system, a)) {
-        automated++;
-        return;
-      }
-      const auto = recognize(a, system);
-      if (auto) proposals.push({ unitId: u.id, index, ability: a, auto });
-    });
-  }
-  return { automated, total, proposals };
 }

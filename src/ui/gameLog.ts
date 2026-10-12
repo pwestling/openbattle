@@ -14,10 +14,7 @@ import {
 } from "../core";
 import { isPlaceholder } from "../core/content/systems";
 import { t, tn, gameText } from "../i18n";
-import { describePackageChange } from "./packageChange";
 import { describe, moveText } from "./eventText";
-export { describePackageChange };
-
 /** A line of the game log as players read it. */
 export type LogItem =
   /** A phase change, or (`rules`) a rules change both players agreed to mid-game. */

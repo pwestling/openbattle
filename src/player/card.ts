@@ -47,7 +47,7 @@ useCard.subscribe((s, prev) => {
   }
 });
 
-export const keyOf = (pub: JsonWebKey): PlayerKey => `${pub.x ?? ""}.${pub.y ?? ""}`;
+const keyOf = (pub: JsonWebKey): PlayerKey => `${pub.x ?? ""}.${pub.y ?? ""}`;
 
 /** A key back as the public key it names. */
 const jwk = (key: PlayerKey): JsonWebKey => {

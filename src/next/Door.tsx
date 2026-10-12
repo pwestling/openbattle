@@ -7,13 +7,6 @@ import { isPlaceholder } from "../core/content/systems";
 import { systemOf } from "../core/content/turn";
 import { stateAt } from "../core/log";
 import { openLibrary, openTts } from "../figures/open";
-import {
-  BRINEWATCH,
-  installOwnGame,
-  installRiftLanterns,
-  ownGame,
-  RIFT_LANTERNS,
-} from "../games/riftLanterns";
 import { t } from "../i18n";
 import { LanguagePicker } from "../i18n/LanguagePicker";
 import { boardOn, useOpenTables } from "../opentables/board";
@@ -123,45 +116,23 @@ export function Door() {
   const library = useLibrary((s) => s.packages);
   useEffect(() => {
     void useLibrary.getState().load();
-    const idle = window.requestIdleCallback ?? ((cb: () => void) => setTimeout(cb, 500));
-    idle(() => {
-      void installRiftLanterns();
-      void installOwnGame(BRINEWATCH);
-    });
   }, []);
   const fromPackages = Object.values(library).filter(
     (p) => p.trusted && p.manifest.kind === "system" && p.manifest.systems[0],
   );
-  const ours: Game[] = [
-    {
-      id: RIFT_LANTERNS,
-      // i18n-ignore
-      title: "Rift Lanterns",
-      blurb: t("Our own free skirmish game. Warbands included, nothing to import."),
-    },
-    {
-      id: BRINEWATCH,
-      // i18n-ignore
-      title: "Brinewatch",
-      blurb: t("Our own free game of climbing crews at low tide. Crews included."),
-    },
-  ];
   const first: Game[] = [
     {
       id: DEFAULT_SYSTEM,
       title: FRONT[DEFAULT_SYSTEM]!.title,
       blurb: t("Squads move, shoot, charge and fight."),
     },
-    ...ours,
   ];
   const others: Game[] = [
     ...listSystems()
-      .filter((s) => s.id !== DEFAULT_SYSTEM && !ownGame(s.id))
+      .filter((s) => s.id !== DEFAULT_SYSTEM)
       .map((s) => ({ id: s.id, title: systemLabel(s.id, s.name), blurb: FRONT[s.id]?.blurb ?? "" })),
     ...fromPackages
-      .filter(
-        (p) => !listSystems().some((s) => s.id === p.manifest.systems[0]) && !ownGame(p.manifest.systems[0]!),
-      )
+      .filter((p) => !listSystems().some((s) => s.id === p.manifest.systems[0]))
       .map((p) => ({ id: p.manifest.systems[0]!, title: p.manifest.name, blurb: "" })),
   ];
   const all = [...first, ...others];
@@ -183,10 +154,7 @@ export function Door() {
   const reopen =
     !flow.game && !invite && !!lastSystem && all.some((g) => g.id === lastSystem) ? lastSystem : null;
   const reopenWho =
-    reopen &&
-    lastWho &&
-    WHOS.includes(lastWho) &&
-    (lastWho !== "computer" || !!FRONT[reopen] || ownGame(reopen))
+    reopen && lastWho && WHOS.includes(lastWho) && (lastWho !== "computer" || !!FRONT[reopen])
       ? lastWho
       : null;
   useEffect(() => {
@@ -228,9 +196,8 @@ export function Door() {
     [library],
   );
   const lesson = lessons.find((l) => lessonSystem(l) === system);
-  const computer = !!system && (!!FRONT[system] || ownGame(system));
-  const tableOk =
-    !!system && (ownGame(system) || !fromPackages.some((p) => p.manifest.systems[0] === system));
+  const computer = !!system && !!FRONT[system];
+  const tableOk = !!system && !fromPackages.some((p) => p.manifest.systems[0] === system);
 
   const savedAt = useMemo(() => {
     if (!saved) return null;
@@ -254,7 +221,7 @@ export function Door() {
     } catch {
       // Not kept.
     }
-    flow.go(id, who === "computer" && !(FRONT[id] || ownGame(id)) ? null : who);
+    flow.go(id, who === "computer" && !FRONT[id] ? null : who);
     focusInto("obn-who");
   };
   const choose = (id: Who) => {
@@ -364,7 +331,7 @@ export function Door() {
     [
       "both",
       t("Both sides, this screen"),
-      system && (FRONT[system] || ownGame(system))
+      system && FRONT[system]
         ? t("Two sample armies set up; pass the screen each turn.")
         : t("You set up both armies and play both."),
       true,
@@ -503,7 +470,7 @@ export function Door() {
                 <ComputerArmy key={level} system={system} level={level} />
               ) : (
                 <>
-                  {who === "table" && !ownGame(system) && (
+                  {who === "table" && (
                     <div className="obn-stack" role="radiogroup" aria-label={t("Phones")} onKeyDown={arrows}>
                       {(
                         [
@@ -523,7 +490,7 @@ export function Door() {
                       ))}
                     </div>
                   )}
-                  {who === "both" && (FRONT[system] || ownGame(system)) && (
+                  {who === "both" && FRONT[system] && (
                     <PackageArmyChoice key={system} system={system} onChange={setNear} />
                   )}
                   {who === "friend" && <OfflineForFriends />}
@@ -543,7 +510,7 @@ export function Door() {
                     {who === "friend"
                       ? t("Next: the table opens with a link to send. Your army goes on it there.")
                       : who === "both"
-                        ? FRONT[system] || ownGame(system)
+                        ? FRONT[system]
                           ? t("Both armies go on the table and the battle starts. Pass the screen each turn.")
                           : t("An empty table: put both armies on it, then start.")
                         : t("No 3D table: your phone keeps count while you play with your models.")}

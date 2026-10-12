@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { NEXT } from "../next/flag";
 import { t, tn } from "../i18n";
 import { useCanControl, useStore } from "../store";
 import { useTalk } from "../talk/talk";
@@ -11,7 +10,6 @@ import {
   moveAsPlanned,
   movesReady,
   planFor,
-  setPlanning,
   shootAsPlanned,
   shotsReady,
   usePlan,
@@ -49,46 +47,30 @@ export function PlanPanel() {
     const planned = [...new Set([...Object.keys(moves), ...Object.keys(shots)])].filter(
       (id) => game.units[id],
     );
-    // The new layout's step bar holds the toggle and the hint; only the list of plans shows here.
-    if (NEXT && !planned.length) return null;
+    // The step bar holds the toggle and the hint; only the list of plans shows here.
+    if (!planned.length) return null;
     return (
       <div className={on ? "plan-panel on" : "plan-panel"} data-testid="plan-panel">
-        {!NEXT && (
-          <button
-            className={on ? "small primary" : "small"}
-            aria-pressed={on}
-            onClick={() => setPlanning(!on)}
-          >
-            {on ? t("Done planning") : t("Plan my turn")}
-          </button>
-        )}
-        {on && !NEXT && (
-          <span className="plan-hint">
-            {t("Drag your models to plan moves; pick a unit, then click an enemy to plan its shots.")}
-          </span>
-        )}
-        {planned.length > 0 && (
-          <ul className="plan-list">
-            {planned.map((id) => (
-              <li key={id}>
-                <span>
-                  {game.units[id]!.name}
-                  {moves[id] ? ` · ${t("move")}` : ""}
-                  {shots[id] && game.units[shots[id]!]
-                    ? ` · ${t("shoot {name}", { name: game.units[shots[id]!]!.name })}`
-                    : ""}
-                </span>
-                <button
-                  className="small quiet"
-                  aria-label={t("Forget this plan")}
-                  onClick={() => forgetPlan(id)}
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="plan-list">
+          {planned.map((id) => (
+            <li key={id}>
+              <span>
+                {game.units[id]!.name}
+                {moves[id] ? ` · ${t("move")}` : ""}
+                {shots[id] && game.units[shots[id]!]
+                  ? ` · ${t("shoot {name}", { name: game.units[shots[id]!]!.name })}`
+                  : ""}
+              </span>
+              <button
+                className="small quiet"
+                aria-label={t("Forget this plan")}
+                onClick={() => forgetPlan(id)}
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     );
   }

@@ -17,8 +17,6 @@ import sdk from "../sdk/index.ts?raw";
 import skirmish from "../../examples/workshop/skirmish.js?raw";
 import ranked from "../../examples/workshop/ranked.js?raw";
 import activations from "../../examples/workshop/activations.js?raw";
-import riftLanterns from "../../games/rift-lanterns/rift-lanterns.js?raw";
-import brinewatch from "../../games/brinewatch/brinewatch.js?raw";
 import factionPack from "../../examples/workshop/faction-pack.js?raw";
 import {
   fileName,
@@ -66,18 +64,6 @@ const TEMPLATES = [
     source: activations,
     name: () => t("Alternating activations"),
     what: () => t("Players take turns activating one unit each."),
-  },
-  {
-    id: "rift-lanterns",
-    source: riftLanterns,
-    name: () => "Rift Lanterns",
-    what: () => t("A finished game of ours to take apart: four warbands, three missions."),
-  },
-  {
-    id: "brinewatch",
-    source: brinewatch,
-    name: () => "Brinewatch",
-    what: () => t("Our second, to take apart: action points, guards, hidden lurkers and a campaign."),
   },
   {
     id: "faction-pack",

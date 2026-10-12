@@ -106,7 +106,7 @@ function stored(): Record<string, SharedPin> {
   }
 }
 
-export const useSharedPins = create<{ pins: Record<string, SharedPin> }>(() => ({ pins: stored() }));
+const useSharedPins = create<{ pins: Record<string, SharedPin> }>(() => ({ pins: stored() }));
 
 function pin(url: string, p: SharedPin): void {
   const pins = { ...useSharedPins.getState().pins, [url]: p };

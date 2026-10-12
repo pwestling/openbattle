@@ -1,6 +1,6 @@
 import { averageDice, parseDice, rollDice } from "../dice";
 import type { Rng } from "../actions";
-import type { Effect, EventPattern, Expr, GeoQuery, Id, TableDef } from "./schema";
+import type { EventPattern, Expr, GeoQuery, Id, TableDef } from "./schema";
 
 /**
  * Evaluates the JSON expression language from schema.ts. Pure: geometry and
@@ -186,62 +186,6 @@ export function matchesEvent(
   return pattern.where === undefined || bool(pattern.where, bind(ctx, "event", payload));
 }
 
-interface TestModifiers {
-  modifier: number;
-  targetModifier: number;
-  reroll: "ones" | "failed" | "any" | null;
-  criticalOn: number | null;
-  reminders: string[];
-}
-
-/**
- * Fold every effect that fires on `event` into the modifiers for one dice
- * test, applying the step's modifier cap.
- */
-export function collectTestModifiers(
-  effects: Effect[],
-  event: string,
-  payload: object,
-  ctx: EvalContext,
-  modifierCap?: number,
-): TestModifiers {
-  const out: TestModifiers = {
-    modifier: 0,
-    targetModifier: 0,
-    reroll: null,
-    criticalOn: null,
-    reminders: [],
-  };
-  const evCtx = bind(ctx, "event", payload);
-  for (const effect of effects) {
-    if (!matchesEvent(effect.when, event, payload, ctx)) continue;
-    if (effect.if !== undefined && !bool(effect.if, evCtx)) continue;
-    for (const action of effect.do) {
-      switch (action.do) {
-        case "modifyRoll":
-          out.modifier += num(action.by, evCtx);
-          break;
-        case "modifyTarget":
-          out.targetModifier += num(action.by, evCtx);
-          break;
-        case "reroll":
-          if (typeof action.which === "string") out.reroll = strongerReroll(out.reroll, action.which);
-          break;
-        case "criticalOn": {
-          const v = num(action.value, evCtx);
-          out.criticalOn = out.criticalOn === null ? v : Math.min(out.criticalOn, v);
-          break;
-        }
-        case "manual":
-          out.reminders.push(action.reminder);
-          break;
-      }
-    }
-  }
-  if (modifierCap !== undefined) out.modifier = Math.max(-modifierCap, Math.min(modifierCap, out.modifier));
-  return out;
-}
-
 function headerIndex(headers: number[], value: number): number {
   let idx = 0;
   headers.forEach((h, i) => {
@@ -269,10 +213,4 @@ function collection(ref: string, ctx: EvalContext): unknown[] {
   const v = resolve(ref, ctx);
   if (!Array.isArray(v)) throw new Error(`"${ref}" is not a collection`);
   return v;
-}
-
-const REROLL_STRENGTH = { ones: 1, failed: 2, any: 3 } as const;
-
-function strongerReroll(a: TestModifiers["reroll"], b: NonNullable<TestModifiers["reroll"]>) {
-  return a && REROLL_STRENGTH[a] >= REROLL_STRENGTH[b] ? a : b;
 }

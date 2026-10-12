@@ -1,5 +1,4 @@
 import { toggleGroup, updatePieces, useTableEdit } from "../tables/edit";
-import { NEXT } from "../next/flag";
 import { useLit } from "../next/lit";
 import { tableDrag } from "./dragging";
 import { Sightlines } from "../tables/Sightlines";
@@ -103,35 +102,21 @@ export function Board() {
       }}
     >
       <color attach="background" args={["#111318"]} />
-      {NEXT ? (
-        // One warm key light with soft shadows over the whole table, and a sky fill (Jobs review: light it).
-        <>
-          <hemisphereLight args={["#fff2df", "#1d2216", 0.6]} />
-          <ambientLight intensity={0.2} />
-          <directionalLight
-            position={[-18, 46, 24]}
-            color="#ffe3bd"
-            intensity={2}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-            shadow-camera-left={-45}
-            shadow-camera-right={45}
-            shadow-camera-top={35}
-            shadow-camera-bottom={-35}
-            shadow-bias={-0.0004}
-          />
-        </>
-      ) : (
-        <>
-          <ambientLight intensity={0.7} />
-          <directionalLight
-            position={[20, 40, 10]}
-            intensity={1.3}
-            castShadow
-            shadow-mapSize={[2048, 2048]}
-          />
-        </>
-      )}
+      {/* One warm key light with soft shadows over the whole table, and a sky fill (Jobs review: light it). */}
+      <hemisphereLight args={["#fff2df", "#1d2216", 0.6]} />
+      <ambientLight intensity={0.2} />
+      <directionalLight
+        position={[-18, 46, 24]}
+        color="#ffe3bd"
+        intensity={2}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-45}
+        shadow-camera-right={45}
+        shadow-camera-top={35}
+        shadow-camera-bottom={-35}
+        shadow-bias={-0.0004}
+      />
       <Cameras />
       <CameraFit />
       <Scene />
@@ -1316,11 +1301,9 @@ function Scene() {
       }
     }
     // One of your units picked and an enemy clicked: the phase's verb on it (UX 84); Shift does it anyway.
-    // Not by touch yet: a tap there picks the enemy, as before (two taps with a tag is to come).
     if (
       !draft &&
       live &&
-      (NEXT || e?.pointerType !== "touch") &&
       selected &&
       m.unitId &&
       game.units[selected] &&
@@ -1334,7 +1317,7 @@ function Scene() {
     }
     // Nothing of yours picked (the new layout): an enemy tapped is a target for the unit the step bar
     // lights, never its card (naive players 5). Out of reach, the attack says why (rules are advisory).
-    const lit = NEXT ? useLit.getState().unitId : null;
+    const lit = useLit.getState().unitId;
     const own = !!selected && !!game.units[selected] && canControl(game.units[selected]!.owner);
     if (!draft && live && !own && lit && m.unitId && game.units[lit] && canControl(game.units[lit]!.owner)) {
       const verb = tableVerb(game, lit, m.unitId);
@@ -1721,14 +1704,10 @@ function Scene() {
         }}
       >
         <planeGeometry args={[width, depth]} />
-        {NEXT ? (
-          <meshStandardMaterial color="#62744a" map={feltTexture(width, depth)} roughness={0.95} />
-        ) : (
-          <meshStandardMaterial color="#4b5a3a" />
-        )}
+        <meshStandardMaterial color="#62744a" map={feltTexture(width, depth)} roughness={0.95} />
       </mesh>
       {/* The new layout keeps the grid to top-down (Jobs review): the felt reads as a table, not graph paper. */}
-      {(!NEXT || view === "top") && <InchGrid width={width} depth={depth} />}
+      {view === "top" && <InchGrid width={width} depth={depth} />}
       {(editing || game.turn.round === 0) && <Sightlines game={game} />}
       {/* In a team game each teammate's share of the side's zone shows in their own colour. */}
       {game.zones.flatMap((z) => {

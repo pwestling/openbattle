@@ -50,7 +50,7 @@ interface SightGrid {
  * a square is seen from a zone if model-height lines from a good part of the
  * zone reach the middle of a model standing there. No units, no odds.
  */
-export function sightGrid(game: GameState): SightGrid {
+function sightGrid(game: GameState): SightGrid {
   const { width, depth } = game.table;
   const cols = Math.ceil(width / CELL);
   const rows = Math.ceil(depth / CELL);

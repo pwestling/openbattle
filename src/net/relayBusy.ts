@@ -11,7 +11,7 @@ export const useRelayBusy = create<{ at: number | null }>(() => ({ at: null }));
 /** coturn's answers when it won't hand out another relay. */
 const FULL = new Set([486, 508]);
 
-export function relayRefused(e: { errorCode?: number; url?: string | null }): boolean {
+function relayRefused(e: { errorCode?: number; url?: string | null }): boolean {
   return FULL.has(e.errorCode ?? 0) && /^turns?:/.test(e.url ?? "");
 }
 

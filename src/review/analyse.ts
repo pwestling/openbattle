@@ -121,7 +121,7 @@ const take = (e: Extract<GameEvent, { type: "action/take" }>): Intent => ({
 });
 
 /** A decision's move as the bot would make it, from the log entry that starts it (null if it isn't one). */
-export function decisionAt(state: GameState, logged: LoggedEvent): BotMove | null {
+function decisionAt(state: GameState, logged: LoggedEvent): BotMove | null {
   const e = logged.event;
   const as = logged.by;
   if (!as || !state.players[as]) return null;
@@ -184,7 +184,7 @@ const expected = (v: number, army: number) => 1 / (1 + Math.exp(-v / Math.max(1e
  * costly mark in the making) a closer one, so luck in the few goes tried
  * doesn't make one. The review benchmark (bench/) judges its plays so too.
  */
-export function lookAt(
+function lookAt(
   eye: Analyst,
   record: GameRecord,
   st: GameState,

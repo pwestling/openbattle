@@ -173,7 +173,7 @@ export function useRatingMove(
 }
 
 /** How often a player signs (PX ranked 1): results they signed, of every result put to them that went out. */
-export function signRate(
+function signRate(
   key: PlayerKey,
   results: Record<string, SignedResult>,
   declined: Record<string, DeclinedResult>,

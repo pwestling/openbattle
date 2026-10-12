@@ -327,45 +327,6 @@ export function OpenTablesBoard({
 }
 
 /**
- * The front door's "● Live now" strip (PX): the busiest game under way, one
- * tap from watching, so people see the table is alive before opening the board.
- */
-export function LiveStrip({ onMore }: { onMore: () => void }) {
-  const [posts, setPosts] = useState<SeenPost[]>([]);
-  const prefs = useOpenTables();
-  useEffect(() => {
-    let stop: (() => void) | null = null;
-    let live = true;
-    void board().then((b) => {
-      if (b && live) stop = b.watch(setPosts, () => {});
-    });
-    return () => {
-      live = false;
-      stop?.();
-    };
-  }, []);
-  const games = shownPosts(posts, prefs)
-    .filter(isLiveGame)
-    .sort((a, b) => (b.live?.watching ?? 0) - (a.live?.watching ?? 0) || b.at - a.at);
-  const top = games[0];
-  if (!top?.live) return null;
-  return (
-    <div className="live-strip" role="status">
-      <span className="dot live" aria-hidden />{" "}
-      {t("Live now: {game}, round {n}", { game: top.game, n: top.live.round })}{" "}
-      <button className="small primary" onClick={() => watchGame(top)}>
-        {t("Watch")}
-      </button>
-      {games.length > 1 && (
-        <button className="link small" onClick={onMore}>
-          {tn(games.length - 1, "{n} more", "{n} more")}
-        </button>
-      )}
-    </div>
-  );
-}
-
-/**
  * Watch a game from Live now (#64): into its room as a spectator, in the
  * broadcast view, running behind the game so secrets and table talk stay safe.
  */

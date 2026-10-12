@@ -9,7 +9,7 @@ import type { GameSystem, Id } from "./schema";
  */
 
 /** The game's size in points, for a system whose numbers follow it. */
-export function gamePoints(state: GameState, system: GameSystem): number | undefined {
+function gamePoints(state: GameState, system: GameSystem): number | undefined {
   if (!system.gameSize) return undefined;
   const set = state.settings.points;
   return typeof set === "number" && set > 0 ? set : system.gameSize.points;

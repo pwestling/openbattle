@@ -43,13 +43,13 @@ function luminance(hex: string): number {
 }
 
 /** WCAG contrast between two #rrggbb colours. */
-export function contrast(a: string, b: string): number {
+function contrast(a: string, b: string): number {
   const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p) as [number, number];
   return (x + 0.05) / (y + 0.05);
 }
 
 /** Pips that can be read on the body: the chosen colour, or black or white when it's too close. */
-export function readablePip(body: string, pip: string): string {
+function readablePip(body: string, pip: string): string {
   if (!/^#[0-9a-f]{6}$/i.test(body) || !/^#[0-9a-f]{6}$/i.test(pip)) return DEFAULT_PIP;
   if (contrast(body, pip) >= 3) return pip;
   return contrast(body, "#000000") >= contrast(body, "#ffffff") ? "#111111" : "#ffffff";

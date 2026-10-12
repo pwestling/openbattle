@@ -1,7 +1,5 @@
 import { Fragment, useState, type ReactNode } from "react";
 import { belowHalf } from "../systems/wh40k/module";
-import { alongPath, legsOf, movePath, pathLength } from "../core/path";
-import type { Vec2 } from "../core";
 import { NoStats } from "../tts/NoStats";
 import { swipeAway } from "./swipe";
 import { CampaignUnitLine } from "../campaign/CampaignUI";
@@ -15,7 +13,6 @@ import {
   maxWounds,
   modelHeight,
   phaseName,
-  settleZ,
   stepLevel,
   type Model,
   type Unit,
@@ -41,7 +38,6 @@ import { AttachSelect, CoreAbilities, StandingWith } from "./CoreAbilities";
 import { FigurePicker } from "./FigurePicker";
 import { AbilityLine, OncePerBattle } from "./AutoAbilities";
 import { CardMore } from "./CardMore";
-import { NEXT } from "../next/flag";
 import { replayRoll, useGame, useRareStars } from "./hooks";
 import { opposed } from "../core/teams";
 import { RollButton } from "../companion/RealDice";
@@ -124,62 +120,6 @@ export function eyeView(unitId: string) {
     ? centre(look)
     : { x: m.position.x + Math.sin(m.facing) * 10, y: m.position.y + Math.cos(m.facing) * 10, z: m.z ?? 0 };
   set({ view: "eye", eye: { modelId: m.id, at } });
-}
-
-/** The selected unit's datasheet, state and actions. */
-/**
- * Pull an over-long move back along each model's path until no model has
- * moved further than the limit this phase. Advisory: only on request.
- */
-function snapToLimit(unitId: string, limit: number) {
-  const { game, dispatch } = useStore.getState();
-  const unit = game.units[unitId];
-  if (!unit) return;
-  const models = aliveModels(game, unit);
-  // Back along each model's legs (core/path.ts), the same share of the way for all, so the unit keeps its shape.
-  const paths = new Map(models.map((m) => [m.id, movePath(m)]));
-  const at = (id: string, k: number) => {
-    const m = game.models[id]!;
-    const path = paths.get(id)!;
-    const d = pathLength(path) * k;
-    const p = alongPath(path, d);
-    // The corners passed before that point stay; the rest are left behind.
-    let walked = 0;
-    const kept: Vec2[] = [];
-    for (const [a, b] of legsOf(path).slice(0, -1)) {
-      walked += Math.hypot(b.x - a.x, b.y - a.y);
-      if (walked < d) kept.push(b);
-    }
-    return { p, kept, z: settleZ(game.terrain, p, m.phaseStartZ ?? 0), d };
-  };
-  const fits = (k: number) =>
-    models.every((m) => {
-      const { z, d } = at(m.id, k);
-      return d + Math.abs(z - (m.phaseStartZ ?? 0)) <= limit + 1e-6;
-    });
-  let k = 1;
-  if (!fits(1)) {
-    let lo = 0;
-    let hi = 1;
-    for (let i = 0; i < 30; i++) {
-      const mid = (lo + hi) / 2;
-      if (fits(mid)) lo = mid;
-      else hi = mid;
-    }
-    k = lo;
-  }
-  const ids = models.map((m) => m.id);
-  dispatch(
-    {
-      type: "models/move",
-      moves: ids.map((id) => {
-        const { p, z, kept } = at(id, k);
-        return { id, to: p, z, path: kept };
-      }),
-      snap: limit,
-    },
-    unit.owner,
-  );
 }
 
 /** The 40k phases the unit card puts actions in (UX 83). */
@@ -453,16 +393,6 @@ export function UnitCard() {
               {t('Moved {moved}" of {allowed}" this phase.', { moved: moved.toFixed(1), allowed })}{" "}
             </span>
           )}
-          {/* The new layout says it as a warning, and Undo takes the move back (naive players 5). */}
-          {mine &&
-            !NEXT &&
-            (game.turn.round > 0 || !!status.scouting) &&
-            allowed !== null &&
-            moved > allowed + 0.05 && (
-              <button className="small" onClick={() => snapToLimit(unit.id, allowed)}>
-                {t('Snap back to {allowed}"', { allowed })}
-              </button>
-            )}
           {blocked.length > 0 && (
             <span className="warn">
               {t("Moved through {terrain}.", {

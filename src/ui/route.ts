@@ -28,7 +28,7 @@ const useRoute = create<{ path: string }>(() => ({ path: "/" }));
 const LEGACY = ["tables", "ended", "rules", "play"];
 
 /** The screen path in a hash: `#/tables` → `/tables`; anything else (`#mail=`, `#key=`) is not ours. */
-export function hashPath(hash: string): string | null {
+function hashPath(hash: string): string | null {
   if (hash === "" || hash === "#") return "/";
   if (!hash.startsWith("#/")) return null;
   const path = decodeURI(hash.slice(1)).replace(/\/+$/, "");
@@ -36,7 +36,7 @@ export function hashPath(hash: string): string | null {
 }
 
 /** The screen an old query link opens: `?tables=1`, `?rules=<game>`, `?play=<game>`. */
-export function legacyPath(search: string): string | null {
+function legacyPath(search: string): string | null {
   const q = new URLSearchParams(search);
   const tables = q.get("tables");
   if (tables && ["1", "gone", "ended"].includes(tables)) return "/tables";
@@ -48,7 +48,7 @@ export function legacyPath(search: string): string | null {
 }
 
 /** The path's parts: `/play/rift-lanterns/computer` → ["play", "rift-lanterns", "computer"]. */
-export const parts = (path: string): string[] => path.split("/").filter(Boolean);
+const parts = (path: string): string[] => path.split("/").filter(Boolean);
 
 /** The path this page was loaded at, before anything changed the address. */
 export const loadedPath: string =

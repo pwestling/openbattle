@@ -7,7 +7,7 @@ import type { GameModule, Mission } from "../sdk";
 import type { SystemModule } from "./app";
 import { wh40kModule } from "./wh40k/module";
 
-export type { SpecialDie, SystemModule, TemplateKind } from "./app";
+export type { SystemModule } from "./app";
 
 /**
  * The built-in game modules (see src/sdk and the game modules spec). Each

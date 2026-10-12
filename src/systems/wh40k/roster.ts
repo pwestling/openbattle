@@ -72,13 +72,13 @@ export interface ImportedRoster {
 // Normalised tree
 // ---------------------------------------------------------------------------
 
-export interface RProfile {
+interface RProfile {
   name: string;
   typeName: string;
   chars: { name: string; value: string }[];
 }
 
-export interface RNode {
+interface RNode {
   name: string;
   type: string;
   number: number;
@@ -91,7 +91,7 @@ export interface RNode {
   selections: RNode[];
 }
 
-export interface RForce {
+interface RForce {
   /** The faction's catalogue. */
   catalogueName: string;
   rules: Ability[];
@@ -99,7 +99,7 @@ export interface RForce {
   forces: RForce[];
 }
 
-export interface RRoster {
+interface RRoster {
   name: string;
   pts?: number;
   forces: RForce[];
@@ -227,7 +227,7 @@ const XML_ARRAY_TAGS = new Set([
 let xmlReader: typeof import("fast-xml-parser") | null = null;
 
 /** The XML reader loads on demand, so the front door doesn't carry it. parseRosterFile waits for it. */
-export async function loadRosterParsers(): Promise<void> {
+async function loadRosterParsers(): Promise<void> {
   xmlReader ??= await import("fast-xml-parser");
 }
 
@@ -280,7 +280,7 @@ function parseJson(json: string, warnings: string[]): RRoster | undefined {
 type RosterExtractor = (roster: RRoster, warnings: string[]) => ImportedUnit[];
 
 /** Parse roster text, auto-detecting XML or JSON. */
-export function parseRosterText(input: string, extract: RosterExtractor = extractUnits): ImportedRoster {
+function parseRosterText(input: string, extract: RosterExtractor = extractUnits): ImportedRoster {
   const warnings: string[] = [];
   // trim() also strips a leading byte-order mark.
   const src = input.trim();
@@ -394,7 +394,7 @@ function nearestUnitProfile(node: RNode): RProfile | undefined {
   return undefined;
 }
 
-export function walk(node: RNode, visit: (n: RNode) => void): void {
+function walk(node: RNode, visit: (n: RNode) => void): void {
   visit(node);
   for (const c of node.selections) walk(c, visit);
 }
@@ -409,7 +409,7 @@ function collectUnits(force: RForce, out: RNode[]): void {
 }
 
 /** Model-group selections under `node`, not recursing into a model. */
-export function modelGroups(node: RNode, out: RNode[] = []): RNode[] {
+function modelGroups(node: RNode, out: RNode[] = []): RNode[] {
   for (const c of node.selections) {
     if (c.type === "model") out.push(c);
     else modelGroups(c, out);

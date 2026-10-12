@@ -40,7 +40,7 @@ const arrived = new Map<number, number>();
 let owned: number | null = null;
 
 /** The newest event at least `delay` seconds old here, or null to show everything. */
-export function delayedSeq(seqs: number[], seen: ReadonlyMap<number, number>, delay: number, now: number) {
+function delayedSeq(seqs: number[], seen: ReadonlyMap<number, number>, delay: number, now: number) {
   if (delay <= 0 || !seqs.length) return null;
   let shown = -1;
   for (const seq of seqs) if ((seen.get(seq) ?? now) <= now - delay * 1000) shown = seq;

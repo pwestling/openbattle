@@ -26,11 +26,9 @@ import { plainActivations } from "../core/content/turn";
 import { useGame } from "./hooks";
 import { eyeView, rotateUnit } from "./UnitCard";
 import { useCharged } from "../render/charges";
-import { StatusMenu } from "./StatusMenu";
 import { formatList, formatNumber, t, tn, gameText } from "../i18n";
 import { lengthText } from "./distance";
 import { CardMore } from "./CardMore";
-import { NEXT } from "../next/flag";
 import { systemModule } from "../systems";
 
 /**
@@ -177,11 +175,10 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
   const chargedText =
     charged !== null ? t("Charged {distance}", { distance: lengthText(system, charged) }) : null;
 
-  // The stats: under the name in the classic layout (UX 401), under ⋯ in the new one.
+  // The stats: in the card's ⋯ fold (UX 401).
   const stats = (
     <>
       <NoStats unit={unit} />
-      {/* The stats straight under the name, above the actions (UX 401). */}
       {/* Never wider than the card (UX 400): at most STAT_COLUMNS to a row, and numbered groups
           (FSD's System 1-4) as rows of their own, only those the unit has. */}
       {statRows(chars).map((row, i) => (
@@ -270,7 +267,6 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
         {owner?.name} · {tn(all.length, "{alive}/{n} model", "{alive}/{n} bases", { alive: alive.length })}
         {unit.sheet?.points ? " · " + t("{points} pts", { points: unit.sheet.points }) : ""}
       </p>
-      {!NEXT && stats}
 
       {Part && (
         <Suspense fallback={null}>
@@ -286,9 +282,9 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
             {gameText(s.hint!)}
           </p>
         ))}
-      {(chipped.length > 0 || flagChips.length > 0 || chargedText || (mine && statuses.length > 0)) && (
+      {(chipped.length > 0 || flagChips.length > 0 || chargedText) && (
         <div className="chips">
-          {/* Read-only: one click used to clear a spent regiment's Activated (UX 399). The ⋯ changes them. */}
+          {/* Read-only (UX 399): the log and the step bar change statuses, not the chips. */}
           {chipped.map((s) => (
             <span key={s.id} className="chip on">
               {s.id === "charged" && chargedText ? chargedText : s.name}
@@ -330,25 +326,6 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
           {chargedText && !statuses.some((s) => s.id === "charged") && !flags.includes("charged") && (
             <span className="chip on charged">{chargedText}</span>
           )}
-          {mine && (
-            <StatusMenu
-              unitName={unit.name}
-              items={statuses.map((s) => ({
-                key: s.id,
-                label: s.name,
-                on: true,
-                ...(s.id === "activated"
-                  ? {
-                      clear: t("Undo activation"),
-                      confirm: t("Undo {unit}'s activation? It can go again this round; the log says so.", {
-                        unit: unit.name,
-                      }),
-                    }
-                  : {}),
-              }))}
-              onChange={(key) => dispatch({ type: "unit/status", id: unit.id, key, value: null }, unit.owner)}
-            />
-          )}
         </div>
       )}
       {companion && plain && mine && game.turn.round > 0 && <MovedOnTable unit={unit} />}
@@ -364,7 +341,7 @@ export function SystemUnitCard({ unit, children }: { unit: Unit; children?: Reac
       <UnitWarnings unitId={unit.id} skip={allowance !== null ? ["moveDistance", "wheelDistance"] : []} />
 
       <CardMore>
-        {NEXT && stats}
+        {stats}
         {!companion && (
           <div className="row wrap">
             <button

@@ -46,7 +46,7 @@ import {
  * answer.
  */
 
-export interface SoakOptions {
+interface SoakOptions {
   system: string;
   seed: number;
   /** Players a side: 2 for a 2v2 game over three peers (the host plays two seats). */

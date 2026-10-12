@@ -240,7 +240,7 @@ export const pairNext = (id: string, results: RankedResult[]) =>
  * entries until it starts, pairs each round once the one before is in (or at
  * once, `force`), and says when it's done. Null when nothing changes.
  */
-export function advance(
+function advance(
   doc: EventDoc,
   results: RankedResult[],
   {

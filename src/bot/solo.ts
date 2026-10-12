@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { NEXT } from "../next/flag";
 import type { GameState } from "../core";
 import type { Session } from "../net/session";
 import { useStore } from "../store";
@@ -77,9 +76,6 @@ export function armSolo(level: Level, seat = 1): void {
     why: null,
     letGo: null,
   });
-  // The camera follows the action, the computer's included (UX 348); in the new layout it moves only
-  // when the player asks (naive players 8: "made me wonder if I had broken something").
-  if (!NEXT) useStore.setState({ director: true });
 }
 
 /** Whether the computer plays this player in the game on screen. */
