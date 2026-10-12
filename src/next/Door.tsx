@@ -16,7 +16,7 @@ import {
 } from "../games/riftLanterns";
 import { formatList, t } from "../i18n";
 import { LanguagePicker } from "../i18n/LanguagePicker";
-import { boardOn } from "../opentables/board";
+import { boardOn, useOpenTables } from "../opentables/board";
 import { useLibrary } from "../packages/library";
 import { openPlayerCard } from "../player/open";
 import { OpenFile } from "../share/OpenFile";
@@ -622,6 +622,8 @@ export function Door() {
             onJoin={(code, as) => joinRoom(code, as || name.trim() || savedName())}
             onHost={() => {
               setTables(false);
+              // "Host a table and post it": the room opens with its Open tables post filled in (as the classic door).
+              useOpenTables.setState({ asked: true });
               const g = system ?? lastSystem ?? DEFAULT_SYSTEM;
               void hostRoom(g, name.trim() || savedName());
             }}

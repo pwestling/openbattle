@@ -18,23 +18,31 @@ import { gameTitle } from "../ui/systemLabels";
 import { pickUnit } from "./StepBar";
 import { useInviteCopied } from "./start";
 import { systemModule } from "../systems";
+import { isPlaceholder } from "../core/content/systems";
 import { systemOf } from "../core/content/turn";
 import { armyColor, spawnIntents } from "../systems/wh40k/deploy";
 
-/** The side's sample army straight onto the table, for each player without one (a game with one sample a side). */
+/**
+ * The side's sample army straight onto the table, for each player without one. A game with a list of
+ * armies (Rift Lanterns, Brinewatch, a package's) gives each side a different one, in the list's order.
+ */
 function sampleFor(players: Player[]): (() => void) | null {
   const { game } = useStore.getState();
+  // Until the game's rules package is running there's no sample to give (a guest joining a package game).
+  if (!game.system || isPlaceholder(game.system)) return null;
   let mod;
   try {
     mod = systemModule(game.system);
-    if (mod.armies?.length || systemOf(game).unitShape.kind === "ranked") return null;
+    if (systemOf(game).unitShape.kind === "ranked") return null;
   } catch {
     return null;
   }
+  const armies = mod.armies ?? [];
   return () => {
     for (const p of players) {
       const { game: now, dispatch } = useStore.getState();
-      const roster = mod.sample(p.seat === 1 ? 1 : 0);
+      const seat = p.seat ?? 0;
+      const roster = armies.length ? armies[seat % armies.length]! : mod.sample(seat === 1 ? 1 : 0);
       for (const intent of spawnIntents(
         now,
         p.id,

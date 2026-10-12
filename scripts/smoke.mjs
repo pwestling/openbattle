@@ -28,9 +28,6 @@ const only = args.filter((a) => !a.startsWith("--"));
 /** Checks that still walk the classic UI (#83 ports them to ui-next one by one). */
 const CLASSIC = new Set([
   "hotseat-resume",
-  "live-now",
-  "ranked",
-  "ranked-refusal",
   "events",
   "standees",
   "photo-match",
@@ -69,7 +66,9 @@ const executablePath =
 
 const started = (p, word) =>
   new Promise((resolve, reject) => {
-    const on = (d) => String(d).includes(word) && resolve();
+    // A port already taken (a relay left running) would leave the checks talking to the wrong server.
+    const on = (d) =>
+      /EADDRINUSE/.test(String(d)) ? reject(new Error(String(d))) : String(d).includes(word) && resolve();
     p.stdout.on("data", on);
     p.stderr.on("data", on);
     p.on("exit", (code) => reject(new Error(`exited with ${code}`)));
@@ -83,7 +82,10 @@ const relay = spawn("node", ["server/relay.mjs"], {
   detached: true,
   env: { ...process.env, PORT: String(RELAY), OPEN_TABLES: "on", BOARD_ORIGIN: `http://localhost:${PORT}` },
 });
-await Promise.all([started(server, "localhost"), started(relay, String(RELAY))]);
+await Promise.all([started(server, "localhost"), started(relay, String(RELAY))]).catch((e) => {
+  for (const p of [server, relay]) process.kill(-p.pid);
+  throw e;
+});
 
 const browser = await chromium.launch({
   executablePath,
@@ -93,6 +95,36 @@ const files = mkdtempSync(join(tmpdir(), "open-battle-smoke-"));
 
 /** A fresh device: its own storage, page errors collected. */
 /** #65: two browsers at a ranked Rift Lanterns table from Open tables, played to the result (Ana 1, Ben 0). */
+/** The new layout's ranked game from the table: set up, Ana scores a point by hand, both pass to the end. */
+async function rankedPlay(host, guest, tables) {
+  await readyUp([host.page, guest.page]);
+  for (const { page } of [host, guest]) await page.keyboard.press("Escape");
+  await vpPlus(host.page, 0);
+  const deadline = Date.now() + 120_000;
+  while (!(await host.page.locator(".ranked-sign").count())) {
+    if (Date.now() > deadline) throw new Error("the ranked game never reached its result");
+    for (const { page } of [host, guest]) await passOn(page);
+    await sleep(300);
+  }
+  return { host, guest, tables };
+}
+
+/** One VP by hand on a side's score, in the new layout's strip (its −/+ show on hover). */
+async function vpPlus(page, side) {
+  const box = page.locator(".obn-strip .obn-side").nth(side);
+  await box.hover();
+  await box.locator(".counter", { hasText: "VP" }).getByRole("button", { name: "+" }).click();
+}
+
+/** A side with nothing to do lets its go pass: the bar's lit step, else Pass (and "… anyway"). */
+async function passOn(page) {
+  const anyway = page.locator(".obn-ask button", { hasText: /anyway$/ });
+  if (await anyway.count()) return anyway.click({ timeout: 1500 }).catch(() => {});
+  const lit = page.locator(".obn-bar .obn-buttons button.obn-lit").first();
+  const pass = page.locator(".obn-bar .obn-buttons button", { hasText: /^(Pass|Done|End turn)/ }).last();
+  for (const b of [lit, pass]) if (await b.count()) return b.click({ timeout: 1500 }).catch(() => {});
+}
+
 async function rankedToResult() {
   const q = `?${SIGNAL}&openTables=1&board=${encodeURIComponent(`http://localhost:${RELAY}/board`)}`;
   const host = await device();
@@ -103,8 +135,10 @@ async function rankedToResult() {
   };
   await lobby(host.page, q);
   await pickGame(host.page, "Rift Lanterns");
-  await host.page.locator(".who-pick.friend").click();
-  await host.page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+  if (host.page.ui === "classic") {
+    await who(host.page, "friend");
+    await host.page.getByRole("button", { name: /find an opponent on Open tables/ }).click();
+  } else await openTables(host.page);
   await host.page.getByRole("button", { name: "Host a table and post it" }).click();
   const form = host.page.locator(".post-table");
   await form.locator("label", { hasText: "Your name" }).locator("input").fill("Ana");
@@ -122,7 +156,8 @@ async function rankedToResult() {
     .locator(".arrival")
     .getByRole("button", { name: "Play ranked" })
     .click({ timeout: 30_000 });
-  await host.page.locator(".topbar .ranked-chip").waitFor({ timeout: 15_000 });
+  await host.page.locator(".ranked-chip").waitFor({ timeout: 15_000 });
+  if (host.page.ui !== "classic") return rankedPlay(host, guest, tables);
   for (const [i, { page }] of [host, guest].entries()) {
     await page.locator('.panel.hud select[aria-label="Sample army"]').selectOption({ index: i + 1 });
     const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
@@ -433,6 +468,34 @@ async function startEasy(page, title = "Sci-fi battle") {
   }
   await page.locator(".obn-levels [role=radio]", { hasText: /^Easy/ }).click();
   await page.locator("#obn-ready .obn-lit").click();
+}
+
+/**
+ * Before the battle in the new layout: each screen presses its lit step (its sample army, Keep these, Ready, Roll
+ * off, Start the battle) until round 1 begins. The invite link is left alone.
+ */
+async function readyUp(pages, { start = true } = {}) {
+  for (let i = 0; i < 40; i++) {
+    for (const page of pages) {
+      if (
+        await page
+          .locator(".obn-strip .obn-round")
+          .getByText(/Round 1\b/i)
+          .count()
+      )
+        return;
+      const lit = page.locator(".obn-bar .obn-lit").first();
+      if (!(await lit.count())) continue;
+      const label = (await lit.textContent()) ?? "";
+      if (/Copy invite link/.test(label) || (!start && /Start the battle/.test(label))) continue;
+      await lit.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(400);
+    }
+    if (!start && (await pages[0].locator(".obn-bar .obn-lit", { hasText: /Start the battle/ }).count()))
+      return;
+    await pages[0].waitForTimeout(300);
+  }
+  throw new Error(`setup never finished: ${await pages[0].locator(".obn-bar").innerText()}`);
 }
 
 /** The battle's first round has begun, in either UI. */
@@ -1200,33 +1263,9 @@ const checks = {
     // The name is asked at once, while the table connects (UX 403), and used once seated.
     await joinAs(guest.page, "Ben");
     await host.page.locator(".room").getByText("connected").waitFor({ timeout: 30_000 });
-    await guest.page
-      .locator(guest.page.ui === "classic" ? ".topbar .player" : ".obn-strip .obn-side")
-      .nth(1)
-      .waitFor();
-    await host.page
-      .locator(host.page.ui === "classic" ? ".topbar" : ".obn-strip")
-      .getByText("Ben")
-      .first()
-      .waitFor({ timeout: 15_000 });
-    await host.context.close();
-    await guest.context.close();
-    return [...host.page.errors, ...guest.page.errors];
-  },
-
-  // #64: a public table, posted with watchers allowed, filled, then watched
-  // from Live now on a third device. The board is the relay's own.
-  async "live-now"() {
-    const q = `?${SIGNAL}&openTables=1&board=${encodeURIComponent(`http://localhost:${RELAY}/board`)}`;
-    const host = await device();
-    const guest = await device();
-    const watcher = await device();
-    const tables = async (page) => {
-      await lobby(page, q);
-      await openTables(page);
-    };
-    await tables(host.page);
-    await host.page.getByRole("button", { name: "Host a table and post it" }).click();
+    if (guest.page.ui === "classic")
+      await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
+    else await vpPlus(guest.page, 1);
     const form = host.page.locator(".post-table");
     await form.locator("label", { hasText: "Your name" }).locator("input").fill("Ana");
     if (!(await form.locator("label", { hasText: "Allow watchers" }).locator("input").isChecked()))
@@ -1238,16 +1277,21 @@ const checks = {
     await post.getByRole("button", { name: "Join" }).click({ timeout: 30_000 });
     await guest.page.locator(".table-post:not(.live-game) input").first().fill("Ben");
     await guest.page.getByRole("button", { name: "Join Ana" }).click();
-    await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 30_000 });
-    for (const { page } of [host, guest]) {
-      await page.getByRole("button", { name: "Sample army" }).first().click();
-      const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
-      await deploy.click();
-      await deploy.waitFor({ state: "detached" });
+    if (host.page.ui !== "classic") {
+      await host.page.locator(".room").getByText("Ben").first().waitFor({ timeout: 30_000 });
+      await readyUp([host.page, guest.page]);
+    } else {
+      await host.page.locator(".topbar").getByText("Ben").first().waitFor({ timeout: 30_000 });
+      for (const { page } of [host, guest]) {
+        await page.getByRole("button", { name: "Sample army" }).first().click();
+        const deploy = page.getByRole("button", { name: /^Deploy for/ }).first();
+        await deploy.click();
+        await deploy.waitFor({ state: "detached" });
+      }
+      await host.page.getByRole("button", { name: /Start battle/ }).click();
+      const anyway = host.page.getByRole("button", { name: /Start anyway/ });
+      if (await anyway.count()) await anyway.first().click();
     }
-    await host.page.getByRole("button", { name: /Start battle/ }).click();
-    const anyway = host.page.getByRole("button", { name: /Start anyway/ });
-    if (await anyway.count()) await anyway.first().click();
     await tables(watcher.page);
     // The board is polled, so a just-filled table can take a round to show as live.
     const live = watcher.page.locator(".live-game").first();
@@ -1314,7 +1358,9 @@ const checks = {
       .getByText(/Ben says the score is wrong/)
       .waitFor({ timeout: 20_000 });
     // Ben's point was missed: he puts it on, and the result is written again as a draw.
-    await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
+    if (guest.page.ui === "classic")
+      await guest.page.locator(".topbar .player").nth(1).getByRole("button", { name: "+" }).click();
+    else await vpPlus(guest.page, 1);
     await sign(guest.page).getByRole("button", { name: "Score fixed: write it up" }).click();
     await sign(host.page)
       .getByText(/Ana 1 – 1 Ben, a draw/)
