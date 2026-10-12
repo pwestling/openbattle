@@ -1,7 +1,17 @@
 import { Html } from "@react-three/drei";
 import { type ThreeEvent } from "@react-three/fiber";
-import { useMemo } from "react";
-import { CanvasTexture, RepeatWrapping } from "three";
+import { useEffect, useMemo } from "react";
+import {
+  BoxGeometry,
+  type BufferGeometry,
+  CanvasTexture,
+  Color,
+  ConeGeometry,
+  CylinderGeometry,
+  Float32BufferAttribute,
+  RepeatWrapping,
+} from "three";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
 import { type TerrainPiece, type Vec2 } from "../core";
 import { OBJECTIVE_MARKER_MM, OBJECTIVE_RANGE } from "../systems/wh40k/rules";
 import { TerrainModel } from "./TerrainModel";
@@ -208,7 +218,6 @@ export function Terrain({
         onClick: (e: ThreeEvent<MouseEvent>) => e.stopPropagation(),
       }
     : { raycast: () => null };
-  const opacity = xray ? 0.2 : 0.95;
   // An uploaded model replaces the solids' boxes once its meshes are here; until then the boxes stand in.
   const model = useAssets((a) => (piece.mesh ? a.assets[piece.mesh.asset] : undefined));
   return (
@@ -237,45 +246,86 @@ export function Terrain({
           opacity={0.8}
         />
       </mesh>
-      {!model &&
-        piece.solids.map((s, i) =>
-          s.kind === "foliage" ? (
-            <group key={i} position={[s.x, s.z, s.y]}>
-              <mesh position-y={0.6} raycast={() => null}>
-                <cylinderGeometry args={[0.15, 0.2, 1.2, 8]} />
-                <meshStandardMaterial color="#5b4630" />
-              </mesh>
-              <mesh position-y={1.2 + (s.h - 1.2) / 2} castShadow raycast={() => null}>
-                <coneGeometry args={[s.w / 2, s.h - 1.2, 10]} />
-                <meshStandardMaterial color="#2f5d2a" transparent opacity={xray ? 0.25 : 1} />
-              </mesh>
-            </group>
-          ) : (
-            <mesh key={i} position={[s.x, s.z + s.h / 2, s.y]} castShadow={!xray} receiveShadow {...handlers}>
-              <boxGeometry args={[s.w, s.h, s.d]} />
-              <meshStandardMaterial
-                color={
-                  s.kind === "floor"
-                    ? "#9a8f80"
-                    : s.kind === "block"
-                      ? piece.name === "Hill"
-                        ? "#5f6e45"
-                        : "#7a5c3c"
-                      : "#8a8178"
-                }
-                transparent
-                opacity={opacity}
-                depthWrite={!xray}
-              />
-            </mesh>
-          ),
-        )}
+      {!model && <TerrainSolids piece={piece} xray={xray} handlers={handlers} />}
       {selected && (
         <Html zIndexRange={LABEL_Z} position={[0, 0.5, 0]} center className="ruler terrain-label">
           {piece.name} · {piece.category}
         </Html>
       )}
     </group>
+  );
+}
+
+/** A solid's colour on a piece drawn without its own model. */
+function solidColor(piece: TerrainPiece, kind: string): string {
+  if (kind === "floor") return "#9a8f80";
+  if (kind === "block") return piece.name === "Hill" ? "#5f6e45" : "#7a5c3c";
+  return "#8a8178";
+}
+
+const solidColour = new Color();
+
+/** Each part translated into place and painted one colour, for merging. */
+function painted(g: BufferGeometry, color: string, x: number, y: number, z: number): BufferGeometry {
+  const part = g.translate(x, y, z).toNonIndexed();
+  g.dispose();
+  solidColour.set(color);
+  const count = part.attributes.position!.count;
+  const colors = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) solidColour.toArray(colors, i * 3);
+  part.setAttribute("color", new Float32BufferAttribute(colors, 3));
+  return part;
+}
+
+function merged(parts: BufferGeometry[]): BufferGeometry | null {
+  if (!parts.length) return null;
+  const g = mergeGeometries(parts);
+  parts.forEach((p) => p.dispose());
+  return g;
+}
+
+/**
+ * A piece's walls, floors and blocks as one mesh, and its trees as a trunk mesh and a
+ * canopy mesh: a few draws (and shadow draws) a piece, not one per solid. A table of
+ * template terrain is dozens of solids, and the table's shadows reach all of them.
+ */
+function TerrainSolids({ piece, xray, handlers }: { piece: TerrainPiece; xray: boolean; handlers: object }) {
+  const { solids, trunks, canopies } = useMemo(() => {
+    const boxes: BufferGeometry[] = [];
+    const trunks: BufferGeometry[] = [];
+    const canopies: BufferGeometry[] = [];
+    for (const s of piece.solids) {
+      if (s.kind === "foliage") {
+        trunks.push(painted(new CylinderGeometry(0.15, 0.2, 1.2, 8), "#5b4630", s.x, s.z + 0.6, s.y));
+        canopies.push(
+          painted(new ConeGeometry(s.w / 2, s.h - 1.2, 10), "#2f5d2a", s.x, s.z + 1.2 + (s.h - 1.2) / 2, s.y),
+        );
+      } else
+        boxes.push(
+          painted(new BoxGeometry(s.w, s.h, s.d), solidColor(piece, s.kind), s.x, s.z + s.h / 2, s.y),
+        );
+    }
+    return { solids: merged(boxes), trunks: merged(trunks), canopies: merged(canopies) };
+  }, [piece]);
+  useEffect(() => () => [solids, trunks, canopies].forEach((g) => g?.dispose()), [solids, trunks, canopies]);
+  return (
+    <>
+      {solids && (
+        <mesh geometry={solids} castShadow={!xray} receiveShadow {...handlers}>
+          <meshStandardMaterial vertexColors transparent opacity={xray ? 0.2 : 0.95} depthWrite={!xray} />
+        </mesh>
+      )}
+      {trunks && (
+        <mesh geometry={trunks} raycast={() => null}>
+          <meshStandardMaterial vertexColors />
+        </mesh>
+      )}
+      {canopies && (
+        <mesh geometry={canopies} castShadow raycast={() => null}>
+          <meshStandardMaterial vertexColors transparent opacity={xray ? 0.25 : 1} />
+        </mesh>
+      )}
+    </>
   );
 }
 

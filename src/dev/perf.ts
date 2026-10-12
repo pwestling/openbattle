@@ -406,6 +406,27 @@ export const perf = {
     return { inScene: seen.size, top: [...by].sort((a, b) => b[1] - a[1]).slice(0, top) };
   },
 
+  /** One frame's draws by object and pass (main, shadow), most first: who is behind gpu() calls. */
+  async draws(top = 20) {
+    if (!renderer) return [];
+    const r = renderer as WebGLRenderer & { renderBufferDirect: (...a: unknown[]) => void };
+    const direct = r.renderBufferDirect;
+    const by = new Map<string, number>();
+    r.renderBufferDirect = function (this: unknown, ...a: unknown[]) {
+      const o = a[4] as Object3D;
+      const pass = renderer!.getRenderTarget() ? "target" : "main";
+      const g = a[2] as BufferGeometry & { parameters?: object };
+      const m = a[3] as { type: string };
+      const k = `${pass} ${g.type}/${m.type} ${o.type}${o.name ? ` ${o.name}` : ""} < ${o.parent?.type ?? ""}${o.parent?.name ? ` ${o.parent.name}` : ""}`;
+      by.set(k, (by.get(k) ?? 0) + 1);
+      return direct.apply(this, a);
+    };
+    await frame();
+    await frame();
+    r.renderBufferDirect = direct;
+    return [...by].sort((a, b) => b[1] - a[1]).slice(0, top);
+  },
+
   async measure(frames = 120, warmup = 10) {
     for (let i = 0; i < warmup; i++) await frame();
     const times: number[] = [];
