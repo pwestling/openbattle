@@ -5445,7 +5445,7 @@ msgid "Pick your answer."
 msgstr ""
 
 #: src/next/step.ts:302
-msgid "Answer on the card by the dice."
+msgid "Answer on the question card."
 msgstr ""
 
 #: src/next/step.ts:328

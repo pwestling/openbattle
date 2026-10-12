@@ -299,7 +299,7 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
         seat: by?.seat ?? seat,
         rail,
         say: gameText(asked.question),
-        sub: plain ? t("Pick your answer.") : t("Answer on the card by the dice."),
+        sub: plain ? t("Pick your answer.") : t("Answer on the question card."),
         buttons: plain
           ? asked.options.map((o) => ({
               label: gameText(o.label),
