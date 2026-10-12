@@ -28,9 +28,6 @@ body:
       options:
         - Any game
         - Sci-fi battle
-        - Rank and flank
-        - Conquest
-        - Full Spectrum Dominance
         - A new game system
   - type: textarea
     id: alternatives

@@ -58,7 +58,7 @@ card and never uploads it.
 
 - **Units.** Every model of a unit gets the unit's characteristics. Weapons are handed out one a model in turn, so
   `count: 2` in a unit of six puts one on each of the first two models.
-- **Rules.** Each game binds the rules it knows by name (`Tough(3)` becomes three wounds a model in Quality d6). A
+- **Rules.** Each game binds the rules it knows by name (a rule the game knows becomes its effect). A
   rule it doesn't know stays on the unit card as a reminder, with its text if the file gave one. Nothing is guessed.
 - **System.** With `system` naming a game this build or a loaded package knows, the list goes on the shelf for that
   game; otherwise for the default game, where the player can move it. A game may read the list its own way (the
@@ -101,8 +101,7 @@ same link.
 ## Other shapes
 
 Lists from builders that don't write this format are read through adapters that map their shape into it, each in
-the game system's code. For example, Quality d6 (`src/systems/qd6/roster.ts`) reads a unit builder's JSON export
-(units with a quality, a defense and their equipment) and a plain-text list, both mapped into Army list v1 before
+the game system's code. For example, the sci-fi battle's roster reader (`src/systems/wh40k/roster.ts`) maps BattleScribe and New Recruit rosters into Army list v1 before
 anything else reads them. A builder that can write Army list v1 needs no adapter.
 
 ## Example

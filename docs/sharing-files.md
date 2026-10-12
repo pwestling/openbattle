@@ -38,7 +38,7 @@ and links none of these files.
   turned into its raw address), Codeberg Pages, Netlify, or your own server.
 - **Limits:** 96 MB a file; each model inside a figure pack keeps its own cap.
 - **Army lists:** an [Army list v1](protocols/army-list.md) file, or a list format a game reads by its
-  shape (Yellowscribe, Quality d6 unit builder exports), opens as an army from a link like any Open Battle army.
+  shape (Yellowscribe), opens as an army from a link like any Open Battle army.
 
 Rules packages and faction packs have their own links and consent: see
 [packages.md](packages.md) and [faction-packs.md](faction-packs.md).

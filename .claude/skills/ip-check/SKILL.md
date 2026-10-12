@@ -13,7 +13,7 @@ Open Battle ships mechanics, never a publisher's content. Players import their o
 2. **Numbers tied to named things.** A real unit's statline, weapon profile or points. Generic numbers on invented units are fine.
 3. **Rules text.** Sentences copied or closely paraphrased from a rulebook, codex, datasheet or card. Describe the mechanic in our own words.
 4. **Art and models.** Images, textures, meshes or logos from a publisher or from sites that host them.
-5. **Trademarks on screen.** On-screen labels describe how a game plays ("Sci-fi battle", "Rank and flank"), not trademarked names. The README disclaimer is the one place those names appear.
+5. **Trademarks on screen.** On-screen labels describe how a game plays ("Sci-fi battle"), not trademarked names. The README disclaimer is the one place those names appear.
 6. **Player data as fixtures.** Real army lists, BattleScribe or New Recruit exports, or TTS saves committed as test fixtures. Write test rosters by hand with made-up names.
 
 ## How

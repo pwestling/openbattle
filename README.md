@@ -10,7 +10,7 @@ Players need only a browser. One player hosts, shares a link, and the browsers t
 
 ## What it does
 
-- **Four game systems built in.** A squad-based sci-fi battle game in phases, a rank-and-flank fantasy game with regiment blocks, Conquest-style regiments with a secret command stack, and Full Spectrum Dominance with activation dice. Each has an invented sample army and a one-click demo.
+- **A sci-fi battle game built in.** A squad-based game in phases, with an invented sample army and a one-click demo. The other built-in games were removed while the play experience is rebuilt.
 - **A 3D table with a top-down view.** Drag units to move them with live distance, coherency and engagement range. Ranked blocks wheel, reform, turn and march. Switch to an orthographic top-down view for precise measuring.
 - **True and abstract line of sight.** Lines are traced from each model's eyes against terrain and other models, or, for games that use them, stand-in heights or flat footprints. Cover, hidden units and higher ground come from the same check, and you can look through any model's eyes.
 - **A terrain editor.** Ruins, woods, containers, hills and more, with floors models can stand on. Save and load layouts, and upload your own terrain models.
@@ -32,7 +32,7 @@ Players need only a browser. One player hosts, shares a link, and the browsers t
 - **Campaigns, events and play by mail.** A shared campaign book with a league table, map and unit stories; chess clocks and Swiss rounds for event nights; and games that last for days through signed turn files.
 - **Annotated replays.** Notes and marks on moments, chapters, and review rooms where a coach leads and others follow.
 - **For everyone.** German and French translations, keyboard play, text size, colour-blind side colours with shapes, and a screen-reader announcer.
-- **Built to be tested.** A soak bot plays hundreds of seeded games every night, with dropped players and host changes thrown in, and the in-app **Report a problem** button downloads a replay of the game with the errors that went with it.
+- **Reportable.** The in-app **Report a problem** button downloads a replay of the game with the errors that went with it.
 
 ![A guided first game: the coach explains the turn](docs/screenshots/lesson.png)
 
@@ -41,8 +41,6 @@ Players need only a browser. One player hosts, shares a link, and the browsers t
 ![Line of sight from a selected squad: green fully visible, yellow partly visible or in cover](docs/screenshots/line-of-sight.png)
 
 ![Regiment blocks in the top-down view](docs/screenshots/top-down.png)
-
-![Ordering the secret command stack in a Conquest game](docs/screenshots/command-stack.png)
 
 ## How to play
 
@@ -66,21 +64,18 @@ pnpm dev          # http://localhost:5173
 
 Click one of the **Try it now** cards to play both sides of a demo game on one screen. To play a friend, choose a game, press **Host a game** and send them the link. **Check my connection** on the landing page tells you whether your network is likely to need a TURN server.
 
-| Command             | What it does                                           |
-| ------------------- | ------------------------------------------------------ |
-| `pnpm dev`          | Dev server with hot reload                             |
-| `pnpm test`         | Unit tests (Vitest)                                    |
-| `pnpm soak`         | Seeded bot games for every system (also run in CI)     |
-| `pnpm typecheck`    | TypeScript, strict (`tsc -b`)                          |
-| `pnpm lint`         | ESLint                                                 |
-| `pnpm format`       | Prettier                                               |
-| `pnpm build`        | Production build into `dist/` (static)                 |
-| `pnpm preview`      | Serve the production build                             |
-| `pnpm relay`        | Self-hosted signalling relay                           |
-| `pnpm perf`         | Rendering benchmark with sample armies                 |
-| `pnpm perf:load`    | Landing page load benchmark on a throttled network     |
-| `pnpm soak:browser` | The soak bot in two real browser tabs, for leak checks |
-| `pnpm smoke`        | Browser smoke tests through each way into the app      |
+| Command          | What it does                                       |
+| ---------------- | -------------------------------------------------- |
+| `pnpm dev`       | Dev server with hot reload                         |
+| `pnpm typecheck` | TypeScript, strict (`tsc -b`)                      |
+| `pnpm lint`      | ESLint                                             |
+| `pnpm format`    | Prettier                                           |
+| `pnpm build`     | Production build into `dist/` (static)             |
+| `pnpm preview`   | Serve the production build                         |
+| `pnpm relay`     | Self-hosted signalling relay                       |
+| `pnpm perf`      | Rendering benchmark with sample armies             |
+| `pnpm perf:load` | Landing page load benchmark on a throttled network |
+| `pnpm smoke`     | Browser smoke tests through each way into the app  |
 
 ## Hosting your own
 

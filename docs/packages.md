@@ -2,7 +2,7 @@
 
 A rules package adds rules to a game system that Open Battle already knows. For example, it can add a unit ability, an army rule or a house rule. Each package is a single JavaScript file. Players load it from the lobby, and the host shares it with everyone at the table, so every player runs exactly the same bytes.
 
-For a complete working package, see [`examples/packages/second-wind.js`](../examples/packages/second-wind.js). It adds one invented rule to the Old World system.
+For a complete working package, see [`examples/packages/second-wind.js`](../examples/packages/second-wind.js). It adds one invented rule to the sci-fi battle.
 
 A **faction pack** is a package that adds rules to armies by their names (abilities, detachments, enhancements, stratagems), loaded from a link in the army import: see [faction-packs.md](faction-packs.md).
 
@@ -20,7 +20,7 @@ export const manifest = {
   author: "You",
   api: 1, // the game module API version (MODULE_API in src/sdk)
   kind: "extension", // adds to a built-in system
-  systems: ["tow"], // a prefix matches: "tow" covers "tow-hand", "forty-k" covers "forty-k-11"
+  systems: ["forty-k"], // a prefix matches: "forty-k" covers "forty-k-11"
   requires: [],
   adds: "One sentence the consent sheet shows players before the code runs.",
 };
@@ -161,7 +161,7 @@ loads the package without them). The spec is [protocols/packages.md](protocols/p
   game's own and run in the sandbox.
 
 [`examples/packages/border-muster.js`](../examples/packages/border-muster.js) brings two invented warbands and a
-mission to Quality d6.
+mission to the sci-fi battle.
 
 ## Reaction windows
 

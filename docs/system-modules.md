@@ -1,14 +1,12 @@
 # Write a system module
 
-A system module teaches Open Battle a whole game: how its turn runs, what its units look like, how far they move, how they fight, what the table looks like and how a sample army plays. The five built-in games are system modules, in `src/systems/`:
+A system module teaches Open Battle a whole game: how its turn runs, what its units look like, how far they move, how they fight, what the table looks like and how a sample army plays. The built-in game is a system module, in `src/systems/`:
 
-| Folder     | System id       | Shown as                |
-| ---------- | --------------- | ----------------------- |
-| `wh40k`    | `forty-k-11`    | Sci-fi battle           |
-| `tow`      | `tow-hand`      | Rank and flank          |
-| `conquest` | `conquest-hand` | Conquest                |
-| `fsd`      | `fsd-1.7`       | Full Spectrum Dominance |
-| `qd6`      | `qd6-1`         | Quality d6              |
+> **Note.** Only the sci-fi battle (`wh40k`) is built in now. Full Spectrum Dominance, Rank and flank, Conquest and Quality d6 were removed while the play experience is rebuilt, and the worked examples below were written from those modules: they still show how the SDK fits together, but the files they name are gone (see the git history before the removal commit). The unit tests and soak runs this guide used to describe were deleted too.
+
+| Folder  | System id    | Shown as      |
+| ------- | ------------ | ------------- |
+| `wh40k` | `forty-k-11` | Sci-fi battle |
 
 This guide is for adding a game to the repo itself. If you want to add rules to a game that already exists, or ship a game that players load at runtime without a new build, write a rules package instead: see [packages.md](packages.md). Both use the same `GameModule` shape from `src/sdk/index.ts`, and the package guide covers the code side (generator procedures, `ctx`, determinism, secrets, turn hooks) in detail. This page covers what a built-in module adds on top and how the four existing ones fit together.
 
@@ -217,23 +215,8 @@ Say you are adding a made-up skirmish game, "Ridge", in `src/systems/ridge/`. Th
 
 8. **Play it.** Run `pnpm dev`, click your **Try it now** card and play a few rounds against yourself. Press **?** for the controls and **What can I do now?** to check that the right actions are offered each phase.
 
-## Test it
+## Check it
 
-Every built-in system has tests next to it, and you should add the same three kinds.
-
-**The data is valid.** `validateSystem(system)` in `src/core/content/validate.ts` returns a list of broken references: every action, procedure, rule, status, resource, table, arc and plan that something refers to must exist. A phase that offers an action you renamed, or an action that spends a resource you never defined, shows up here. `src/core/content/content.test.ts` checks the example systems with it. Add a test that expects `validateSystem(ridge)` to equal `[]`.
-
-**The rules play out.** Build a game from events and intents, with a seeded random number generator so the dice are the same every run. `src/systems/fsd/fsd.test.ts` is the pattern to copy: its `setup()` seats two players, picks the system with a `game/system` intent, lays out the table, deploys both sample armies with `spawnIntents` from `src/systems/wh40k/deploy.ts`, and then plays intents through `resolveIntent` and `applyEvent`. From there you can check that `currentSlot(state)` moves through your turn structure, that `unitActions(state, unitId)` offers the right actions, and that attacks change wounds the way they should. Import `"../index"` (as `src/systems/conquest/conquest.test.ts` does) when your test needs code procedures registered. `src/systems/tow/combat.test.ts` tests code procedures directly.
-
-**It survives real games.** The soak bot in `src/soak/` plays whole seeded games over in-memory peers: random legal moves, dropped and rejoining players, the host leaving mid-game, undo and "What if" branches. A game fails if any peer's log or table differs from the host's, if anything throws, if a question has no legal answer, or if the game never ends. Adding your system is one file, `src/soak/ridge.soak.test.ts`:
-
-```ts
-import { describe } from "vitest";
-import { soakSuite } from "./suite";
-
-describe("soak", () => soakSuite("ridge-1"));
-```
-
-Run it with `pnpm soak` (plain `pnpm test` skips soak files). A failure prints its seed; `SOAK_FROM=<seed> SOAK_SEEDS=1 pnpm soak` replays that game, and `SOAK_TRACE=1` prints every move. The bot finds legal moves through the same action rules the app uses, so most systems need nothing more. If yours needs the bot to do something special, as Conquest's command stack does, that goes in `src/soak/bot.ts`. In an activation game, check that the bot only moves the turn on once units have acted; if rounds end after a single activation, that's the place to look.
+There are no unit tests or soak runs. `validateSystem(system)` in `src/core/content/validate.ts` returns a list of broken references (every action, procedure, rule, status, resource, table, arc and plan that something refers to must exist): check that it returns `[]`, then play the game by hand.
 
 Before you open a pull request, run the full set of checks in [CONTRIBUTING.md](../CONTRIBUTING.md#before-you-push).

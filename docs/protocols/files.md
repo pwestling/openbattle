@@ -75,7 +75,7 @@ One player's turn in a mail game: the game id, the file's `index` (1 is the invi
 
 These belong to other projects. We follow them, we don't define them, and the app's readers are the reference for what is understood:
 
-- BattleScribe and New Recruit rosters (`.ros`, `.rosz`, their JSON and XML): `src/systems/wh40k/roster.ts`, plus the Conquest and Old World readers under `src/systems/*/roster.ts`.
+- BattleScribe and New Recruit rosters (`.ros`, `.rosz`, their JSON and XML): `src/systems/wh40k/roster.ts`.
 - Yellowscribe army data: `src/systems/wh40k/yellowscribe.ts`, both ways. A Yellowscribe file also opens anywhere an army file does.
 - Tabletop Simulator saves: `src/figures/tts.ts` and `src/tts/`.
 - 3D models: glTF/GLB, STL, OBJ and PLY (`src/assets/parse.ts`).

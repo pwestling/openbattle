@@ -45,9 +45,6 @@ body:
       label: Game system
       options:
         - Sci-fi battle
-        - Rank and flank
-        - Conquest
-        - Full Spectrum Dominance
         - A game from a rules package
         - Not in a game (landing page, lobby, setup)
     validations:

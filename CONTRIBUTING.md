@@ -23,7 +23,6 @@ CI runs these, so run them locally first:
 pnpm format       # Prettier (CI runs pnpm format:check)
 pnpm lint         # ESLint
 pnpm typecheck    # tsc -b, the real type check
-pnpm test         # Vitest unit tests
 ```
 
 Two notes:
@@ -60,11 +59,11 @@ src/
   voice/       Voice chat over the game's peer connections.
   broadcast/   Stream view, commentator camera and end-of-game moments.
   secrets/     Keeps a player's secrets (hidden orders, secret objectives) on their device.
-  soak/        The soak bot and its seeded games (pnpm soak).
-  dev/         Development-only harnesses for perf and in-browser soak runs.
+  soak/        The bot's move generator, and the soak runner the Workshop checks packages with.
+  dev/         Development-only harnesses for perf runs.
   store.ts     The zustand store that wires a Session to React.
 examples/packages/   Example rules packages.
-scripts/             Perf, load and browser soak scripts (pnpm perf, perf:load, soak:browser).
+scripts/             Perf, load and smoke scripts (pnpm perf, perf:load, smoke).
 server/              The optional self-hosted signalling relay.
 docs/                Guides for package and module authors and self-hosters.
 ```

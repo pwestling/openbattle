@@ -23,7 +23,7 @@ A package is one ES module with no imports, run in a sandboxed worker and shared
    - no `Math.random`, `Date`, timers, or variables outside the generator: the host replays procedures from the start on reconnect;
    - keep `applies`, `available` and `targets` quick and pure; any call over 250 ms shuts the package off.
 5. **Bump `version`** in the manifest on every published change (patch for fixes, minor for new rules, major when a saved game or replay would play differently).
-6. **Test it.** `src/sandbox/sandbox.test.ts` shows how to load a package under Vitest and play intents against it. For a whole game, also run it in the Module workshop's **Check** and **Soak bot**, or add it to `src/soak/workshop.soak.test.ts`.
+6. **Test it.** There are no unit tests. For a whole game, also run it in the Module workshop's **Check** and **Soak bot**.
 7. **Run the `ip-check` skill** on the file before it is shared.
 8. **List it** (optional): put it at a stable raw link and add a row to `docs/community-modules.md` with its fingerprint (the workshop's Export tab writes the row).
 

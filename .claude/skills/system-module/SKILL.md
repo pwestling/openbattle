@@ -1,6 +1,6 @@
 ---
 name: system-module
-description: Add or change a built-in Open Battle game system module under src/systems (rules data, code actions and procedures, sample army, layout, soak). Use when changing how a built-in game plays or adding a new built-in game.
+description: Add or change a built-in Open Battle game system module under src/systems (rules data, code actions and procedures, sample army, layout). Use when changing how a built-in game plays or adding a new built-in game.
 ---
 
 # Add or change a system module
@@ -9,13 +9,13 @@ Built-in games are typed `GameModule`s in `src/systems/<id>/`. The full guide is
 
 ## Adding a system
 
-1. Copy the closest built-in system (`fsd/` is the most compact) to `src/systems/<id>/`.
+1. Copy the closest built-in system (`wh40k/`) to `src/systems/<id>/`.
 2. `system.ts`: a `GameSystem` whose `id` names game and edition (`"ridge-1"`). The id is stored in every save and replay: never change it later.
 3. `sample.ts`: invented sample armies only. `layout.ts`: a starter table.
 4. Code actions, procedures, hooks and functions in their own files, deterministic (see below).
 5. `module.ts`, then register it in `BUILT_IN` in `src/systems/index.ts`.
 6. Front door: `FRONT` in `src/ui/systemLabels.ts` and `LISTS` in `src/ui/ArmyGuide.tsx`, with a plain description, never a trademark.
-7. Tests: `validateSystem(system)` equals `[]`; a rules test copying `src/systems/fsd/fsd.test.ts`; and `src/soak/<id>.soak.test.ts` calling `soakSuite("<id>")`.
+7. Check `validateSystem(system)` returns `[]` (there are no unit tests; they were deleted on purpose).
 
 ## Changing a system
 
@@ -31,4 +31,4 @@ Built-in games are typed `GameModule`s in `src/systems/<id>/`. The full guide is
 
 ## Verify
 
-Run the `verify-change` skill. For a system change, `pnpm soak` is required, not optional.
+Run the `verify-change` skill, and play the game by hand.
