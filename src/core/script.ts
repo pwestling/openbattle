@@ -141,6 +141,11 @@ export function registerCodeActions(system: Id, actions: CodeAction[]): void {
   codeActions.set(system, own);
 }
 
+/** A code action's name, for words about it (the turn story, #85). */
+export function codeActionName(system: Id, id: Id): string | undefined {
+  return codeActions.get(system)?.get(id)?.name;
+}
+
 /**
  * Why a code action can't be started now (its phases, `applies` or
  * `available` say no), or undefined when it can or `procedure` isn't one.

@@ -217,6 +217,8 @@ The rest of `app` (`PackageApp` in `src/sdk`) is optional, and all of it runs in
 - `rulebook` is the game's rules in words, for its rules page and print and play (`Rulebook` in `src/sdk`; `pnpm rulebook` writes `RULES.md` from it). `words` names the game's armies, units and markers in the page's headings, and `terrainColors` colours its own terrain categories on the starter map.
 - `sidePanel(view)` describes a panel of the game's own, as data: a `title`, text `lines`, and `buttons` that each start one of the package's procedures (`{ label, procedure, args?, player?, disabled? }`). It is redrawn after every event; return `null` to hide it.
 
+The `system` may name the verbs the turn story ([story.md](story.md)) tells its actions by: `storyVerbs: { volley: "volleyed", march: "" }` (an empty verb leaves a plain move out; actions not named are told by their name).
+
 The module's `bot` (`BotTuning` in `src/sdk`) tunes the computer player for the game. Among its fields, `evaluate(state, seat, view)` adds the game's own sense of the table to the computer's (the `view` answers sight and cover as rules do), `moveInches(state, unit)` says how far a unit goes in a move, and `climbs: true` has it try moves up onto terrain floors (a game where height matters).
 
 [`examples/packages/arena.js`](../examples/packages/arena.js) is a complete small game, and [`games/rift-lanterns`](../games/rift-lanterns/README.md) is a whole one, with factions, missions and stand-in figures. [`games/brinewatch`](../games/brinewatch/README.md) is a second, with action points, guards, hidden deployment and a campaign.

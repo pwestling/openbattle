@@ -20,6 +20,7 @@ import { seededRng } from "../sandbox/protocol";
 import { gameModule, systemModule } from "../systems";
 import { pendingScores } from "../missions/scoring";
 import { deadEnds } from "./deadEnds";
+import { storyCheck } from "./storyCheck";
 import { spawnIntents } from "../systems/wh40k/deploy";
 import {
   battleOver,
@@ -102,6 +103,9 @@ export interface SoakReport {
   kinds: Record<string, number>;
   /** Tags from `watch`, counted once per move they were seen after. */
   seen: Record<string, number>;
+  /** The host's log at the end, and the secrets the bot kept (commitment → value), for checks on the record. */
+  record: GameRecord | null;
+  kept: Kept;
 }
 
 const GRACE = 5;
@@ -479,6 +483,8 @@ export async function soak(opts: SoakOptions): Promise<SoakReport> {
     if (!battleOver(last) && !shortDone)
       fail(`didn't finish in ${maxSteps} moves (round ${last.turn.round})`);
     if (last.script?.waiting) fail(`left waiting on "${last.script.waiting.question}"`);
+    // The turn story (#85) tells every turn without throwing or giving a secret away.
+    if (env.SOAK_STORY !== "0") failures.push(...storyCheck(room.host()!.log, kept).failures.slice(0, 4));
 
     async function makeTrouble(what: string) {
       const host = room.host()!;
@@ -594,6 +600,7 @@ export async function soak(opts: SoakOptions): Promise<SoakReport> {
   }
   const host = room.host();
   const last = host?.current;
+  const final = host ? host.log : null;
   room.close();
   return {
     system,
@@ -607,6 +614,8 @@ export async function soak(opts: SoakOptions): Promise<SoakReport> {
     trouble: done,
     kinds,
     seen,
+    record: final,
+    kept,
   };
 
   /** Every peer holds the host's log; with `deep`, their tables hash the same and fold back from their logs. */

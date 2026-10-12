@@ -401,6 +401,18 @@ export const fsd: GameSystem = {
   id: "fsd-1.7",
   name: "Full Spectrum Dominance",
   version: "0.3.0",
+  // How the turn story (#85) words what units did; "" leaves an action out.
+  storyVerbs: {
+    activate: "",
+    activateFree: "",
+    move: "",
+    react: "reacted",
+    unpin: "unpinned",
+    fire: "fired",
+    prepare: "prepared",
+    interact: "interacted",
+    deploy: "deployed",
+  },
   // 1 DU is 3" on the standard 2' x 3' table (8 x 12 DU).
   units: { name: "DU", inches: 3 },
   // Any unit may wait in reserve, and arrives at least 2 DU from enemies.

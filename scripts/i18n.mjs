@@ -139,14 +139,15 @@ for (const path of files(SRC)) {
 /**
  * The built-in games' own words (UX 256), shown through gameText() with the "game" context: phase and
  * action names and hints in src/core/content/examples, lesson titles, summaries and coach lines in examples/lessons, and
- * each built-in module's name for its secret objectives.
+ * each built-in module's name for its secret objectives, and the verbs the turn story (#85) tells actions by
+ * (`storyVerbs`, also from systems/<id>/system.ts).
  * Rule and keyword names stay as they are, since army lists use them.
  */
 const DATA = [
   ...readdirSync(join(SRC, "core/content/examples")).map((f) => join(SRC, "core/content/examples", f)),
   ...readdirSync(join(ROOT, "examples/lessons")).map((f) => join(ROOT, "examples/lessons", f)),
   ...readdirSync(join(SRC, "systems"))
-    .map((d) => join(SRC, "systems", d, "module.ts"))
+    .flatMap((d) => [join(SRC, "systems", d, "module.ts"), join(SRC, "systems", d, "system.ts")])
     .filter((f) => existsSync(f)),
 ].filter((f) => /\.(ts|js)$/.test(f) && !/\.test\./.test(f));
 for (const path of DATA) {
@@ -154,6 +155,8 @@ for (const path of DATA) {
   const text = readFileSync(path, "utf8");
   const src = ts.createSourceFile(path, text, ts.ScriptTarget.Latest, true);
   const lesson = file.startsWith("examples/lessons");
+  // A system.ts file gives only its story verbs here.
+  const verbsOnly = file.endsWith("/system.ts");
   const prop = (o, name) =>
     o.properties.find((p) => ts.isPropertyAssignment(p) && p.name.getText() === name)?.initializer;
   const take = (n) => {
@@ -166,7 +169,13 @@ for (const path of DATA) {
   };
   const visit = (n) => {
     if (ts.isObjectLiteralExpression(n)) {
-      if (lesson) {
+      const verbs = prop(n, "storyVerbs");
+      if (verbs && ts.isObjectLiteralExpression(verbs))
+        for (const p of verbs.properties)
+          if (ts.isPropertyAssignment(p) && literal(p.initializer)) take(p.initializer);
+      if (verbsOnly) {
+        // nothing else from a system.ts
+      } else if (lesson) {
         // What the coach says (UX 301), and a step's closing line when it is plain text.
         for (const name of ["title", "summary", "say", "after"]) {
           const v = prop(n, name);

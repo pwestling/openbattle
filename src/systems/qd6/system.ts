@@ -617,6 +617,16 @@ export const qd6: GameSystem = {
   id: "qd6-1",
   name: "Quality d6",
   version: "0.1.0",
+  // How the turn story (#85) words what units did; "" leaves an action out.
+  storyVerbs: {
+    hold: "held",
+    advance: "advanced",
+    rush: "rushed",
+    charge: "charged",
+    rally: "rallied",
+    shoot: "shot",
+    fight: "fought",
+  },
   units: "inch",
   defaultTable: { width: 72, depth: 48 },
   settings: { los: "true", modelsBlock: false },

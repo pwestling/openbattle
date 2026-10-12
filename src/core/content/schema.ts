@@ -858,6 +858,14 @@ export interface GameSystem {
    * a window at these moments if the reacting player has something to play.
    */
   reactionWindows?: ReactionWindowDef[];
+  /**
+   * How the turn story (#85, docs/story.md) words what units did: action id
+   * (a data action or a code action) to a past-tense verb, e.g. advance →
+   * "advanced", "shot" ("Rook: shot with 2 units"). An empty string leaves the
+   * action out of the story's lines (a plain move, already counted as moved).
+   * Actions not named here are told by their name.
+   */
+  storyVerbs?: Record<Id, string>;
 }
 
 /** A moment the other side may react at (#80). */
