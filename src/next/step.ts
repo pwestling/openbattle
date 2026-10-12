@@ -1,6 +1,7 @@
 import { sideName, sidePlayers, type GameState, type Intent, type PlayerId, type Unit } from "../core";
 import { findProcedure } from "../core/content/runner";
 import { actingUnits } from "../core/content/play";
+import { playerActions } from "../core/content/player";
 import { simultaneousPhase } from "../core/content/simultaneous";
 import { currentSlot, phaseHint, plainActivations, systemOf, turnView } from "../core/content/turn";
 import { formatList, gameText, t, tn } from "../i18n";
@@ -52,6 +53,8 @@ interface Step {
   /** The unit lit as the next piece of work. */
   next?: string;
   buttons: StepButton[];
+  /** Nothing in this phase for the player, not even a card to play: the bar moves on by itself (Jobs review). */
+  empty?: boolean;
 }
 
 interface StepInput {
@@ -64,6 +67,17 @@ interface StepInput {
   selected?: string | null;
   draft?: { attackerId: string; targetId?: string } | null;
 }
+
+/** No card the players could play now that does something of its own (a re-roll waits for its roll). */
+const nothingToPlay = (game: GameState, players: PlayerId[]) =>
+  !players.some((p) =>
+    playerActions(game, p).some(
+      (o) =>
+        o.ok &&
+        !o.def.custom &&
+        !!(o.def.target || o.def.do?.length || o.def.procedure || o.def.move || o.def.endsTurn),
+    ),
+  );
 
 const alive = (game: GameState, u: Unit) =>
   !u.status?.reserves && u.modelIds.some((id) => game.models[id] && !game.models[id]!.destroyed);
@@ -392,6 +406,7 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
           ? t("{names} is doing theirs at the same time.", { names: formatList(others) })
           : hint,
         buttons: [{ label: t("Done"), lit: true, as: me, intent: { type: "turn/ready" } }],
+        empty: nothingToPlay(game, [me]),
       };
     const back = together.ready.find((p) => isMine(p));
     return {
@@ -628,5 +643,13 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
     units: units.length ? units : undefined,
     next: left[0]?.id,
     buttons: [done],
+    // A phase nobody could act in (not one whose work is all done): fights already fought keep their order.
+    empty:
+      !units.length &&
+      !(fighting && order) &&
+      nothingToPlay(
+        game,
+        sidePlayers(game, seat).map((p) => p.id),
+      ),
   };
 }

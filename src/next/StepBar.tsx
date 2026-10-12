@@ -11,6 +11,7 @@ import { UndoButton } from "../ui/Hud";
 import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
 import { workOrder } from "../core/content/nextWork";
+import { useCoach } from "../teach/store";
 import { useLit } from "./lit";
 import { recapLine } from "./recap";
 import { stepFor, type StepButton } from "./step";
@@ -126,6 +127,27 @@ export function StepBar() {
   const stuck = useStuckFinish();
   const step = stepFor({ game, mine, pending, selected, draft });
   const mirror = useSheetPrimary();
+  // An empty phase moves on by itself after a beat, so the rail ticks past it (Jobs review). Not straight
+  // after an Undo, which would only step forward again, nor in a lesson, which walks every phase.
+  const skip = step.tone === "job" && step.empty ? step.buttons.find((b) => b.lit && b.intent) : undefined;
+  const skipKey =
+    skip &&
+    !draft &&
+    !game.attack &&
+    !game.procedure &&
+    !game.reaction &&
+    !game.pending &&
+    record.events.at(-1)?.event.type !== "undo" &&
+    useCoach.getState().lesson === null
+      ? `${record.events.length}`
+      : null;
+  useEffect(() => {
+    if (!skipKey || !skip?.intent) return;
+    const { intent, as } = skip;
+    const timer = window.setTimeout(() => dispatch(intent, as), SKIP_MS);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipKey]);
   const litNext = step.tone === "job" ? (step.next ?? null) : null;
   useEffect(() => {
     useLit.setState({ unitId: litNext });
@@ -227,6 +249,9 @@ export function StepBar() {
     </section>
   );
 }
+
+/** How long an empty phase shows before the bar moves past it. */
+const SKIP_MS = 1000;
 
 /**
  * The computer's finished attack still on the table a few seconds on: a backstop so the game can

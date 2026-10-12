@@ -20,8 +20,8 @@ import { t } from "../i18n";
 
 /**
  * Every roll, staged: the known results tumble onto a felt tray from the
- * roller's side, failures are scooped away and successes line up (6s glint),
- * and the survivors are picked up for the next step of the same attack.
+ * roller's side, successes line up (6s glint) with the failures dimmed after
+ * them, and the survivors are picked up for the next step of the same attack.
  * Presentation only: the values come from the log, so every peer (and a
  * replay) sees the same dice. Click the tray to skip; it never takes input
  * once a roll is over.
@@ -235,6 +235,8 @@ class Stage {
   /** The size dice were thrown at, so the lineup matches them. */
   private dieSize = 0;
   private dice: Die[] = [];
+  /** The last roll's failures, dimmed beside the successes until the next roll: every die rolled shows (Jobs review). */
+  private spent: Die[] = [];
   private chain: string | undefined;
   private skip = false;
   /** Every roll still queued lands at once too, until the tray is idle. */
@@ -435,8 +437,7 @@ class Stage {
     clearTimeout(this.hideTimer);
     if (this.hand) return;
     this.root.classList.remove("on");
-    this.dice.forEach((d) => d.el.remove());
-    this.dice = [];
+    this.removeAll();
     this.chain = undefined;
   }
 
@@ -554,6 +555,23 @@ class Stage {
   private removeAll() {
     this.dice.forEach((d) => d.el.remove());
     this.dice = [];
+    this.spent.forEach((d) => d.el.remove());
+    this.spent = [];
+  }
+
+  /** The last roll's failures are scooped off the felt as the next step's dice come. */
+  private scoopSpent() {
+    const fails = this.spent;
+    this.spent = [];
+    if (!fails.length) return;
+    const H = this.felt.clientHeight;
+    scoop(fails.length);
+    fails.forEach((d, i) => {
+      d.el.classList.add("gone");
+      d.el.style.transitionDelay = `${this.skip ? 0 : i * 12}ms`;
+      d.el.style.transform = `translate(${-(this.dieSize || 40) * 2}px, ${H * 0.5 + (Math.random() - 0.5) * H * 0.4}px) rotate(${Math.random() * 90}deg) scale(.7)`;
+    });
+    setTimeout(() => fails.forEach((d) => d.el.remove()), 600);
   }
 
   private size(n: number) {
@@ -681,28 +699,23 @@ class Stage {
     });
   }
 
-  /** Failures dim and are scooped off; successes line up sorted, criticals glint. */
+  /** Successes line up sorted, criticals glint; failures dim and line up after them, every die in view. */
   private async sift(ds: Die[], fast: boolean): Promise<Die[]> {
     const W = this.felt.clientWidth;
     const H = this.felt.clientHeight;
     const size = this.dieSize || this.size(ds.length);
     const keep = ds.filter((d) => d.ok).sort((a, b) => b.v - a.v);
-    const fails = ds.filter((d) => !d.ok);
+    const fails = ds.filter((d) => !d.ok).sort((a, b) => b.v - a.v);
     fails.forEach((d) => d.el.classList.add("fail"));
     await wait(this.skip ? 0 : fast ? 120 : 380);
-    scoop(fails.length);
-    fails.forEach((d, i) => {
-      d.el.classList.add("gone");
-      d.el.style.transitionDelay = `${this.skip ? 0 : i * 12}ms`;
-      d.el.style.transform = `translate(${-size * 2}px, ${H * 0.5 + (Math.random() - 0.5) * H * 0.4}px) rotate(${Math.random() * 90}deg) scale(.7)`;
-    });
+    const row = [...keep, ...fails];
     const gap = size * 0.18;
     const perRow = Math.max(1, Math.floor((W * 0.86) / (size + gap)));
-    const rowsTotal = Math.ceil(keep.length / perRow);
-    keep.forEach((d, i) => {
+    const rowsTotal = Math.ceil(row.length / perRow);
+    row.forEach((d, i) => {
       const r = Math.floor(i / perRow);
       const c = i % perRow;
-      const rowCount = Math.min(perRow, keep.length - r * perRow);
+      const rowCount = Math.min(perRow, row.length - r * perRow);
       const x = W / 2 - (rowCount * (size + gap) - gap) / 2 + c * (size + gap);
       const y = H * 0.5 - size / 2 + (r - (rowsTotal - 1) / 2) * (size + gap);
       d.el.style.transition = this.skip
@@ -720,7 +733,7 @@ class Stage {
         d.el.classList.add("crit");
         if (i < 6) chime(i);
       });
-    setTimeout(() => fails.forEach((d) => d.el.remove()), 600);
+    this.spent = fails;
     this.dice = keep;
     return keep;
   }
@@ -728,6 +741,7 @@ class Stage {
   /** The survivors leave towards the next roller before the new dice come in. */
   private async pickUp(towardTop: boolean, fast: boolean) {
     const H = this.felt.clientHeight;
+    this.scoopSpent();
     const old = this.dice;
     this.dice = [];
     old.forEach((d, i) => {
