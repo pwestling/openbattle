@@ -1534,7 +1534,7 @@ msgstr ""
 
 #: src/companion/CompanionScreen.tsx:143
 #: src/mail/MailBar.tsx:236
-#: src/next/Setup.tsx:228
+#: src/next/Setup.tsx:229
 #: src/ui/Hud.tsx:311
 #: src/ui/NetBanner.tsx:75
 #: src/ui/Room.tsx:136
@@ -3838,7 +3838,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/next/SaveDoor.tsx:101
-#: src/next/Setup.tsx:176
+#: src/next/Setup.tsx:177
 #: src/tts/TtsWholeTable.tsx:148
 #: src/ui/SetupSteps.tsx:89
 msgid "{n} unit on the table"
@@ -3909,51 +3909,51 @@ msgstr ""
 msgid "Your save"
 msgstr ""
 
-#: src/next/Setup.tsx:141
+#: src/next/Setup.tsx:142
 msgid "You're watching. The battle starts when the players are ready."
 msgstr ""
 
-#: src/next/Setup.tsx:160
+#: src/next/Setup.tsx:161
 #: src/ui/SetupSteps.tsx:65
 msgid "Invite your opponent"
 msgstr ""
 
-#: src/next/Setup.tsx:163
+#: src/next/Setup.tsx:164
 #: src/ui/SetupSteps.tsx:80
 msgid "{names} is here"
 msgstr ""
 
-#: src/next/Setup.tsx:165
+#: src/next/Setup.tsx:166
 msgid "Link copied. Waiting for them to open it."
 msgstr ""
 
-#: src/next/Setup.tsx:170
+#: src/next/Setup.tsx:171
 msgid "Both armies"
 msgstr ""
 
-#: src/next/Setup.tsx:174
+#: src/next/Setup.tsx:175
 msgid "{names} has no army yet"
 msgstr ""
 
-#: src/next/Setup.tsx:184
+#: src/next/Setup.tsx:185
 #: src/ui/SetupSteps.tsx:104
 msgid "Table and mission"
 msgstr ""
 
-#: src/next/Setup.tsx:188
+#: src/next/Setup.tsx:189
 msgid "From your save"
 msgstr ""
 
-#: src/next/Setup.tsx:189
+#: src/next/Setup.tsx:190
 msgid "{name}: its terrain couldn't load"
 msgstr ""
 
-#: src/next/Setup.tsx:190
+#: src/next/Setup.tsx:191
 #: src/ui/TopBar.tsx:112
 msgid "No mission: you'll score by hand"
 msgstr ""
 
-#: src/next/Setup.tsx:195
+#: src/next/Setup.tsx:196
 #: src/replay/chapters.ts:45
 #: src/ui/PlayPanel.tsx:60
 #: src/ui/TerrainPanel.tsx:353
@@ -3962,88 +3962,88 @@ msgstr ""
 msgid "Deployment"
 msgstr ""
 
-#: src/next/Setup.tsx:198
+#: src/next/Setup.tsx:199
 msgid "{n} unit to place"
 msgid_plural "{n} units to place"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/Setup.tsx:200
+#: src/next/Setup.tsx:201
 msgid "Everything placed. Say you're ready."
 msgstr ""
 
-#: src/next/Setup.tsx:202
+#: src/next/Setup.tsx:203
 #: src/next/step.ts:416
 #: src/ui/Packages.tsx:753
 #: src/ui/TopBar.tsx:380
 msgid "Waiting for {names}"
 msgstr ""
 
-#: src/next/Setup.tsx:207
+#: src/next/Setup.tsx:208
 msgid "Who goes first"
 msgstr ""
 
-#: src/next/Setup.tsx:212
+#: src/next/Setup.tsx:213
 msgid "A tie, {a} each: rolling again…"
 msgstr ""
 
-#: src/next/Setup.tsx:213
+#: src/next/Setup.tsx:214
 msgid "Rolled {a} – {b}"
 msgstr ""
 
-#: src/next/Setup.tsx:225
+#: src/next/Setup.tsx:226
 msgid "Send the invite link to your opponent"
 msgstr ""
 
-#: src/next/Setup.tsx:226
+#: src/next/Setup.tsx:227
 msgid "They open it in their browser: nothing to install, no account."
 msgstr ""
 
-#: src/next/Setup.tsx:236
+#: src/next/Setup.tsx:237
 msgid "Put both armies on the table"
 msgstr ""
 
-#: src/next/Setup.tsx:236
+#: src/next/Setup.tsx:237
 msgid "Pick your army"
 msgstr ""
 
-#: src/next/Setup.tsx:237
+#: src/next/Setup.tsx:238
 msgid "A sample army, one from your shelf, or import a list (New Recruit, BattleScribe, Yellowscribe)."
 msgstr ""
 
-#: src/next/Setup.tsx:244
+#: src/next/Setup.tsx:245
 msgid "Use the sample armies"
 msgstr ""
 
-#: src/next/Setup.tsx:244
+#: src/next/Setup.tsx:245
 msgid "Use the sample army"
 msgstr ""
 
-#: src/next/Setup.tsx:251
+#: src/next/Setup.tsx:252
 msgid "The save's terrain couldn't load"
 msgstr ""
 
-#: src/next/Setup.tsx:252
+#: src/next/Setup.tsx:253
 msgid "Pick your TTS folder so it comes from there, or play on a starter table."
 msgstr ""
 
-#: src/next/Setup.tsx:254
+#: src/next/Setup.tsx:255
 msgid "Use a starter table"
 msgstr ""
 
-#: src/next/Setup.tsx:264
+#: src/next/Setup.tsx:265
 msgid "Pick your TTS folder"
 msgstr ""
 
-#: src/next/Setup.tsx:265
+#: src/next/Setup.tsx:266
 msgid "Play on the empty table"
 msgstr ""
 
-#: src/next/Setup.tsx:268
+#: src/next/Setup.tsx:269
 msgid "Table and mission: {mission}"
 msgstr ""
 
-#: src/next/Setup.tsx:268
+#: src/next/Setup.tsx:269
 #: src/ui/AttackPanel.tsx:383
 #: src/ui/AttackPanel.tsx:392
 #: src/ui/AttackPanel.tsx:506
@@ -4051,142 +4051,142 @@ msgstr ""
 msgid "none"
 msgstr ""
 
-#: src/next/Setup.tsx:269
+#: src/next/Setup.tsx:270
 msgid "Keep them, or change the table or mission first."
 msgstr ""
 
-#: src/next/Setup.tsx:270
+#: src/next/Setup.tsx:271
 msgid "Keep these"
 msgstr ""
 
-#: src/next/Setup.tsx:271
-#: src/next/Setup.tsx:394
-#: src/next/Setup.tsx:405
+#: src/next/Setup.tsx:272
+#: src/next/Setup.tsx:395
+#: src/next/Setup.tsx:406
 #: src/ui/AutoAbilities.tsx:604
 #: src/ui/PlayPanel.tsx:461
 #: src/ui/PlayPanel.tsx:510
 msgid "Change"
 msgstr ""
 
-#: src/next/Setup.tsx:275
+#: src/next/Setup.tsx:276
 #: src/ui/TopBar.tsx:277
 msgid "Place your units in your zone"
 msgstr ""
 
-#: src/next/Setup.tsx:276
-msgid "Drag each one into the shaded strip. Drop a character on a squad to lead it."
+#: src/next/Setup.tsx:277
+msgid "Drag each one into the shaded strip."
 msgstr ""
 
-#: src/next/Setup.tsx:277
+#: src/next/Setup.tsx:278
 msgid "Next unit"
 msgstr ""
 
-#: src/next/Setup.tsx:280
-#: src/next/Setup.tsx:299
+#: src/next/Setup.tsx:281
+#: src/next/Setup.tsx:300
 msgid "Ready anyway"
 msgstr ""
 
-#: src/next/Setup.tsx:290
+#: src/next/Setup.tsx:291
 msgid "{n} character stands with a squad"
 msgid_plural "{n} characters stand with a squad"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/Setup.tsx:292
+#: src/next/Setup.tsx:293
 msgid "{leader} with {unit}"
 msgstr ""
 
-#: src/next/Setup.tsx:295
+#: src/next/Setup.tsx:296
 #: src/ui/Room.tsx:354
 msgid "Lead all {n}"
 msgid_plural "Lead all {n}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/Setup.tsx:295
+#: src/next/Setup.tsx:296
 #: src/ui/Room.tsx:342
 msgid "Lead it"
 msgstr ""
 
-#: src/next/Setup.tsx:301
+#: src/next/Setup.tsx:302
 msgid "Check your deployment, then say you're ready"
 msgstr ""
 
-#: src/next/Setup.tsx:302
-msgid "Drag a character onto a squad to lead it."
+#: src/next/Setup.tsx:303
+msgid "Everything is placed. Drag any unit to adjust it first."
 msgstr ""
 
-#: src/next/Setup.tsx:303
+#: src/next/Setup.tsx:304
 #: src/ui/Room.tsx:279
 #: src/ui/SetupSteps.tsx:121
 #: src/ui/TopBar.tsx:570
 msgid "Ready"
 msgstr ""
 
-#: src/next/Setup.tsx:308
+#: src/next/Setup.tsx:309
 msgid "Roll off for the first turn"
 msgstr ""
 
-#: src/next/Setup.tsx:309
+#: src/next/Setup.tsx:310
 msgid "One die each, both screens see it. The winner chooses who goes first."
 msgstr ""
 
-#: src/next/Setup.tsx:311
+#: src/next/Setup.tsx:312
 msgid "Roll off"
 msgstr ""
 
-#: src/next/Setup.tsx:319
+#: src/next/Setup.tsx:320
 msgid "{side} won the roll-off and goes first"
 msgstr ""
 
-#: src/next/Setup.tsx:320
-#: src/next/Setup.tsx:330
+#: src/next/Setup.tsx:321
+#: src/next/Setup.tsx:331
 msgid "Start the battle"
 msgstr ""
 
-#: src/next/Setup.tsx:323
+#: src/next/Setup.tsx:324
 #: src/ui/TopBar.tsx:413
 msgid "Waiting for {names} to be ready"
 msgstr ""
 
-#: src/next/Setup.tsx:326
+#: src/next/Setup.tsx:327
 msgid "{side} takes the first turn."
 msgstr ""
 
-#: src/next/Setup.tsx:327
+#: src/next/Setup.tsx:328
 msgid "Nobody has joined yet."
 msgstr ""
 
-#: src/next/Setup.tsx:330
+#: src/next/Setup.tsx:331
 #: src/ui/TopBar.tsx:450
 msgid "Start anyway"
 msgstr ""
 
-#: src/next/Setup.tsx:340
+#: src/next/Setup.tsx:341
 msgid "First turn"
 msgstr ""
 
-#: src/next/Setup.tsx:368
-#: src/next/Setup.tsx:370
+#: src/next/Setup.tsx:369
+#: src/next/Setup.tsx:371
 #: src/ui/SetupSteps.tsx:53
 msgid "Before the battle"
 msgstr ""
 
-#: src/next/Setup.tsx:373
+#: src/next/Setup.tsx:374
 #: src/ui/SetupSteps.tsx:58
 msgid "{name}'s table · {game}"
 msgstr ""
 
-#: src/next/Setup.tsx:388
+#: src/next/Setup.tsx:389
 msgid "{name} chooses"
 msgstr ""
 
-#: src/next/Setup.tsx:417
+#: src/next/Setup.tsx:418
 #: src/next/StepBar.tsx:183
 msgid "Next step"
 msgstr ""
 
-#: src/next/Setup.tsx:420
+#: src/next/Setup.tsx:421
 #: src/next/Strip.tsx:123
 #: src/ui/TopBar.tsx:279
 msgid "Joining the game…"

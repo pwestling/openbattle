@@ -116,7 +116,8 @@ export function Setup() {
   // Its terrain couldn't load (UX N16): the table isn't done, whatever the checklist assumed.
   const saveEmpty = onSave && !game.terrain.length;
   const checks = mine.flatMap((p) => deployChecks(record, game, p.id));
-  const toPlace = checks.filter((c) => c.untouched || c.outside);
+  // A save's armies stand where the save put them: placing them is done (Sprint, TTS save hosted online).
+  const toPlace = onSave ? [] : checks.filter((c) => c.untouched || c.outside);
   const readyNeeded = online;
   const notReady = seated.filter((p) => !p.ready);
   const myReady = mine.every((p) => p.ready);
@@ -273,7 +274,7 @@ export function Setup() {
     case "deploy":
       if (toPlace.length) {
         say = t("Place your units in your zone");
-        sub = t("Drag each one into the shaded strip. Drop a character on a squad to lead it.");
+        sub = t("Drag each one into the shaded strip.");
         plain.push({ label: t("Next unit"), run: () => pickUnit(toPlace[0]!.unit.id) });
         if (readyNeeded)
           plain.push({
@@ -299,7 +300,7 @@ export function Setup() {
           plain.push({ label: t("Ready anyway"), run: ready });
         } else {
           say = t("Check your deployment, then say you're ready");
-          sub = t("Drag a character onto a squad to lead it.");
+          sub = t("Everything is placed. Drag any unit to adjust it first.");
           lit = { label: t("Ready"), run: ready };
         }
       }
