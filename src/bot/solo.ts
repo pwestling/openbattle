@@ -30,6 +30,11 @@ interface Solo {
   wait: number;
   /** The player's setting: the computer rolls their saves straight away. */
   rollsMine: boolean;
+  /**
+   * The log length at which the player let the computer fight on past their own pick in the
+   * fight order (UX N29); until then, in its turn, it waits for the player's pick.
+   */
+  letGo: number | null;
 }
 
 export const useSolo = create<Solo>(() => ({
@@ -44,6 +49,7 @@ export const useSolo = create<Solo>(() => ({
   deadline: null,
   wait: 0,
   rollsMine: readRollsMine(),
+  letGo: null,
 }));
 
 /** The computer's moves glide, slow enough to follow (PX solo review 2). */
@@ -99,6 +105,7 @@ export function armSolo(level: Level, seat = 1): void {
     paused: false,
     why: null,
     deadline: null,
+    letGo: null,
   });
   // The camera follows the action, the computer's included (UX 348).
   useStore.setState({ director: true });

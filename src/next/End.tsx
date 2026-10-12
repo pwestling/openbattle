@@ -9,9 +9,10 @@ import { bothSigned, RankedSign } from "../ranked/RankedGame";
 import { reviewThisGame } from "../replay/review";
 import { useSandbox } from "../sandbox/runtime";
 import { openShare } from "../share/store";
-import { useStore } from "../store";
+import { useCanControl, useStore } from "../store";
 import { useGame } from "../ui/hooks";
 import { missionOf, Result } from "../ui/Missions";
+import { sidePlayers } from "../core";
 import { battleOver } from "../ui/StatsScreen";
 import { VIEWER } from "../viewer/flag";
 
@@ -50,19 +51,50 @@ export function NextEnd() {
     [over, record, game, mission, answers],
   );
   const reel = useMemo(() => (over ? reelLength(record) : 0), [over, record]);
+  const canControl = useCanControl();
+  const dispatch = useStore((s) => s.dispatch);
   if (!over || reeling || (asked && stats === true)) return null;
   const signing = !!game.ranked && !bothSigned(game);
   // Scores to confirm and a result to sign carry their own lit button; Play again waits for them.
   const settled = !pending.length && !signing;
+  // Several suggested scores of yours: one press scores them all as suggested (UX N31).
+  const scorable = watching
+    ? []
+    : pending.flatMap((p) => {
+        const by = sidePlayers(game, p.seat).find((x) => canControl(x.id));
+        return by && p.guessed && !p.ask ? [{ p, by: by.id }] : [];
+      });
+  const scoreAll = () => {
+    for (const { p, by } of scorable)
+      dispatch(
+        {
+          type: "score/confirm",
+          key: p.key,
+          seat: p.seat,
+          round: p.round,
+          vp: p.vp,
+          why: `${p.rule}: ${p.why}`,
+        },
+        by,
+      );
+  };
   const showStats = () => {
     useEndStats.setState({ asked: true });
     useStore.getState().set({ stats: true });
   };
   return (
-    <section className={`obn-end${settled ? "" : " settling"}`} aria-label={t("The battle is over")}>
+    <section
+      className={`obn-end${settled || scorable.length > 1 ? "" : " settling"}`}
+      aria-label={t("The battle is over")}
+    >
       <span className="obn-label">
         {[game.mission?.name, tn(game.turn.round - 1, "{n} round", "{n} rounds")].filter(Boolean).join(" · ")}
       </span>
+      {scorable.length > 1 && (
+        <button className="obn-lit" onClick={scoreAll}>
+          {t("Score all {n} as suggested", { n: scorable.length })} ▸
+        </button>
+      )}
       <Result />
       <RankedSign />
       {settled && !watching && (
@@ -89,11 +121,10 @@ export function NextEnd() {
             {t("Share")}
           </button>
         )}
-        {(!settled || watching) && (
-          <button className="obn-plain" onClick={toDoor}>
-            {t("Back to the front door")}
-          </button>
-        )}
+        {/* Always there (UX N32): Play again goes the same way, set for another game. */}
+        <button className="obn-plain" onClick={toDoor}>
+          {t("Back to the front door")}
+        </button>
       </div>
     </section>
   );

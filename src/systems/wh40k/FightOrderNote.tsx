@@ -14,20 +14,28 @@ export function FightOrderNote({ unitId }: { unitId: string }) {
   if (!order?.picker) return null;
   const why = fightOutOfOrder(game, unitId);
   const player = displayName(game.players[order.picker]?.name ?? "");
+  // Against the computer the player's side is "You": "your pick", not "You's pick" (UX N30).
+  const yours = player === t("You");
   const units = order.eligible.map((id) => game.units[id]?.name ?? id).join(", ");
   return (
     <p className="small fight-order">
       <span className="muted">
-        {order.step === "fightsFirst"
-          ? t("Fights First: {player}'s pick ({units}).", { player, units })
-          : t("Fight order: {player}'s pick ({units}).", { player, units })}
+        {yours
+          ? order.step === "fightsFirst"
+            ? t("Fights First: your pick ({units}).", { units })
+            : t("Fight order: your pick ({units}).", { units })
+          : order.step === "fightsFirst"
+            ? t("Fights First: {player}'s pick ({units}).", { player, units })
+            : t("Fight order: {player}'s pick ({units}).", { player, units })}
       </span>
       {why && (
         <span className="warn">
           {" "}
           {why === "fightsFirst"
             ? t("Out of order: units that charged or have Fights First fight first.")
-            : t("Out of order: it's {player}'s pick.", { player })}
+            : yours
+              ? t("Out of order: it's your pick.")
+              : t("Out of order: it's {player}'s pick.", { player })}
         </span>
       )}
     </p>

@@ -428,7 +428,7 @@ msgid "Round {n}"
 msgstr ""
 
 #: src/bot/BestMoment.tsx:46
-#: src/bot/solo.ts:133
+#: src/bot/solo.ts:140
 msgid "{name} ({level})"
 msgstr ""
 
@@ -603,34 +603,35 @@ msgstr ""
 msgid "{action} at {target}"
 msgstr ""
 
-#: src/bot/solo.ts:119
+#: src/bot/solo.ts:126
 msgid "Rook the Novice"
 msgstr ""
 
-#: src/bot/solo.ts:121
+#: src/bot/solo.ts:128
 msgid "The Iron Tactician"
 msgstr ""
 
-#: src/bot/solo.ts:122
+#: src/bot/solo.ts:129
 msgid "The Warden of Ash"
 msgstr ""
 
-#: src/bot/solo.ts:127
+#: src/bot/solo.ts:134
 msgid "Easy"
 msgstr ""
 
-#: src/bot/solo.ts:127
+#: src/bot/solo.ts:134
 msgid "Sharp"
 msgstr ""
 
-#: src/bot/solo.ts:127
+#: src/bot/solo.ts:134
 msgid "Steady"
 msgstr ""
 
-#: src/bot/solo.ts:134
+#: src/bot/solo.ts:141
 #: src/review/ReviewPanel.tsx:204
 #: src/review/ReviewPanel.tsx:204
 #: src/share/cards.ts:292
+#: src/systems/wh40k/FightOrderNote.tsx:18
 #: src/ui/Missions.tsx:434
 msgid "You"
 msgstr ""
@@ -989,7 +990,7 @@ msgstr ""
 
 #: src/campaign/CampaignUI.tsx:572
 #: src/companion/CompanionScreen.tsx:98
-#: src/next/StepBar.tsx:190
+#: src/next/StepBar.tsx:196
 #: src/ui/StatsScreen.tsx:157
 msgid "Units"
 msgstr ""
@@ -1117,7 +1118,7 @@ msgstr ""
 #: src/campaign/CampaignUI.tsx:673
 #: src/events/EventsUI.tsx:129
 #: src/events/EventsUI.tsx:341
-#: src/next/End.tsx:64
+#: src/next/End.tsx:91
 #: src/ui/RoundCard.tsx:113
 #: src/ui/StatsScreen.tsx:75
 msgid "{n} round"
@@ -3753,7 +3754,7 @@ msgid "After the battle"
 msgstr ""
 
 #: src/next/Drawer.tsx:110
-#: src/next/End.tsx:84
+#: src/next/End.tsx:116
 #: src/ui/Hud.tsx:270
 msgid "Replay with notes"
 msgstr ""
@@ -3842,7 +3843,27 @@ msgstr ""
 msgid "Edit terrain"
 msgstr ""
 
-#: src/next/End.tsx:62
+#: src/next/End.tsx:102
+msgid "Play again"
+msgstr ""
+
+#: src/next/End.tsx:108
+msgid "Watch the highlights"
+msgstr ""
+
+#: src/next/End.tsx:112
+msgid "Battle stats and review"
+msgstr ""
+
+#: src/next/End.tsx:121
+msgid "Share"
+msgstr ""
+
+#: src/next/End.tsx:126
+msgid "Back to the front door"
+msgstr ""
+
+#: src/next/End.tsx:88
 #: src/next/step.ts:308
 #: src/ui/WhatNow.tsx:43
 #: src/ui/gameLog.ts:110
@@ -3850,24 +3871,8 @@ msgstr ""
 msgid "The battle is over"
 msgstr ""
 
-#: src/next/End.tsx:70
-msgid "Play again"
-msgstr ""
-
-#: src/next/End.tsx:76
-msgid "Watch the highlights"
-msgstr ""
-
-#: src/next/End.tsx:80
-msgid "Battle stats and review"
-msgstr ""
-
-#: src/next/End.tsx:89
-msgid "Share"
-msgstr ""
-
-#: src/next/End.tsx:94
-msgid "Back to the front door"
+#: src/next/End.tsx:95
+msgid "Score all {n} as suggested"
 msgstr ""
 
 #: src/next/SaveDoor.tsx:100
@@ -4222,7 +4227,7 @@ msgid "{name} chooses"
 msgstr ""
 
 #: src/next/Setup.tsx:410
-#: src/next/StepBar.tsx:156
+#: src/next/StepBar.tsx:162
 msgid "Next step"
 msgstr ""
 
@@ -4232,22 +4237,26 @@ msgstr ""
 msgid "Joining the game…"
 msgstr ""
 
-#: src/next/StepBar.tsx:160
+#: src/next/StepBar.tsx:166
 #: src/ui/TeachRule.tsx:169
 msgid "Phases"
 msgstr ""
 
-#: src/next/StepBar.tsx:182
+#: src/next/StepBar.tsx:188
 msgid "Stratagems and abilities ▸"
 msgstr ""
 
-#: src/next/StepBar.tsx:214
+#: src/next/StepBar.tsx:220
 msgid "{label} anyway"
 msgstr ""
 
-#: src/next/StepBar.tsx:217
+#: src/next/StepBar.tsx:223
 #: src/ui/TopBar.tsx:452
 msgid "Not yet"
+msgstr ""
+
+#: src/next/StepBar.tsx:234
+msgid "Let {name} fight on"
 msgstr ""
 
 #: src/next/Strip.tsx:125
@@ -4517,101 +4526,105 @@ msgstr ""
 msgid "The sides alternate until every engaged unit has fought."
 msgstr ""
 
-#: src/next/step.ts:511
+#: src/next/step.ts:499
+msgid "{player} hasn't picked yet. Move on anyway?"
+msgstr ""
+
+#: src/next/step.ts:523
 msgid "Your pick: choose a unit to fight"
 msgstr ""
 
-#: src/next/step.ts:512
+#: src/next/step.ts:524
 msgid "Pile in, fight, then consolidate, from its card."
 msgstr ""
 
-#: src/next/step.ts:521
+#: src/next/step.ts:533
 msgid "Units can still fight. Move on anyway?"
 msgstr ""
 
-#: src/next/step.ts:533
+#: src/next/step.ts:545
 msgid "{side}'s turn: {phase}"
 msgstr ""
 
-#: src/next/step.ts:534
+#: src/next/step.ts:546
 msgid "Watch the table. Your saves and reactions come to you here."
 msgstr ""
 
-#: src/next/step.ts:551
+#: src/next/step.ts:563
 msgid "{n} unit hasn't moved. Done anyway?"
 msgid_plural "{n} units haven't moved. Done anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:552
+#: src/next/step.ts:564
 msgid "{n} unit can still act. Move on anyway?"
 msgid_plural "{n} units can still act. Move on anyway?"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:561
+#: src/next/step.ts:573
 msgid "Drag a unit to move it"
 msgstr ""
 
-#: src/next/step.ts:562
+#: src/next/step.ts:574
 msgid "Every unit has moved"
 msgstr ""
 
-#: src/next/step.ts:565
+#: src/next/step.ts:577
 msgid "Pick a unit to shoot with, then click its target"
 msgstr ""
 
-#: src/next/step.ts:566
+#: src/next/step.ts:578
 msgid "Every unit has shot"
 msgstr ""
 
-#: src/next/step.ts:569
+#: src/next/step.ts:581
 msgid "Pick a unit to charge with, then drag it onto its target"
 msgstr ""
 
-#: src/next/step.ts:570
+#: src/next/step.ts:582
 msgid "No unit can charge now"
 msgstr ""
 
-#: src/next/step.ts:572
+#: src/next/step.ts:584
 msgid "No fights this turn"
 msgstr ""
 
-#: src/next/step.ts:574
+#: src/next/step.ts:586
 msgid "{phase}: pick a unit to act"
 msgstr ""
 
-#: src/next/step.ts:575
+#: src/next/step.ts:587
 msgid "{phase}: nothing left to do"
 msgstr ""
 
-#: src/next/step.ts:586
+#: src/next/step.ts:598
 msgid "Drag {unit} · up to {n}″"
 msgstr ""
 
-#: src/next/step.ts:587
+#: src/next/step.ts:599
 msgid "Drag {unit} to move it"
 msgstr ""
 
-#: src/next/step.ts:588
+#: src/next/step.ts:600
 msgid "Or pick another unit. Advance and the rest are on its card."
 msgstr ""
 
-#: src/next/step.ts:600
+#: src/next/step.ts:612
 msgid "Charge roll {n}″: drag {unit} into contact with {targets}"
 msgstr ""
 
-#: src/next/step.ts:601
+#: src/next/step.ts:613
 msgid "Then pick the next unit, or move on."
 msgstr ""
 
-#: src/next/step.ts:622
+#: src/next/step.ts:634
 msgid "{n} unit hasn't moved"
 msgid_plural "{n} units haven't moved"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/next/step.ts:623
+#: src/next/step.ts:635
 msgid "{n} unit can still act"
 msgid_plural "{n} units can still act"
 msgstr[0] ""
@@ -7021,23 +7034,35 @@ msgstr ""
 msgid "all played"
 msgstr ""
 
-#: src/systems/wh40k/FightOrderNote.tsx:22
+#: src/systems/wh40k/FightOrderNote.tsx:25
+msgid "Fights First: your pick ({units})."
+msgstr ""
+
+#: src/systems/wh40k/FightOrderNote.tsx:26
+msgid "Fight order: your pick ({units})."
+msgstr ""
+
+#: src/systems/wh40k/FightOrderNote.tsx:28
 msgid "Fights First: {player}'s pick ({units})."
 msgstr ""
 
-#: src/systems/wh40k/FightOrderNote.tsx:23
+#: src/systems/wh40k/FightOrderNote.tsx:29
 msgid "Fight order: {player}'s pick ({units})."
 msgstr ""
 
-#: src/systems/wh40k/FightOrderNote.tsx:29
+#: src/systems/wh40k/FightOrderNote.tsx:35
 msgid "Out of order: units that charged or have Fights First fight first."
 msgstr ""
 
-#: src/systems/wh40k/FightOrderNote.tsx:30
+#: src/systems/wh40k/FightOrderNote.tsx:37
+msgid "Out of order: it's your pick."
+msgstr ""
+
+#: src/systems/wh40k/FightOrderNote.tsx:38
 msgid "Out of order: it's {player}'s pick."
 msgstr ""
 
-#: src/systems/wh40k/module.ts:88
+#: src/systems/wh40k/module.ts:98
 msgctxt "game"
 msgid "Secret objectives"
 msgstr ""

@@ -19,7 +19,7 @@ import { NEXT } from "./next/flag";
  */
 const loadGame = () => import("./GameScreen");
 const GameScreen = lazy(() => loadGame().then((m) => ({ default: m.GameScreen })));
-/** Open Battle Next (ui-next): the from-scratch UI, on with `?ui=next`, in its own chunk. */
+/** Open Battle Next (ui-next): the from-scratch UI, the default (`?ui=classic` for the old one), in its own chunk. */
 const NextApp = lazy(() => import("./next/NextApp").then((m) => ({ default: m.NextApp })));
 /** The figure library (#33) loads when it's first opened. */
 const FigureLibrary = lazy(() =>

@@ -78,6 +78,16 @@ export const wh40kModule: GameModule<SystemModule> = {
       return !!unit && engagedWith(view.state, unit).length > 0;
     },
   },
+  hooks: {
+    // A charge made by hand (a charge roll, then the models dragged into contact) charged just as the
+    // Charge action does: it fights first, and "charged" abilities and stratagems see it (UX N27).
+    *charge(ctx, args) {
+      if (args.kind !== "move" || !args.landed) return;
+      const unit = ctx.view.state.units[String(args.unitId ?? "")];
+      if (!unit || unit.status?.charged) return;
+      yield ctx.emit({ type: "unit/status", id: unit.id, key: "charged", value: true });
+    },
+  },
   checks: wh40kChecks,
   // Coherency here counts floors, a move counts climbing and the phase's allowance, and walls by unit type.
   replacesChecks: ["coherency", "moveDistance", "terrain"],

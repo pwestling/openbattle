@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { soloPlays } from "../bot/solo";
+import { soloPlays, useSolo } from "../bot/solo";
 import { aliveModels, sidePlayers } from "../core";
 import { gameText, t } from "../i18n";
+import { displayName } from "../i18n/names";
 import { pendingScores } from "../missions/scoring";
 import { focusOn } from "../render/focus";
 import { useSandbox } from "../sandbox/runtime";
@@ -9,6 +10,7 @@ import { useCanControl, useJoining, useStore } from "../store";
 import { UndoButton } from "../ui/Hud";
 import { useGame } from "../ui/hooks";
 import { missionOf } from "../ui/Missions";
+import { fightOrder } from "../systems/wh40k/fight";
 import { stepFor, type StepButton } from "./step";
 
 /** Select a unit and bring it into view. */
@@ -146,6 +148,10 @@ export function StepBar() {
     if (b.intent) dispatch(b.intent, b.as);
   };
   // With the next unit picked, its card holds the lit step: the bar repeats it, so the gold stays here (UX N7).
+  // The computer waits for your pick in its own fight order (UX N29); this lets it fight on.
+  const order = step.tone === "job" ? fightOrder(game) : null;
+  const bot = sidePlayers(game, game.turn.activeSeat).find((p) => soloPlays(game, p.id));
+  const letGo = !!bot && !!order?.picker && mine.includes(order.picker) && !game.attack && !game.procedure;
   const own = step.next ? step.next !== selected : step.buttons.some((b) => b.lit);
   const echo = !own && step.tone === "job" && mirror ? mirror : null;
   const lit = own || !!echo;
@@ -220,6 +226,14 @@ export function StepBar() {
         ) : (
           <div className="obn-buttons">
             {step.tone === "job" && <UndoButton />}
+            {letGo && (
+              <button
+                className="obn-plain"
+                onClick={() => useSolo.setState({ letGo: useStore.getState().record.events.length })}
+              >
+                {t("Let {name} fight on", { name: displayName(bot!.name) })}
+              </button>
+            )}
             {echo && (
               <button className="obn-lit" onClick={() => echo.el.click()}>
                 {echo.label} ▸

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { fightOrder } from "../systems/wh40k/fight";
 import { noteReason } from "./reasons";
 import { useHold } from "../ui/hold";
 import { actingSeat, sidePlayers, type GameState, type Intent, type Unit } from "../core";
@@ -47,6 +48,7 @@ export function SoloBot() {
   const wasTray = useRef(false);
   const on = !!level && !paused && mine === session && !!session;
   const rollsMine = useSolo((s) => s.rollsMine);
+  const letGo = useSolo((s) => s.letGo);
 
   useEffect(() => {
     if (tray) {
@@ -91,7 +93,7 @@ export function SoloBot() {
               ? GLIDE_MS + BOT_PACE
               : BOT_PACE,
     );
-  }, [on, game, scrub, tray, rollsMine]);
+  }, [on, game, scrub, tray, rollsMine, letGo]);
 
   useEffect(
     () => () => {
@@ -169,6 +171,18 @@ async function play(): Promise<void> {
     const left = until === null ? 0 : until - Date.now();
     if (left > 0) return void window.setTimeout(() => void play(), left + 50);
   }
+  // In its own turn, the player's pick in the fight order is theirs to make: it waits for it (UX N29),
+  // until they pick or let it go on.
+  const order = solo.both ? null : fightOrder(game);
+  if (
+    order?.picker &&
+    game.players[order.picker]?.seat !== solo.seat &&
+    game.turn.activeSeat === solo.seat &&
+    !game.attack &&
+    !game.procedure &&
+    solo.letGo !== record.events.length
+  )
+    return;
   // The player's own roll (their saves), left to them for a while: the computer rolls it for them now.
   // The Easy opponent never rolls a learner's dice by itself, so it would wait on them for ever (UX 404).
   const yours = rollTheirs(game, solo.seat);

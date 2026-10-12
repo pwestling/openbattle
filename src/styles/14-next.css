@@ -937,7 +937,8 @@ body:has(.obn-game) .table-tag.ok {
 .obn-end-choices button {
   flex: 1 1 auto;
 }
-/* The last round's card would sit on the result. */
-.obn-game:has(.obn-end) .round-card:not(.replay-title) {
+/* The last round's card would sit on the result; CP and stratagems are over with the battle (UX N33). */
+.obn-game:has(.obn-end) .round-card:not(.replay-title),
+.obn-game:has(.obn-end) .stratagem-hand {
   display: none;
 }

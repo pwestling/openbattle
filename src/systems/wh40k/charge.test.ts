@@ -10,8 +10,10 @@ import {
   type Intent,
 } from "../../core";
 import { unitActions } from "../../core/content/play";
+import { hookIntents } from "../../core/script";
 import { currentSlot } from "../../core/content/turn";
 import { spawnIntents } from "./deploy";
+import { fightOrder } from "./fight";
 import { wh40kModule } from "./module";
 
 describe("40k charge", () => {
@@ -149,5 +151,62 @@ describe("40k shooting after an Advance", () => {
       },
     };
     expect(shoot(assault).why).not.toBe("Advanced: only Assault weapons");
+  });
+
+  it("a charge made by hand (roll, then drag into contact) charged: it fights first (UX N27)", () => {
+    let r: GameRecord = createRecord(createInitialState());
+    // As the host's session does: the turn hooks an event sets off run after it.
+    const host = (i: Intent, by: string): void => {
+      const before = stateAt(r);
+      const l = resolveLogged(r, i, by, () => 0.5, 0);
+      if (!l) throw new Error(`Rejected ${i.type}`);
+      r = appendEvent(r, l);
+      for (const h of hookIntents(before, stateAt(r), l.event)) host(h, by);
+    };
+    host({ type: "player/join", player: { id: "a", name: "A", color: "#00f", seat: 0 } }, "a");
+    host({ type: "player/join", player: { id: "b", name: "B", color: "#f00", seat: 1 } }, "b");
+    host({ type: "game/system", system: wh40kModule.system.id }, "a");
+    for (const [p, seat] of [
+      ["a", 0],
+      ["b", 1],
+    ] as const)
+      for (const i of spawnIntents(stateAt(r), p, wh40kModule.app!.sample(seat).units, p, "x")) host(i, p);
+    const s = stateAt(r);
+    const mine = Object.values(s.units).find((u) => u.owner === "a" && u.modelIds.length > 3)!;
+    const enemy = Object.values(s.units).find((u) => u.owner === "b" && u.modelIds.length > 3)!;
+    // Everyone else far apart; the two units 5" apart.
+    for (const u of Object.values(s.units).filter((u) => u.id !== mine.id && u.id !== enemy.id))
+      host(
+        {
+          type: "models/move",
+          moves: u.modelIds.map((id, i) => ({ id, to: { x: (u.owner === "a" ? -25 : 25) + i * 0.1, y: 0 } })),
+        },
+        u.owner,
+      );
+    host(
+      { type: "models/move", moves: enemy.modelIds.map((id, i) => ({ id, to: { x: i * 1.6, y: 0 } })) },
+      "b",
+    );
+    host(
+      { type: "models/move", moves: mine.modelIds.map((id, i) => ({ id, to: { x: i * 1.6, y: -6 } })) },
+      "a",
+    );
+    // Set up before the Charge phase, so these moves aren't counted in the charge move.
+    while (currentSlot(stateAt(r))?.id !== "charge") host({ type: "turn/next" }, "a");
+    // The bare roll the charge card makes, then the models dragged into contact.
+    host(
+      { type: "dice/roll", count: 2, sides: 6, label: "charge", unitId: mine.id, targets: [enemy.id] },
+      "a",
+    );
+    expect(stateAt(r).units[mine.id]!.status?.charged).toBeFalsy();
+    host(
+      { type: "models/move", moves: mine.modelIds.map((id, i) => ({ id, to: { x: i * 1.6, y: -1.7 } })) },
+      "a",
+    );
+    expect(stateAt(r).units[mine.id]!.status?.charged).toBe(true);
+    host({ type: "turn/next" }, "a");
+    const order = fightOrder(stateAt(r));
+    expect(order?.step).toBe("fightsFirst");
+    expect(order?.eligible).toEqual([mine.id]);
   });
 });

@@ -4,6 +4,8 @@ What changed in each release of Open Battle. The in-app **What's new** on the st
 
 ## Unreleased
 
+- **A new layout, built from scratch.** One step bar at the bottom says what to do now and lights the one thing to press next. The front door is a column-by-column flow, setup is a checklist, and the end of the battle shows the result first. The old layout is still there: add `?ui=classic` to the address, or pick "Classic layout" at the front door.
+- **A charge made by dragging counts as a charge.** Rolling the charge and dragging the unit into contact now marks it as having charged, so it fights first and "after charging" abilities and stratagems see it.
 - **Shooting at a friend goes quicker.** When someone shoots your unit with several weapons, your screen says so ("Ana is shooting your Ember Kin with 3 weapons", then which weapon it's on), and your saves roll by themselves a moment after the wounds land. Untick "Roll my saves as the wounds land" to roll them yourself. The attacker can tick "Always in one go" to roll hits and then wounds with one press.
 - **Formats and protocols with a promise.** Every file, link, peer message, package and server API Open Battle uses now has a versioned spec in [docs/protocols](docs/protocols/README.md), a JSON Schema in `schemas/` generated from the code, and frozen conformance files in `conformance/` that other tools and forks can test against. A file from a newer version says so instead of failing to open.
 - **Version 0.2 can't share a table with 0.1.** Reaction windows and simultaneous phases added new events, so the peer protocol is now 2 ([history](docs/protocols/peer-protocol.md#history)). Both players need the same version.

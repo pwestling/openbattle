@@ -489,7 +489,19 @@ export function stepFor({ game, mine, pending, selected, draft }: StepInput): St
         rail,
         say: t("{player}'s pick to fight", { player: displayName(game.players[picker]?.name ?? "") }),
         sub: t("The sides alternate until every engaged unit has fought."),
-        buttons: [],
+        // Never a dead end in your own turn (UX N28): an opponent who doesn't pick can't hold it up.
+        buttons: myTurn
+          ? [
+              {
+                label: doneLabel(phase, last),
+                as: actor,
+                intent: { type: "turn/next" },
+                confirm: t("{player} hasn't picked yet. Move on anyway?", {
+                  player: displayName(game.players[picker]?.name ?? ""),
+                }),
+              },
+            ]
+          : [],
       };
     if (picker) {
       const units = order.eligible.map((id) => ({ id, name: game.units[id]?.name ?? id, done: false }));
