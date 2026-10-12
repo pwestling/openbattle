@@ -1,6 +1,6 @@
 ---
 name: verify-change
-description: Run the right Open Battle checks for a change before pushing (format, lint, typecheck, tests, soak, i18n, smoke) and check compatibility impact. Use before every push or pull request.
+description: Run the right Open Battle checks for a change before pushing (format, lint, typecheck, schemas, i18n, smoke) and check compatibility impact. Use before every push or pull request.
 ---
 
 # Verify a change
@@ -11,19 +11,16 @@ description: Run the right Open Battle checks for a change before pushing (forma
 pnpm format
 pnpm lint
 pnpm typecheck      # tsc -b; `tsc --noEmit -p .` checks nothing
-pnpm test           # or `pnpm vitest run <path>` for the area you touched first
 ```
 
 ## Depending on what changed
 
-| Touched                                                         | Also run                                                                      |
-| --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `src/core`, `src/net`, `src/systems`, `src/sandbox`, `src/soak` | `pnpm soak` (replay a failure with `SOAK_FROM=<seed> SOAK_SEEDS=1 pnpm soak`) |
-| On-screen text                                                  | `pnpm i18n:check`                                                             |
-| Exports or files added or removed                               | `pnpm deadcode`                                                               |
-| A path a player clicks through                                  | `pnpm smoke <name>` (list in `scripts/smoke.mjs`)                             |
-| Bot evaluator or game review                                    | `REVIEW_BENCH=1 npx vitest run src/review/bench`                              |
-| Sample armies, rules text, tests with rosters, `games/`         | the `ip-check` skill                                                          |
+| Touched                             | Also run                                          |
+| ----------------------------------- | ------------------------------------------------- |
+| On-screen text                      | `pnpm i18n:check`                                 |
+| Exports or files added or removed   | `pnpm deadcode`                                   |
+| A path a player clicks through      | `pnpm smoke <name>` (list in `scripts/smoke.mjs`) |
+| Sample armies, rules text, `games/` | the `ip-check` skill                              |
 
 ## Compatibility
 

@@ -1,5 +1,5 @@
 // Border Muster: an example extension package that brings armies and a
-// mission to Quality d6 (#82b, docs/packages.md "Armies and missions").
+// mission to the sci-fi battle (#82b, docs/packages.md "Armies and missions").
 // Everything in it is invented.
 //
 // `armies` is data: a list of Army list v1 documents
@@ -30,7 +30,7 @@ export const armies = [
         name: "Warden Captain",
         size: 1,
         points: 60,
-        characteristics: { M: "6\"", T: "4", Sv: "3+", W: "3", Ld: "6+", OC: "1" },
+        characteristics: { M: '6"', T: "4", Sv: "3+", W: "3", Ld: "6+", OC: "1" },
         base: { shape: "round", diameterMm: 32 },
         weapons: [{ name: "Reed Glaive", characteristics: { A: 3, AP: 1 } }],
       },
@@ -38,7 +38,7 @@ export const armies = [
         name: "Reed Archers",
         size: 5,
         points: 75,
-        characteristics: { M: "6\"", T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "1" },
+        characteristics: { M: '6"', T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "1" },
         weapons: [
           { name: "Longbow", range: 24, characteristics: { A: 1 } },
           { name: "Knife", kind: "melee", characteristics: { A: 1 } },
@@ -55,14 +55,14 @@ export const armies = [
         name: "Levy Spears",
         size: 10,
         points: 90,
-        characteristics: { M: "6\"", T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "2" },
+        characteristics: { M: '6"', T: "3", Sv: "5+", W: "1", Ld: "7+", OC: "2" },
         weapons: [{ name: "Spear", characteristics: { A: 1 } }],
       },
       {
         name: "Ford Riders",
         size: 3,
         points: 80,
-        characteristics: { M: "10\"", T: "4", Sv: "4+", W: "2", Ld: "7+", OC: "1" },
+        characteristics: { M: '10"', T: "4", Sv: "4+", W: "2", Ld: "7+", OC: "1" },
         base: { shape: "oval", widthMm: 60, depthMm: 35 },
         weapons: [{ name: "Lance", characteristics: { A: 2, AP: 1 } }],
       },

@@ -5,9 +5,7 @@ import type { GameSystem, Id } from "./schema";
  * Game systems the engine can run. 40k is built
  * in; others register at startup or when a player imports one.
  */
-const systems = new Map<Id, GameSystem>([
-  [fortyK.id, fortyK],
-]);
+const systems = new Map<Id, GameSystem>([[fortyK.id, fortyK]]);
 
 /** Every registered system, for the lobby's picker. */
 export function listSystems(): GameSystem[] {

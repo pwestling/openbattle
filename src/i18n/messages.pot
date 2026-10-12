@@ -5,216 +5,6 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "X-Plural-Order: zero one two few many other (those the language uses)\n"
 
-#: examples/lessons/conquest.js:19
-msgctxt "game"
-msgid "The command stack"
-msgstr ""
-
-#: examples/lessons/conquest.js:21
-msgctxt "game"
-msgid "Order your stack, draw a card and activate a regiment, then trade turns."
-msgstr ""
-
-#: examples/lessons/conquest.js:25
-msgctxt "game"
-msgid "You command blue at the near edge; the computer plays red. Each round you secretly put your regiments in order: your command stack. Then the sides take turns drawing the top card and activating that regiment."
-msgstr ""
-
-#: examples/lessons/conquest.js:28
-msgctxt "game"
-msgid "Open Command stack on the left, use the arrows to put your regiments in the order you want them to act, and press Lock in stack. Then press ▶ for the Action phase."
-msgstr ""
-
-#: examples/lessons/conquest.js:32
-msgctxt "game"
-msgid "Press ▶ when your stack is locked in."
-msgstr ""
-
-#: examples/lessons/conquest.js:36
-msgctxt "game"
-msgid "Press Draw in the Command stack to turn up your top card, then press Activate on that regiment's card."
-msgstr ""
-
-#: examples/lessons/conquest.js:40
-msgctxt "game"
-msgid "The regiment has two actions. March forwards, or Volley or Clash if an enemy is in reach."
-msgstr ""
-
-#: examples/lessons/conquest.js:44
-msgctxt "game"
-msgid "Take its second action if you like, then press End activation at the top."
-msgstr ""
-
-#: examples/lessons/conquest.js:48
-msgctxt "game"
-msgid "Red draws its top card and activates that regiment now."
-msgstr ""
-
-#: examples/lessons/conquest.js:52
-msgctxt "game"
-msgid "Your turn again: draw your next card. When every regiment has gone, the round ends and you build a new stack."
-msgstr ""
-
-#: examples/lessons/fsd.js:21
-msgctxt "game"
-msgid "Activate a unit, move and fire, then take turns with the other side."
-msgstr ""
-
-#: examples/lessons/fsd.js:30
-msgctxt "game"
-msgid "You command blue at the near edge; the computer plays red. Each round both sides get activation dice. You take turns: one unit each, back and forth, until both sides run out."
-msgstr ""
-
-#: examples/lessons/fsd.js:33
-msgctxt "game"
-msgid "Your Rifle Squad is selected. Press Activate on its card to spend one of your activation dice on it."
-msgstr ""
-
-#: examples/lessons/fsd.js:38
-msgctxt "game"
-msgid "An activated unit has two actions. Press Move and drag it, or Fire at an enemy it can see."
-msgstr ""
-
-#: examples/lessons/fsd.js:42
-msgctxt "game"
-msgid "Use its second action if you like, then press End activation at the top."
-msgstr ""
-
-#: examples/lessons/fsd.js:46
-msgctxt "game"
-msgid "Red activates one of its units now. If it fires at you, the panel may offer a reaction or ask for a roll."
-msgstr ""
-
-#: examples/lessons/fsd.js:50
-msgctxt "game"
-msgid "Your turn again: activate another unit. Keep going until the dice run out; then the round is scored and a new one starts."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:102
-msgctxt "game"
-msgid "The slingers broke and fled, and the Bog Hulk failed its Panic test: it fell back in good order, and rallies at the end of the move."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:106
-msgctxt "game"
-msgid "The slingers broke and fled, and the Bog Hulk failed its Panic test and fled with them."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:110
-msgctxt "game"
-msgid "The slingers broke and fled. The Bog Hulk beside them took a Panic test and kept its nerve."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:114
-msgctxt "game"
-msgid "The slingers broke and fled."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:118
-msgctxt "game"
-msgid "The slingers lost and fell back in good order: that isn't fleeing, so nobody tests for Panic."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:122
-msgctxt "game"
-msgid "The slingers held. The fight goes on next turn."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:125
-msgctxt "game"
-msgid "Your charge didn't reach them this time, so there was no fight."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:130
-msgctxt "game"
-msgid "Panic tests also come when a unit loses a quarter of its models to shooting or magic. You can roll one by hand from a unit's card when the rules call for it."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:19
-msgctxt "game"
-msgid "Moving blocks"
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:21
-msgctxt "game"
-msgid "March a regiment, shoot with your archers, then watch the other side."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:25
-msgctxt "game"
-msgid "You command blue at the near edge; the computer plays red. Your units are regiments: blocks of models in ranks that move together. A turn runs Strategy, Movement, Shooting and Combat."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:28
-msgctxt "game"
-msgid "Nothing happens in the Strategy phase of a first turn. Press ▶ at the top for Movement."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:32
-msgctxt "game"
-msgid "Your spear regiment is selected. Drag the block forwards: it keeps its ranks, and the ruler shows how far it has gone against its Move. The card has buttons to wheel and turn."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:37
-msgctxt "game"
-msgid "To charge, drag a block into contact with an enemy; the enemy may react first. Press ▶ for the Shooting phase."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:41
-msgctxt "game"
-msgid "Your archers are selected. Normally only the front rank shoots, but these bowmen have Volley Fire: if they haven't moved this turn, half of each rank behind shoots over their heads too. Press Shoot and pick an enemy in range, or press ▶ if nothing is close enough."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:46
-msgctxt "game"
-msgid "Combat: blocks in contact fight. Press ▶ to end your turn when you're done."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:50
-msgctxt "game"
-msgid "Now red plays its turn. If it charges you, you'll be asked how to react."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:54
-msgctxt "game"
-msgid "That's a whole round. Bring your blocks into contact to fight; a unit that loses badly may flee. Once you play on, \"What can I do now?\" at the top of the screen always says what's possible."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:60
-msgctxt "game"
-msgid "Break and panic"
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:62
-msgctxt "game"
-msgid "Charge a small unit, break it, and watch its friends test for Panic."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:76
-msgctxt "game"
-msgid "A regiment that breaks shakes its friends: any unit within 6\" of a friend that flees from combat or is destroyed takes a Panic test, and may run too. Red's slingers stand just ahead of your spears, with a Bog Hulk beside them."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:79
-msgctxt "game"
-msgid "Your spears are Drilled: they march near the enemy without a test, and may redress their ranks for free before moving. Press ▶ for Movement."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:83
-msgctxt "game"
-msgid "Your spears are selected. Press Declare charge and pick the slingers, then move into contact with the Charge panel or by dragging."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:89
-msgctxt "game"
-msgid "Press ▶ until the Combat phase."
-msgstr ""
-
-#: examples/lessons/rank-and-flank.js:93
-msgctxt "game"
-msgid "Press Fight. Both sides strike, then the loser takes a break test."
-msgstr ""
-
 #: examples/lessons/sci-fi.js:102
 msgctxt "game"
 msgid "That's your turn. Press ▶ to end it: the red army goes next."
@@ -943,7 +733,7 @@ msgstr ""
 
 #: src/campaign/CampaignUI.tsx:546
 #: src/tables/TableLibrary.tsx:220
-#: src/ui/ArmyImport.tsx:640
+#: src/ui/ArmyImport.tsx:591
 #: src/workshop/Workshop.tsx:358
 #: src/workshop/Workshop.tsx:363
 msgid "Export"
@@ -1078,7 +868,7 @@ msgstr ""
 
 #: src/campaign/CampaignUI.tsx:616
 #: src/campaign/EventTab.tsx:272
-#: src/ui/ArmyImport.tsx:379
+#: src/ui/ArmyImport.tsx:358
 msgid "Pts"
 msgstr ""
 
@@ -1150,7 +940,7 @@ msgid "Edit"
 msgstr ""
 
 #: src/campaign/CampaignUI.tsx:736
-#: src/ui/ArmyImport.tsx:378
+#: src/ui/ArmyImport.tsx:357
 #: src/ui/StatsScreen.tsx:162
 msgid "Unit"
 msgstr ""
@@ -1924,14 +1714,12 @@ msgid "Fall back"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:1057
-#: src/core/content/examples/rank-and-flank.ts:182
 msgctxt "game"
 msgid "Shoot"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:1112
 #: src/core/content/examples/forty-k.ts:1195
-#: src/core/content/examples/rank-and-flank.ts:287
 msgctxt "game"
 msgid "Charge"
 msgstr ""
@@ -1943,7 +1731,6 @@ msgstr ""
 
 #: src/core/content/examples/forty-k.ts:1145
 #: src/core/content/examples/forty-k.ts:1196
-#: src/core/content/examples/rank-and-flank.ts:183
 msgctxt "game"
 msgid "Fight"
 msgstr ""
@@ -1959,13 +1746,11 @@ msgid "Command"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:1191
-#: src/core/content/examples/rank-and-flank.ts:194
 msgctxt "game"
 msgid "Movement"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:1194
-#: src/core/content/examples/rank-and-flank.ts:195
 msgctxt "game"
 msgid "Shooting"
 msgstr ""
@@ -2081,7 +1866,6 @@ msgid "held still"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:764
-#: src/systems/qd6/system.ts:623
 msgctxt "game"
 msgid "advanced"
 msgstr ""
@@ -2092,22 +1876,16 @@ msgid "fell back"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:766
-#: src/systems/qd6/system.ts:627
-#: src/systems/tow/system.ts:301
 msgctxt "game"
 msgid "shot"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:767
-#: src/systems/conquest/system.ts:649
-#: src/systems/qd6/system.ts:625
 msgctxt "game"
 msgid "charged"
 msgstr ""
 
 #: src/core/content/examples/forty-k.ts:768
-#: src/systems/qd6/system.ts:628
-#: src/systems/tow/system.ts:303
 msgctxt "game"
 msgid "fought"
 msgstr ""
@@ -2115,189 +1893,6 @@ msgstr ""
 #: src/core/content/examples/forty-k.ts:769
 msgctxt "game"
 msgid "tested for Battle-shock"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1014
-msgctxt "game"
-msgid "To a move, pick the point on its path where the reaction happens. A reaction may set off another (a chain), all landing together; a unit may also deploy from reserve as a reaction"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1019
-msgctxt "game"
-msgid "Unpin"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1027
-#: src/core/content/examples/rank-and-flank.ts:169
-msgctxt "game"
-msgid "Move"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1064
-msgctxt "game"
-msgid "Fire"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1088
-msgctxt "game"
-msgid "Prepare"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1093
-msgctxt "game"
-msgid "Its effect lasts while the token stays; clear the token when the action is used or its trigger comes"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1102
-msgctxt "game"
-msgid "Interact"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1106
-msgctxt "game"
-msgid "Retrieve: interacting with an objective nobody disputes takes it off the table. Extract: the unit carries it and scores on reaching a deploy area at the end of its activation; if destroyed, it drops where its last base fell"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1113
-msgctxt "game"
-msgid "Support card"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1119
-msgctxt "game"
-msgid "Each card once a round; Single Use cards are discarded. A card's attack from a unit doesn't activate it or allow reactions, and the target keeps its cover and range bonuses"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1127
-msgctxt "game"
-msgid "Deploy"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1132
-msgctxt "game"
-msgid "Disembarking from a transport is deploying too: place the bases as close to it as possible"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1156
-msgctxt "game"
-msgid "Pre-assign ADs"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1169
-#: examples/lessons/fsd.js:19
-msgctxt "game"
-msgid "Activations"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1187
-msgctxt "game"
-msgid "Scoring"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:1191
-msgctxt "game"
-msgid "Cleanup"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:409
-msgctxt "game"
-msgid "reacted"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:410
-msgctxt "game"
-msgid "unpinned"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:411
-msgctxt "game"
-msgid "fired"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:412
-msgctxt "game"
-msgid "prepared"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:413
-msgctxt "game"
-msgid "interacted"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:414
-msgctxt "game"
-msgid "deployed"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:911
-msgctxt "game"
-msgid "Activate"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:914
-msgctxt "game"
-msgid "A Character's abilities (its card behind the unit's) are used during the activation, each once a round, even while pinned, and don't count toward the two actions"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:958
-msgctxt "game"
-msgid "Activate (no AD)"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:961
-msgctxt "game"
-msgid "Lone Wolf or Disciplined: no AD spent; Disciplined takes one action this way, and neither commands"
-msgstr ""
-
-#: src/core/content/examples/fsd.ts:970
-msgctxt "game"
-msgid "React"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:160
-msgctxt "game"
-msgid "Declare charge"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:176
-#: src/core/content/examples/rank-and-flank.ts:283
-msgctxt "game"
-msgid "March"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:184
-msgctxt "game"
-msgid "Break test"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:193
-msgctxt "game"
-msgid "Strategy"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:199
-msgctxt "game"
-msgid "Combat"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:206
-msgctxt "game"
-msgid "Strike"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:284
-msgctxt "game"
-msgid "Reform"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:291
-msgctxt "game"
-msgid "Clash"
-msgstr ""
-
-#: src/core/content/examples/rank-and-flank.ts:307
-msgctxt "game"
-msgid "Activation"
 msgstr ""
 
 #: src/core/content/story.ts:519
@@ -2949,7 +2544,7 @@ msgstr ""
 
 #: src/figures/FigureLibrary.tsx:390
 #: src/figures/TtsImport.tsx:192
-#: src/ui/ArmyImport.tsx:384
+#: src/ui/ArmyImport.tsx:363
 msgid "Figure"
 msgstr ""
 
@@ -3274,7 +2869,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: src/figures/pack.ts:104
-#: src/share/links.ts:84
+#: src/share/links.ts:83
 msgid "Figure pack"
 msgstr ""
 
@@ -4040,7 +3635,7 @@ msgstr ""
 
 #: src/next/End.tsx:89
 #: src/next/step.ts:282
-#: src/ui/WhatNow.tsx:43
+#: src/ui/WhatNow.tsx:41
 #: src/ui/gameLog.ts:110
 #: src/ui/gameLog.ts:112
 msgid "The battle is over"
@@ -4203,7 +3798,7 @@ msgstr ""
 #: src/ui/PlayPanel.tsx:60
 #: src/ui/TerrainPanel.tsx:353
 #: src/ui/TopBar.tsx:260
-#: src/ui/WhatNow.tsx:46
+#: src/ui/WhatNow.tsx:44
 msgid "Deployment"
 msgstr ""
 
@@ -4488,7 +4083,7 @@ msgid "Round {round}"
 msgstr ""
 
 #: src/next/Strip.tsx:132
-#: src/share/links.ts:88
+#: src/share/links.ts:87
 msgid "Replay"
 msgstr ""
 
@@ -5336,13 +4931,13 @@ msgid "Use an https:// link to the pack's file."
 msgstr ""
 
 #: src/packages/packPins.ts:85
-#: src/share/links.ts:186
+#: src/share/links.ts:185
 #: src/workshop/Workshop.tsx:463
 msgid "Couldn't fetch that link (it may not allow other sites to read it)."
 msgstr ""
 
 #: src/packages/packPins.ts:87
-#: src/share/links.ts:188
+#: src/share/links.ts:187
 #: src/workshop/Workshop.tsx:465
 msgid "That link answered {status}."
 msgstr ""
@@ -5896,7 +5491,7 @@ msgid "{used}\" of {allowed}\""
 msgstr ""
 
 #: src/render/Regiment.tsx:206
-#: src/ui/RegimentPanel.tsx:442
+#: src/ui/RegimentPanel.tsx:430
 msgid "off the table"
 msgstr ""
 
@@ -6146,11 +5741,11 @@ msgid "Chapters"
 msgstr ""
 
 #: src/replay/NotesPanel.tsx:77
-#: src/systems/conquest/CommandPanel.tsx:59
-#: src/systems/qd6/ui/RoundPanel.tsx:79
 #: src/ui/Hud.tsx:116
 #: src/ui/PlayPanel.tsx:85
 #: src/ui/TableWarnings.tsx:111
+#: src/ui/WhatNow.tsx:393
+#: src/workshop/Workshop.tsx:502
 msgid "Hide"
 msgstr ""
 
@@ -6460,7 +6055,7 @@ msgid "That isn't a file Open Battle saves."
 msgstr ""
 
 #: src/share/OpenFile.tsx:29
-#: src/share/links.ts:232
+#: src/share/links.ts:231
 msgid "That file couldn't be opened."
 msgstr ""
 
@@ -6870,103 +6465,103 @@ msgstr ""
 msgid "What happened"
 msgstr ""
 
-#: src/share/links.ts:168
+#: src/share/links.ts:167
 msgid "That magnet link has no torrent in it."
 msgstr ""
 
-#: src/share/links.ts:174
-#: src/share/links.ts:190
-#: src/share/links.ts:192
+#: src/share/links.ts:173
+#: src/share/links.ts:189
+#: src/share/links.ts:191
 msgid "That file is too big to open from a link."
 msgstr ""
 
-#: src/share/links.ts:176
+#: src/share/links.ts:175
 msgid "Nobody is sharing that file right now, and no seed node has it."
 msgstr ""
 
-#: src/share/links.ts:177
+#: src/share/links.ts:176
 msgid "That torrent couldn't be fetched."
 msgstr ""
 
-#: src/share/links.ts:181
+#: src/share/links.ts:180
 msgid "Use an https:// link to the file."
 msgstr ""
 
-#: src/share/links.ts:197
+#: src/share/links.ts:196
 msgid "That file is private: open it with the whole share link, which carries its key."
 msgstr ""
 
-#: src/share/links.ts:199
+#: src/share/links.ts:198
 msgid "That key doesn't open this file."
 msgstr ""
 
-#: src/share/links.ts:206
-#: src/share/links.ts:209
+#: src/share/links.ts:205
+#: src/share/links.ts:208
 msgid "That link isn't an Open Battle file."
 msgstr ""
 
-#: src/share/links.ts:211
+#: src/share/links.ts:210
 msgid "A data link can only carry an army or a table."
 msgstr ""
 
-#: src/share/links.ts:218
+#: src/share/links.ts:217
 msgid "a torrent"
 msgstr ""
 
-#: src/share/links.ts:218
+#: src/share/links.ts:217
 msgid "the link itself"
 msgstr ""
 
-#: src/share/links.ts:251
+#: src/share/links.ts:250
 msgid "{name}: {added} new, {already} already here."
 msgstr ""
 
-#: src/share/links.ts:262
+#: src/share/links.ts:261
 #: src/tables/TableLibrary.tsx:244
 msgid "{name} is in your table library."
 msgstr ""
 
-#: src/share/links.ts:269
+#: src/share/links.ts:268
 msgid "{name} is on your army shelf."
 msgstr ""
 
-#: src/share/links.ts:278
+#: src/share/links.ts:277
 msgid "That standee couldn't be read."
 msgstr ""
 
-#: src/share/links.ts:279
+#: src/share/links.ts:278
 msgid "{name} is in your figure library."
 msgstr ""
 
-#: src/share/links.ts:295
+#: src/share/links.ts:294
 msgid "Replay opened."
 msgstr ""
 
-#: src/share/links.ts:36
-#: src/share/links.ts:44
+#: src/share/links.ts:35
+#: src/share/links.ts:43
 msgid "That data link isn't base64 JSON."
 msgstr ""
 
-#: src/share/links.ts:40
+#: src/share/links.ts:39
 msgid "That data link is too big; share a file instead."
 msgstr ""
 
-#: src/share/links.ts:77
+#: src/share/links.ts:76
 msgid "This file was saved by a newer Open Battle ({format}). Update to open it."
 msgstr ""
 
-#: src/share/links.ts:85
+#: src/share/links.ts:84
 #: src/tables/TableLibrary.tsx:99
 #: src/workshop/Workshop.tsx:297
 msgid "Table"
 msgstr ""
 
-#: src/share/links.ts:86
+#: src/share/links.ts:85
 #: src/workshop/Workshop.tsx:356
 msgid "Army"
 msgstr ""
 
-#: src/share/links.ts:87
+#: src/share/links.ts:86
 msgid "Standee"
 msgstr ""
 
@@ -7103,7 +6698,6 @@ msgid "Reload"
 msgstr ""
 
 #: src/sw/UpdateToast.tsx:17
-#: src/systems/conquest/CommandPanel.tsx:197
 msgid "Later"
 msgstr ""
 
@@ -7125,410 +6719,6 @@ msgstr ""
 
 #: src/sw/UpdateToast.tsx:63
 msgid "To install Open Battle on this device: Share, then Add to Home Screen."
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:115
-msgid "Drawn:"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:189
-msgid "locked in"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:189
-msgid "top card first"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:194
-msgid "Earlier"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:205
-msgid "Locked in on another device: only that device can draw these cards."
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:209
-msgid "Locked in"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:209
-msgid "Lock in stack"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:234
-msgid "Your cards are on the device that locked them in."
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:260
-msgid "Top card: {regiment}"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:261
-msgid "a fallen regiment"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:265
-msgid "Draw it"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:286
-msgid "Reinforcements"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:288
-msgid "Regiments start in reserve: Light from round 1, Medium from round 2, Heavy from round 3. Untick one to keep it on the table."
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:303
-msgid "Send all to reserve"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:303
-msgid "Rest to reserve"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:347
-msgid "reinforcements, round {round}"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:351
-msgid "arrives"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:355
-msgid "{class} regiment that arrives without a roll"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:369
-msgid "arrive with the rest"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:370
-msgid "arrives; the rest on {target} or less"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:377
-msgid "Roll reinforcements"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:378
-msgid "Bring them in"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:392
-msgid "Arrived: {regiments}. They stand just inside your table edge; each marches first and can't charge this round."
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:52
-#: src/systems/conquest/CommandPanel.tsx:58
-msgid "Command stack"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:80
-msgid "{n} in reserve"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:84
-msgid "ordering their cards"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:84
-msgid "no stack: any regiment"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:88
-#: src/ui/Cards.tsx:186
-#: src/ui/Missions.tsx:322
-#: src/ui/SecretObjectives.tsx:68
-msgid "{n} face down"
-msgstr ""
-
-#: src/systems/conquest/CommandPanel.tsx:89
-msgid "all played"
-msgstr ""
-
-#: src/systems/conquest/system.ts:650
-msgctxt "game"
-msgid "volleyed"
-msgstr ""
-
-#: src/systems/conquest/system.ts:651
-msgctxt "game"
-msgid "clashed"
-msgstr ""
-
-#: src/systems/conquest/system.ts:652
-msgctxt "game"
-msgid "took aim"
-msgstr ""
-
-#: src/systems/conquest/system.ts:653
-msgctxt "game"
-msgid "inspired"
-msgstr ""
-
-#: src/systems/conquest/system.ts:654
-#: src/systems/conquest/system.ts:655
-#: src/systems/qd6/system.ts:626
-msgctxt "game"
-msgid "rallied"
-msgstr ""
-
-#: src/systems/conquest/system.ts:656
-#: src/systems/conquest/system.ts:657
-#: src/systems/conquest/system.ts:658
-msgctxt "game"
-msgid "reformed"
-msgstr ""
-
-#: src/systems/conquest/system.ts:659
-msgctxt "game"
-msgid "withdrew"
-msgstr ""
-
-#: src/systems/qd6/system.ts:622
-msgctxt "game"
-msgid "held"
-msgstr ""
-
-#: src/systems/qd6/system.ts:624
-msgctxt "game"
-msgid "rushed"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:104
-msgid "Its order"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:106
-msgid "Shaken: it rallies this go"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:106
-msgid "Give it an order"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:134
-#: src/ui/SystemPanels.tsx:612
-msgid "{why}. The log tells everyone it was taken anyway."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:139
-#: src/ui/SystemPanels.tsx:617
-msgid "{action} anyway"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:184
-msgid "The app plays this."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:184
-msgid "A reminder: the players do this."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:216
-msgid "Hero:"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:223
-msgid "Join a unit…"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:238
-msgid "{hero} leaves the unit"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:243
-msgid "Wait in ambush"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:251
-msgid "Set it up on the table instead"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:256
-msgid "It arrives from round 2."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:259
-msgid "Click the table to set it down, more than 9\" from every enemy model. Esc puts it back."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:268
-msgid "Arrive anyway"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:268
-#: src/ui/CoreAbilities.tsx:116
-msgid "Arrive"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:45
-msgid "Shaken"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:46
-msgid "Rallies on its next go; hits only on 6s in melee; holds no objectives."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:52
-msgid "Fatigued"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:53
-msgid "Has fought this round: hits only on 6s in melee."
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:56
-msgid "Gone this round"
-msgstr ""
-
-#: src/systems/qd6/ui/Qd6Card.tsx:57
-msgid "In ambush"
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:101
-msgid "{unit} caused {dealt}, {foe} struck back for {taken}."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:103
-#: src/systems/qd6/ui/RoundPanel.tsx:105
-#: src/ui/AttackPanel.tsx:547
-#: src/ui/gameLog.ts:469
-#: src/ui/gameLog.ts:514
-#: src/ui/gameLog.ts:516
-msgid "{n} wound"
-msgid_plural "{n} wounds"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:42
-msgid "A tie: no one tests morale."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:44
-msgid "{unit} was wiped out."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:46
-msgid "{unit} lost and held its nerve."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:48
-msgid "{unit} lost and is Shaken."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:50
-msgid "{unit} lost and routed."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:67
-#: src/systems/qd6/ui/RoundPanel.tsx:75
-#: src/systems/qd6/ui/RoundPanel.tsx:77
-msgid "This round"
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:86
-msgid "{name}: {n} unit to go"
-msgid_plural "{name}: {n} units to go"
-msgstr[0] ""
-msgstr[1] ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:93
-msgid "{name} ran out of units first."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:94
-msgid "{name} ran out first, so goes first next round."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:95
-msgid "Whoever runs out of units first goes first next round."
-msgstr ""
-
-#: src/systems/qd6/ui/RoundPanel.tsx:99
-msgid "Last fight"
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:11
-msgid "Each model takes this many wounds before it falls."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:13
-msgid "A failed morale test still passes on a 4+."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:15
-msgid "As its charge lands, each model makes this many hits on 2+."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:17
-msgid "Charging, each natural 6 to hit in melee scores one more hit."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:19
-msgid "Having held, each natural 6 to hit at over 9\" scores one more hit."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:21
-msgid "Ignores each wound on a 5+."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:23
-msgid "Shooting at it is -1 to hit (Lock-On ignores this)."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:25
-msgid "Moves 2\" further."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:27
-msgid "Moves 2\" less."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:29
-msgid "Moves over blocking terrain and other units."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:31
-msgid "Difficult ground doesn't slow it."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:33
-msgid "Sets up after the other units, then may move up to 12\"."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:35
-msgid "May wait off the table and arrive from round 2, more than 9\" from enemies."
-msgstr ""
-
-#: src/systems/qd6/ui/glossary.ts:37
-msgid "May join a friendly unit before the battle: they move and fight as one."
-msgstr ""
-
-#: src/systems/tow/system.ts:302
-msgctxt "game"
-msgid "declared a charge"
-msgstr ""
-
-#: src/systems/tow/system.ts:304
-msgctxt "game"
-msgid "issued a challenge"
-msgstr ""
-
-#: src/systems/tow/system.ts:305
-msgctxt "game"
-msgid "cast a spell"
-msgstr ""
-
-#: src/systems/tow/system.ts:306
-msgctxt "game"
-msgid "dispelled a spell"
-msgstr ""
-
-#: src/systems/tow/system.ts:307
-msgctxt "game"
-msgid "used a magic item"
 msgstr ""
 
 #: src/systems/wh40k/FightOrderNote.tsx:25
@@ -7642,7 +6832,7 @@ msgid "Save table"
 msgstr ""
 
 #: src/tables/TableLibrary.tsx:19
-#: src/ui/ArmyImport.tsx:635
+#: src/ui/ArmyImport.tsx:586
 msgid "another game"
 msgstr ""
 
@@ -7675,7 +6865,7 @@ msgid "Take {name} out of your library?"
 msgstr ""
 
 #: src/tables/TableLibrary.tsx:228
-#: src/ui/ArmyImport.tsx:661
+#: src/ui/ArmyImport.tsx:612
 #: src/ui/Packages.tsx:237
 #: src/ui/SystemPanels.tsx:461
 #: src/ui/TeachRule.tsx:543
@@ -7780,8 +6970,8 @@ msgstr ""
 
 #: src/tts/ListMerge.tsx:28
 #: src/tts/NoStats.tsx:60
-#: src/ui/shelfActions.ts:162
-#: src/ui/shelfActions.ts:181
+#: src/ui/shelfActions.ts:161
+#: src/ui/shelfActions.ts:180
 msgid "No units found in that list."
 msgstr ""
 
@@ -7950,37 +7140,8 @@ msgstr ""
 msgid "Save it as a file: New Recruit exports JSON, BattleScribe saves .ros or .rosz. All three read in."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:100
-msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:105
-msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:108
-msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
-msgstr ""
-
 #: src/ui/ArmyGuide.tsx:11
 msgid "Yellowscribe army data (the JSON TTS army tools use) reads in too."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:111
-#: src/ui/Packages.tsx:179
-#: src/ui/Packages.tsx:327
-#: src/ui/Packages.tsx:544
-msgid "Rules packages"
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:113
-msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:115
-#: src/ui/systemLabels.ts:30
-#: src/ui/systemLabels.ts:61
-msgid "units"
 msgstr ""
 
 #: src/ui/ArmyGuide.tsx:12
@@ -7995,368 +7156,312 @@ msgstr ""
 msgid "Check the summary: bases are guessed from the unit, and you can change any of them. Then deploy."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:19
-msgid "There is no list app for this one yet: start from Sample army, or a rules package that brings units."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:20
-msgid "Any BattleScribe-style file (.ros, .rosz or New Recruit JSON) with model profiles also reads in."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:21
-msgid "Stats the list leaves out are asked for on the import summary."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:25
-msgid "Export it as JSON from New Recruit, or as .rosz from BattleScribe."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:26
-msgid "In a game, press Import a list in the left panel and pick the file."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:27
-msgid "Each regiment comes in as a block. Set its frontage (models in the front rank) on the summary."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:28
-msgid "Lists often leave stats out: the summary shows them in yellow for you to fill in. Everyone sees what you typed."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:33
-msgid "Build your list in New Recruit (or BattleScribe, where its data is available)."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:34
-msgid "Export it as JSON or .rosz, then press Import a list in the left panel."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:35
-msgid "Each regiment comes in as a block of stands. Fill in any stats the summary marks as missing."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:38
-msgid "Start from a sample army, or bring your own list file (JSON or text). It stays on your device."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:39
-msgid "Army list files (JSON, open-battle/army-list@1) read in, and so do unit builder exports with each unit's quality, defense and equipment."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:42
-msgid "Text lists read one unit a line, its weapons on the next: Wardens [5] Q4+ D4+ | 100pts | Fearless then 5x Glaive (A2, AP(1))."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:45
-msgid "In a game, press Import a list in the left panel and pick the file, or open it from a link or with Open a file."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:48
-msgid "Special rules the game knows play themselves; the rest come up as reminders. Nothing is guessed."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:64
-#: src/ui/ArmyGuide.tsx:68
+#: src/ui/ArmyGuide.tsx:32
+#: src/ui/ArmyGuide.tsx:36
 msgid "Bring your army"
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:86
+#: src/ui/ArmyGuide.tsx:54
 msgid "Your list"
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:9
-#: src/ui/ArmyGuide.tsx:24
-msgid "Build your list in New Recruit or BattleScribe."
-msgstr ""
-
-#: src/ui/ArmyGuide.tsx:93
+#: src/ui/ArmyGuide.tsx:61
 msgid "Your list stays with you: it goes to the people in your game and nowhere else. Open Battle comes with no armies but its made-up samples."
 msgstr ""
 
-#: src/ui/ArmyGuide.tsx:97
-#: src/ui/ArmyImport.tsx:497
+#: src/ui/ArmyGuide.tsx:65
+#: src/ui/ArmyImport.tsx:468
 #: src/ui/FigurePicker.tsx:207
 msgid "Your figures"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:212
-msgid "{count} spells read for {n} wizard."
-msgid_plural "{count} spells read for {n} wizards."
-msgstr[0] ""
-msgstr[1] ""
+#: src/ui/ArmyGuide.tsx:68
+msgid "Any 3D model file works: .glb, .gltf, .stl, .obj or .ply (a scan, or the file you printed from)."
+msgstr ""
 
-#: src/ui/ArmyImport.tsx:228
+#: src/ui/ArmyGuide.tsx:73
+msgid "Drag the file onto a unit on the table, or select the unit and use Figures on its card."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:76
+msgid "One figure for the whole unit, or one per kind of model. Everyone in the game sees them."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:79
+#: src/ui/Packages.tsx:179
+#: src/ui/Packages.tsx:327
+#: src/ui/Packages.tsx:544
+msgid "Rules packages"
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:81
+msgid "A rules package adds a game, or more {army} and rules to one, as a single file. Add it under Rules packages on the start screen. Everyone in a game checks they have the same version, and a package's code only runs once you have said yes to it."
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:83
+msgid "units"
+msgstr ""
+
+#: src/ui/ArmyGuide.tsx:9
+msgid "Build your list in New Recruit or BattleScribe."
+msgstr ""
+
+#: src/ui/ArmyImport.tsx:207
 msgid "Army for"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:240
+#: src/ui/ArmyImport.tsx:219
 msgid "Armies can be added once this game's rules package is running."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:244
+#: src/ui/ArmyImport.tsx:223
 msgid "Reading…"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:244
+#: src/ui/ArmyImport.tsx:223
 msgid "Import a list"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:305
+#: src/ui/ArmyImport.tsx:284
 msgid "Your figure library has figures that fit {n} unit."
 msgid_plural "Your figure library has figures that fit {n} units."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/ArmyImport.tsx:319
+#: src/ui/ArmyImport.tsx:298
 msgid "Use them"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:328
+#: src/ui/ArmyImport.tsx:307
 msgid "Use your own OpenAI key to match library figures to units from a photo of your army"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:333
+#: src/ui/ArmyImport.tsx:312
 msgid "Match figures from a photo…"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:338
+#: src/ui/ArmyImport.tsx:317
 msgid "Loading…"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:369
+#: src/ui/ArmyImport.tsx:348
 msgid "Picked figures go on when the army is deployed."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:371
+#: src/ui/ArmyImport.tsx:350
 msgid "Clear the figures"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:380
+#: src/ui/ArmyImport.tsx:359
 msgid "Troop type"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:381
+#: src/ui/ArmyImport.tsx:360
 #: src/ui/TemplateTools.tsx:89
 msgid "Models"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:382
+#: src/ui/ArmyImport.tsx:361
 msgid "Base"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:383
+#: src/ui/ArmyImport.tsx:362
 msgid "Models in the front rank"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:383
+#: src/ui/ArmyImport.tsx:362
 #: src/ui/RegimentPanel.tsx:95
-#: src/ui/RegimentPanel.tsx:336
+#: src/ui/RegimentPanel.tsx:334
 msgid "Frontage"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:396
-msgid "Level {level} wizard:"
-msgstr ""
-
 #: src/ui/ArmyImport.tsx:399
-msgid "no spells yet"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:41
-#: src/ui/ArmyImport.tsx:792
-msgid "{d}mm round"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:428
 msgid "single"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:434
+#: src/ui/ArmyImport.tsx:40
+#: src/ui/ArmyImport.tsx:743
+msgid "{d}mm round"
+msgstr ""
+
+#: src/ui/ArmyImport.tsx:405
 msgid "{unit} frontage"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:451
+#: src/ui/ArmyImport.tsx:422
 msgid "Deploy as a loose spread instead of a block"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:458
+#: src/ui/ArmyImport.tsx:429
 #: src/ui/RegimentPanel.tsx:26
 #: src/workshop/Workshop.tsx:55
 msgid "Skirmish"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:467
-#: src/ui/ArmyImport.tsx:590
+#: src/ui/ArmyImport.tsx:438
+#: src/ui/ArmyImport.tsx:541
 msgid "From your shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:470
+#: src/ui/ArmyImport.tsx:441
 msgid "{unit} figure"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:474
+#: src/ui/ArmyImport.tsx:445
 msgid "From the photo ({sure}% sure): {why}"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:485
+#: src/ui/ArmyImport.tsx:456
 msgid "Suggested: {name}"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:486
+#: src/ui/ArmyImport.tsx:457
 msgid "Stand-ins"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:489
+#: src/ui/ArmyImport.tsx:460
 #: src/ui/FigurePicker.tsx:199
 msgid "Fits this unit"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:512
+#: src/ui/ArmyImport.tsx:483
 msgid "Not in the list, fill in:"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:52
-#: src/ui/ArmyImport.tsx:794
-msgid "{w}×{d}mm oval"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:537
+#: src/ui/ArmyImport.tsx:508
 msgid "Bases are a guess from each unit's troop type; check them against your models."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:538
+#: src/ui/ArmyImport.tsx:509
 msgid "Bases are a guess from keywords and wounds; check them against your models."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:547
-msgid "A spell list file: names, casting values, ranges and kinds"
+#: src/ui/ArmyImport.tsx:51
+#: src/ui/ArmyImport.tsx:745
+msgid "{w}×{d}mm oval"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:549
-msgid "Add spells from a list"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:565
+#: src/ui/ArmyImport.tsx:516
 msgid "Deploy for {name}"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:598
+#: src/ui/ArmyImport.tsx:549
 msgid "From your shelf…"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:620
+#: src/ui/ArmyImport.tsx:571
 msgid "Your army shelf ({count})"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:620
+#: src/ui/ArmyImport.tsx:571
 msgid "Your army shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:623
+#: src/ui/ArmyImport.tsx:574
 msgid "Armies saved on this device. Save one after deploying it; pass one on as a file, figures included."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:645
+#: src/ui/ArmyImport.tsx:596
 msgid "Yellowscribe army data, for Tabletop Simulator army tools"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:648
+#: src/ui/ArmyImport.tsx:599
 msgid "Saved {file}: Yellowscribe army data for TTS tools."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:654
+#: src/ui/ArmyImport.tsx:605
 msgid "Export for Yellowscribe / TTS"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:659
+#: src/ui/ArmyImport.tsx:610
 msgid "Take {name} off your shelf?"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:668
+#: src/ui/ArmyImport.tsx:619
 msgid "Open an army file"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:67
-msgid "{w}mm square"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:67
-#: src/ui/ArmyImport.tsx:795
-msgid "{w}×{d}mm"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:676
+#: src/ui/ArmyImport.tsx:627
 msgid "{name} is on your shelf."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:698
+#: src/ui/ArmyImport.tsx:649
 msgid "{n} unit · saved {when}"
 msgid_plural "{n} units · saved {when}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/ArmyImport.tsx:713
+#: src/ui/ArmyImport.tsx:66
+msgid "{w}mm square"
+msgstr ""
+
+#: src/ui/ArmyImport.tsx:66
+#: src/ui/ArmyImport.tsx:746
+msgid "{w}×{d}mm"
+msgstr ""
+
+#: src/ui/ArmyImport.tsx:664
 msgid "{name}'s army is on your shelf as it is now."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:714
+#: src/ui/ArmyImport.tsx:665
 msgid "This army is on your shelf as it is now."
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:721
+#: src/ui/ArmyImport.tsx:672
 msgid "Keep this army on this device for later games, with its unit names, figures, dice and colour"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:728
+#: src/ui/ArmyImport.tsx:679
 msgid "Update {name}'s army on your shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:729
+#: src/ui/ArmyImport.tsx:680
 msgid "Update it on your shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:731
+#: src/ui/ArmyImport.tsx:682
 msgid "Save {name}'s army to your shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:732
+#: src/ui/ArmyImport.tsx:683
 msgid "Save army to your shelf"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:747
+#: src/ui/ArmyImport.tsx:698
 #: src/ui/FigurePicker.tsx:120
 msgid "Photograph your painted miniature and stand it on its base"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:75
-msgid "{w}×{d}mm hull"
-msgstr ""
-
-#: src/ui/ArmyImport.tsx:752
+#: src/ui/ArmyImport.tsx:703
 msgid "Photograph {name}'s painted figures"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:753
+#: src/ui/ArmyImport.tsx:704
 msgid "Photograph your painted figures"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:755
+#: src/ui/ArmyImport.tsx:706
 msgid "{n} unit in its stand-in"
 msgid_plural "{n} units in their stand-ins"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/ArmyImport.tsx:778
+#: src/ui/ArmyImport.tsx:729
 msgid "on {mount}"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:784
-#: src/ui/ArmyImport.tsx:787
+#: src/ui/ArmyImport.tsx:735
+#: src/ui/ArmyImport.tsx:738
 msgid "({points} pts)"
 msgstr ""
 
-#: src/ui/ArmyImport.tsx:786
+#: src/ui/ArmyImport.tsx:737
 msgid "({points} pts; units {units})"
+msgstr ""
+
+#: src/ui/ArmyImport.tsx:74
+msgid "{w}×{d}mm hull"
 msgstr ""
 
 #: src/ui/AttackPanel.tsx:108
@@ -8631,6 +7736,16 @@ msgstr ""
 #: src/ui/AttackPanel.tsx:545
 msgid "Wounds"
 msgstr ""
+
+#: src/ui/AttackPanel.tsx:547
+#: src/ui/gameLog.ts:469
+#: src/ui/gameLog.ts:514
+#: src/ui/gameLog.ts:516
+#: src/ui/gameLog.ts:537
+msgid "{n} wound"
+msgid_plural "{n} wounds"
+msgstr[0] ""
+msgstr[1] ""
 
 #: src/ui/AttackPanel.tsx:548
 msgid "{n} skip saves"
@@ -8931,6 +8046,14 @@ msgstr ""
 #: src/ui/Cards.tsx:185
 msgid "{n} left to draw"
 msgid_plural "{n} left to draw"
+msgstr[0] ""
+msgstr[1] ""
+
+#: src/ui/Cards.tsx:186
+#: src/ui/Missions.tsx:322
+#: src/ui/SecretObjectives.tsx:68
+msgid "{n} face down"
+msgid_plural "{n} face down"
 msgstr[0] ""
 msgstr[1] ""
 
@@ -9345,7 +8468,7 @@ msgstr ""
 #: src/ui/Coach.tsx:210
 #: src/ui/TopBar.tsx:371
 #: src/ui/TopBar.tsx:414
-#: src/ui/WhatNow.tsx:398
+#: src/ui/WhatNow.tsx:375
 msgid "Next phase"
 msgstr ""
 
@@ -9377,6 +8500,10 @@ msgstr ""
 
 #: src/ui/CoreAbilities.tsx:102
 msgid "Click the table to set it down, more than {distance} from every enemy model. Esc puts it back."
+msgstr ""
+
+#: src/ui/CoreAbilities.tsx:116
+msgid "Arrive"
 msgstr ""
 
 #: src/ui/CoreAbilities.tsx:124
@@ -11683,56 +10810,56 @@ msgstr ""
 msgid "Form a block"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:143
+#: src/ui/RegimentPanel.tsx:141
 msgid "Half rate: costs {distance}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:171
+#: src/ui/RegimentPanel.tsx:169
 msgid "Single model"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:171
+#: src/ui/RegimentPanel.tsx:169
 msgid "Regiment"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:174
+#: src/ui/RegimentPanel.tsx:172
 msgid "Unit strength {strength}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:178
+#: src/ui/RegimentPanel.tsx:176
 msgid "{files} wide · {n} rank. Casualties come off the rear rank."
 msgid_plural "{files} wide · {n} ranks. Casualties come off the rear rank."
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/RegimentPanel.tsx:188
+#: src/ui/RegimentPanel.tsx:186
 msgid "{files} wide · {n} rank · unit strength {strength}"
 msgid_plural "{files} wide · {n} ranks · unit strength {strength}"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/RegimentPanel.tsx:194
+#: src/ui/RegimentPanel.tsx:192
 msgid "rank bonus +{bonus}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:195
+#: src/ui/RegimentPanel.tsx:193
 msgid "disrupted"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:198
+#: src/ui/RegimentPanel.tsx:196
 msgid "Ranks count from {width} wide. Front to rear: {alive} models; the rear rank has {rear} of {files}. Casualties come off the rear rank."
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:208
+#: src/ui/RegimentPanel.tsx:206
 #: src/ui/warnings.ts:42
 msgid "Formation"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:224
+#: src/ui/RegimentPanel.tsx:222
 msgid "Disrupted units lose their rank bonus"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:227
+#: src/ui/RegimentPanel.tsx:225
 msgid "Disrupted"
 msgstr ""
 
@@ -11740,11 +10867,11 @@ msgstr ""
 msgid "Close order"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:233
+#: src/ui/RegimentPanel.tsx:231
 msgid "Show front, flank and rear arcs"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:235
+#: src/ui/RegimentPanel.tsx:233
 msgid "Arcs"
 msgstr ""
 
@@ -11752,52 +10879,52 @@ msgstr ""
 msgid "Column"
 msgstr ""
 
+#: src/ui/RegimentPanel.tsx:249
+msgid "Move up to {distance} now:"
+msgstr ""
+
 #: src/ui/RegimentPanel.tsx:25
 msgid "Open order"
 msgstr ""
 
 #: src/ui/RegimentPanel.tsx:251
-msgid "Move up to {distance} now:"
-msgstr ""
-
-#: src/ui/RegimentPanel.tsx:253
 msgid "Forward {distance}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:255
+#: src/ui/RegimentPanel.tsx:253
 msgid "or drag, wheel or turn"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:261
+#: src/ui/RegimentPanel.tsx:259
 msgctxt "regiment manoeuvres"
 msgid "Move"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:265
+#: src/ui/RegimentPanel.tsx:263
 msgid "Inches to move"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:272
+#: src/ui/RegimentPanel.tsx:270
 msgid "Forward"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:277
+#: src/ui/RegimentPanel.tsx:275
 msgid "Sideways left"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:280
+#: src/ui/RegimentPanel.tsx:278
 msgid "Sideways right"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:283
+#: src/ui/RegimentPanel.tsx:281
 msgid "A march is double Movement, straight ahead"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:289
+#: src/ui/RegimentPanel.tsx:287
 msgid "March"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:296
+#: src/ui/RegimentPanel.tsx:294
 msgid "Degrees to wheel"
 msgstr ""
 
@@ -11805,11 +10932,11 @@ msgstr ""
 msgid "same way"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:306
+#: src/ui/RegimentPanel.tsx:304
 msgid "Wheel left"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:309
+#: src/ui/RegimentPanel.tsx:307
 msgid "Wheel right"
 msgstr ""
 
@@ -11818,13 +10945,13 @@ msgstr ""
 msgid "left"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:315
-#: src/ui/RegimentPanel.tsx:321
-#: src/ui/RegimentPanel.tsx:327
+#: src/ui/RegimentPanel.tsx:313
+#: src/ui/RegimentPanel.tsx:319
+#: src/ui/RegimentPanel.tsx:325
 msgid "Costs {distance}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:318
+#: src/ui/RegimentPanel.tsx:316
 msgid "Turn left"
 msgstr ""
 
@@ -11833,109 +10960,105 @@ msgstr ""
 msgid "right"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:324
+#: src/ui/RegimentPanel.tsx:322
 msgid "Turn right"
+msgstr ""
+
+#: src/ui/RegimentPanel.tsx:328
+msgid "About face"
 msgstr ""
 
 #: src/ui/RegimentPanel.tsx:33
 msgid "about"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:330
-msgid "About face"
-msgstr ""
-
-#: src/ui/RegimentPanel.tsx:347
+#: src/ui/RegimentPanel.tsx:345
 msgid "facing"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:349
+#: src/ui/RegimentPanel.tsx:347
 msgid "Facing after reforming"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:364
-msgid "Add or remove up to {max} models from the front rank; free before moving (Drilled)"
-msgstr ""
-
-#: src/ui/RegimentPanel.tsx:370
+#: src/ui/RegimentPanel.tsx:360
 msgid "Add or remove up to {max} models from the front rank; costs {distance}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:380
+#: src/ui/RegimentPanel.tsx:369
 msgid "Redress"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:384
+#: src/ui/RegimentPanel.tsx:373
 msgid "Rebuild the block around its centre; costs all its move ({distance})"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:393
+#: src/ui/RegimentPanel.tsx:382
 msgid "Reform"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:398
+#: src/ui/RegimentPanel.tsx:387
 msgid "Marching blocks may only move straight ahead and wheel."
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:426
+#: src/ui/RegimentPanel.tsx:415
 msgid "Off the table"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:437
+#: src/ui/RegimentPanel.tsx:425
 msgid "Moved {used}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:439
+#: src/ui/RegimentPanel.tsx:427
 msgid "Moved {used} of {allowed} (marching)"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:440
+#: src/ui/RegimentPanel.tsx:428
 msgid "Moved {used} of {allowed}"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:441
+#: src/ui/RegimentPanel.tsx:429
 msgid "over its move"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:447
+#: src/ui/RegimentPanel.tsx:435
 msgid "{n} manoeuvre this move ({list}): only one is allowed"
 msgid_plural "{n} manoeuvres this move ({list}): only one is allowed"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/RegimentPanel.tsx:458
+#: src/ui/RegimentPanel.tsx:446
 msgid "{piece}: -{n} Movement"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:462
+#: src/ui/RegimentPanel.tsx:450
 msgid "a marching block may only move ahead and wheel"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:464
+#: src/ui/RegimentPanel.tsx:452
 msgid "failed its march test: normal move, counts as marched"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:472
+#: src/ui/RegimentPanel.tsx:460
 msgid "an enemy is within {distance}\": marching needs a Leadership test (if failed, it moves normally but counts as having marched)"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:487
+#: src/ui/RegimentPanel.tsx:475
 msgid "back"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:489
+#: src/ui/RegimentPanel.tsx:477
 msgid "sideways"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:491
+#: src/ui/RegimentPanel.tsx:479
 msgid "turn"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:493
+#: src/ui/RegimentPanel.tsx:481
 msgid "redress"
 msgstr ""
 
-#: src/ui/RegimentPanel.tsx:495
+#: src/ui/RegimentPanel.tsx:483
 msgid "reform"
 msgstr ""
 
@@ -12623,6 +11746,14 @@ msgstr ""
 
 #: src/ui/SystemPanels.tsx:587
 msgid "Costs {cost}"
+msgstr ""
+
+#: src/ui/SystemPanels.tsx:612
+msgid "{why}. The log tells everyone it was taken anyway."
+msgstr ""
+
+#: src/ui/SystemPanels.tsx:617
+msgid "{action} anyway"
 msgstr ""
 
 #: src/ui/SystemPanels.tsx:632
@@ -13883,216 +13014,208 @@ msgstr ""
 msgid "Slay"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:111
+#: src/ui/WhatNow.tsx:109
 msgid "{phase} · your pick"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:112
+#: src/ui/WhatNow.tsx:110
 msgid "{phase} · {player}'s pick"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:116
+#: src/ui/WhatNow.tsx:114
 msgid "You pick first: {units}, then you alternate."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:117
+#: src/ui/WhatNow.tsx:115
 msgid "Your pick: {units}. The sides alternate until every unit has fought."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:119
+#: src/ui/WhatNow.tsx:117
 msgid "{player} picks first: {units}, then you alternate."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:120
+#: src/ui/WhatNow.tsx:118
 msgid "{player}'s pick: {units}. The sides alternate until every unit has fought."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:122
+#: src/ui/WhatNow.tsx:120
 msgid "Click the unit, then Pile in, Fight and Consolidate on its card."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:123
+#: src/ui/WhatNow.tsx:121
 msgid "Waiting for {player} to pick."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:129
-#: src/ui/WhatNow.tsx:251
+#: src/ui/WhatNow.tsx:127
+#: src/ui/WhatNow.tsx:228
 msgid "{side}'s turn · {phase}"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:177
-msgid "Put your command cards in the order you'll play them, then press Lock in stack."
-msgstr ""
-
-#: src/ui/WhatNow.tsx:189
-msgid "Draw your top command card (Command stack, bottom right) to see which regiment acts."
-msgstr ""
-
-#: src/ui/WhatNow.tsx:192
+#: src/ui/WhatNow.tsx:169
 msgid "{unit} is taking its go: shoot or fight with it, or press End activation."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:194
+#: src/ui/WhatNow.tsx:171
 msgid "All your units have had their go this round: press Pass."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:198
+#: src/ui/WhatNow.tsx:175
 msgid "Drag a unit to move it. The ruler shows how far it has gone against its limit."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:200
+#: src/ui/WhatNow.tsx:177
 msgid "No unit is close enough to charge: press ▶ to move on."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:202
+#: src/ui/WhatNow.tsx:179
 msgid "Nothing is in reach to attack yet: move closer first."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:203
+#: src/ui/WhatNow.tsx:180
 msgid "Nothing is in range to shoot yet. Get closer next turn."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:206
+#: src/ui/WhatNow.tsx:183
 msgid "You can: {actions}."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:209
+#: src/ui/WhatNow.tsx:186
 msgid "{action} ({n} unit)"
 msgid_plural "{action} ({n} units)"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/ui/WhatNow.tsx:216
+#: src/ui/WhatNow.tsx:193
 msgid "Tap one of your units to see its buttons."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:217
+#: src/ui/WhatNow.tsx:194
 msgid "Click one of your units to see its buttons."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:222
+#: src/ui/WhatNow.tsx:199
 msgid "Nothing to do this phase."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:226
+#: src/ui/WhatNow.tsx:203
 msgid "A unit's go ends when it shoots or fights, or press End activation after a move; Hold on its card keeps it where it is. Pass when you have nothing left."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:229
+#: src/ui/WhatNow.tsx:206
 msgid "When a unit has acted, press End activation at the top; when you have nothing left, Pass."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:245
+#: src/ui/WhatNow.tsx:222
 msgid "Mission · {name}: {summary}"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:251
+#: src/ui/WhatNow.tsx:228
 msgid "Your turn · {phase}"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:269
+#: src/ui/WhatNow.tsx:246
 msgid "{unit} · {weapon} takes {faces}"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:274
+#: src/ui/WhatNow.tsx:251
 msgid "(placed: {n})"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:310
+#: src/ui/WhatNow.tsx:287
 msgid "{name} is playing {unit}…"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:311
+#: src/ui/WhatNow.tsx:288
 msgid "{name} is taking its turn…"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:317
+#: src/ui/WhatNow.tsx:294
 msgid "A ring marks its unit and a line shows where it went."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:379
+#: src/ui/WhatNow.tsx:356
 msgid "What can I do now?"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:397
+#: src/ui/WhatNow.tsx:374
 msgid "Nothing to do"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:43
+#: src/ui/WhatNow.tsx:41
 msgid "The stats screen shows how it went."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:437
+#: src/ui/WhatNow.tsx:414
 msgid "Tap"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:437
+#: src/ui/WhatNow.tsx:414
 msgid "Press"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:437
+#: src/ui/WhatNow.tsx:414
 msgid "for all the controls."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:48
+#: src/ui/WhatNow.tsx:46
 msgid "Drag your units into your deployment zone, the shaded strip on your side."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:49
+#: src/ui/WhatNow.tsx:47
 msgid "No army yet? In the left panel, press Sample army, or Import a list for your own."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:50
+#: src/ui/WhatNow.tsx:48
 msgid "When both armies are down, press Start battle ▶ at the top."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:55
+#: src/ui/WhatNow.tsx:53
 msgid "{phase}: a roll is under way"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:56
+#: src/ui/WhatNow.tsx:54
 msgid "Finish it in the panel on the right: pick the next step or roll."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:60
+#: src/ui/WhatNow.tsx:58
 msgid "{phase}: a reaction"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:61
+#: src/ui/WhatNow.tsx:59
 msgid "A player can react now: the panel at the top says how."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:67
+#: src/ui/WhatNow.tsx:65
 msgid "{phase}: place dice on cards"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:69
+#: src/ui/WhatNow.tsx:67
 msgid "Put dice from your pool on the cards that take their faces. A die on a card waits there for that action."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:73
+#: src/ui/WhatNow.tsx:71
 msgid "Cards that take dice (click one to open it):"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:74
+#: src/ui/WhatNow.tsx:72
 msgid "None of your cards take dice now."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:75
+#: src/ui/WhatNow.tsx:73
 msgid "When both players are done, press ▶ at the top."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:86
+#: src/ui/WhatNow.tsx:84
 msgid "{phase}: every unit has fought"
 msgstr ""
 
-#: src/ui/WhatNow.tsx:89
-#: src/ui/WhatNow.tsx:230
+#: src/ui/WhatNow.tsx:87
+#: src/ui/WhatNow.tsx:207
 msgid "When you're done, press ▶ at the top for the next phase."
 msgstr ""
 
-#: src/ui/WhatNow.tsx:90
-#: src/ui/WhatNow.tsx:130
+#: src/ui/WhatNow.tsx:88
+#: src/ui/WhatNow.tsx:128
 msgid "Waiting for {side}. You can look around, measure (M) and talk in the chat."
 msgstr ""
 
@@ -15486,8 +14609,8 @@ msgstr ""
 msgid "long range"
 msgstr ""
 
-#: src/ui/shelfActions.ts:157
-#: src/ui/shelfActions.ts:195
+#: src/ui/shelfActions.ts:156
+#: src/ui/shelfActions.ts:194
 msgid "That file isn't an Open Battle army."
 msgstr ""
 
@@ -15537,35 +14660,6 @@ msgstr ""
 
 #: src/ui/systemLabels.ts:21
 msgid "squads"
-msgstr ""
-
-#: src/ui/systemLabels.ts:27
-msgid "Fast sci-fi with alternating activations: one unit each, back and forth."
-msgstr ""
-
-#: src/ui/systemLabels.ts:35
-msgid "Rank and flank"
-msgstr ""
-
-#: src/ui/systemLabels.ts:38
-msgid "Fantasy regiments in blocks: wheel, charge and hold the line. You roll, the table measures."
-msgstr ""
-
-#: src/ui/systemLabels.ts:41
-#: src/ui/systemLabels.ts:50
-msgid "regiments"
-msgstr ""
-
-#: src/ui/systemLabels.ts:47
-msgid "Regiments by hand, a card stack for activations, clash and volley."
-msgstr ""
-
-#: src/ui/systemLabels.ts:55
-msgid "Quality d6"
-msgstr ""
-
-#: src/ui/systemLabels.ts:58
-msgid "Every unit rolls its own Quality. Take turns giving one unit an order, then fight it out."
 msgstr ""
 
 #: src/ui/tableVerbs.ts:102

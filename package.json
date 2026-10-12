@@ -17,15 +17,11 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "soak": "SOAK=1 vitest run",
     "relay": "node server/relay.mjs",
     "mailbox": "node server/mailbox.mjs",
     "seeder": "node server/seeder.mjs",
     "perf": "node scripts/perf.mjs",
     "perf:load": "node scripts/load.mjs",
-    "soak:browser": "node scripts/soak-browser.mjs",
     "smoke": "node scripts/smoke.mjs",
     "i18n": "node scripts/i18n.mjs",
     "i18n:check": "node scripts/i18n.mjs --check",
@@ -34,7 +30,6 @@
     "perf:bot": "node scripts/bot.mjs",
     "schemas": "node scripts/schemas.mjs",
     "schemas:check": "node scripts/schemas.mjs --check",
-    "rulebook": "RULEBOOK_WRITE=1 vitest run src/printplay/rulebook.test.ts",
     "deadcode": "knip"
   },
   "dependencies": {
@@ -78,7 +73,6 @@
     "ts-json-schema-generator": "2.4.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.71.1",
-    "vite": "^8.3.3",
-    "vitest": "^5.0.3"
+    "vite": "^8.3.3"
   }
 }

@@ -416,8 +416,7 @@ function MovedLine({
   // A failed march test: it moves normally, but counts as having marched.
   const allowed = marching && marchTest !== false ? budget.march : budget.move;
   const over = allowed !== null && used > allowed + 0.05;
-  const marchNear =
-    marching && marchTest === null && budget.nearestEnemy < budget.marchBlock;
+  const marchNear = marching && marchTest === null && budget.nearestEnemy < budget.marchBlock;
   const tooMany = budget.manoeuvreLimit > 0 && manoeuvres.length > budget.manoeuvreLimit;
   const marchManoeuvre = marching && manoeuvres.length > 0;
   return (

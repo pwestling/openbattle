@@ -13,11 +13,11 @@ A browser-based, peer-to-peer tabletop for miniatures wargames: React Three Fibe
 ## Checks
 
 ```sh
-pnpm format && pnpm lint && pnpm typecheck && pnpm schemas:check && pnpm test
+pnpm format && pnpm lint && pnpm typecheck && pnpm schemas:check
 ```
 
 - Type check with `pnpm typecheck` (`tsc -b`). `tsc --noEmit -p .` checks nothing here.
-- Run `pnpm soak` after touching `src/core`, `src/net` or a system module. A failure names its seed: `SOAK_FROM=<seed> SOAK_SEEDS=1 pnpm soak`.
+- There are no unit tests and no soak runs: they were deleted on purpose while the play experience is rebuilt. Do not add them back unasked.
 - `pnpm schemas:check` fails when a type behind a protocol changed without its schema. Additive change: `pnpm schemas` and commit. Breaking change: a new major version (docs/protocols/README.md).
 - `pnpm i18n:check` runs in CI: wrap new on-screen text in `t()` (see [docs/translating.md](docs/translating.md)).
 - `pnpm smoke <name>` drives the built app in a browser for one path.

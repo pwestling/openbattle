@@ -1,4 +1,3 @@
-/// <reference types="vitest/config" />
 import react from "@vitejs/plugin-react";
 import { execFile, execSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -290,16 +289,4 @@ export default defineConfig({
   base: "./",
   // three.js alone is ~700 kB; split chunks once there is more than one screen.
   build: { chunkSizeWarningLimit: 2000 },
-  test: {
-    // The soak games (src/soak) run on their own, in CI's soak job: `pnpm soak`.
-    include: process.env.BOT
-      ? ["src/bot/*.match.test.ts"]
-      : process.env.SOAK
-        ? ["src/soak/*.soak.test.ts"]
-        : ["src/**/*.test.ts", "server/**/*.test.ts"],
-    exclude:
-      process.env.SOAK || process.env.BOT
-        ? ["**/node_modules/**"]
-        : ["**/node_modules/**", "src/**/*.soak.test.ts", "src/**/*.match.test.ts"],
-  },
 });
