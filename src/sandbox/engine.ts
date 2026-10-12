@@ -1,40 +1,28 @@
 import {
   appendEvent,
   applyEvent,
-  createInitialState,
   createRecord,
+  DEFAULT_TABLE,
+  registerCodeActions,
+  registerMacros,
+  hookMacros,
   resolveLogged,
-  sides,
   stateAt,
   type GameRecord,
   type GameState,
   type Intent,
   type LoggedEvent,
 } from "../core";
-import { registerFunctions } from "../core/content/calls";
-import { extendSystem, getSystem, listSystems, type SystemAdditions } from "../core/content/systems";
-import { currentSlot, systemOf } from "../core/content/turn";
-import { gameView, hookProcedures, pointsShort, registerCode, registerCodeActions } from "../core/script";
+import { gameView } from "../core/view";
 import { systemMatches } from "../packages/library";
 import { readManifest } from "../packages/manifest";
-import type { CodeAction, GameModule, Mission, PackageApp, PackageContents, PanelSpec } from "../sdk";
-import { addPackageMissions, registerModule, type SystemModule } from "../systems";
-import { expandLayout } from "../systems/packageLayout";
-import { shapeProblems } from "../core/content/shape";
-import { momentMatches, moments } from "../missions/scoring";
-import {
-  seededRng,
-  type ActionRow,
-  type AppState,
-  type Loaded,
-  type Provided,
-  type ProvidedMission,
-  type Resolved,
-} from "./protocol";
+import { MODULE_API, type CodeAction, type ModuleDef, type PanelSpec } from "../sdk";
+import { EMPTY_LAYOUT, type ModuleInfo } from "../systems";
+import { seededRng, type ActionRow, type AppState, type Loaded, type Resolved } from "./protocol";
 
 /**
  * An error from a package's code, with where in its file it was thrown when
- * the stack says (a blob module's line and column), for the workshop to mark.
+ * the stack says (a blob module's line and column).
  */
 function errorText(e: unknown): string {
   if (!(e instanceof Error)) return String(e);
@@ -45,151 +33,91 @@ function errorText(e: unknown): string {
   return e.message;
 }
 
-/** A mission as data for the app: its setup for `table`, and its rules and cards less their code. */
-function missionData(mission: Mission, table: { width: number; depth: number }): ProvidedMission {
-  return {
-    id: mission.id,
-    name: mission.name,
-    summary: mission.summary,
-    ...(mission.hand !== undefined ? { hand: mission.hand } : {}),
-    table: { width: table.width, depth: table.depth },
-    setup: mission.setup(table),
-    scoring: mission.scoring.map(({ suggest: _s, ...rule }) => rule),
-    ...(mission.deck ? { deck: mission.deck.map(({ suggest: _s, ...card }) => card) } : {}),
-  };
-}
-
 /** How the engine turns a package's source into its module (a blob import in the worker). */
 type ImportSource = (source: string) => Promise<{ default?: unknown }>;
 
+const json = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+
 /**
- * The game engine as it runs inside the package sandbox: the built-in
- * systems plus the packages' code, and a replica of the game record that
- * the app keeps in step by forwarding each logged event. It is plain code
- * (no Worker or DOM), so tests can run it next to the app's own engine and
- * check both give the same events (sandbox.test.ts).
+ * The game engine as it runs inside the package sandbox: the packages' code,
+ * and a replica of the game record that the app keeps in step by forwarding
+ * each logged event. It is plain code (no Worker or DOM), so it can run next
+ * to the app's own engine and be checked against it.
  */
 export class SandboxEngine {
   private record: GameRecord = createRecord();
   private state: GameState = stateAt(this.record);
-  /** Whole-game packages' app glue by system id. */
-  private readonly apps = new Map<string, SystemModule & PackageApp>();
-  /** Package code actions by system id. */
+  /** Code actions and side panels by game id. */
   private readonly actions = new Map<string, CodeAction[]>();
-  /** Missions extension packages add, by system id (#82b); their code runs here. */
-  private readonly added = new Map<string, Mission[]>();
+  private readonly panels = new Map<string, NonNullable<ModuleDef["panel"]>>();
+  /** Games a system package provided, for extensions to find. */
+  private readonly known = new Set<string>();
 
   constructor(private readonly importSource: ImportSource) {}
 
   async load(packages: { hash: string; source: string }[]): Promise<Loaded> {
     const out: Loaded = { packages: [], errors: [] };
-    for (const { hash, source } of packages) {
+    // Whole games first, so the extensions to them can find them.
+    const read = packages.map((p) => ({ ...p, manifest: readManifest(p.source) }));
+    read.sort((a, b) => Number(isSystem(b.manifest)) - Number(isSystem(a.manifest)));
+    for (const { hash, source, manifest } of read) {
       try {
-        const read = readManifest(source);
-        if ("error" in read) throw new Error(read.error);
-        const mod = await this.importSource(source);
-        const contents = (mod.default ?? {}) as PackageContents;
-        let provides: Provided | undefined;
-        if (contents.module) {
-          // A whole game: its module registers here as a built-in one would, and the app gets
-          // its rules data plus what its app glue gives for a fresh game.
-          const given = contents.module as GameModule<SystemModule>;
-          // A hand-written system's shape is checked first, so a typo is named rather than breaking play.
-          const shape = shapeProblems(given.system);
-          if (shape.length) throw new Error(shape.join("; "));
-          const raw = given.app as (SystemModule & PackageApp) | undefined;
-          // Terrain named by template is made into pieces here, so every caller of layout gets them.
-          const app = raw && {
-            ...raw,
-            layout: (t: Parameters<PackageApp["layout"]>[0]) => expandLayout(raw.layout(t)),
-          };
-          const m = { ...given, ...(app ? { app } : {}) };
-          registerModule(m);
-          if (app) this.apps.set(m.system.id, app);
-          const table = m.system.defaultTable ?? createInitialState().table;
-          const missions = (app?.missions ?? []).map((mission) => missionData(mission, table));
-          provides = JSON.parse(
-            JSON.stringify({
-              system: m.system,
-              app: {
-                samples: app ? [app.sample(0), app.sample(1)] : [],
-                armies: app?.armies ?? [],
-                missions,
-                layout: app ? app.layout(table) : { terrain: [], objectives: [], zones: [] },
-                templateCategory: app?.templateCategory,
-                templates: app?.templates,
-                specialDice: app?.specialDice,
-                scatter: app?.scatter,
-                fleeDice: app?.fleeDice,
-                chargeRoll: app?.chargeRoll,
-                has: {
-                  importRoster: !!app?.importRoster,
-                  rankRules: !!app?.rankRules,
-                  leaving: !!app?.leaving,
-                  sidePanel: !!app?.sidePanel,
-                  missions: missions.length > 0,
-                },
-              },
-            }),
-          ) as Provided;
-          if (m.actions) this.actions.set(m.system.id, m.actions);
-        }
-        const systems = listSystems()
-          .map((s) => s.id)
-          .filter((id) => read.manifest.systems.some((d) => systemMatches(d, id)));
-        const actions = (contents.actions ?? []).filter((a): a is CodeAction => "run" in a);
-        // Data the package adds: the same on both sides, so the app's previews and panels see it too.
-        const data: SystemAdditions = JSON.parse(
-          JSON.stringify({
-            rules: contents.rules ?? [],
-            actions: (contents.actions ?? []).filter((a) => !("run" in a)),
-            abilityTimings: contents.abilityTimings ?? [],
-            reactionWindows: contents.reactionWindows ?? [],
-          }),
-        );
-        // A whole game's hooks were registered with its module; report their ids for the host.
-        const moduleHooks = contents.module?.hooks;
-        const hooked = contents.hooks
-          ? hookProcedures(hash.slice(0, 8), contents.hooks)
-          : moduleHooks
-            ? hookProcedures(contents.module!.system.id, moduleHooks)
-            : null;
-        // Missions an extension adds (#82b): as data for the app, the code staying here.
-        const missions: Record<string, ProvidedMission[]> = {};
-        for (const system of contents.missions?.length ? systems : []) {
-          const table = getSystem(system).defaultTable ?? createInitialState().table;
-          const mine = contents.missions!;
-          missions[system] = JSON.parse(
-            JSON.stringify(mine.map((mission) => missionData(mission, table))),
-          ) as ProvidedMission[];
-          this.added.set(system, [
-            ...(this.added.get(system) ?? []).filter((m) => !mine.some((x) => x.id === m.id)),
-            ...mine,
-          ]);
-          // The computer player here reads the game's missions as the app does.
-          addPackageMissions(system, mine);
-        }
+        if ("error" in manifest) throw new Error(manifest.error);
+        const def = ((await this.importSource(source)).default ?? {}) as ModuleDef;
+        if (def.api !== MODULE_API)
+          throw new Error(`This package is for module API ${String(def.api)}; this app runs ${MODULE_API}`);
+        const whole = manifest.manifest.kind === "system";
+        if (whole && (typeof def.id !== "string" || !def.id)) throw new Error("A game's module needs an id");
+        const systems = whole
+          ? [def.id]
+          : [...this.known].filter((id) => manifest.manifest.systems.some((d) => systemMatches(d, id)));
+        const actions = def.actions ?? [];
+        const hooked = hookMacros(whole ? def.id : hash.slice(0, 8), def.hooks?.on);
+        const code = {
+          ...def.macros,
+          ...Object.fromEntries(actions.map((a) => [a.id, a.run])),
+          ...hooked.macros,
+        };
         for (const system of systems) {
-          extendSystem(system, data);
-          if (hooked) registerCode(system, hooked.procedures);
-          if (contents.procedures) registerCode(system, contents.procedures);
-          if (contents.functions) registerFunctions(system, contents.functions);
-          registerCode(system, Object.fromEntries(actions.map((a) => [a.id, a.run])));
+          registerMacros(system, code);
           registerCodeActions(system, actions);
           this.actions.set(system, [
             ...(this.actions.get(system) ?? []).filter((a) => !actions.some((b) => b.id === a.id)),
             ...actions,
           ]);
+          if (def.panel) this.panels.set(system, def.panel);
+          if (whole) this.known.add(system);
         }
+        const meta = actions.map((a) => ({
+          id: a.id,
+          name: a.name,
+          by: a.by,
+          ...(a.phases ? { phases: a.phases } : {}),
+        }));
+        const adds = {
+          quantities: def.quantities ?? [],
+          pointer: def.pointer ?? [],
+          hooks: Object.keys(hooked.table),
+          actions: meta,
+        };
+        const table = def.table ?? DEFAULT_TABLE;
+        const info: ModuleInfo | undefined = whole
+          ? json({
+              id: def.id,
+              name: def.name,
+              version: def.version,
+              table,
+              layout: def.layout?.(table) ?? EMPTY_LAYOUT,
+              ...adds,
+              hasPanel: !!def.panel,
+            })
+          : undefined;
         out.packages.push({
           hash,
           systems,
-          procedures: [...Object.keys(contents.procedures ?? {}), ...Object.keys(hooked?.procedures ?? {})],
-          actions: actions.map((a) => a.id),
-          data,
-          hooks: hooked?.table ?? {},
-          ...(Object.keys(missions).length ? { missions } : {}),
-          ...(provides ? { provides } : {}),
+          macros: Object.keys(code),
+          hooks: hooked.table,
+          ...(info ? { info } : { adds: json(adds) }),
         });
       } catch (e) {
         out.errors.push({ hash, error: errorText(e) });
@@ -220,97 +148,61 @@ export class SandboxEngine {
     return resolveLogged(this.record, intent, from, seededRng(seed), 0, this.state)?.event ?? null;
   }
 
-  private setupKey = "";
-  private setups: AppState["setups"] = {};
-
-  /** A package game's rank rules, unfinished business and panel for the game as it stands. */
-  appState(): AppState {
-    const system = systemOf(this.state).id;
-    const app = this.apps.get(system);
-    const ranks: AppState["ranks"] = {};
-    if (app?.rankRules)
-      for (const u of Object.values(this.state.units)) ranks[u.id] = app.rankRules(this.state, u);
-    const panel = app?.sidePanel ? app.sidePanel(gameView(this.state, system)) : null;
-    // The chosen mission's suggestions, for every scoring moment so far and every card.
-    const scores: AppState["scores"] = {};
-    const cards: AppState["cards"] = {};
-    // A package game's own missions and the ones extensions add (#82b), whose code is here.
-    const added = this.added.get(system) ?? [];
-    const missions = [...(app?.missions ?? []).filter((m) => !added.some((a) => a.id === m.id)), ...added];
-    const mission = missions.find((m) => m.id === this.state.mission?.id);
-    if (mission) {
-      for (const moment of moments(this.record))
-        for (const rule of mission.scoring) {
-          if (!momentMatches(rule.at, moment)) continue;
-          for (const seat of moment.kind === "phaseEnd" ? [moment.seat!] : sides(moment.state))
-            scores[`${rule.id}:${moment.round}:${seat}`] = rule.suggest(moment.state, seat);
-        }
-      for (const card of mission.deck ?? [])
-        for (const seat of sides(this.state)) cards[`${card.id}:${seat}`] = card.suggest(this.state, seat);
+  /** What `player` can start now, and the module's side panel, for the game as it stands. */
+  appState(player: string): AppState {
+    const system = this.state.system ?? "";
+    const panel = this.panels.get(system);
+    let spec: PanelSpec | null = null;
+    try {
+      spec = panel ? json(panel(gameView(this.state, system))) : null;
+    } catch {
+      // A panel that throws shows nothing.
     }
-    // Every mission's setup at the table played on, not scaled from the default one (#43).
-    const { width, depth } = this.state.table;
-    const key = `${system}:${width}x${depth}`;
-    if (this.setupKey !== key) {
-      this.setupKey = key;
-      this.setups = {};
-      for (const m of missions)
-        try {
-          this.setups[m.id] = JSON.parse(
-            JSON.stringify(m.setup(this.state.table)),
-          ) as AppState["setups"][string];
-        } catch {
-          // The app falls back to the default table's setup, scaled.
-        }
-    }
-    const ready: AppState["ready"] = {};
-    if (this.actions.get(system)?.length)
-      for (const u of Object.values(this.state.units)) {
-        const names = this.unitActions(u.id, u.owner)
-          .filter((r) => r.available === true)
-          .map((r) => r.name);
-        if (names.length) ready[u.id] = names;
-      }
-    return {
-      seq: this.state.seq,
-      ready,
-      setups: this.setups,
-      table: missions.length ? { width, depth } : null,
-      scores: JSON.parse(JSON.stringify(scores)) as AppState["scores"],
-      cards: JSON.parse(JSON.stringify(cards)) as AppState["cards"],
-      ranks,
-      leaving: app?.leaving ? app.leaving(this.state) : [],
-      panel: panel ? (JSON.parse(JSON.stringify(panel)) as PanelSpec) : null,
-    };
+    return { seq: this.state.seq, actions: this.rows(system, player), panel: spec };
   }
 
-  /** Read an army list with the package game's own reader. */
-  async importRoster(fileName: string, data: Uint8Array): Promise<unknown> {
-    const app = this.apps.get(systemOf(this.state).id);
-    if (!app?.importRoster) throw new Error("This game has no army list reader");
-    return JSON.parse(JSON.stringify(await app.importRoster(fileName, data)));
-  }
-
-  /** The packages' code actions for a unit in this phase, as the unit card lists them. */
-  unitActions(unitId: string, player: string): ActionRow[] {
-    const system = systemOf(this.state).id;
-    if (!this.state.units[unitId]) return [];
+  private rows(system: string, player: string): ActionRow[] {
     const view = gameView(this.state, system);
-    const actor = { player, unitId };
-    const phase = currentSlot(this.state)?.id;
-    return (this.actions.get(system) ?? [])
-      .filter((a) => a.by === "unit" && (!a.phases || (phase && a.phases.includes(phase))))
-      .filter((a) => !a.applies || a.applies(view, actor))
-      .map((a) => {
-        const available = pointsShort(this.state, a, unitId) ?? a.available(view, actor);
-        const targets = available === true && a.targets ? a.targets(view, actor) : [];
-        return {
-          id: a.id,
-          name: a.name,
-          available: available === true ? true : String(available),
-          targets,
-          targeted: !!a.targets,
-        };
-      });
+    const phase = this.state.pointer.phase;
+    const rows: ActionRow[] = [];
+    for (const a of this.actions.get(system) ?? []) {
+      if (a.phases && !(phase && a.phases.includes(phase))) continue;
+      const actors: { player: string; unitId?: string }[] =
+        a.by === "player"
+          ? [{ player }]
+          : Object.values(this.state.units)
+              .filter((u) => u.owner === player)
+              .map((u) => ({ player, unitId: u.id }));
+      for (const actor of actors) {
+        try {
+          if (a.applies && !a.applies(view, actor)) continue;
+          const available = a.available(view, actor);
+          rows.push({
+            id: a.id,
+            name: a.label?.(view, actor) ?? a.name,
+            by: a.by,
+            ...(actor.unitId ? { unitId: actor.unitId } : {}),
+            available: available === true ? true : String(available),
+            targets: available === true && a.targets ? a.targets(view, actor) : [],
+            targeted: !!a.targets,
+          });
+        } catch (e) {
+          rows.push({
+            id: a.id,
+            name: a.name,
+            by: a.by,
+            ...(actor.unitId ? { unitId: actor.unitId } : {}),
+            available: e instanceof Error ? e.message : String(e),
+            targets: [],
+            targeted: false,
+          });
+        }
+      }
+    }
+    return json(rows);
   }
+}
+
+function isSystem(m: ReturnType<typeof readManifest>): boolean {
+  return "manifest" in m && m.manifest.kind === "system";
 }

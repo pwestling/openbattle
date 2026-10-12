@@ -119,7 +119,7 @@ function lineHitsModel(a: Vec3, b: Vec3, m: Model): boolean {
   return bands.some((x) => dist <= Math.min(x.rx, x.ry) * 0.8 && z >= x.z0 && z <= x.z1);
 }
 
-export interface Sight {
+interface Sight {
   /** Some part of the target can be seen. */
   visible: boolean;
   /** Every sampled part of the target can be seen. */
@@ -130,7 +130,7 @@ export interface Sight {
   obscuredBy: TerrainPiece[];
 }
 
-export interface SightOptions {
+interface SightOptions {
   /** Models that never block (the observer's own unit, the target). */
   ignore?: Set<string>;
   /** Whether models from other units block sight. */
@@ -140,7 +140,7 @@ export interface SightOptions {
 }
 
 /** Whether a model's vision arc (if the game has one) takes in a point. */
-export function inVisionArc(state: GameState, observer: Model, p: { x: number; y: number }): boolean {
+function inVisionArc(state: GameState, observer: Model, p: { x: number; y: number }): boolean {
   const arc = state.settings.visionArc;
   if (!arc || arc >= 360) return true;
   // Facing 0 looks along +y; facing rotates the same way as the model's mesh.
@@ -186,7 +186,7 @@ function canBlock(state: GameState, observer: Model, target: Model, m: Model): b
   if (rule.enemiesOnly && !opposed(state, m.owner, observer.owner)) return false;
   if (rule.tall?.length) {
     const tall = (x: Model) => {
-      const kws = (x.unitId ? state.units[x.unitId]?.sheet?.keywords : undefined) ?? [];
+      const kws = (x.unitId ? state.units[x.unitId]?.tags : undefined) ?? [];
       return kws.some((k) => rule.tall!.some((t) => t.toUpperCase() === k.toUpperCase()));
     };
     if (tall(target) && !tall(m)) return false;
@@ -270,7 +270,7 @@ function makeShapeKey(m: Model): string {
 /** The models still on the table, in the table's order, kept per set of models (sight asks for every pair). */
 function standingModels(state: GameState): Model[] {
   let list = standingIn.get(state.models);
-  if (!list) standingIn.set(state.models, (list = Object.values(state.models).filter((m) => !m.destroyed)));
+  if (!list) standingIn.set(state.models, (list = Object.values(state.models).filter((m) => !m.off)));
   return list;
 }
 
@@ -364,7 +364,7 @@ function heightsSight(state: GameState, observer: Model, target: Model, options:
       ? []
       : Object.values(state.models).filter(
           (m) =>
-            !m.destroyed &&
+            !m.off &&
             m.id !== observer.id &&
             m.id !== target.id &&
             !options.ignore?.has(m.id) &&
@@ -433,7 +433,7 @@ function footprintSight(state: GameState, observer: Model, target: Model, option
       ? []
       : Object.values(state.models).filter(
           (m) =>
-            !m.destroyed &&
+            !m.off &&
             m.id !== observer.id &&
             m.id !== target.id &&
             !options.ignore?.has(m.id) &&
@@ -474,28 +474,4 @@ function crossesBase(a: Vec2, b: Vec2, m: Model): boolean {
   const t = ((m.position.x - a.x) * abx + (m.position.y - a.y) * aby) / len;
   if (t < 0.02 || t > 0.98) return false;
   return segmentPointDistance2D(a, b, m.position) < baseRadius(m) * 0.8;
-}
-
-/**
- * Whether the table's terrain blocks a line between two points, under the
- * game's line-of-sight rules, models aside: for the pre-game sightline view
- * (#28), which is about the table, not any unit. True LOS uses each piece's
- * shape, stand-in heights its block (unless an end is inside it), footprint
- * LOS any blocking piece the line crosses (unless an end is inside it).
- */
-export function terrainBlocksLine(state: GameState, a: Vec3, b: Vec3): boolean {
-  const game = state.settings.los ?? "true";
-  const shaped: TerrainPiece[] = [];
-  for (const piece of state.terrain) {
-    if (inFootprint(piece, a) || inFootprint(piece, b)) {
-      if (game === "footprint" || (piece.sight ?? game) !== "true") continue;
-    }
-    if (game === "footprint") {
-      if (footprintVisibility(piece) === "blocking" && segmentCrossesFootprint2D(piece, a, b)) return true;
-      continue;
-    }
-    if ((piece.sight ?? game) === "true") shaped.push(piece);
-    else if (segmentCrossesFootprint(piece, a, b, standInHeight(piece))) return true;
-  }
-  return shaped.length > 0 && sightBlockedBy(shaped, a, b) !== null;
 }

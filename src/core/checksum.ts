@@ -14,15 +14,19 @@ export function stateHash(state: GameState): number {
   return cyrb53(canonical(state));
 }
 
-/** How often the host sends a checksum: every this many events, and at each phase change. */
-export const CHECK_EVERY = 10;
+/** How often the host sends a checksum: every this many events, and wherever the pointer moves. */
+const CHECK_EVERY = 10;
 
 /** Whether the state after this event is a checkpoint every peer hashes. */
 export function isCheckpoint(seq: number, event: GameEvent): boolean {
-  return seq % CHECK_EVERY === 0 || event.type.startsWith("turn/");
+  return (
+    seq % CHECK_EVERY === 0 ||
+    event.type === "pointer/set" ||
+    (event.type === "macro/step" && event.events.some((e) => e.type === "pointer/set"))
+  );
 }
 
-export function canonical(value: unknown): string {
+function canonical(value: unknown): string {
   if (value === null || value === undefined) return "null";
   switch (typeof value) {
     case "number":
@@ -63,7 +67,7 @@ const PLAIN = /^[^"\\\u0000-\u001f\ud800-\udfff]*$/;
 const quote = (s: string) => (PLAIN.test(s) ? `"${s}"` : JSON.stringify(s));
 
 /** cyrb53 (public domain, bryc): a 53-bit string hash. */
-export function cyrb53(str: string, seed = 0): number {
+function cyrb53(str: string, seed = 0): number {
   let h1 = 0xdeadbeef ^ seed;
   let h2 = 0x41c6ce57 ^ seed;
   for (let i = 0; i < str.length; i++) {

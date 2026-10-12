@@ -1,5 +1,5 @@
 import { resolveIntent, type GameEvent, type Intent, type Rng } from "./actions";
-import { BadFace, NeedDice, toldRng, type ToldRng } from "./dice";
+import { BadFace, NeedDice, toldRng } from "./dice";
 import { applyEvent } from "./reducer";
 import { createInitialState, type GameState, type PlayerId } from "./types";
 
@@ -29,8 +29,7 @@ export interface LoggedEvent {
 }
 
 /**
- * An intent may carry the faces of real dice the player rolled (#37, table
- * companion): every die the intent rolls takes the next of them, in order.
+ * An intent may carry the faces of real dice the player rolled (#37): every die the intent rolls takes the next of them, in order.
  */
 export interface Told {
   told?: number[];
@@ -40,13 +39,13 @@ const MAX_TOLD = 500;
 
 /** A whole game: the starting table plus every event since. Also the replay file format. */
 export interface GameRecord {
-  format: "open-battle/record@1";
+  format: "open-battle/record@2";
   initial: GameState;
   events: LoggedEvent[];
 }
 
 export function createRecord(initial: GameState = createInitialState()): GameRecord {
-  return { format: "open-battle/record@1", initial, events: [] };
+  return { format: "open-battle/record@2", initial, events: [] };
 }
 
 export function lastSeq(record: GameRecord): number {
@@ -54,7 +53,7 @@ export function lastSeq(record: GameRecord): number {
 }
 
 /** Seqs taken back by undo events at or before `uptoSeq`. */
-export function undoneSeqs(record: GameRecord, uptoSeq = Infinity): Set<number> {
+function undoneSeqs(record: GameRecord, uptoSeq = Infinity): Set<number> {
   const undone = new Set<number>();
   for (const { seq, event } of record.events) {
     if (seq > uptoSeq) break;
@@ -87,8 +86,19 @@ export function resolveLogged(
   now: number,
   state: GameState = stateAt(record),
 ): LoggedEvent | null {
-  if (intent.type === "undo" && ![intent.seq, ...(intent.also ?? [])].every((s) => canUndo(record, s)))
-    return null;
+  if (intent.type === "undo") {
+    // What the target set off goes with it: a macro's later steps, a hook's run (see dependents).
+    const also = [...new Set([...(intent.also ?? []), ...dependents(record, intent.seq)])].sort(
+      (a, b) => a - b,
+    );
+    if (![intent.seq, ...also].every((s) => canUndo(record, s))) return null;
+    return {
+      seq: lastSeq(record) + 1,
+      by,
+      at: now,
+      event: { type: "undo", seq: intent.seq, ...(also.length ? { also } : {}) },
+    };
+  }
   const told = (intent as Told).told;
   if (told !== undefined && (!Array.isArray(told) || told.length > MAX_TOLD)) return null;
   const real = told ? toldRng(told, rng) : null;
@@ -119,56 +129,41 @@ function bare(intent: Intent): Intent {
   return rest as Intent;
 }
 
-/** The next dice a player rolling real dice should roll: how many, and what kind. */
-export interface DiceWanted {
-  count: number;
-  sides: number;
-}
-
 /**
- * Dry-run an intent with the faces told so far: null when they're all it
- * needs, else the next batch to roll (the run of same-sided dice that follows,
- * guessing each still-unrolled die comes up on its top face). "bad" when a
- * face can't be right, such as a 7 on a D6.
+ * The events that must be undone with `seq`, which haven't been already: the
+ * later steps of the same macro run, and any macro run that `seq` set off (a
+ * hook answering it). Undoing the first without these would leave a macro
+ * answering a table that never was.
  */
-export function diceWanted(
-  record: GameRecord,
-  intent: Intent,
-  by: PlayerId,
-  faces: number[],
-  state: GameState = stateAt(record),
-): DiceWanted | null | "bad" {
-  const asked: number[] = [];
-  const probe = toldRng(
-    faces,
-    () => 0.5,
-    (sides) => {
-      asked.push(sides);
-      return sides;
-    },
-  ) as ToldRng;
-  try {
-    resolveIntent(bare(intent), by, probe, state, (seq) => stateAt(record, seq));
-  } catch (e) {
-    if (e instanceof BadFace) return "bad";
-    throw e;
+export function dependents(record: GameRecord, seq: number): number[] {
+  const undone = undoneSeqs(record);
+  const target = record.events.find((e) => e.seq === seq)?.event;
+  const taken = new Set<number>([seq]);
+  const runs = new Set<number>();
+  if (target?.type === "macro/step") runs.add(target.run);
+  for (const { seq: at, event } of record.events) {
+    if (at <= seq || undone.has(at) || event.type !== "macro/step") continue;
+    if (runs.has(event.run) || (event.cause !== undefined && taken.has(event.cause))) {
+      taken.add(at);
+      runs.add(event.run);
+    }
   }
-  if (probe.used() < faces.length) return "bad";
-  if (!asked.length) return null;
-  const sides = asked[0]!;
-  let count = 0;
-  while (count < asked.length && asked[count] === sides) count++;
-  return { count, sides };
+  taken.delete(seq);
+  return [...taken].sort((a, b) => a - b);
 }
 
 /** An event can be undone once, and undo events themselves cannot be undone (yet). */
 export function canUndo(record: GameRecord, seq: number): boolean {
   const target = record.events.find((e) => e.seq === seq);
-  // A code procedure's steps can't be taken back one by one: its replay would no longer match.
-  if (target?.event.type === "script/step" || target?.event.type === "module/set") return false;
-  // Shared dice (core/sharedDice.ts) and ranked bookkeeping are promises, not moves.
+  // Shared dice (core/sharedDice.ts), ranked bookkeeping and a branch's opening are promises, not moves.
   const kind = target?.event.type;
-  if (kind === "dice/commit" || kind === "dice/seed" || kind === "dice/reveal" || kind?.startsWith("ranked/"))
+  if (
+    kind === "dice/commit" ||
+    kind === "dice/seed" ||
+    kind === "dice/reveal" ||
+    kind === "game/branch" ||
+    kind?.startsWith("ranked/")
+  )
     return false;
   return !!target && target.event.type !== "undo" && !undoneSeqs(record).has(seq);
 }

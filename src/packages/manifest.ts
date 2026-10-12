@@ -10,11 +10,8 @@ export interface Manifest {
   version: string;
   author?: string;
   api: number;
-  /**
-   * A lesson package (src/teach) is data only: its lessons are read like the manifest, never run.
-   * A faction pack (#76, docs/faction-packs.md) adds rules to armies by name; its code runs like an extension's.
-   */
-  kind: "system" | "extension" | "lesson" | "faction";
+  /** A "system" package is a whole game; an "extension" adds rules to the games its `systems` name. */
+  kind: "system" | "extension";
   systems: string[];
   requires: { id: string; hash?: string }[];
   adds?: string;
@@ -50,7 +47,7 @@ function check(v: unknown): ManifestResult {
     !name && "name",
     !version && "version",
     typeof o.api !== "number" && "api",
-    !["system", "extension", "lesson", "faction"].includes(o.kind as string) && "kind",
+    !["system", "extension"].includes(o.kind as string) && "kind",
     !(Array.isArray(o.systems) && o.systems.every((x) => typeof x === "string")) && "systems",
   ].filter(Boolean);
   if (missing.length) return { error: `The manifest is missing ${missing.join(", ")}.` };

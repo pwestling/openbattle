@@ -1,27 +1,23 @@
-import type { GameEvent, GameRecord, Intent, Layout, LoggedEvent, Objective, Zone } from "../core";
-import type { GameSystem } from "../core/content/schema";
-import type { MissionCard, PanelSpec, ScoringRule } from "../sdk";
-import type { SystemModule } from "../systems/app";
-import type { ImportedRoster } from "../core/roster";
+import type { GameEvent, GameRecord, Intent, LoggedEvent } from "../core";
 import type { Rng } from "../core/actions";
-import type { SystemAdditions } from "../core/content/systems";
-import type { HookTable } from "../core/script";
+import type { HookTable } from "../core/macro";
+import type { PanelSpec, Target } from "../sdk";
+import type { ModuleInfo } from "../systems";
 
 /**
  * Messages between the app and the package sandbox (a Worker started inside
  * a sandboxed iframe; see host.ts). The worker keeps a replica of the game
  * record, folded with the same reducer, so calls carry ids and intents,
- * never the whole state.
+ * never the whole state. Only macro intents go to it: everything else the
+ * host resolves itself, in the core.
  */
 export type ToSandbox =
   | { id: number; t: "load"; packages: { hash: string; source: string }[] }
   | { id: number; t: "init"; record: GameRecord }
   | { id: number; t: "events"; events: LoggedEvent[] }
   | { id: number; t: "resolve"; intent: Intent; from: string; seed: number }
-  | { id: number; t: "actions"; unitId: string; player: string }
-  /** A package game's app glue that depends on the game: rank rules, what's left undone, its panel. */
-  | { id: number; t: "appState" }
-  | { id: number; t: "importRoster"; fileName: string; data: Uint8Array };
+  /** What `player` can start now, and the module's side panel. */
+  | { id: number; t: "appState"; player: string };
 
 export type FromSandbox =
   | { id: number; t: "ok"; value?: unknown }
@@ -29,92 +25,42 @@ export type FromSandbox =
   /** The worker is up and listening. */
   | { id: 0; t: "ready" };
 
-/** What a load reports: the code each package added, by system. */
+/** What a load reports: the code each package added, by game. */
 export interface Loaded {
   packages: {
     hash: string;
+    /** The games it provides (a system package) or extends. */
     systems: string[];
-    procedures: string[];
-    actions: string[];
-    /** Data the app adds to the same systems on its side (core/content/systems.ts extendSystem). */
-    data: SystemAdditions;
-    /** Turn hooks, by procedure id, for the host to start (core/script.ts). */
+    /** Macro and action ids now registered in the sandbox. */
+    macros: string[];
+    /** Event types that start macros, for the host (core/macro.ts registerHooks). */
     hooks: HookTable;
-    /** Missions an extension adds (#82b), as data, by the system they are added to. */
-    missions?: Record<string, ProvidedMission[]>;
-    /** A whole game system the package provides. */
-    provides?: Provided;
+    /** A whole game's module, as data: it is registered on the app's side. */
+    info?: ModuleInfo;
+    /** What an extension adds to the games it extends, as data. */
+    adds?: Pick<ModuleInfo, "quantities" | "pointer" | "hooks" | "actions">;
   }[];
   errors: { hash: string; error: string }[];
 }
 
-/** A whole-game package's system, and what its app glue gave in the sandbox, as data. */
-export interface Provided {
-  system: GameSystem;
-  app: {
-    samples: ImportedRoster[];
-    layout: Layout;
-    /** Every sample army players can pick (PackageApp.armies), or none. */
-    armies: ImportedRoster[];
-    /** Missions as data: their setup for `table`, and their rules and cards less the code. */
-    missions: ProvidedMission[];
-    /** Which of the game-dependent hooks the package has (they run in the sandbox). */
-    has: {
-      importRoster: boolean;
-      rankRules: boolean;
-      leaving: boolean;
-      sidePanel: boolean;
-      missions: boolean;
-    };
-  } & Pick<
-    SystemModule,
-    "templateCategory" | "templates" | "specialDice" | "scatter" | "fleeDice" | "chargeRoll"
-  >;
-}
-
-/** A package mission without its code: `suggest`s are answered in the sandbox (AppState.scores). */
-export interface ProvidedMission {
-  id: string;
-  name: string;
-  summary: string;
-  hand?: number;
-  /** The table `setup` was worked out for, and what it gave. */
-  table: { width: number; depth: number };
-  setup: { zones: Zone[]; objectives: Objective[] };
-  scoring: Omit<ScoringRule, "suggest">[];
-  deck?: Omit<MissionCard, "suggest">[];
-}
-
-/** A package game's app glue for the current state (PackageApp in src/sdk), worked out in the sandbox. */
-export interface AppState {
-  seq: number;
-  /**
-   * The chosen package mission's suggestions: by `${rule}:${round}:${seat}` for
-   * each scoring moment so far (null: nothing to score), and by `${card}:${seat}`
-   * for its cards as the table stands.
-   */
-  scores: Record<string, { vp: number; why: string } | null>;
-  cards: Record<string, { vp: number; why: string }>;
-  /** The code actions each unit can take now, by name ("What can I do now?"). */
-  ready: Record<string, string[]>;
-  /** Each package mission's setup worked out for the table being played on (#43), and that table's size. */
-  setups: Record<string, { zones: Zone[]; objectives: Objective[] }>;
-  table: { width: number; depth: number } | null;
-  /** Rank width and bonus cap per unit, for games with rankRules. */
-  ranks: Record<string, { width: number; maxBonus: number }>;
-  leaving: string[];
-  panel: PanelSpec | null;
-}
-
-/** A package's code action as the unit card shows it, worked out in the sandbox. */
+/** A code action as the page shows it, worked out in the sandbox. */
 export interface ActionRow {
   id: string;
   name: string;
+  by: "unit" | "player";
+  unitId?: string;
   /** True, or why not. */
   available: true | string;
-  targets: { unitId?: string; label: string }[];
+  targets: Target[];
   /** Whether it needs a target picked. */
   targeted: boolean;
+}
+
+/** What the module offers for the game as it stands (the actions and the panel), as of event `seq`. */
+export interface AppState {
+  seq: number;
+  actions: ActionRow[];
+  panel: PanelSpec | null;
 }
 
 export type Resolved = GameEvent | null;

@@ -32,12 +32,8 @@ function serve(port: MessagePort) {
           return reply({ id: m.id, t: "ok" });
         case "resolve":
           return reply({ id: m.id, t: "ok", value: engine.resolve(m.intent, m.from, m.seed) });
-        case "actions":
-          return reply({ id: m.id, t: "ok", value: engine.unitActions(m.unitId, m.player) });
         case "appState":
-          return reply({ id: m.id, t: "ok", value: engine.appState() });
-        case "importRoster":
-          return reply({ id: m.id, t: "ok", value: await engine.importRoster(m.fileName, m.data) });
+          return reply({ id: m.id, t: "ok", value: engine.appState(m.player) });
       }
     } catch (err) {
       reply({ id: m.id, t: "error", error: err instanceof Error ? err.message : String(err) });

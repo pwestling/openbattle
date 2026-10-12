@@ -5,7 +5,7 @@ import { APP_BUILD } from "./version";
  * and peer messages. Two builds with the same number can play together;
  * bump it, through a proposal (GOVERNANCE.md), when that stops being true.
  */
-const PROTOCOL = 2;
+const PROTOCOL = 3;
 
 /** What a peer says about its code when it greets another. */
 export interface BuildInfo {

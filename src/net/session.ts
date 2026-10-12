@@ -1,4 +1,3 @@
-import { rankedOver } from "../core/ranked";
 import {
   appendEvent,
   applyEvent,
@@ -15,8 +14,8 @@ import {
   type LoggedEvent,
   type Rng,
 } from "../core";
-import { hookIntents } from "../core/script";
-import type { Check, MediaChannel, NetMessage, SideMessage, Transport } from "./transport";
+import { hookIntents } from "../core/macro";
+import type { Check, NetMessage, SideMessage, Transport } from "./transport";
 import { buildInfo, MY_BUILD, type BuildInfo } from "../protocol";
 import { sharedRng } from "../core/sharedDice";
 
@@ -41,6 +40,9 @@ export interface NetStatus {
   /** Connected peers running another build than this one (docs/compatibility.md). */
   otherBuilds: ({ peer: string } & BuildInfo)[];
 }
+
+/** Hooks set off by hooks stop after this many runs deep. */
+const MAX_HOOK_DEPTH = 4;
 
 /** Checkpoints kept for comparing against the host's checksums. */
 const KEEP_CHECKS = 32;
@@ -84,10 +86,6 @@ interface SessionOptions {
    * take over as host. Peers that aren't ready never win an election.
    */
   ready?: (state: GameState) => boolean;
-  /** Told of every intent this host is asked to resolve, in order (play by mail records them: src/mail). */
-  onIntent?: (intent: Intent, by: string) => void;
-  /** A host showing a finished record (a review room, replay/review.ts): it takes no intents at all. */
-  frozen?: boolean;
   /** A spectator: how far behind the game it watches (ms); the host holds the events back. */
   delay?: number;
   /** Shared dice (core/sharedDice.ts): this host's secret seed for a commitment it made, if it has it. */
@@ -139,7 +137,6 @@ export class Session {
   /** What each peer said about its build when it greeted us. */
   private readonly builds = new Map<string, BuildInfo>();
   private readonly isReady: (state: GameState) => boolean;
-  private readonly frozen: boolean;
   private queue: Intent[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   /** A joiner that hasn't heard its host yet asks again (see askForHost). */
@@ -153,10 +150,9 @@ export class Session {
   private readonly onChange: SessionOptions["onChange"];
   private readonly onNet: SessionOptions["onNet"];
   private readonly rng: Rng;
-  private readonly onIntent?: (intent: Intent, by: string) => void;
   private readonly now: () => number;
   private readonly graceMs: number;
-  /** Side-channel listeners by owner (figures, rules packages). */
+  /** Side-channel listeners by owner (rules packages). */
   private readonly side = new Map<
     string,
     { onSide: (message: SideMessage, from: string) => void; onPeer: ((peerId: string) => void) | null }
@@ -193,15 +189,11 @@ export class Session {
     graceMs,
     onNet,
     ready,
-    onIntent,
-    frozen,
     delay,
     sharedSecret,
   }: SessionOptions) {
     this.sharedSecret = sharedSecret;
     this.delay = Math.max(0, Math.round(delay ?? 0));
-    this.onIntent = onIntent;
-    this.frozen = !!frozen;
     this.isReady = ready ?? (() => true);
     this.transport = transport;
     this.role = role;
@@ -250,11 +242,6 @@ export class Session {
     return this.transport.selfId;
   }
 
-  /** Audio between peers, where the transport carries it (WebRTC, not the same-browser channel). */
-  get media(): MediaChannel | undefined {
-    return this.transport.media;
-  }
-
   get current(): GameState {
     return this.state;
   }
@@ -288,7 +275,6 @@ export class Session {
   dispatch(intent: Intent, as?: string): void {
     if (this.left) return;
     if (this.role === "host") {
-      this.onIntent?.(intent, as ?? this.selfId);
       this.hostApply(intent, as ?? this.selfId);
     } else if (this.role === "client") {
       if (this.hostId) this.transport.send({ t: "intent", intent }, this.hostId);
@@ -300,7 +286,7 @@ export class Session {
   listenSide(
     onSide: ((message: SideMessage, from: string) => void) | null,
     onPeer: ((peerId: string) => void) | null = null,
-    key = "assets",
+    key = "packages",
   ): void {
     if (onSide) this.side.set(key, { onSide, onPeer });
     else this.side.delete(key);
@@ -323,29 +309,9 @@ export class Session {
     else this.transport.send({ t: "hello", role: this.role }, this.hostId);
   }
 
-  /** This peer's checksum after event `seq`, if that was a recent checkpoint. */
-  /**
-   * Fold the whole log again: a game system arrived (a rules package loaded)
-   * after events that depend on it were folded with its stand-in.
-   */
-  refold(): void {
-    this.state = stateAt(this.record);
-    this.checks.clear();
-    // A mismatch found before the rules arrived compared the stand-in's table: it no longer holds.
-    const stale = !!this.desync;
-    this.desync = null;
-    this.onChange(this.state, this.record);
-    if (stale) this.notify();
-  }
-
   /** The latest checksums sent (as host) or compared (as a client), oldest first. */
   get checkHistory(): { seq: number; host?: number; mine?: number }[] {
     return [...this.checkLog];
-  }
-
-  /** The transport's WebRTC connections, where it has them. */
-  connections(): Record<string, RTCPeerConnection> {
-    return this.transport.connections?.() ?? {};
   }
 
   private logCheck(entry: { seq: number; host?: number; mine?: number }): void {
@@ -372,14 +338,7 @@ export class Session {
   private receive(message: NetMessage, from: string): void {
     // A message this build can't read is ignored, never an error (docs/protocols/peer-protocol.md).
     if (typeof (message as { t?: unknown } | null)?.t !== "string") return;
-    if (
-      message.t.startsWith("asset/") ||
-      message.t.startsWith("package/") ||
-      message.t.startsWith("campaign/") ||
-      message.t.startsWith("talk") ||
-      message.t.startsWith("review/") ||
-      message.t.startsWith("army/")
-    ) {
+    if (message.t.startsWith("package/")) {
       for (const l of this.side.values()) l.onSide(message as SideMessage, from);
       return;
     }
@@ -676,7 +635,6 @@ export class Session {
   private resolving = false;
 
   private hostApply(intent: Intent, from: string): void {
-    if (this.frozen) return;
     if (this.resolving) {
       this.waiting.push([intent, from]);
       return;
@@ -726,11 +684,23 @@ export class Session {
     };
   }
 
-  /** Turn hooks an event set off, started one at a time once no rule is waiting (core/script.ts). */
+  /** Macros a logged event's hooks set off, started one at a time once none is waiting (core/macro.ts). */
   private hooks: [Intent, string][] = [];
 
+  /** How many hook runs deep an event is: each step's `cause` points at the event that set its run off. */
+  private hookDepth(seq: number): number {
+    let depth = 0;
+    let at: number | undefined = seq;
+    while (at !== undefined && depth <= MAX_HOOK_DEPTH) {
+      const e: GameEvent | undefined = this.record.events.find((x) => x.seq === at)?.event;
+      at = e?.type === "macro/step" ? e.cause : undefined;
+      if (at !== undefined) depth++;
+    }
+    return depth;
+  }
+
   private runHooks(): void {
-    while (this.hooks.length && !this.resolving && !this.state.script && this.role === "host") {
+    while (this.hooks.length && !this.resolving && !this.state.macro && this.role === "host") {
       const [intent, from] = this.hooks.shift()!;
       this.hostApply(intent, from);
     }
@@ -755,11 +725,14 @@ export class Session {
       this.transport.send(message);
     else for (const peer of this.peers.keys()) if (!this.heldBack(peer)) this.transport.send(message, peer);
     // Battle over: nothing is left to keep from watchers, and they shouldn't miss the end (PX).
-    if (this.behind.size && rankedOver(this.state)) {
+    if (this.behind.size && this.state.pointer.over === true) {
       this.flushBehind();
       this.spectatorFloorMs = 0;
     }
-    for (const intent of hookIntents(before, this.state, logged.event)) this.hooks.push([intent, logged.by]);
+    // A hook's own events may set off hooks too, but not without end: a chain of causes stops here.
+    if (this.hookDepth(logged.seq) < MAX_HOOK_DEPTH)
+      for (const intent of hookIntents(before, this.state, logged.event, logged.seq))
+        this.hooks.push([intent, logged.by]);
     this.runHooks();
   }
 
@@ -769,8 +742,7 @@ export class Session {
     this.logCheck({ seq: check.seq, host: check.hash, ...(mine !== undefined ? { mine } : {}) });
     if (mine === undefined) return;
     if (mine === check.hash) {
-      // The tables agree again: the earlier mismatch was the host's table on its rules' stand-in,
-      // checked before its package loaded and it folded the log again.
+      // The tables agree again: the earlier mismatch no longer holds.
       if (this.desync && check.seq > this.desync.seq) {
         this.desync = null;
         this.notify();

@@ -43,85 +43,14 @@ export type NetMessage =
   | SideMessage;
 
 /**
- * Peer-to-peer traffic outside the game log, such as uploaded figures
- * (src/assets/share.ts). Any peer may send these to any other.
+ * Peer-to-peer traffic outside the game log: rules packages, by the SHA-256
+ * of their bytes (src/packages/share.ts). Any peer may send these to any other.
  */
 export type SideMessage =
-  | { t: "asset/want"; id: string }
-  | { t: "asset/part"; id: string; part: number; parts: number; data: string }
-  /** Rules packages, by the SHA-256 of their bytes (src/packages/share.ts). */
   | { t: "package/want"; hash: string }
   | { t: "package/part"; hash: string; part: number; parts: number; data: string }
   /** Which of the game's packages this peer is still getting (empty when it has them all). */
-  | { t: "package/status"; missing: string[] }
-  /** Campaign books, by the SHA-256 of their contents (src/campaign/share.ts). */
-  | { t: "campaign/want"; hash: string }
-  | { t: "campaign/part"; hash: string; part: number; parts: number; data: string }
-  /** Table talk (src/talk): pings, drawings, chat and reactions. Never logged or checksummed. */
-  /** `name`: what a spectator calls themselves (players go by their seat's name). */
-  | { t: "talk"; item: TalkItem; name?: string }
-  /** Wipe the sender's drawings. */
-  | { t: "talk/clear" }
-  /** A commentator's camera (Broadcast mode), a few times a second; null when they stop. */
-  | {
-      t: "talk/cam";
-      cam: { target: [number, number, number]; position: [number, number, number] } | null;
-      name?: string;
-    }
-  /** A commentator brings up a moment-of-the-game card (after the game), by its seq and kind. */
-  | { t: "talk/moment"; seq: number; kind: string }
-  /** The end-of-game reel's card on show (src/broadcast/Moments.tsx): the host leads, Next anywhere moves all. */
-  | { t: "talk/reel"; index: number }
-  /**
-   * Models being dragged, about ten times a second (src/render/DragPreview.tsx): where each is in the hand
-   * now, as [model id, x, y]; null when let go. Ephemeral like the talk bar's arrows: the move itself is
-   * still the logged event when it lands.
-   */
-  | { t: "talk/drag"; models: [string, number, number][] | null }
-  /** A player is planning their next turn on their own screen, or stopped (src/ui/plan.ts): only that, never the plan. */
-  | { t: "talk/plan"; on: boolean }
-  /**
-   * A player shoots one of your units with several weapons, one after another (src/ui/volley.ts): which unit at
-   * which, how many weapons in all and how many are still to fire. `left` 0 when the volley is over.
-   */
-  | { t: "talk/volley"; attacker: string; target: string; total: number; left: number }
-  /** Voice at the table (src/voice): this peer's mic is on or off. The audio itself is a media stream. */
-  | { t: "talk/voice"; on: boolean; name?: string }
-  /**
-   * A review room (src/replay/review.ts): the leader's place in the replay (whoever sends it leads),
-   * and notes pinned to its moments, one at a time or all at once for someone joining.
-   */
-  | { t: "review/lead"; seq: number; name?: string }
-  /** Someone has the record and is ready for the room's notes and the leader's place. */
-  | { t: "review/hello" }
-  | { t: "review/note"; note: unknown }
-  | { t: "review/unnote"; id: string; author?: string }
-  | { t: "review/notes"; notes: unknown[] }
-  /**
-   * An army the host brought for this player from a TTS table (src/tts/BroughtOffer.tsx, UX 481): offered by the
-   * host by its shelf id, and taken by the player it was offered to.
-   */
-  | { t: "army/offer"; id: string; name: string; units: string[]; by?: string }
-  | { t: "army/take"; id: string };
-
-/** A short-lived message over the table, from whoever sent it. */
-export type TalkItem = { id: string } & (
-  | { kind: "ping"; at: { x: number; y: number }; unitId?: string }
-  | { kind: "arrow"; from: { x: number; y: number }; to: { x: number; y: number } }
-  | { kind: "area"; at: { x: number; y: number }; radius: number }
-  /** A freehand line, drawn with a stylus (#60). */
-  | { kind: "line"; points: { x: number; y: number }[] }
-  | { kind: "chat"; text: string }
-  | { kind: "react"; emoji: string }
-);
-
-/** Audio between peers (voice at the table). Only WebRTC transports have it. */
-export interface MediaChannel {
-  /** Send a stream to one peer, or everyone connected now. */
-  addStream(stream: MediaStream, to?: string): void;
-  removeStream(stream: MediaStream, to?: string): void;
-  onStream(handler: (stream: MediaStream, peerId: string) => void): void;
-}
+  | { t: "package/status"; missing: string[] };
 
 /** Minimal peer-to-peer channel the session needs. Implemented over WebRTC by
  * `trysteroTransport` and in memory by `createLoopbackNetwork` for tests. */
@@ -138,8 +67,4 @@ export interface Transport {
    * dropped the others and isn't finding them again (#85b). Optional: a transport without it never needs it.
    */
   rejoin?(): void;
-  /** Media streams, where the transport can carry them. */
-  readonly media?: MediaChannel;
-  /** The WebRTC connection to each peer, for connection stats in a problem report. */
-  connections?(): Record<string, RTCPeerConnection>;
 }

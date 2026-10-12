@@ -17,13 +17,13 @@ import { join } from "node:path";
 /** Every format with a generated schema: its name, major version, the type that defines it and where. */
 export const SCHEMAS = [
   // The game's log, as saved (docs/protocols/files.md).
-  { name: "record", major: 1, path: "src/core/types.ts", type: "GameRecord" },
+  { name: "record", major: 2, path: "src/core/log.ts", type: "GameRecord" },
   // Packages (docs/protocols/packages.md).
-  { name: "manifest", major: 1, path: "src/packages/manifest.ts", type: "Manifest" },
+  { name: "manifest", major: 2, path: "src/packages/manifest.ts", type: "Manifest" },
   // What peers and servers exchange (docs/protocols/peer-protocol.md, servers.md).
-  { name: "peer-message", major: 2, path: "src/net/transport.ts", type: "NetMessage" },
-  { name: "side-message", major: 1, path: "src/net/transport.ts", type: "SideMessage" },
-  { name: "site-config", major: 1, path: "src/net/config.ts", type: "SiteConfig" },
+  { name: "peer-message", major: 3, path: "src/net/transport.ts", type: "NetMessage" },
+  { name: "side-message", major: 2, path: "src/net/transport.ts", type: "SideMessage" },
+  { name: "site-config", major: 2, path: "src/net/config.ts", type: "SiteConfig" },
 ];
 
 const OUT = "schemas";

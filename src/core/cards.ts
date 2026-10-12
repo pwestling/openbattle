@@ -13,14 +13,14 @@ import { secretsWithPrefix, type SecretEntry } from "./secrets";
  */
 
 /** A card's picture: cell `index` (left to right, then down) of a `cols` × `rows` sheet. */
-export interface CardFace {
+interface CardFace {
   url: string;
   cols: number;
   rows: number;
   index: number;
 }
 
-export interface Card {
+interface Card {
   id: string;
   name: string;
   face: CardFace;
@@ -94,11 +94,6 @@ export function cleanDecks(x: unknown): CardDeck[] {
 
 export const deckPrefix = (deck: string) => `deck:${deck}:`;
 
-/** The key of a player's next card from this deck. */
-export function nextCardKey(state: GameState, player: PlayerId, deck: string): string {
-  return `${deckPrefix(deck)}${String(drawn(state, player, deck).length).padStart(3, "0")}`;
-}
-
 /** Every card this player has drawn from the deck, in order. */
 export function drawn(state: GameState, player: PlayerId, deck: string): [string, SecretEntry][] {
   return secretsWithPrefix(state, player, deckPrefix(deck));
@@ -114,23 +109,4 @@ export function inHand(state: GameState, player: PlayerId, deck: string): [strin
   return drawn(state, player, deck).filter(
     ([k]) => !pile.discarded.includes(k) && !pile.returned.includes(k),
   );
-}
-
-/**
- * What's left to draw: the deck less the cards out of it (in hand or
- * discarded). `idOf` reads a drawn card's id, known on its owner's device.
- */
-export function leftToDraw(
-  state: GameState,
-  player: PlayerId,
-  deck: CardDeck,
-  idOf: (entry: SecretEntry) => string | undefined,
-): Card[] {
-  const pile = pileOf(state, player, deck.id);
-  const out = new Set(
-    drawn(state, player, deck.id)
-      .filter(([k]) => !pile.returned.includes(k))
-      .map(([, e]) => (e.revealed ? String(e.revealed.value) : idOf(e))),
-  );
-  return deck.cards.filter((c) => !out.has(c.id));
 }

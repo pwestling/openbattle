@@ -1,8 +1,8 @@
 import type { BaseShape, Model, Vec2 } from "./types";
 
-export const MM_PER_INCH = 25.4;
+const MM_PER_INCH = 25.4;
 
-export function mmToInches(mm: number): number {
+function mmToInches(mm: number): number {
   return mm / MM_PER_INCH;
 }
 
@@ -38,7 +38,7 @@ const outlines = new WeakMap<
 >();
 
 /** The base outline as a convex polygon in table space (curves approximated). Shared: don't change it. */
-export function baseOutline(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
+function baseOutline(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
   const was = outlines.get(model);
   const { position, facing, base } = model;
   if (
@@ -53,23 +53,6 @@ export function baseOutline(model: Pick<Model, "position" | "facing" | "base">):
   const outline = outlineOf(model);
   outlines.set(model, { position, x: position.x, y: position.y, facing, base, outline });
   return outline;
-}
-
-/** The furthest a base's edge is from its centre, in inches. */
-export function baseReach(base: BaseShape): number {
-  const s = baseSizeInches(base);
-  return base.shape === "round" ? s.width / 2 : Math.hypot(s.width, s.depth) / 2;
-}
-
-/**
- * Whether two bases are within `range` of each other, edge to edge: as
- * `baseToBaseDistance(a, b) <= range`, but bases whose centres are too far
- * apart for that are ruled out before the outline maths.
- */
-export function basesWithin(a: Model, b: Model, range: number): boolean {
-  const centres = Math.hypot(a.position.x - b.position.x, a.position.y - b.position.y);
-  if (centres - baseReach(a.base) - baseReach(b.base) > range) return false;
-  return baseToBaseDistance(a, b) <= range;
 }
 
 function outlineOf(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
@@ -116,7 +99,7 @@ export function baseToBaseDistance(a: Model, b: Model): number {
 const gaps = new WeakMap<object, WeakMap<object, { a: Vec2[]; b: Vec2[]; d: number }>>();
 
 /** Distance between two convex polygons; 0 if they overlap. */
-export function polygonDistance(p: Vec2[], q: Vec2[]): number {
+function polygonDistance(p: Vec2[], q: Vec2[]): number {
   if (convexOverlap(p, q)) return 0;
   let best = Infinity;
   for (const [poly, other] of [
@@ -133,7 +116,7 @@ export function polygonDistance(p: Vec2[], q: Vec2[]): number {
 }
 
 // The two below are on the bot's and the review's hottest path: no objects made per call.
-export function pointSegmentDistance(p: Vec2, a: Vec2, b: Vec2): number {
+function pointSegmentDistance(p: Vec2, a: Vec2, b: Vec2): number {
   const abx = b.x - a.x;
   const aby = b.y - a.y;
   const lengthSq = abx * abx + aby * aby;

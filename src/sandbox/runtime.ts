@@ -1,60 +1,49 @@
 import { useEffect } from "react";
 import { create } from "zustand";
-import { stateAt, type GameRecord, type GameState, type Unit, type Vec2 } from "../core";
-import { systemOf } from "../core/content/turn";
-import { extendSystem, restoreSystems } from "../core/content/systems";
-import { registerHooks, unregisterHooks } from "../core/script";
+import type { GameRecord } from "../core";
+import { registerHooks, unregisterHooks } from "../core/macro";
 import { setIntentRouter } from "../net/session";
-import {
-  addPackageMissions,
-  clearPackageMissions,
-  registerPackageSystem,
-  unregisterPackageSystem,
-} from "../systems";
 import { useLibrary } from "../packages/library";
 import { useStore } from "../store";
+import { extendModuleInfo, moduleInfo, registerModuleInfo, unregisterModuleInfo } from "../systems";
 import { Sandbox, STARTUP_MS } from "./host";
-import type { ActionRow, AppState, Loaded, Provided, ProvidedMission } from "./protocol";
-import type { Mission } from "../sdk";
-import type { ImportedRoster } from "../core/roster";
+import type { AppState, Loaded } from "./protocol";
 
 /**
  * The game's trusted rules packages running in the sandbox: started when the
- * game names packages this player trusts, fed every logged event, asked for
- * package actions by the unit card, and handed the host's intents for
- * package procedures (setIntentRouter).
+ * game names packages this player trusts, fed every logged event, asked what
+ * the module offers (its actions and panel), and handed the host's macro
+ * intents (setIntentRouter). Everything else the host resolves itself.
  */
 interface SandboxState {
   status: "off" | "starting" | "on" | "stopped";
   /** Why it stopped, for the players. */
   error: string | null;
-  /** Package procedure and action ids, by system id. */
+  /** Macro and action ids, by game id. */
   code: Record<string, string[]>;
-  /** Unit card rows, by `${seq}:${unitId}`. */
-  rows: Record<string, ActionRow[]>;
-  /** A package game's rank rules, unfinished business and panel, as of `app.seq`. */
+  /** What the module offers `player` in the game as of `app.seq`. */
   app: AppState | null;
 }
 
-const useSandbox = create<SandboxState>(() => ({
+export const useSandbox = create<SandboxState>(() => ({
   status: "off",
   error: null,
   code: {},
-  rows: {},
   app: null,
 }));
 
-/** Whether the game being played comes from a package with game-dependent app glue to ask about. */
-let wantsAppState = false;
-let askedFor = -1;
+/** Whose actions to ask the module for: the player on this screen, or whoever the page names. */
+let appPlayer: string | null = null;
+let askedFor = "";
 
-/** Ask the sandbox for the package game's app state once per new event. */
-function refreshApp(): void {
+/** Ask the sandbox for what `player` can do, once per new event (or per change of player). */
+export function requestApp(player: string | null = appPlayer): void {
+  appPlayer = player;
   const seq = useStore.getState().record.events.at(-1)?.seq ?? 0;
-  if (!sandbox || !wantsAppState || askedFor === seq) return;
-  askedFor = seq;
+  if (!sandbox || !player || askedFor === `${seq}:${player}`) return;
+  askedFor = `${seq}:${player}`;
   sandbox
-    .call<AppState>({ t: "appState" })
+    .call<AppState>({ t: "appState", player })
     .then((app) => useSandbox.setState({ app }))
     .catch(() => {});
 }
@@ -81,109 +70,19 @@ function sync(): void {
     if (events.length) void sandbox.call({ t: "events", events }, STARTUP_MS).catch(() => {});
   } else void sandbox.call({ t: "init", record }, STARTUP_MS).catch(() => {});
   sent = { record, seq: last };
-  refreshApp();
+  requestApp();
 }
 
-/** Take the packages' data and hooks back off the app's systems. */
-function unload() {
-  wantsAppState = false;
-  askedFor = -1;
-  useSandbox.setState({ app: null });
-  clearPackageMissions();
-  restoreSystems();
-  for (const id of provided.splice(0)) unregisterPackageSystem(id);
-  for (const owner of hookOwners.splice(0)) unregisterHooks(owner);
-}
-const hookOwners: string[] = [];
-/** Systems whole-game packages registered on the app's side. */
+/** The games the packages registered on the app's side, and the hook owners to take off again. */
 const provided: string[] = [];
+const hookOwners: string[] = [];
 
-/** Register a whole-game package's system here, and refold the game, which was folded with a stand-in. */
-function provide(p: Provided): void {
-  const { samples, layout, has, armies, missions, ...rest } = p.app;
-  const empty = { name: "Empty", units: [], warnings: [] };
-  const constant = (key: string, fallback: number) => p.system.constants?.[key] ?? fallback;
-  // Package games with code actions say what's ready for "What can I do now?" too.
-  wantsAppState = true;
-  registerPackageSystem(p.system, {
-    ...rest,
-    sample: (seat) => samples[seat] ?? empty,
-    layout: () => layout,
-    ...(armies.length ? { armies } : {}),
-    ...(missions.length ? { missions: missions.map(packageMission) } : {}),
-    // Code hooks run in the sandbox; the app reads what it last worked out.
-    ...(has.importRoster
-      ? {
-          importRoster: (fileName: string, data: Uint8Array) => {
-            if (!sandbox) return Promise.reject(new Error("The game's rules package isn't running"));
-            return sandbox.call<ImportedRoster>({ t: "importRoster", fileName, data }, STARTUP_MS);
-          },
-        }
-      : {}),
-    ...(has.rankRules
-      ? {
-          rankRules: (_game: GameState, unit: Unit) =>
-            useSandbox.getState().app?.ranks[unit.id] ?? {
-              width: constant("rankWidth", 5),
-              maxBonus: constant("maxRankBonus", 2),
-            },
-        }
-      : {}),
-    ...(has.leaving ? { leaving: () => useSandbox.getState().app?.leaving ?? [] } : {}),
-  });
-  provided.push(p.system.id);
-  const store = useStore.getState();
-  if (store.session) store.session.refold();
-  // A replay (no session): fold it again with the real system. A fresh record too, so everything
-  // read from it (its log lines, moments, title card) is read again with the game's own rules.
-  else useStore.setState({ game: stateAt(store.record), record: { ...store.record } });
-  // A game just set up on the stand-in takes the real system's table, counters and layout.
-  const game = useStore.getState().game;
-  if (store.role === "host" && game.system === p.system.id && game.turn.round === 0) {
-    store.dispatch({ type: "game/system", system: p.system.id });
-    if (!game.terrain.length) store.dispatch({ type: "layout/set", layout });
-  }
-}
-
-/**
- * A package mission as the app uses it: its setup as the sandbox worked it
- * out for the table played on (#43), or, before it has, scaled from the
- * default table's; and its suggestions read from what the sandbox last
- * worked out (nothing until it has).
- */
-function packageMission(m: ProvidedMission): Mission {
-  const scores = () => useSandbox.getState().app?.scores ?? {};
-  return {
-    id: m.id,
-    name: m.name,
-    summary: m.summary,
-    ...(m.hand !== undefined ? { hand: m.hand } : {}),
-    setup: (table) => {
-      const app = useSandbox.getState().app;
-      const exact = app?.table?.width === table.width && app.table.depth === table.depth && app.setups[m.id];
-      if (exact) return structuredClone(exact);
-      const sx = table.width / m.table.width;
-      const sy = table.depth / m.table.depth;
-      const at = (p: Vec2) => ({ x: p.x * sx, y: p.y * sy });
-      return {
-        zones: m.setup.zones.map((z) => ({ ...z, points: z.points.map(at) })),
-        objectives: m.setup.objectives.map((o) => ({ ...o, position: at(o.position) })),
-      };
-    },
-    scoring: m.scoring.map((rule) => ({
-      ...rule,
-      suggest: (state, seat) => scores()[`${rule.id}:${state.turn.round}:${seat}`] ?? null,
-    })),
-    ...(m.deck
-      ? {
-          deck: m.deck.map((card) => ({
-            ...card,
-            suggest: (_game, seat) =>
-              useSandbox.getState().app?.cards[`${card.id}:${seat}`] ?? { vp: 0, why: card.text },
-          })),
-        }
-      : {}),
-  };
+/** Take the packages' data and hooks back off the app. */
+function unload() {
+  askedFor = "";
+  useSandbox.setState({ app: null });
+  for (const id of provided.splice(0)) unregisterModuleInfo(id);
+  for (const owner of hookOwners.splice(0)) unregisterHooks(owner);
 }
 
 /** The packages the game wants running, and whether they've been started again after stopping. */
@@ -195,23 +94,22 @@ function stop(why: string) {
   sandbox = null;
   sent = null;
   setIntentRouter(null);
-  // Trusted packages get a second start before their rules are off: a busy page (a slow device
-  // loading the table) can starve the first (PX playtest of Rift Lanterns, item 7).
+  // Trusted packages get a second start before their rules are off: a busy page can starve the first.
   if (wantedNow && !retried) {
     retried = true;
     console.warn(`Rules sandbox stopped (${why}); starting it again`);
     void start(wantedNow);
     return;
   }
-  useSandbox.setState({ status: "stopped", error: why, code: {}, rows: {} });
+  useSandbox.setState({ status: "stopped", error: why, code: {} });
 }
 
-/** Bumped when a start is cancelled (the packages changed, or the game screen went), so a start still loading stops itself. */
+/** Bumped when a start is cancelled (the packages changed), so a start still loading stops itself. */
 let generation = 0;
 
 async function start(packages: { hash: string; source: string }[]): Promise<void> {
   const gen = ++generation;
-  useSandbox.setState({ status: "starting", error: null, code: {}, rows: {} });
+  useSandbox.setState({ status: "starting", error: null, code: {} });
   try {
     const source = (await import("virtual:sandbox-worker")).default;
     if (gen !== generation) return;
@@ -223,35 +121,30 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
     if (gen !== generation) return;
     sandbox = box;
     sent = null;
-    sync();
     const code: Record<string, string[]> = {};
     for (const p of loaded.packages) {
-      if (p.provides) {
-        provide(p.provides);
-        code[p.provides.system.id] ??= [];
+      if (p.info) {
+        registerModuleInfo(p.info);
+        provided.push(p.info.id);
+        offerLayout(p.info.id);
       }
       for (const s of p.systems) {
-        code[s] = [...(code[s] ?? []), ...p.procedures, ...p.actions];
-        extendSystem(s, p.data);
+        code[s] = [...(code[s] ?? []), ...p.macros];
+        if (p.adds) extendModuleInfo(s, p.adds);
         registerHooks(s, p.hash, p.hooks);
-      }
-      // Missions an extension adds (#82b): picked at setup, their suggestions worked out in here.
-      for (const [s, missions] of Object.entries(p.missions ?? {})) {
-        addPackageMissions(s, missions.map(packageMission), p.hash);
-        wantsAppState = true;
       }
       hookOwners.push(p.hash);
     }
-    refreshApp();
+    sync();
     useSandbox.setState({
       status: "on",
       code,
       error: loaded.errors.length ? `A rules package didn't load: ${loaded.errors[0]!.error}` : null,
     });
-    // While a package changes a system, the sandbox (which has its code) resolves every intent in
-    // that game: any rule may now call package code, from data ({ call }) as well as from code.
+    // Macro intents (a code action, a hook) are resolved where the code is. The rest the host does itself.
     setIntentRouter((intent, from, state) => {
-      if (!code[systemOf(state).id] || !sandbox) return null;
+      if (intent.type !== "macro/start" && intent.type !== "macro/answer") return null;
+      if (!code[state.system ?? ""] || !sandbox) return null;
       const box = sandbox;
       return (seed) => {
         sync();
@@ -261,6 +154,22 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
   } catch (e) {
     if (gen === generation) stop(e instanceof Error ? e.message : String(e));
   }
+}
+
+/**
+ * A game just set up before its module was known gets the module's table and
+ * layout once it is: the host puts them on a fresh table.
+ */
+function offerLayout(id: string): void {
+  const { role, game, dispatch } = useStore.getState();
+  const fresh =
+    game.pointer.round === 0 &&
+    !game.terrain.length &&
+    !game.zones.length &&
+    !Object.keys(game.tokens).length;
+  const info = moduleInfo(id);
+  if (role === "host" && game.system === id && fresh && info)
+    dispatch({ type: "layout/set", layout: { ...info.layout, table: info.table } });
 }
 
 /** Keep the sandbox running the game's trusted packages. Mount once. */
@@ -283,7 +192,7 @@ export function usePackageSandbox(): void {
       sandbox = null;
       sent = null;
       setIntentRouter(null);
-      useSandbox.setState({ status: "off", error: null, code: {}, rows: {} });
+      useSandbox.setState({ status: "off", error: null, code: {} });
     };
   }, [key]);
   // Every change to the record reaches the worker's replica.

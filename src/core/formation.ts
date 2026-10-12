@@ -1,20 +1,5 @@
-import { baseSizeInches, rotate } from "./geometry";
-import type { BaseShape, Vec2 } from "./types";
-
-/**
- * Model offsets for a ranked block, relative to the centre of its front edge,
- * in local space (x = right, y = forward). Models fill the front rank first,
- * left to right, with bases touching.
- */
-export function rankedOffsets(count: number, files: number, base: BaseShape): Vec2[] {
-  const { width, depth } = baseSizeInches(base);
-  const frontage = Math.min(files, count) * width;
-  return Array.from({ length: count }, (_, i) => {
-    const file = i % files;
-    const rank = Math.floor(i / files);
-    return { x: -frontage / 2 + width * (file + 0.5), y: -depth * (rank + 0.5) };
-  });
-}
+import { rotate } from "./geometry";
+import type { Vec2 } from "./types";
 
 /**
  * Rigidly move a group of positions: rotate them by `turn` around `pivot`,

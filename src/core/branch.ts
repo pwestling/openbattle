@@ -21,8 +21,6 @@ export interface BranchInfo {
   round: number;
   /** Secrets that weren't carried over (they live on their owners' devices); players commit them again. */
   droppedSecrets: number;
-  /** A rule written as code that was waiting on someone; it doesn't carry over. */
-  droppedScript?: string;
 }
 
 export interface BranchEvent {
@@ -30,15 +28,20 @@ export interface BranchEvent {
   branch: BranchInfo;
 }
 
-/** A new record starting at `seq` of `parent`. */
+/**
+ * A new record starting at `seq` of `parent`, or null when a macro was running
+ * there: a branch starts between actions, since a half-run macro can't replay
+ * without its parent's log.
+ */
 export function branchRecord(
   parent: GameRecord,
   seq: number,
   by: PlayerId = "",
   moment?: string,
-): GameRecord {
+): GameRecord | null {
   const at = Math.max(parent.initial.seq, Math.min(seq, parent.events.at(-1)?.seq ?? parent.initial.seq));
   const state = stateAt(parent, at);
+  if (state.macro) return null;
   const players = Object.values(state.players)
     .filter((p) => p.seat !== undefined)
     .sort((a, b) => a.seat! - b.seat!)
@@ -50,15 +53,14 @@ export function branchRecord(
   const branch: BranchInfo = {
     parentHash: sha256Hex(JSON.stringify(parent)),
     parentSeq: at,
-    title: `${players.join(" vs ")}${state.turn.round ? `, round ${state.turn.round}` : ", deployment"}`,
-    round: state.turn.round,
+    title: `${players.join(" vs ")}${state.pointer.round ? `, round ${state.pointer.round}` : ", before the start"}`,
+    round: state.pointer.round,
     ...(moment ? { moment } : {}),
     droppedSecrets: dropped,
-    ...(state.script ? { droppedScript: state.script.procedure } : {}),
   };
-  // Secrets stay with their owners, and a half-run rule can't replay without the parent's log.
-  const { secrets: _s, script: _c, packageProposal: _p, ...rest } = state;
-  const record = createRecord({ ...rest, script: null });
+  // Secrets stay with their owners.
+  const { secrets: _s, ...rest } = state;
+  const record = createRecord({ ...rest, macro: null });
   record.events.push({ seq: at + 1, by, at: Date.now(), event: { type: "game/branch", branch } });
   return record;
 }

@@ -2,7 +2,6 @@ import { create } from "zustand";
 import {
   createInitialState,
   createRecord,
-  DEFAULT_SYSTEM,
   type GameRecord,
   type GameState,
   type Intent,
@@ -16,7 +15,7 @@ import { Session, type NetStatus, type Role } from "./net/session";
 import type { trysteroTransport as TrysteroTransport } from "./net/trystero";
 import { useLibrary } from "./packages/library";
 import { sharedSecret } from "./secrets/diceSecrets";
-import { systemModule } from "./systems";
+import { moduleInfo, startingLayout } from "./systems";
 
 let trystero: typeof TrysteroTransport | null = null;
 /** The WebRTC transport's chunk, loaded on demand. */
@@ -41,7 +40,7 @@ interface StartOptions {
   name: string;
   /** Resume a saved game (host only). */
   record?: GameRecord;
-  /** Game system for a new game (host only); the default when missing. */
+  /** The module id a new game plays (host only); none when missing. */
   system?: string;
   /** The host's dice, for a test that wants known rolls. */
   rng?: Rng;
@@ -228,8 +227,13 @@ export const useStore = create<Store>((set, get) => ({
         player: { id: session.selfId, name, color: COLORS[0]!, seat: 0 },
       });
     }
-    if (system && system !== DEFAULT_SYSTEM) session.dispatch({ type: "game/system", system });
-    session.dispatch({ type: "layout/set", layout: systemModule(system).layout(session.current.table) });
+    if (system) session.dispatch({ type: "game/system", system });
+    // The module's own table and layout, when its package is already known here; the sandbox offers them once it loads.
+    const info = moduleInfo(system);
+    session.dispatch({
+      type: "layout/set",
+      layout: { ...startingLayout(system), ...(info ? { table: info.table } : {}) },
+    });
   },
 
   leave() {
@@ -241,7 +245,7 @@ export const useStore = create<Store>((set, get) => ({
     const { session, mode, game } = get();
     if (!session) return;
     if (mode === "hotseat") {
-      const active = Object.values(game.players).find((p) => p.seat === game.turn.activeSeat);
+      const active = Object.values(game.players).find((p) => p.seat === game.pointer.seat);
       session.dispatch(intent, as ?? active?.id);
     } else session.dispatch(intent);
   },

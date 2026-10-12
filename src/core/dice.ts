@@ -1,7 +1,7 @@
 import type { Rng } from "./actions";
 
 /** A dice expression such as "D6", "2D3+1" or "4", as printed on datasheets. */
-export interface DiceExpr {
+interface DiceExpr {
   count: number;
   sides: number;
   bonus: number;
@@ -83,8 +83,4 @@ export function toldRng(faces: readonly number[], fallback: Rng, then?: (sides: 
 export function rollDice(expr: DiceExpr, rng: Rng): { rolls: number[]; total: number } {
   const rolls = Array.from({ length: expr.count }, () => die(rng, expr.sides));
   return { rolls, total: rolls.reduce((a, b) => a + b, expr.bonus) };
-}
-
-export function averageDice(expr: DiceExpr): number {
-  return expr.count * ((expr.sides + 1) / 2) + expr.bonus;
 }

@@ -1,6 +1,6 @@
 import { sha256Hex } from "./secrets";
 import type { Rng } from "./actions";
-import type { GameState, PlayerId } from "./types";
+import type { PlayerId } from "./types";
 
 /**
  * Shared dice for ranked games (docs/compatibility.md): no one device decides
@@ -36,13 +36,6 @@ export const isSeed = (s: unknown): s is string => typeof s === "string" && /^[a
 
 /** The commitment to a secret seed. */
 export const commitTo = (seed: string) => sha256Hex(`${DOMAIN}:commit:${seed}`);
-
-/** Every ranked player has sent their seed: the dice can't be steered from here. */
-export function seeded(state: GameState): boolean {
-  const d = state.sharedDice;
-  if (!d || !state.ranked) return false;
-  return Object.keys(state.ranked.keys).every((p) => p === d.by || !!d.seeds[p]);
-}
 
 /** The dice for event `seq`, from the host's secret seed and everyone's answers. */
 export function sharedRng(secret: string, seeds: Record<PlayerId, string>, seq: number): Rng {

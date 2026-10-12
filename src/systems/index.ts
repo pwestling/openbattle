@@ -1,98 +1,69 @@
-import { DEFAULT_SYSTEM } from "../core";
-import { registerSystem } from "../core/content";
-import { unregisterSystem } from "../core/content/systems";
-import { registerFunctions } from "../core/content/calls";
-import { hookProcedures, registerCode, registerCodeActions, registerHooks } from "../core/script";
-import type { GameModule, Mission } from "../sdk";
-import type { SystemModule } from "./app";
-
-export type { SystemModule } from "./app";
+import type { Layout } from "../core";
+import type { Table } from "../core/types";
+import type { PhaseDef, QuantityDef } from "../sdk";
 
 /**
- * The built-in game modules (see src/sdk and the game modules spec). Each
- * pairs a system's rules data with the app glue in `app` and its code
- * procedures (core/script.ts).
+ * What the app knows about a game's module: the data side of it. The code
+ * (macros, actions, panels) stays in the sandbox; this is what the sandbox
+ * reports when a package loads, so the page can list a game's quantities and
+ * phases, and the host can start a game on its table and know which logged
+ * events have hooks. Nothing here is read by the reducer.
  */
-const BUILT_IN: GameModule<SystemModule>[] = [];
-
-const MODULES = new Map<string, GameModule<SystemModule>>();
-
-/** Adds a module and registers its rules with the engine. */
-export function registerModule(m: GameModule<SystemModule>): void {
-  registerSystem(m.system);
-  if (m.procedures) registerCode(m.system.id, m.procedures);
-  if (m.functions) registerFunctions(m.system.id, m.functions);
-  // A code action runs as the procedure of the same id.
-  if (m.actions) {
-    registerCode(m.system.id, Object.fromEntries(m.actions.map((a) => [a.id, a.run])));
-    registerCodeActions(m.system.id, m.actions);
-  }
-  if (m.hooks) {
-    const { procedures, table } = hookProcedures(m.system.id, m.hooks);
-    registerCode(m.system.id, procedures);
-    registerHooks(m.system.id, m.system.id, table);
-  }
-  MODULES.set(m.system.id, m);
+export interface ModuleInfo {
+  id: string;
+  name: string;
+  version: string;
+  /** The table a fresh game starts on, and its starting layout worked out for it. */
+  table: Table;
+  layout: Layout;
+  quantities: QuantityDef[];
+  pointer: PhaseDef[];
+  /** The event types the module has hooks on. */
+  hooks: string[];
+  /** Its code actions, as data (what they do runs in the sandbox). */
+  actions: { id: string; name: string; by: "unit" | "player"; phases?: string[] }[];
+  hasPanel: boolean;
 }
 
-BUILT_IN.forEach(registerModule);
+const MODULES = new Map<string, ModuleInfo>();
 
-/**
- * A system from a rules package, on the app's side: its rules data and the
- * app glue the sandbox worked out (sample armies, a layout). Its code stays
- * in the sandbox.
- */
-export function registerPackageSystem(system: GameModule["system"], app: SystemModule): void {
-  registerSystem(system);
-  MODULES.set(system.id, { id: system.id, version: system.version, api: 1, system, app });
+export const EMPTY_LAYOUT: Layout = { terrain: [], tokens: [], zones: [] };
+
+/** A game's module, as its package reported it when it loaded. */
+export function registerModuleInfo(info: ModuleInfo): void {
+  MODULES.set(info.id, info);
 }
 
-export function unregisterPackageSystem(id: string): void {
-  if (BUILT_IN.some((m) => m.system.id === id)) return;
+/** What an extension package adds to a game it extends. */
+export function extendModuleInfo(
+  id: string,
+  add: Pick<ModuleInfo, "quantities" | "pointer" | "hooks" | "actions">,
+): void {
+  const own = MODULES.get(id);
+  if (!own) return;
+  const merge = <T extends { id: string }>(base: T[], more: T[]) => [
+    ...base.filter((x) => !more.some((m) => m.id === x.id)),
+    ...more,
+  ];
+  MODULES.set(id, {
+    ...own,
+    quantities: merge(own.quantities, add.quantities),
+    pointer: merge(own.pointer, add.pointer),
+    actions: merge(own.actions, add.actions),
+    hooks: [...new Set([...own.hooks, ...add.hooks])],
+  });
+}
+
+export function unregisterModuleInfo(id: string): void {
   MODULES.delete(id);
-  unregisterSystem(id);
 }
 
-/** Modules as they were before extension packages added missions to them, to put back. */
-const BEFORE_MISSIONS = new Map<string, GameModule<SystemModule>>();
-/** The package (by hash) that added each mission, by system and mission id: the picker's "from <package>". */
-const MISSION_FROM = new Map<string, Map<string, string>>();
-
-/**
- * Missions an extension package adds to a system (#82b, PackageContents.missions),
- * after its own; one with the id of one already there replaces it.
- */
-export function addPackageMissions(id: string, missions: Mission[], from?: string): void {
-  const m = MODULES.get(id);
-  if (!m?.app || !missions.length) return;
-  if (from) {
-    const by = MISSION_FROM.get(id) ?? new Map<string, string>();
-    for (const x of missions) by.set(x.id, from);
-    MISSION_FROM.set(id, by);
-  }
-  if (!BEFORE_MISSIONS.has(id)) BEFORE_MISSIONS.set(id, m);
-  const kept = (m.app.missions ?? []).filter((x) => !missions.some((y) => y.id === x.id));
-  MODULES.set(id, { ...m, app: { ...m.app, missions: [...kept, ...missions] } });
+/** A game's module info, if its package is loaded here. */
+export function moduleInfo(id: string | undefined): ModuleInfo | undefined {
+  return id === undefined ? undefined : MODULES.get(id);
 }
 
-/** Take every package's added missions back off (the game's packages stopped). */
-export function clearPackageMissions(): void {
-  for (const [id, m] of BEFORE_MISSIONS) if (MODULES.has(id)) MODULES.set(id, m);
-  BEFORE_MISSIONS.clear();
-  MISSION_FROM.clear();
-}
-
-/** The game module for a system id, if one is registered. */
-function gameModule(id: string | undefined): GameModule<SystemModule> | undefined {
-  return MODULES.get(id ?? DEFAULT_SYSTEM);
-}
-
-/** The module for a system id; systems without one get the generic panels and an empty table. */
-export function systemModule(id: string | undefined): SystemModule {
-  return (
-    gameModule(id)?.app ?? {
-      sample: () => ({ name: "Empty", units: [], warnings: [] }),
-      layout: () => ({ terrain: [], objectives: [], zones: [] }),
-    }
-  );
+/** The layout a game on this table starts with: its module's, or an empty table. */
+export function startingLayout(id: string | undefined): Layout {
+  return moduleInfo(id)?.layout ?? EMPTY_LAYOUT;
 }

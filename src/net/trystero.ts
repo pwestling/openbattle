@@ -58,13 +58,11 @@ export function trysteroTransport(
     message?: (message: NetMessage, from: string) => void;
     join?: (peerId: string) => void;
     leave?: (peerId: string) => void;
-    stream?: (stream: MediaStream, peerId: string) => void;
   } = {};
   const bind = () => {
     channel.onMessage = (data, { peerId }) => on.message?.(data as unknown as NetMessage, peerId);
     room.onPeerJoin = (peerId) => on.join?.(peerId);
     room.onPeerLeave = (peerId) => on.leave?.(peerId);
-    room.onPeerStream = (stream, peerId) => on.stream?.(stream, peerId);
   };
   bind();
 
@@ -98,19 +96,6 @@ export function trysteroTransport(
       room = join();
       channel = room.makeAction<JsonValue>("msg");
       bind();
-    },
-    connections: () => room.getPeers(),
-    media: {
-      addStream(stream, to) {
-        // A peer that drops mid-negotiation rejects its promise: nothing to do but let it go.
-        for (const p of room.addStream(stream, to ? { target: to } : undefined)) p.catch(() => {});
-      },
-      removeStream(stream, to) {
-        room.removeStream(stream, to ? { target: to } : undefined);
-      },
-      onStream(handler) {
-        on.stream = handler;
-      },
     },
   };
 }
