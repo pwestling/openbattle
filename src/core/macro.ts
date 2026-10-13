@@ -1,6 +1,6 @@
 import type { Args, CodeAction, Command, Ctx, Macro } from "../sdk";
 import type { GameEvent, Intent, Rng } from "./actions";
-import { BadFace, NeedDice, parseDice, rollDice } from "./dice";
+import { parseDice, rollDice } from "./dice";
 import { applyEvent } from "./reducer";
 import { isCommitment, revealMatches, secretOf } from "./secrets";
 import type { GameState, Json, PlayerId } from "./types";
@@ -272,8 +272,6 @@ function runMacro(
       input = value;
     }
   } catch (e) {
-    // Real dice still to roll at the table: the caller asks the player for them.
-    if (e instanceof NeedDice || e instanceof BadFace) throw e;
     return stop(`"${script.macro}" failed: ${e instanceof Error ? e.message : String(e)}`);
   }
 }

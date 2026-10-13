@@ -1,5 +1,4 @@
 import { resolveIntent, type GameEvent, type Intent, type Rng } from "./actions";
-import { BadFace, NeedDice, toldRng } from "./dice";
 import { applyEvent } from "./reducer";
 import { createInitialState, type GameState, type PlayerId } from "./types";
 
@@ -17,8 +16,6 @@ export interface LoggedEvent {
   event: GameEvent;
   /** Peer that was host when it was logged (and rolled its dice), once hosts can change. */
   host?: PlayerId;
-  /** Its dice were rolled at the table and typed in, not rolled by the host (#37). */
-  told?: true;
   /**
    * Under shared dice (core/sharedDice.ts): the intent it came from, so the
    * other player can roll it again once the host reveals its seed.
@@ -27,15 +24,6 @@ export interface LoggedEvent {
   /** Under shared dice, a rules package's event: the seed its sandbox was given. */
   seed?: number;
 }
-
-/**
- * An intent may carry the faces of real dice the player rolled (#37): every die the intent rolls takes the next of them, in order.
- */
-export interface Told {
-  told?: number[];
-}
-
-const MAX_TOLD = 500;
 
 /** A whole game: the starting table plus every event since. Also the replay file format. */
 export interface GameRecord {
@@ -99,34 +87,8 @@ export function resolveLogged(
       event: { type: "undo", seq: intent.seq, ...(also.length ? { also } : {}) },
     };
   }
-  const told = (intent as Told).told;
-  if (told !== undefined && (!Array.isArray(told) || told.length > MAX_TOLD)) return null;
-  const real = told ? toldRng(told, rng) : null;
-  let event: GameEvent | null;
-  try {
-    event = resolveIntent(bare(intent), by, real ?? rng, state, (seq) => stateAt(record, seq));
-  } catch (e) {
-    // Too few faces, or a face the die doesn't have: the player's screen asks again.
-    if (real && (e instanceof NeedDice || e instanceof BadFace)) return null;
-    throw e;
-  }
-  // Every face told must be used, so nothing typed in is quietly dropped.
-  if (real && real.used() !== told!.length) return null;
-  return (
-    event && {
-      seq: lastSeq(record) + 1,
-      by,
-      at: now,
-      event,
-      ...(real?.used() ? { told: true as const } : {}),
-    }
-  );
-}
-
-function bare(intent: Intent): Intent {
-  if (!("told" in intent)) return intent;
-  const { told: _told, ...rest } = intent as Intent & Told;
-  return rest as Intent;
+  const event = resolveIntent(intent, by, rng, state, (seq) => stateAt(record, seq));
+  return event && { seq: lastSeq(record) + 1, by, at: now, event };
 }
 
 /**

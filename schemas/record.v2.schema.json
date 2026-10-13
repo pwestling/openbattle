@@ -1116,10 +1116,6 @@
         "host": {
           "$ref": "#/definitions/PlayerId"
         },
-        "told": {
-          "type": "boolean",
-          "const": true
-        },
         "intent": {
           "$ref": "#/definitions/Intent"
         },

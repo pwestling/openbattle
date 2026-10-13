@@ -1519,7 +1519,7 @@
           status: "kept",
           blurb: "Commitments, decks, commit-reveal dice, told dice.",
           summary:
-            "A secret's value stays on its owner's device; the log holds only a SHA-256 commitment, and every peer's reducer checks a reveal against it. Shared dice: the host commits to a seed, the other player answers, each event's dice derive from both seeds. Dice faces can also be told to an intent (real dice typed in).",
+            "A secret's value stays on its owner's device; the log holds only a SHA-256 commitment, and every peer's reducer checks a reveal against it. Shared dice: the host commits to a seed, the other player answers, each event's dice derive from both seeds.",
           files: [
             "src/core/secrets.ts",
             "src/core/cards.ts",
@@ -1528,10 +1528,7 @@
             "src/core/ranked.ts",
             "src/secrets/",
           ],
-          watch: [
-            "A host-run macro cannot compute on a secret before it is revealed.",
-            "No UI types in real dice now, but the core still accepts them.",
-          ],
+          watch: ["A host-run macro cannot compute on a secret before it is revealed."],
           look: "Before building anything with hidden hands, objectives, or fair dice.",
         },
         {

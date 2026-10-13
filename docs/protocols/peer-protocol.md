@@ -26,7 +26,6 @@ The log is the game. Each entry is a `LoggedEvent` (`src/core/log.ts`):
 | `at`     | The host's clock (ms). For replays only, never for rules                                 |
 | `event`  | The event: `{ type: "<area>/<verb>", ... }`, defined in `src/core/actions.ts`            |
 | `host`   | The peer that was host when it was logged                                                |
-| `told`   | Its dice were rolled at the real table and typed in                                      |
 | `intent` | Under shared dice: the intent it came from, so the other ranked player can roll it again |
 | `seed`   | Under shared dice, for a macro step: the seed its sandbox was given                      |
 
