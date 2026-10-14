@@ -10,3 +10,6 @@ dist
 # Real rosters built from public BSData catalogues (scripts/bsdata.mjs); never committed
 .bsdata/
 .wrangler/
+
+# Generated typed example package; publish build output, not a checked-in copy.
+examples/authoring/lantern-game/lantern-game.js

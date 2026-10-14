@@ -1,8 +1,6 @@
-import type { SharedDice } from "./sharedDice";
 import type { BranchInfo } from "./branch";
 import type { Secrets } from "./secrets";
-import type { CardDeck, CardPile } from "./cards";
-import type { RankedState } from "./ranked";
+import type { Card, CardCollection } from "./cards";
 import type { MacroState } from "./macro";
 
 /**
@@ -10,7 +8,7 @@ import type { MacroState } from "./macro";
  * DOM, three.js or networking imports, so it runs identically on every peer.
  *
  * The core knows physical things: players, units of models, tokens and terrain
- * on a table, decks, hidden values, dice, and a pointer saying where the game
+ * on a table, cards, hidden values, dice, and a pointer saying where the game
  * is up to. It knows nothing about any game's rules. Games add named
  * quantities (`q`) and tags to these things, and a rules module (a package
  * running in the sandbox) turns its actions into the primitive events here.
@@ -39,7 +37,7 @@ export interface Player {
   id: PlayerId;
   name: string;
   color: string;
-  /** Table side: 0 sits at the +y edge, 1 at the -y edge. */
+  /** Recorded nonnegative integer identifier; its meaning belongs to the game. Missing means unseated. */
   seat?: number;
   /** Says it is ready (advisory: nothing waits on it). */
   ready?: boolean;
@@ -56,7 +54,7 @@ export type BaseShape =
   | { shape: "oval"; widthMm: number; depthMm: number }
   | { shape: "rect"; widthMm: number; depthMm: number };
 
-interface SightBand {
+interface BodyBand {
   r: number;
   z0: number;
   z1: number;
@@ -73,18 +71,18 @@ export interface Model {
   base: BaseShape;
   /** The unit this model belongs to, if any. */
   unitId?: UnitId;
-  /** Off the table (removed, in reserve): it keeps its place in the state, but blocks and sees nothing. */
+  /** Off the table (removed, in reserve): retained in state, unavailable to geometry queries. */
   off?: boolean;
   /** Height of the base above the table, in inches (standing on a terrain floor). */
   z?: number;
-  /** Height of the miniature in inches, for line of sight. Defaults from the base size. */
+  /** Physical body height in inches; defaults to the larger base dimension. */
   height?: number;
   /**
-   * Line-of-sight shape: 1-4 stacked bands, each a cylinder of radius `r`
-   * from `z0` to `z1` (inches above the base). Without it the model is one
-   * cylinder of its base size.
+   * Physical body volume: stacked cylinders of radius `r`, from `z0` to
+   * `z1` above the base. Without bands, the base is extruded to `height`:
+   * a rectangular prism or an elliptic cylinder. This is not a sight rule.
    */
-  bands?: SightBand[];
+  bands?: BodyBand[];
   q?: Bag;
   tags?: string[];
 }
@@ -106,6 +104,11 @@ export interface Token {
   position: Vec2;
   facing?: number;
   z?: number;
+  /** Omitted means a point, not a miniature-sized proxy. */
+  base?: BaseShape;
+  /** Physical body height in inches; with a base, defaults to its larger dimension. */
+  height?: number;
+  bands?: BodyBand[];
   label?: string;
   q?: Bag;
   tags?: string[];
@@ -148,11 +151,11 @@ export interface DiceRoll {
 /**
  * A box in a terrain piece's local space: x/y are the centre on the
  * footprint (x = right, y = forward), z the bottom, and w/d/h the size in
- * inches. Terrain is made of these, so the same shapes are drawn on the
- * table and used for line of sight and floors. There is no physics.
+ * inches. Terrain is made of these, so the same shapes can be drawn and
+ * measured. There is no physics or implicit sight classification.
  */
 export interface TerrainSolid {
-  /** wall and block stop line of sight; floor also gives models a level to stand on; foliage is only visual. */
+  /** Descriptive only: the package explicitly selects which boxes a query intersects. */
   kind: "wall" | "floor" | "block" | "foliage";
   x: number;
   y: number;
@@ -175,29 +178,18 @@ export interface TerrainPiece {
   depth: number;
   facing: number;
   solids: TerrainSolid[];
-  /** Stand-in height for "heights" line of sight; defaults to the top of its tallest solid. */
-  losHeight?: number;
   /**
-   * How this piece blocks sight, overriding the game's setting: "heights" makes
-   * it a block of its stand-in height even in a true line of sight game;
-   * "true" uses its shape in a "heights" game.
-   */
-  sight?: "true" | "heights";
-  /**
-   * For "footprint" line of sight: open terrain does nothing, obscuring terrain
-   * gives cover when it lies between the two bases' centres, and blocking
-   * terrain stops sight across its footprint. Defaults from the piece's height.
-   */
-  visibility?: "open" | "obscuring" | "blocking";
-  /**
-   * Optional low-poly line-of-sight mesh: triangles as flat
-   * [x,y,z, x,y,z, x,y,z, ...] in local inches, z up. When present it blocks
-   * sight instead of the solids; floors still come from the solids.
+   * Optional triangle surface in local inches, z up:
+   * [x,y,z, x,y,z, x,y,z, ...]. A query explicitly chooses mesh or solids;
+   * neither automatically replaces the other.
    */
   hull?: number[];
+  /** Package-defined classification and rules data, never interpreted by geometry. */
+  q?: Bag;
+  tags?: string[];
 }
 
-/** A deployment or scoring area as a convex polygon owned by a seat. */
+/** A convex polygon associated with a seat identifier; its purpose belongs to the game. */
 export interface Zone {
   seat: number;
   points: Vec2[];
@@ -206,12 +198,11 @@ export interface Zone {
 /**
  * Where the game is up to. The core only stores it: a rules module decides
  * what the fields mean and what comes next. `round`, `seat` and `phase` are
- * the conventional ones (and what clocks and ladders read); a module may add
- * more (a step, an activation counter).
+ * conventional fields; a module may add more (a step, an activation counter).
  */
 export interface Pointer {
   round: number;
-  /** The seat whose turn it is. */
+  /** A nonnegative integer identifier whose meaning belongs to the game. */
   seat: number;
   phase: string | null;
   [field: string]: Json;
@@ -247,40 +238,11 @@ export interface GameState {
   modules?: Record<string, Record<string, Json>>;
   /** Players' committed secrets (core/secrets.ts): commitments, and values once revealed. */
   secrets?: Secrets;
-  /** The table's card decks (core/cards.ts), and each player's discards from them. */
-  decks?: CardDeck[];
-  cardPiles?: Record<PlayerId, Record<string, CardPile>>;
+  /** Replicated card identities and ordered collections (core/cards.ts). */
+  cards: Record<string, Card>;
+  cardCollections: Record<string, CardCollection>;
   /** This game branched from another one's history (core/branch.ts). */
   branch?: BranchInfo;
-  /** A ranked game: the players' keys (core/ranked.ts). */
-  ranked?: RankedState;
-  /** A ranked game's shared dice for this stretch (core/sharedDice.ts). */
-  sharedDice?: SharedDice;
-  /** Table options the players agreed on. */
-  settings: GameSettings;
-}
-
-export interface GameSettings {
-  /** Whether models from other units block line of sight. */
-  modelsBlock: boolean;
-  /**
-   * Which models block, where not all: only the enemy's, and a target with
-   * one of the `tall` tags only behind a model whose unit has one too.
-   */
-  blockers?: { enemiesOnly?: boolean; tall?: string[] };
-  /**
-   * How line of sight works. "true" traces the model and terrain shapes.
-   * "heights" uses stand-in heights: every terrain piece is a flat-topped
-   * block of its stand-in height, every model a cylinder of its height.
-   * "footprint" ignores height: lines run across the table from the centre of
-   * the observer's base, and each piece is open, obscuring or blocking (see
-   * TerrainPiece.visibility). Missing means "true".
-   */
-  los?: "true" | "heights" | "footprint";
-  /** Vision arc in degrees, centred on each model's facing. Missing means models see all around. */
-  visionArc?: number;
-  /** Players per side (2 for a 2v2). Missing means one each. */
-  teamSize?: number;
 }
 
 /** A 44" x 60" board. */
@@ -294,11 +256,12 @@ export function createInitialState(table: Table = DEFAULT_TABLE): GameState {
     units: {},
     models: {},
     tokens: {},
+    cards: {},
+    cardCollections: {},
     terrain: [],
     zones: [],
     pointer: { round: 0, seat: 0, phase: null },
     mods: [],
-    settings: { modelsBlock: true },
   };
 }
 

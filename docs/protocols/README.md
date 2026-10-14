@@ -18,17 +18,41 @@ This page lists them all and sets the rules they share. Each spec page says what
 
 ## The registry
 
-| Protocol                              | Version                 | Spec                                     | Schema                                                                                                                     |
-| ------------------------------------- | ----------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Game record and replay                | `record@2`              | [peer-protocol.md](peer-protocol.md)     | [record.v2](../../schemas/record.v2.schema.json)                                                                           |
-| Rules package manifest                | `api: 2` (`MODULE_API`) | [packages.md](packages.md)               | [manifest.v2](../../schemas/manifest.v2.schema.json)                                                                       |
-| Module API (`src/sdk`)                | `MODULE_API = 2`        | [../packages.md](../packages.md)         | TypeScript types                                                                                                           |
-| Peer protocol                         | `PROTOCOL = 3`          | [peer-protocol.md](peer-protocol.md)     | [peer-message.v3](../../schemas/peer-message.v3.schema.json), [side-message.v2](../../schemas/side-message.v2.schema.json) |
-| Site `config.json`                    | none (2)                | [servers.md](servers.md#site-configjson) | [site-config.v2](../../schemas/site-config.v2.schema.json)                                                                 |
-| TURN logins                           | none (1)                | [servers.md](servers.md)                 | n/a                                                                                                                        |
-| Sandbox host messages (`src/sandbox`) | none                    | n/a (internal)                           | n/a                                                                                                                        |
+| Protocol                              | Version                     | Spec                                                              | Schema                                                                                                                       |
+| ------------------------------------- | --------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Game record and replay                | `record@9`                  | [peer-protocol.md](peer-protocol.md)                              | [record.v9](../../schemas/record.v9.schema.json)                                                                             |
+| Rules package manifest                | `api: 12` (`MODULE_API`)    | [packages.md](packages.md)                                        | [manifest.v3](../../schemas/manifest.v3.schema.json)                                                                         |
+| Module API (`src/sdk`)                | `MODULE_API = 12`           | [../packages.md](../packages.md)                                  | TypeScript types                                                                                                             |
+| Peer protocol                         | `PROTOCOL = 11`             | [peer-protocol.md](peer-protocol.md)                              | [peer-message.v11](../../schemas/peer-message.v11.schema.json), [side-message.v2](../../schemas/side-message.v2.schema.json) |
+| Site `config.json`                    | none (2)                    | [servers.md](servers.md#site-configjson)                          | [site-config.v2](../../schemas/site-config.v2.schema.json)                                                                   |
+| TURN logins                           | none (1)                    | [servers.md](servers.md)                                          | n/a                                                                                                                          |
+| Sandbox host messages (`src/sandbox`) | none                        | n/a (internal)                                                    | n/a                                                                                                                          |
+| Local package authoring scenario      | `package-scenario@1`        | [package-scenarios.md](package-scenarios.md)                      | [package-scenario.v1](../../schemas/package-scenario.v1.schema.json)                                                         |
+| Local package scenario report         | `package-scenario-report@1` | [package-scenarios.md](package-scenarios.md#results-and-failures) | [package-scenario-report.v1](../../schemas/package-scenario-report.v1.schema.json)                                           |
 
 The first release of the rebuilt core broke every older format on purpose (nothing was in use yet); the registry starts again from here. Formats that other builds could read before (armies, tables, figure packs, campaign books, mail files, ranked results, the board) are gone with the features that wrote them, and come back as new protocols when a feature does.
+
+**Current composition cutover:** API 12, record@9, protocol 11, manifest schema v3. Dependencies and content pins are enforced before import; symbols require explicit provider-targeted replacements. Extensions have local module-state namespaces retained in macro state/steps. See [composition](../packages.md#composing-a-game-and-extensions).
+
+**Historical setup/data-intake cutover:** API 11; record@8/protocol 10 unchanged. Frozen actor-specific setup descriptors collect typed fields and arbitrary JSON file/paste data locally, then submit ordinary `form`/`data` arguments to registered macros. Packages own/version their data formats and emit existing primitives; there is no engine army schema. See [setup/data intake](../packages.md#setup-forms-and-player-owned-data).
+
+**Historical advisory-flow cutover:** API 10, record@8, protocol 10. Warned actions retain targets; panel warnings and macro `yield* ctx.warn` use explicit proceed/cancel flows. Forced starts acknowledge a reason and log it using existing primitives. These guarantees remain current. See [advisory flow](../packages.md#advisory-warnings-and-explicit-overrides).
+
+**Historical recorded-input cutover:** API 9, record@8, protocol 9. `ctx.input` descriptors and JSON answers support choices, multiple/ordered selections, scalars, explicit references and spatial proposals. `ctx.ask` constructs a choice input. `macro/step.answered` retains accepted answers even on terminal/error steps. These mechanics remain current. See [recorded input](../packages.md#recorded-player-input).
+
+**Historical lifecycle cutover:** API 8, record@7, protocol 8. Recorded reaction obligations survive host reconstruction and cancel on undo; explicit structural dependencies protect ownership/containment; model membership is reciprocal. Macro command address history follows claims, loads are atomic, and composition is pinned while work remains owed. These guarantees remain current. See [execution continuity](../engine.md#execution-continuity).
+
+**Historical explicit-seating cutover:** API 7, record@6, protocol 7. Joins record only an explicit optional seat; no side filling or capacity. `player/set` accepts a nonnegative seat or null to clear it. Removed `GameSettings`/`state.settings`/`settings/set` and core team/opposition helpers. Packages own relationships, turn order and deployment. These mechanics remain current; see [engine contract](../engine.md#participants-and-explicit-seats).
+
+**Runtime API 6:** deeply readonly views/arguments/results and shared structural primitive validation. Valid effects still replay without package code; these guarantees remain in the current API.
+
+**Ranked/shared-dice removal:** `record@5`, peer protocol 6, API 5. Removed rank keys, dice commitments/seeds/reveals, RNG overlays and `LoggedEvent.intent`/`seed`; ordinary injected RNG, resolved outcomes and generic choice secrets remain.
+
+Under rule 4, unreleased rebuild package majors replace older ones without adapters, assuming no external dependents. Current packages declare API 12 and publish new bytes. The composition cutover requires namespace metadata in macro states/steps, record@9 and peer protocol 11; manifest schema v3 defines strict dependencies and replacements. Unsupported earlier records/caches/packages are rejected, not translated. Reassess before external release.
+
+**Historical geometry cutover:** `record@4`, protocol 5, API 4. Neutral geometric queries replaced engine LOS/cover/vision policy. See [geometry migration](packages.md#geometry-api-4-cutover).
+
+**Historical card cutover:** `record@2` and protocol 3 were replaced by `record@3` and protocol 4, with `MODULE_API` moving from 2 to 3. That work replaced per-player decks/piles with neutral cards and ordered collections, required API-2 package migration, and retained manifest schema v2. Those version numbers describe the earlier cutover, not today's supported contracts.
 
 ## Adding or changing a protocol
 

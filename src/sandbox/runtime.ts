@@ -7,7 +7,7 @@ import { useLibrary } from "../packages/library";
 import { useStore } from "../store";
 import { extendModuleInfo, moduleInfo, registerModuleInfo, unregisterModuleInfo } from "../systems";
 import { Sandbox, STARTUP_MS } from "./host";
-import type { AppState, Loaded } from "./protocol";
+import type { AppState, Loaded, PackageDiagnostic, PackageWarning } from "./protocol";
 
 /**
  * The game's trusted rules packages running in the sandbox: started when the
@@ -23,6 +23,8 @@ interface SandboxState {
   code: Record<string, string[]>;
   /** What the module offers `player` in the game as of `app.seq`. */
   app: AppState | null;
+  warnings: PackageWarning[];
+  diagnostics: PackageDiagnostic[];
 }
 
 export const useSandbox = create<SandboxState>(() => ({
@@ -30,6 +32,8 @@ export const useSandbox = create<SandboxState>(() => ({
   error: null,
   code: {},
   app: null,
+  warnings: [],
+  diagnostics: [],
 }));
 
 /** Whose actions to ask the module for: the player on this screen, or whoever the page names. */
@@ -41,11 +45,22 @@ export function requestApp(player: string | null = appPlayer): void {
   appPlayer = player;
   const seq = useStore.getState().record.events.at(-1)?.seq ?? 0;
   if (!sandbox || !player || askedFor === `${seq}:${player}`) return;
-  askedFor = `${seq}:${player}`;
-  sandbox
+  const requested = `${seq}:${player}`;
+  askedFor = requested;
+  const box = sandbox;
+  box
     .call<AppState>({ t: "appState", player })
-    .then((app) => useSandbox.setState({ app }))
-    .catch(() => {});
+    .then((app) => {
+      if (sandbox === box && askedFor === requested)
+        useSandbox.setState({ app, warnings: app.warnings, error: null });
+    })
+    .catch((error: unknown) => {
+      if (sandbox !== box || askedFor !== requested) return;
+      askedFor = "";
+      useSandbox.setState({
+        error: `Package presentation failed: ${error instanceof Error ? error.message : String(error)}`,
+      });
+    });
 }
 
 let sandbox: Sandbox | null = null;
@@ -80,7 +95,7 @@ const hookOwners: string[] = [];
 /** Take the packages' data and hooks back off the app. */
 function unload() {
   askedFor = "";
-  useSandbox.setState({ app: null });
+  useSandbox.setState({ app: null, warnings: [], diagnostics: [] });
   for (const id of provided.splice(0)) unregisterModuleInfo(id);
   for (const owner of hookOwners.splice(0)) unregisterHooks(owner);
 }
@@ -90,7 +105,9 @@ let wantedNow: { hash: string; source: string }[] | null = null;
 let retried = false;
 
 function stop(why: string) {
-  unload();
+  // Hook descriptors survive a worker restart: new triggers still record their obligations.
+  askedFor = "";
+  useSandbox.setState({ app: null });
   sandbox = null;
   sent = null;
   setIntentRouter(null);
@@ -109,7 +126,14 @@ let generation = 0;
 
 async function start(packages: { hash: string; source: string }[]): Promise<void> {
   const gen = ++generation;
-  useSandbox.setState({ status: "starting", error: null, code: {} });
+  useSandbox.setState({
+    status: "starting",
+    error: null,
+    code: {},
+    app: null,
+    warnings: [],
+    diagnostics: [],
+  });
   try {
     const source = (await import("virtual:sandbox-worker")).default;
     if (gen !== generation) return;
@@ -119,6 +143,11 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
       if (gen !== generation) box.stop();
     });
     if (gen !== generation) return;
+    useSandbox.setState({ diagnostics: loaded.diagnostics });
+    if (loaded.errors.length) {
+      box.stop();
+      throw new Error(`A rules package didn't load: ${loaded.errors[0]!.error}`);
+    }
     sandbox = box;
     sent = null;
     const code: Record<string, string[]> = {};
@@ -129,8 +158,10 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
         offerLayout(p.info.id);
       }
       for (const s of p.systems) {
-        code[s] = [...(code[s] ?? []), ...p.macros];
-        if (p.adds) extendModuleInfo(s, p.adds);
+        code[s] = [
+          ...new Set([...(code[s] ?? []).filter((id) => !p.removedActions?.includes(id)), ...p.macros]),
+        ];
+        if (p.adds) extendModuleInfo(s, p.adds, p.removedActions);
         registerHooks(s, p.hash, p.hooks);
       }
       hookOwners.push(p.hash);
@@ -139,7 +170,9 @@ async function start(packages: { hash: string; source: string }[]): Promise<void
     useSandbox.setState({
       status: "on",
       code,
-      error: loaded.errors.length ? `A rules package didn't load: ${loaded.errors[0]!.error}` : null,
+      error: null,
+      warnings: loaded.warnings,
+      diagnostics: loaded.diagnostics,
     });
     // Macro intents (a code action, a hook) are resolved where the code is. The rest the host does itself.
     setIntentRouter((intent, from, state) => {
@@ -192,7 +225,7 @@ export function usePackageSandbox(): void {
       sandbox = null;
       sent = null;
       setIntentRouter(null);
-      useSandbox.setState({ status: "off", error: null, code: {} });
+      useSandbox.setState({ status: "off", error: null, code: {}, warnings: [], diagnostics: [] });
     };
   }, [key]);
   // Every change to the record reaches the worker's replica.

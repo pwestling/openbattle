@@ -13,5 +13,3 @@ export * from "./los";
 export * from "./secrets";
 export * from "./cards";
 export * from "./branch";
-export * from "./teams";
-export * from "./sharedDice";

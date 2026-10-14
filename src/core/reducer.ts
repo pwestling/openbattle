@@ -1,8 +1,7 @@
 import type { GameEvent } from "./actions";
 import { revealMatches } from "./secrets";
-import { cleanDecks, pileOf, type CardPile } from "./cards";
+import { cardEventProblem, cardLayoutProblem, type Card } from "./cards";
 import { dropExpired } from "./quantity";
-import { sidePlayers } from "./teams";
 import { transformPositions } from "./formation";
 import type { Bag, EntityRef, GameState, Json, Model, Player, PlayerId, Token, Unit } from "./types";
 
@@ -16,11 +15,7 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
   switch (event.type) {
     case "player/join": {
       const known = state.players[event.player.id];
-      // First come, first seated, filling the emptier side up to the team size; a rejoining player keeps their seat.
-      const size = state.settings.teamSize ?? 1;
-      const count = (seat: number) => Object.values(state.players).filter((p) => p.seat === seat).length;
-      const free = count(0) < size || count(1) < size;
-      const seat = known?.seat ?? event.player.seat ?? (free ? (count(1) < count(0) ? 1 : 0) : undefined);
+      const seat = event.player.seat ?? known?.seat;
       const player = { ...event.player, ...(seat === undefined ? {} : { seat }) };
       player.name = playerName(state, player);
       return { ...state, players: { ...state.players, [player.id]: player } };
@@ -30,9 +25,11 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case "player/set": {
       const p = state.players[event.player];
       if (!p) return state;
-      const { ready: _r, ...rest } = p;
-      const { ready, ...fields } = event.set;
+      const { ready: _r, seat: _s, ...rest } = p;
+      const { ready, seat, ...fields } = event.set;
       const next: Player = { ...rest, ...fields };
+      const assigned = seat === undefined ? p.seat : seat;
+      if (assigned !== undefined && assigned !== null) next.seat = assigned;
       if (ready ?? p.ready) next.ready = true;
       return { ...state, players: { ...state.players, [p.id]: next } };
     }
@@ -42,18 +39,21 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
       const { type: _t, ...packages } = event;
       return { ...state, packages };
     }
-    case "settings/set":
-      return { ...state, settings: { ...state.settings, ...event.settings } };
     case "layout/set": {
-      const { table, terrain, tokens, zones, decks } = event.layout;
+      if (cardLayoutProblem(event.layout, state) !== undefined) return state;
+      const { table, terrain, tokens, zones, cards, cardCollections } = event.layout;
       return {
         ...state,
         ...(table ? { table } : {}),
         terrain,
         zones,
         tokens: Object.fromEntries(tokens.map((t) => [t.id, t])),
-        // A table with decks brings them; one without leaves the game's as they are.
-        ...(decks ? { decks: cleanDecks(decks) } : {}),
+        ...(cards && cardCollections
+          ? {
+              cards: Object.fromEntries(cards.map((c) => [c.id, c])),
+              cardCollections: Object.fromEntries(cardCollections.map((c) => [c.id, c])),
+            }
+          : {}),
       };
     }
     case "terrain/add":
@@ -63,15 +63,21 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
       return { ...state, terrain: state.terrain.filter((t) => t.id !== event.id) };
     case "unit/add": {
       const models = { ...state.models };
-      for (const model of event.models) models[model.id] = { ...model, unitId: event.unit.id };
-      const unit = { ...event.unit, modelIds: event.models.map((m) => m.id) };
-      return { ...state, units: { ...state.units, [unit.id]: unit }, models };
+      const units = { ...state.units };
+      const incoming = new Set(event.models.map((model) => model.id));
+      // Replacing a unit detaches its former members that aren't in the replacement.
+      for (const model of Object.values(models))
+        if (!incoming.has(model.id) && model.unitId === event.unit.id) models[model.id] = withoutUnit(model);
+      const unit = { ...event.unit, modelIds: [...incoming] };
+      units[unit.id] = unit;
+      for (const model of event.models) replaceModel(models, units, { ...model, unitId: unit.id });
+      return { ...state, units, models };
     }
     case "unit/remove": {
       const { [event.id]: unit, ...units } = state.units;
       if (!unit) return state;
       const models = { ...state.models };
-      for (const id of unit.modelIds) delete models[id];
+      for (const model of Object.values(models)) if (model.unitId === unit.id) delete models[model.id];
       return { ...state, units, models };
     }
     case "unit/members": {
@@ -80,7 +86,10 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
       const models = { ...state.models };
       const units = { ...state.units };
       const remove = new Set(event.remove ?? []);
-      const joining = (event.add ?? []).filter((id) => models[id] && !unit.modelIds.includes(id));
+      const joining = (event.add ?? []).filter(
+        (id) =>
+          models[id] && (models[id]!.unitId !== unit.id || !unit.modelIds.includes(id) || remove.has(id)),
+      );
       for (const id of remove) if (models[id]?.unitId === unit.id) models[id] = withoutUnit(models[id]!);
       for (const id of joining) {
         // Joining takes a model from the unit it was in.
@@ -89,11 +98,24 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
           units[prev] = { ...units[prev]!, modelIds: units[prev]!.modelIds.filter((m) => m !== id) };
         models[id] = { ...models[id]!, unitId: unit.id };
       }
-      units[unit.id] = { ...unit, modelIds: [...unit.modelIds.filter((id) => !remove.has(id)), ...joining] };
+      const added = new Set(joining);
+      units[unit.id] = {
+        ...unit,
+        modelIds: [
+          ...unit.modelIds.filter(
+            (id) => !remove.has(id) && !added.has(id) && models[id]?.unitId === unit.id,
+          ),
+          ...joining,
+        ],
+      };
       return { ...state, units, models };
     }
-    case "model/add":
-      return { ...state, models: { ...state.models, [event.model.id]: event.model } };
+    case "model/add": {
+      const models = { ...state.models };
+      const units = { ...state.units };
+      replaceModel(models, units, event.model);
+      return { ...state, models, units };
+    }
     case "model/remove": {
       const { [event.id]: removed, ...models } = state.models;
       const unit = removed?.unitId ? state.units[removed.unitId] : undefined;
@@ -185,18 +207,77 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
     case "dice/roll":
       // The log keeps the roll; the table doesn't change.
       return state;
-    case "deck/discard":
-    case "deck/shuffle": {
-      const pile = pileOf(state, event.player, event.deck);
-      const next: CardPile =
-        event.type === "deck/discard"
-          ? { ...pile, discarded: [...pile.discarded, event.key] }
-          : { discarded: [], returned: [...pile.returned, ...pile.discarded] };
-      const mine = { ...state.cardPiles?.[event.player], [event.deck]: next };
-      return { ...state, cardPiles: { ...state.cardPiles, [event.player]: mine } };
+    case "collection/add":
+    case "collection/remove":
+    case "card/add":
+    case "cards/remove":
+    case "cards/move":
+    case "card/set":
+    case "collection/shuffle": {
+      if (cardEventProblem(event, state) !== undefined) return state;
+      switch (event.type) {
+        case "collection/add":
+          return {
+            ...state,
+            cardCollections: { ...state.cardCollections, [event.collection.id]: event.collection },
+          };
+        case "collection/remove": {
+          const { [event.id]: _gone, ...cardCollections } = state.cardCollections;
+          return { ...state, cardCollections };
+        }
+        case "card/add": {
+          const collection = state.cardCollections[event.collection]!;
+          const members = [...collection.cards];
+          members.splice(event.index ?? members.length, 0, event.card.id);
+          return {
+            ...state,
+            cards: { ...state.cards, [event.card.id]: event.card },
+            cardCollections: {
+              ...state.cardCollections,
+              [collection.id]: { ...collection, cards: members },
+            },
+          };
+        }
+        case "cards/remove":
+        case "cards/move": {
+          const moving = new Set(event.cards);
+          const cardCollections = { ...state.cardCollections };
+          for (const collection of Object.values(state.cardCollections)) {
+            if (collection.cards.some((id) => moving.has(id)))
+              cardCollections[collection.id] = {
+                ...collection,
+                cards: collection.cards.filter((id) => !moving.has(id)),
+              };
+          }
+          if (event.type === "cards/move") {
+            const collection = cardCollections[event.to]!;
+            const index = event.index ?? collection.cards.length;
+            cardCollections[event.to] = {
+              ...collection,
+              cards: collection.cards.slice(0, index).concat(event.cards, collection.cards.slice(index)),
+            };
+            return { ...state, cardCollections };
+          }
+          const cards = { ...state.cards };
+          for (const id of event.cards) delete cards[id];
+          return { ...state, cards, cardCollections };
+        }
+        case "card/set":
+          return {
+            ...state,
+            cards: { ...state.cards, [event.card]: { ...state.cards[event.card]!, ...event.set } },
+          };
+        case "collection/shuffle":
+          return {
+            ...state,
+            cardCollections: {
+              ...state.cardCollections,
+              [event.collection]: { ...state.cardCollections[event.collection]!, cards: event.order },
+            },
+          };
+      }
+      throw new Error("Unreachable card event");
     }
-    case "deck/remove":
-      return { ...state, decks: state.decks?.filter((d) => d.id !== event.id) };
     case "secret/commit": {
       const mine = { ...state.secrets?.[event.player] };
       for (const { key, commitment } of event.secrets) if (!mine[key]) mine[key] = { commitment };
@@ -211,50 +292,6 @@ export function applyEvent(state: GameState, event: GameEvent): GameState {
         [event.key]: { ...entry!, revealed: { value: event.value } },
       };
       return { ...state, secrets: { ...state.secrets, [event.player]: mine } };
-    }
-    case "ranked/card": {
-      const ranked = state.ranked ?? { keys: {} };
-      const { [event.player]: _old, ...keys } = ranked.keys;
-      return {
-        ...state,
-        ranked: { ...ranked, keys: event.key ? { ...keys, [event.player]: event.key } : keys },
-      };
-    }
-    case "dice/commit":
-      return {
-        ...state,
-        sharedDice: {
-          by: event.player,
-          commit: event.hash,
-          seeds: {},
-          round: state.pointer.round,
-          from: state.seq + 1,
-        },
-      };
-    case "dice/seed":
-      return state.sharedDice
-        ? {
-            ...state,
-            sharedDice: {
-              ...state.sharedDice,
-              seeds: { ...state.sharedDice.seeds, [event.player]: event.seed },
-            },
-          }
-        : state;
-    case "dice/reveal": {
-      const { sharedDice: _done, ...rest } = state;
-      return event.next
-        ? {
-            ...rest,
-            sharedDice: {
-              by: event.player,
-              commit: event.next,
-              seeds: {},
-              round: state.pointer.round,
-              from: state.seq + 1,
-            },
-          }
-        : rest;
     }
     case "game/branch":
       return { ...state, branch: event.branch };
@@ -288,6 +325,20 @@ function withoutUnit(m: Model): Model {
   return rest;
 }
 
+/** Replace identity and move reciprocal membership together, including a detached replacement. */
+function replaceModel(models: GameState["models"], units: GameState["units"], model: Model): void {
+  const previous = models[model.id]?.unitId;
+  if (previous && previous !== model.unitId && units[previous])
+    units[previous] = {
+      ...units[previous]!,
+      modelIds: units[previous]!.modelIds.filter((id) => id !== model.id),
+    };
+  models[model.id] = model;
+  const unit = model.unitId ? units[model.unitId] : undefined;
+  if (unit && !unit.modelIds.includes(model.id))
+    units[unit.id] = { ...unit, modelIds: [...unit.modelIds, model.id] };
+}
+
 /** Change one entity, whichever kind it is. A reference to nothing changes nothing. */
 function updateEntity(state: GameState, ref: EntityRef, f: <T extends Carrier>(e: T) => T): GameState {
   switch (ref.kind) {
@@ -310,7 +361,7 @@ function updateEntity(state: GameState, ref: EntityRef, f: <T extends Carrier>(e
   }
 }
 
-/** Hand a player's seat, units, tokens and hidden values to a new peer id. */
+/** Hand a player's seat, units, tokens, cards and hidden values to a new peer id. */
 function claimPlayer(state: GameState, from: string, to: string): GameState {
   const old = state.players[from];
   if (!old) return state;
@@ -322,51 +373,55 @@ function claimPlayer(state: GameState, from: string, to: string): GameState {
   for (const [id, m] of Object.entries(state.models)) models[id] = m.owner === from ? { ...m, owner: to } : m;
   const tokens: Record<string, Token> = {};
   for (const [id, t] of Object.entries(state.tokens)) tokens[id] = t.owner === from ? { ...t, owner: to } : t;
+  const cards: Record<string, Card> = {};
+  for (const [id, card] of Object.entries(state.cards)) {
+    const visibility = card.visibility;
+    const rebindVisibility = visibility !== "all" && visibility.includes(from);
+    cards[id] =
+      card.owner === from || rebindVisibility
+        ? {
+            ...card,
+            ...(card.owner === from ? { owner: to } : {}),
+            ...(rebindVisibility ? { visibility: [...new Set((visibility as string[]).map(who))] } : {}),
+          }
+        : card;
+  }
   // A player's committed secrets follow them to their new id (their device still holds the values).
   const { [from]: mine, ...secrets } = state.secrets ?? {};
-  const { [from]: piles, ...cardPiles } = state.cardPiles ?? {};
   const macro = state.macro;
-  const ranked = state.ranked;
   return {
     ...state,
     players: { ...players, [to]: { ...old, id: to } },
     units,
     models,
     tokens,
+    cards,
     mods: state.mods.map((m) =>
       m.target.kind === "player" && m.target.id === from ? { ...m, target: { kind: "player", id: to } } : m,
     ),
-    // What the game waits on from them waits on their new id: a macro they started, a question for them.
-    ...(macro && (macro.by === from || macro.waiting?.player === from)
+    // Keep original commands/args intact; current and future recipient addresses follow every reclaim.
+    ...(macro
       ? {
           macro: {
             ...macro,
             by: who(macro.by),
+            identities: {
+              ...Object.fromEntries(
+                Object.entries(macro.identities ?? {}).map(([id, player]) => [id, who(player)]),
+              ),
+              [from]: to,
+            },
             ...(macro.waiting ? { waiting: { ...macro.waiting, player: who(macro.waiting.player) } } : {}),
           },
         }
       : {}),
     ...(state.secrets ? { secrets: mine ? { ...secrets, [to]: mine } : secrets } : {}),
-    ...(state.cardPiles ? { cardPiles: piles ? { ...cardPiles, [to]: piles } : cardPiles } : {}),
-    ...(ranked?.keys[from]
-      ? {
-          ranked: {
-            ...ranked,
-            keys: Object.fromEntries(Object.entries(ranked.keys).map(([k, v]) => [who(k), v])),
-          },
-        }
-      : {}),
   };
 }
 
-/**
- * A blank or generic name becomes "Player 1"/"Player 2" by seat, and a name
- * another player already has gets a number, so the two sides never look alike.
- */
+/** Blank or generic names are numbered in join order; duplicate names get a suffix. */
 function playerName(state: GameState, player: Player): string {
-  // Teammates number on: side 1 has Players 1 and 3, side 2 has Players 2 and 4.
-  const before = sidePlayers(state, player.seat ?? -1).filter((p) => p.id !== player.id).length;
-  const fallback = player.seat === undefined ? "Spectator" : `Player ${player.seat + 1 + 2 * before}`;
+  const fallback = state.players[player.id]?.name ?? `Player ${Object.keys(state.players).length + 1}`;
   const wanted = player.name.trim();
   const base = !wanted || wanted === "Player" ? fallback : wanted;
   const taken = new Set(
@@ -375,6 +430,5 @@ function playerName(state: GameState, player: Player): string {
       .map((p) => p.name),
   );
   if (!taken.has(base)) return base;
-  if (!taken.has(fallback) && base !== fallback) return fallback;
   for (let i = 2; ; i++) if (!taken.has(`${base} (${i})`)) return `${base} (${i})`;
 }

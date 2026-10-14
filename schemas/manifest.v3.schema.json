@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "urn:open-battle:schema:manifest@2",
-  "title": "Open Battle manifest v2",
+  "$id": "urn:open-battle:schema:manifest@3",
+  "title": "Open Battle manifest v3",
   "$ref": "#/definitions/Manifest",
   "definitions": {
     "Manifest": {
@@ -52,6 +52,12 @@
             ]
           }
         },
+        "overrides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageOverride"
+          }
+        },
         "adds": {
           "type": "string"
         },
@@ -67,6 +73,46 @@
         "kind",
         "systems",
         "requires"
+      ]
+    },
+    "PackageOverride": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "action",
+            "macro",
+            "quantity",
+            "phase",
+            "panel",
+            "setup"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "from": {
+          "type": "string"
+        },
+        "on": {
+          "type": "string",
+          "enum": [
+            "player",
+            "unit",
+            "model",
+            "token"
+          ]
+        }
+      },
+      "required": [
+        "system",
+        "kind",
+        "id",
+        "from"
       ]
     }
   }

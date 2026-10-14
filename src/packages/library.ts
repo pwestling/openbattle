@@ -10,7 +10,7 @@ import { readManifest, sha256, type Manifest } from "./manifest";
 export interface StoredPackage {
   hash: string;
   manifest: Manifest;
-  /** The package file, as text (packages are one JavaScript file). */
+  /** Lossless UTF-8 source, including an initial BOM when the file contains one. */
   source: string;
   bytes: number;
   addedAt: number;
@@ -83,6 +83,17 @@ export const useLibrary = create<Library>((set, get) => ({
   async load() {
     if (get().loaded) return;
     const list = await all();
+    const encoder = new TextEncoder();
+    await Promise.all(
+      list.map(async (pkg) => {
+        // Older imports discarded a UTF-8 BOM but retained its byte count/hash. Restore only proven bytes.
+        if (pkg.bytes !== encoder.encode(pkg.source).byteLength + 3) return;
+        const source = `\uFEFF${pkg.source}`;
+        if ((await sha256(encoder.encode(source))) !== pkg.hash) return;
+        pkg.source = source;
+        await write((store) => store.put(pkg));
+      }),
+    );
     set((s) => ({
       loaded: true,
       packages: { ...Object.fromEntries(list.map((p) => [p.hash, p])), ...s.packages },
@@ -93,16 +104,16 @@ export const useLibrary = create<Library>((set, get) => ({
     const hash = await sha256(bytes);
     if (opts.expect && hash !== opts.expect)
       return { ok: false, error: "That didn't match what the game expects." };
-    const known = get().packages[hash];
-    if (known) {
-      if (opts.own && !known.own) get().trust(hash, known.trusted);
-      return { ok: true, pkg: known };
-    }
     let source: string;
     try {
-      source = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      source = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
     } catch {
       return { ok: false, error: "That isn't a rules package (it isn't text)." };
+    }
+    const known = get().packages[hash];
+    if (known?.source === source) {
+      if (opts.own && !known.own) get().trust(hash, known.trusted);
+      return { ok: true, pkg: known };
     }
     const read = readManifest(source);
     if ("error" in read) return { ok: false, error: read.error };
@@ -111,9 +122,9 @@ export const useLibrary = create<Library>((set, get) => ({
       manifest: read.manifest,
       source,
       bytes: bytes.byteLength,
-      addedAt: Date.now(),
-      trusted: false,
-      own: !!opts.own,
+      addedAt: known?.addedAt ?? Date.now(),
+      trusted: known?.trusted ?? false,
+      own: !!opts.own || !!known?.own,
     };
     set((s) => ({ packages: { ...s.packages, [hash]: pkg } }));
     void write((store) => store.put(pkg));

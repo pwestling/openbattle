@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   branchRecord,
   type EntityKind,
@@ -8,10 +8,16 @@ import {
   type Mod,
   type PackageRef,
 } from "./core";
+import { cardsIn, type CardFace, type CardFields, type CardVisibility } from "./core/cards";
+import { MacroInput } from "./MacroInput";
+import { SetupForms } from "./SetupForms";
+import { PackageConsent, PackagePicker } from "./PackagePicker";
+import { selectComposition } from "./packages/composition";
 import { useLibrary, type StoredPackage } from "./packages/library";
 import { requestPackage, transferPercent, usePackageSharing, useTransfers } from "./packages/share";
 import { requestApp, usePackageSandbox, useSandbox } from "./sandbox/runtime";
 import { keepSecret, localSecret, useLocalSecrets } from "./secrets/local";
+import type { PackageDiagnostic } from "./sandbox/protocol";
 import { useStore, type Mode } from "./store";
 import { moduleInfo } from "./systems";
 import { APP_BUILD } from "./version";
@@ -55,6 +61,25 @@ function Section({ title, open, children }: { title: string; open?: boolean; chi
   );
 }
 
+function CardImage({ image, label }: { image: CardFace; label: string }) {
+  const column = image.index % image.cols;
+  const row = Math.floor(image.index / image.cols);
+  return (
+    <div
+      className="card-image"
+      role="img"
+      aria-label={label}
+      style={{
+        backgroundImage: `url(${JSON.stringify(image.url)})`,
+        backgroundSize: `${image.cols * 100}% ${image.rows * 100}%`,
+        backgroundPosition: `${image.cols === 1 ? 0 : (column / (image.cols - 1)) * 100}% ${
+          image.rows === 1 ? 0 : (row / (image.rows - 1)) * 100
+        }%`,
+      }}
+    />
+  );
+}
+
 export function App() {
   usePackageSandbox();
   usePackageSharing();
@@ -63,28 +88,95 @@ export function App() {
   const app = useSandbox((s) => s.app);
   const sandboxStatus = useSandbox((s) => s.status);
   const sandboxError = useSandbox((s) => s.error);
+  const sandboxWarnings = useSandbox((s) => s.warnings);
+  const sandboxDiagnostics = useSandbox((s) => s.diagnostics);
   const transfers = useTransfers((s) => s.byHash);
   useLocalSecrets((s) => s.kept);
   useEffect(() => void useLibrary.getState().load(), []);
   const [name, setName] = useState("Player");
+  const [seat, setSeat] = useState("");
   const [startMode, setStartMode] = useState<Mode>("hotseat");
   const [startRole, setStartRole] = useState<"host" | "client" | "spectator">("host");
   const [room, setRoom] = useState(() => new URLSearchParams(location.search).get("room") ?? "room1");
   const [pkgHash, setPkgHash] = useState("");
+  const [extensionHashes, setExtensionHashes] = useState<string[]>([]);
+  const [selectedSystem, setSelectedSystem] = useState("");
+  const [starting, setStarting] = useState(false);
+  const cancelStart = useRef<() => void>(() => {});
+  useEffect(() => () => cancelStart.current(), []);
   const [json, setJson] = useState('{ "type": "log/note", "text": "hello" }');
   const [as, setAs] = useState("");
   const [problem, setProblem] = useState("");
   const [form, setForm] = useState<Record<string, string>>({});
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  const [cardViewers, setCardViewers] = useState<string[]>([]);
+  const [proposal, setProposal] = useState<{
+    macro: string;
+    args: NonNullable<Extract<Intent, { type: "macro/start" }>["args"]>;
+    sender: string;
+    label: string;
+    reason: string;
+    seq: number;
+    session: NonNullable<typeof session>;
+    system: typeof game.system;
+    actor: string | null;
+    selectedAs: string;
+  } | null>(null);
   const f = (k: string, d = "") => form[k] ?? d;
   const set = (k: string) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
 
   const systems = Object.values(library).filter((p) => p.manifest.kind === "system");
-  const pkg = library[pkgHash] ?? systems[0];
+  const candidate = library[pkgHash];
+  const pkg = candidate?.manifest.kind === "system" ? candidate : systems[0];
+  const system = pkg?.manifest.systems.includes(selectedSystem)
+    ? selectedSystem
+    : (pkg?.manifest.systems[0] ?? "");
+  let planned: StoredPackage[] = [];
+  let compositionError = "";
+  try {
+    if (!pkg) throw new Error("Load a game package before hosting.");
+    const extensions = extensionHashes.map((hash) => {
+      const extension = library[hash];
+      if (!extension) throw new Error(`Selected extension is no longer installed: ${hash}`);
+      return extension;
+    });
+    planned = selectComposition(Object.values(library), [pkg, ...extensions], system);
+  } catch (error) {
+    compositionError = error instanceof Error ? error.message : String(error);
+  }
+  const untrusted = planned.filter((p) => !p.trusted);
+  const warnings = [
+    ...new Map(
+      [...(sandboxWarnings ?? []), ...(app?.warnings ?? [])].map((warning) => [
+        JSON.stringify([warning.hash, warning.system, warning.kind, warning.id, warning.on, warning.message]),
+        warning,
+      ]),
+    ).values(),
+  ];
+  const diagnosticGroups = new Map<string, PackageDiagnostic[]>();
+  for (const diagnostic of [...sandboxDiagnostics, ...(app?.diagnostics ?? [])]) {
+    const key = JSON.stringify([diagnostic.hash, diagnostic.packageId]);
+    const group = diagnosticGroups.get(key) ?? [];
+    group.push(diagnostic);
+    diagnosticGroups.set(key, group);
+  }
   const players = Object.values(game.players);
   const active = players.find((p) => p.seat === game.pointer.seat);
   // Whose actions the module is asked about: the screen's player, or the chosen one in hotseat.
   const me = mode === "hotseat" ? as || active?.id || null : (session?.selfId ?? null);
   useEffect(() => requestApp(me), [me, record.events.length]);
+  const currentProposal =
+    proposal &&
+    proposal.seq === game.seq &&
+    proposal.session === session &&
+    proposal.system === game.system &&
+    proposal.actor === me &&
+    proposal.selectedAs === as &&
+    canStartAs(proposal.sender) &&
+    !game.macro
+      ? proposal
+      : null;
+  if (proposal && !currentProposal) setProposal(null);
 
   async function loadFile(file: File) {
     const lib = useLibrary.getState();
@@ -92,30 +184,117 @@ export function App() {
     const r = await lib.add(new Uint8Array(await file.arrayBuffer()), { own: true });
     if (!r.ok) return setProblem(String(r.error));
     lib.trust(r.pkg.hash, true);
-    setPkgHash(r.pkg.hash);
+    if (r.pkg.manifest.kind === "system") {
+      setPkgHash(r.pkg.hash);
+      setSelectedSystem("");
+      setExtensionHashes([]);
+    } else {
+      chooseExtension(r.pkg, true);
+    }
     setProblem("");
   }
 
+  function chooseExtension(extension: StoredPackage, enabled: boolean) {
+    setExtensionHashes((hashes) => [
+      ...hashes.filter(
+        (hash) => hash !== extension.hash && library[hash]?.manifest.id !== extension.manifest.id,
+      ),
+      ...(enabled ? [extension.hash] : []),
+    ]);
+  }
+
   function begin() {
-    const system = startRole === "host" ? pkg?.manifest.systems[0] : undefined;
-    start({
-      role: startRole,
-      mode: startMode,
-      roomId: startMode === "hotseat" ? undefined : room,
-      name,
-      ...(system ? { system } : {}),
-    });
-    if (startRole === "host" && pkg)
-      setTimeout(
-        () =>
-          useStore.getState().dispatch({
+    const selectedSeat = seat.trim() === "" ? undefined : Number(seat);
+    if (
+      startMode !== "hotseat" &&
+      startRole !== "spectator" &&
+      selectedSeat !== undefined &&
+      (!Number.isSafeInteger(selectedSeat) || selectedSeat < 0)
+    )
+      return setProblem("Seat must be a nonnegative safe integer, or blank for unseated.");
+    let refs: PackageRef[] = [];
+    if (startRole === "host") {
+      try {
+        if (!pkg) throw new Error("Load a game package before hosting.");
+        const currentLibrary = useLibrary.getState().packages;
+        const roots = [pkg.hash, ...extensionHashes].map((hash) => {
+          const root = currentLibrary[hash];
+          if (!root) throw new Error(`Selected package is no longer installed: ${hash}`);
+          return root;
+        });
+        const composition = selectComposition(Object.values(currentLibrary), roots, system);
+        const refused = composition.filter((p) => !p.trusted);
+        if (refused.length)
+          throw new Error(
+            `Consent is required for: ${refused.map((p) => `${p.manifest.name} (${p.hash})`).join(", ")}`,
+          );
+        refs = composition.map(refOf);
+      } catch (error) {
+        return setProblem(error instanceof Error ? error.message : String(error));
+      }
+    }
+    setProblem("");
+    cancelStart.current();
+    setStarting(true);
+    const previous = useStore.getState().session;
+    let captured: typeof session = null;
+    let timer: number | undefined;
+    const unsubscribe = useStore.subscribe((state) => {
+      if (captured) {
+        if (state.session !== captured) cancelStart.current();
+        return;
+      }
+      if (!state.session || state.session === previous) return;
+      captured = state.session;
+      setStarting(false);
+      if (startRole !== "host") {
+        unsubscribe();
+        return;
+      }
+      const hostSession = captured;
+      const capturedSystem = system;
+      const capturedRefs = refs;
+      timer = window.setTimeout(() => {
+        unsubscribe();
+        const current = useStore.getState();
+        if (
+          current.session !== hostSession ||
+          current.role !== "host" ||
+          current.game.system !== capturedSystem
+        )
+          return;
+        try {
+          current.dispatch({
             type: "game/packages",
             app: APP_BUILD,
-            system: pkg.manifest.systems[0]!,
-            packages: [refOf(pkg)],
-          }),
-        300,
-      );
+            system: capturedSystem,
+            packages: capturedRefs,
+          });
+        } catch (error) {
+          setProblem(error instanceof Error ? error.message : String(error));
+        }
+      }, 300);
+    });
+    cancelStart.current = () => {
+      unsubscribe();
+      clearTimeout(timer);
+      setStarting(false);
+    };
+    try {
+      start({
+        role: startRole,
+        mode: startMode,
+        roomId: startMode === "hotseat" ? undefined : room,
+        name,
+        ...(startMode !== "hotseat" && startRole !== "spectator" && selectedSeat !== undefined
+          ? { seat: selectedSeat }
+          : {}),
+        ...(startRole === "host" ? { system } : {}),
+      });
+    } catch (error) {
+      cancelStart.current();
+      setProblem(error instanceof Error ? error.message : String(error));
+    }
   }
 
   function send(intent: Intent, sender?: string) {
@@ -125,6 +304,101 @@ export function App() {
     } catch (e) {
       setProblem(e instanceof Error ? e.message : String(e));
     }
+  }
+
+  function canStartAs(sender?: string) {
+    const current = useStore.getState();
+    const from = sender ?? (as || me || current.session?.selfId);
+    return !!(
+      current.session &&
+      current.role !== "spectator" &&
+      (current.mode === "hotseat" || current.game.players[current.session.selfId]) &&
+      from &&
+      current.game.players[from] &&
+      (current.mode === "hotseat" || current.role === "host" || from === current.session.selfId)
+    );
+  }
+
+  function startAction(
+    macro: string,
+    args: NonNullable<Extract<Intent, { type: "macro/start" }>["args"]>,
+    label: string,
+    reason?: string,
+    sender?: string,
+  ) {
+    if (!session || game.macro || proposal || !canStartAs(sender)) return;
+    const current = useStore.getState();
+    if (
+      current.session !== session ||
+      current.game.seq !== game.seq ||
+      current.game.system !== game.system ||
+      current.game.macro
+    )
+      return;
+    const from = sender ?? (as || me || session.selfId);
+    if (reason === undefined) {
+      send({ type: "macro/start", macro, args }, from);
+      return;
+    }
+    setProposal({
+      macro,
+      args: structuredClone(args),
+      sender: from,
+      label,
+      reason,
+      seq: game.seq,
+      session,
+      system: game.system,
+      actor: me,
+      selectedAs: as,
+    });
+  }
+
+  function proceedAnyway() {
+    const pending = currentProposal;
+    setProposal(null);
+    if (!pending) return;
+    const current = useStore.getState();
+    const currentActor =
+      current.mode === "hotseat"
+        ? as ||
+          Object.values(current.game.players).find((p) => p.seat === current.game.pointer.seat)?.id ||
+          null
+        : (current.session?.selfId ?? null);
+    if (
+      pending.seq !== current.game.seq ||
+      pending.session !== current.session ||
+      pending.system !== current.game.system ||
+      pending.actor !== currentActor ||
+      pending.selectedAs !== as ||
+      !canStartAs(pending.sender) ||
+      current.game.macro
+    )
+      return;
+    send(
+      {
+        type: "macro/start",
+        macro: pending.macro,
+        args: pending.args,
+        force: true,
+        warning: pending.reason,
+      },
+      pending.sender,
+    );
+  }
+
+  function assignSeat(player: string) {
+    const key = `player-seat:${player}`;
+    const value = f(key, String(game.players[player]?.seat ?? "")).trim();
+    const assignment = value === "" ? null : Number(value);
+    if (assignment !== null && (!Number.isSafeInteger(assignment) || assignment < 0))
+      return setProblem("Seat must be a nonnegative safe integer, or blank for unseated.");
+    send({ type: "player/set", player, set: { seat: assignment } }, player);
+    setForm((current) => {
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
   }
 
   const refs: EntityRef[] = [
@@ -143,6 +417,25 @@ export function App() {
   const waiting = game.macro?.waiting;
   const info = moduleInfo(game.system);
   const events = record.events.slice(-150).reverse();
+  const collections = Object.values(game.cardCollections);
+  const selected = selectedCards.filter((id) => game.cards[id]);
+  const cardDestination = f("card-collection", collections[0]?.id ?? "");
+  const cardVisibility: CardVisibility =
+    f("card-visibility", "hidden") === "public"
+      ? "all"
+      : f("card-visibility", "hidden") === "private"
+        ? cardViewers
+        : [];
+  const cardFields = {
+    owner: f("card-owner") || null,
+    visibility: cardVisibility,
+    faceUp: f("card-faceup", "false") === "true",
+    ...(f("card-x") || f("card-y")
+      ? { position: { x: Number(f("card-x") || "NaN"), y: Number(f("card-y") || "NaN") } }
+      : {}),
+    ...(f("card-facing") ? { facing: Number(f("card-facing")) } : {}),
+  } satisfies CardFields;
+  const cardIndex = f("card-index") ? { index: Number(f("card-index")) } : {};
 
   return (
     <main>
@@ -174,18 +467,15 @@ export function App() {
             {startMode !== "hotseat" && (
               <input value={room} onChange={(e) => setRoom(e.target.value)} aria-label="Room" />
             )}
-            <select
-              value={pkg?.hash ?? ""}
-              onChange={(e) => setPkgHash(e.target.value)}
-              aria-label="Game package"
-            >
-              {systems.length === 0 && <option value="">(no game package loaded)</option>}
-              {systems.map((p) => (
-                <option key={p.hash} value={p.hash}>
-                  {p.manifest.name} {p.manifest.version}
-                </option>
-              ))}
-            </select>
+            <input
+              value={seat}
+              onChange={(e) => setSeat(e.target.value)}
+              aria-label="Seat"
+              placeholder="Seat (blank = unseated)"
+              inputMode="numeric"
+              disabled={startMode === "hotseat" || startRole === "spectator"}
+            />
+            {startMode === "hotseat" && <span className="muted">Hotseat preset: p1 seat 0, p2 seat 1.</span>}
             <label>
               Load a package…{" "}
               <input
@@ -194,7 +484,12 @@ export function App() {
                 onChange={(e) => e.target.files?.[0] && void loadFile(e.target.files[0])}
               />
             </label>
-            <button onClick={begin}>Start</button>
+            <button
+              disabled={starting || (startRole === "host" && (!!compositionError || !!untrusted.length))}
+              onClick={begin}
+            >
+              {starting ? "Starting…" : "Start"}
+            </button>
           </div>
         ) : (
           <div className="row">
@@ -205,11 +500,115 @@ export function App() {
               {net?.desync ? ` · DESYNC at ${net.desync.seq}` : " · in sync"}
             </span>
             <span className="muted">self {session.selfId}</span>
-            <button onClick={leave}>Leave</button>
+            <button
+              onClick={() => {
+                cancelStart.current();
+                leave();
+              }}
+            >
+              Leave
+            </button>
           </div>
+        )}
+        {!session && startRole === "host" && (
+          <PackagePicker
+            library={library}
+            pkg={pkg}
+            system={system}
+            extensionHashes={extensionHashes}
+            planned={planned}
+            error={
+              compositionError ||
+              (untrusted.length
+                ? `Consent required for ${untrusted.map((p) => p.manifest.name).join(", ")}.`
+                : "")
+            }
+            onGame={(hash) => {
+              setPkgHash(hash);
+              setSelectedSystem("");
+              setExtensionHashes([]);
+            }}
+            onSystem={(id) => {
+              setSelectedSystem(id);
+              setExtensionHashes([]);
+            }}
+            onExtension={chooseExtension}
+          />
         )}
         {problem && <p className="bad">{problem}</p>}
         {sandboxError && <p className="bad">{sandboxError}</p>}
+        {!!diagnosticGroups.size && (
+          <div className="package-diagnostics" role="status" data-testid="package-diagnostics">
+            <h2>Package errors</h2>
+            {[...diagnosticGroups.entries()].map(([key, diagnostics]) => (
+              <div key={key} className="package-diagnostic-group">
+                <h3>{diagnostics[0]!.packageId ?? "Unknown package"}</h3>
+                <p className="muted">
+                  SHA-256 <code>{diagnostics[0]!.hash}</code>
+                </p>
+                <ul>
+                  {diagnostics.map((diagnostic, index) => (
+                    <li key={index}>
+                      <strong>
+                        {diagnostic.phase} · {diagnostic.callback}
+                      </strong>
+                      {diagnostic.system && (
+                        <>
+                          {" "}
+                          · system <code>{diagnostic.system}</code>
+                        </>
+                      )}
+                      {diagnostic.symbol && (
+                        <>
+                          {" "}
+                          · symbol <code>{diagnostic.symbol}</code>
+                        </>
+                      )}
+                      {diagnostic.actor && (
+                        <>
+                          {" "}
+                          · actor <code>{diagnostic.actor}</code>
+                        </>
+                      )}
+                      <p className="bad">{diagnostic.message}</p>
+                      {diagnostic.source && (
+                        <p className="muted">
+                          Bundle <code>{diagnostic.source.url}</code> · line {diagnostic.source.line}, column{" "}
+                          {diagnostic.source.column}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+        {!!warnings.length && (
+          <div className="package-warnings" role="status">
+            <h2>Package namespace warnings</h2>
+            <ul>
+              {warnings.map((warning) => (
+                <li
+                  key={JSON.stringify([
+                    warning.hash,
+                    warning.system,
+                    warning.kind,
+                    warning.id,
+                    warning.on,
+                    warning.message,
+                  ])}
+                >
+                  {warning.message} · <code>{warning.packageId}</code> · {warning.system} · {warning.kind}{" "}
+                  {warning.on ? `${warning.on}/` : ""}
+                  {warning.id}
+                  <br />
+                  SHA-256 <code>{warning.hash}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
       {session && (
@@ -223,15 +622,18 @@ export function App() {
               {info ? ` · phases ${info.pointer.map((p) => p.id).join(", ")}` : ""}
             </p>
             <p className="muted">
-              Players: {players.map((p) => `${p.name} (seat ${p.seat})`).join(", ") || "none"} · units{" "}
-              {Object.keys(game.units).length} · models {Object.keys(game.models).length} · tokens{" "}
+              Players:{" "}
+              {players
+                .map((p) => `${p.name} (${p.seat === undefined ? "unseated" : `seat ${p.seat}`})`)
+                .join(", ") || "none"}{" "}
+              · units {Object.keys(game.units).length} · models {Object.keys(game.models).length} · tokens{" "}
               {Object.keys(game.tokens).length} · terrain {game.terrain.length} · mods {game.mods.length} ·
-              decks {game.decks?.length ?? 0}
+              cards {Object.keys(game.cards).length} · collections {collections.length}
             </p>
             <div className="row">
               {mode === "hotseat" && (
                 <select value={as} onChange={(e) => setAs(e.target.value)} aria-label="Send as">
-                  <option value="">as the active side</option>
+                  <option value="">as the active player</option>
                   {players.map((p) => (
                     <option key={p.id} value={p.id}>
                       as {p.name}
@@ -255,15 +657,53 @@ export function App() {
             </div>
           </section>
 
+          <Section title="Seating" open>
+            <p className="muted">
+              Seats are recorded identifiers, not alliances. Blank clears an assignment. Hosts may set any
+              participant's seat; other participants may set only their own.
+            </p>
+            {players.length === 0 && <p className="muted">No participants.</p>}
+            {players.map((player) => {
+              const canEdit = role === "host" || (role === "client" && player.id === session.selfId);
+              return (
+                <div className="row" key={player.id}>
+                  <span>
+                    {player.name} ({player.id}) ·{" "}
+                    {player.seat === undefined ? "unseated" : `seat ${player.seat}`}
+                  </span>
+                  <input
+                    aria-label={`Seat for ${player.id}`}
+                    inputMode="numeric"
+                    placeholder="unseated"
+                    value={f(`player-seat:${player.id}`, String(player.seat ?? ""))}
+                    onChange={set(`player-seat:${player.id}`)}
+                    disabled={!canEdit}
+                  />
+                  <button onClick={() => assignSeat(player.id)} disabled={!canEdit}>
+                    Set seat
+                  </button>
+                </div>
+              );
+            })}
+          </Section>
+
           {waiting && game.macro && (
             <section>
               <h2>
                 A macro is waiting: {game.macro.macro} (run {game.macro.startSeq}, answers from{" "}
                 {waiting.player})
               </h2>
-              <p>{waiting.question}</p>
+              <p>{me === waiting.player ? waiting.question : "Waiting for the answering player."}</p>
               <div className="row">
-                {waiting.reveal !== undefined ? (
+                {me !== waiting.player ? (
+                  <span className="muted">The answering player's choices are hidden from this view.</span>
+                ) : "input" in waiting ? (
+                  <MacroInput
+                    key={`${game.macro.startSeq}:${game.macro.results.length}:${game.macro.waitingCommand ?? ""}`}
+                    input={waiting.input}
+                    onAnswer={(answer) => send({ type: "macro/answer", answer }, waiting.player)}
+                  />
+                ) : waiting.reveal !== undefined ? (
                   <button
                     onClick={() => {
                       const entry = game.secrets?.[waiting.player]?.[waiting.reveal!];
@@ -302,6 +742,27 @@ export function App() {
             </section>
           )}
 
+          <SetupForms
+            forms={app?.player === me ? app.setup : []}
+            error={app?.player === me ? app.setupError : undefined}
+            actor={me}
+            session={session}
+            system={game.system}
+            events={record.events}
+            disabled={
+              !!game.macro ||
+              !!currentProposal ||
+              !me ||
+              !canStartAs(me ?? undefined) ||
+              app?.player !== me ||
+              app.seq !== game.seq
+            }
+            onSubmit={(spec, data) => {
+              if (!me || app?.player !== me || app.seq !== game.seq) return;
+              startAction(spec.macro, { ...spec.args, form: spec.id, data }, spec.title, spec.warning, me);
+            }}
+          />
+
           <Section
             title={`The module's actions for ${me ?? "nobody"}${app?.panel ? ` · panel: ${app.panel.title}` : ""}`}
             open
@@ -312,11 +773,9 @@ export function App() {
                 {(app.panel.buttons ?? []).map((b) => (
                   <button
                     key={b.label}
-                    disabled={!!b.disabled}
-                    title={b.disabled}
-                    onClick={() =>
-                      send({ type: "macro/start", macro: b.macro, args: b.args ?? {} }, b.player)
-                    }
+                    disabled={!!game.macro || !!currentProposal || !canStartAs(b.player)}
+                    title={b.warning}
+                    onClick={() => startAction(b.macro, b.args ?? {}, b.label, b.warning, b.player)}
                   >
                     {b.label}
                   </button>
@@ -333,46 +792,334 @@ export function App() {
                     <td>{a.name}</td>
                     <td className="muted">{a.unitId ?? "player"}</td>
                     <td>
-                      {a.available === true ? (
-                        a.targeted ? (
-                          a.targets.map((t) => (
+                      {a.error !== undefined ? (
+                        <span className="bad" data-testid="action-error">
+                          Package error: {a.error}
+                        </span>
+                      ) : (
+                        <>
+                          {typeof a.available === "string" && (
+                            <p className="advisory-warning" data-testid="action-warning">
+                              {a.available}
+                            </p>
+                          )}
+                          {a.targeted ? (
+                            a.targets.map((t) => (
+                              <button
+                                key={t.unitId}
+                                disabled={!!game.macro || !!currentProposal || !canStartAs()}
+                                onClick={() =>
+                                  startAction(
+                                    a.id,
+                                    {
+                                      ...(a.unitId ? { unit: a.unitId } : {}),
+                                      ...(t.unitId ? { target: t.unitId } : {}),
+                                    },
+                                    `${a.name}${a.unitId ? ` · unit ${a.unitId}` : ""} · target ${t.label}${t.unitId ? ` (${t.unitId})` : ""}`,
+                                    typeof a.available === "string" ? a.available : undefined,
+                                  )
+                                }
+                              >
+                                {t.label}
+                              </button>
+                            ))
+                          ) : (
                             <button
-                              key={t.unitId}
+                              disabled={!!game.macro || !!currentProposal || !canStartAs()}
                               onClick={() =>
-                                send({
-                                  type: "macro/start",
-                                  macro: a.id,
-                                  args: {
-                                    ...(a.unitId ? { unit: a.unitId } : {}),
-                                    ...(t.unitId ? { target: t.unitId } : {}),
-                                  },
-                                })
+                                startAction(
+                                  a.id,
+                                  a.unitId ? { unit: a.unitId } : {},
+                                  `${a.name}${a.unitId ? ` · unit ${a.unitId}` : ""}`,
+                                  typeof a.available === "string" ? a.available : undefined,
+                                )
                               }
                             >
-                              {t.label}
+                              Start
                             </button>
-                          ))
-                        ) : (
-                          <button
-                            onClick={() =>
-                              send({
-                                type: "macro/start",
-                                macro: a.id,
-                                args: a.unitId ? { unit: a.unitId } : {},
-                              })
-                            }
-                          >
-                            Start
-                          </button>
-                        )
-                      ) : (
-                        <span className="muted">{a.available}</span>
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {currentProposal && (
+              <div
+                className="advisory-confirmation"
+                role="dialog"
+                aria-labelledby="advisory-title"
+                aria-describedby="advisory-reason"
+                data-testid="advisory-confirmation"
+              >
+                <h2 id="advisory-title">Rule warning</h2>
+                <p data-testid="advisory-selection">{currentProposal.label}</p>
+                <p className="muted">
+                  Player: {currentProposal.sender} · macro: {currentProposal.macro}
+                </p>
+                <pre data-testid="advisory-args">{JSON.stringify(currentProposal.args, null, 2)}</pre>
+                <p id="advisory-reason" className="advisory-warning">
+                  {currentProposal.reason}
+                </p>
+                <div className="row">
+                  <button onClick={proceedAnyway}>Proceed anyway</button>
+                  <button onClick={() => setProposal(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
+          </Section>
+
+          <Section title="Cards" open>
+            <p className="muted">
+              Trusted-tabletop visibility: this view hides unauthorized names and faces, but all card
+              identities and order are in the replicated record. The raw debug inspectors below expose them.
+              This is not cryptographic confidentiality or shuffle fairness.
+            </p>
+            <p>
+              Viewing as {players.find((p) => p.id === me)?.name ?? "nobody"} · top is index 0. Selection
+              order is batch move order; moves do not change card fields.
+            </p>
+            {!collections.length && <p className="muted">No card collections.</p>}
+            {collections.map((collection) => (
+              <div className="card-collection" key={collection.id}>
+                <div className="row">
+                  <strong>{collection.name}</strong>
+                  <span className="muted">
+                    {collection.id} · {collection.cards.length} cards
+                  </span>
+                  <button onClick={() => send({ type: "collection/shuffle", collection: collection.id })}>
+                    Shuffle
+                  </button>
+                  <button
+                    disabled={collection.cards.length !== 0}
+                    onClick={() => send({ type: "collection/remove", id: collection.id })}
+                  >
+                    Remove empty collection
+                  </button>
+                </div>
+                <div className="card-list">
+                  {cardsIn(game, collection.id, me).map((card, index) => {
+                    const image = card.visible ? card.face : card.back;
+                    return (
+                      <label className="debug-card" key={card.id}>
+                        <span>
+                          <input
+                            type="checkbox"
+                            checked={selected.includes(card.id)}
+                            onChange={(e) =>
+                              setSelectedCards(
+                                e.target.checked
+                                  ? [...selected, card.id]
+                                  : selected.filter((id) => id !== card.id),
+                              )
+                            }
+                          />{" "}
+                          {index} · {card.visible ? card.name : "Hidden card"}
+                        </span>
+                        {image && (
+                          <CardImage
+                            image={image}
+                            label={card.visible ? (card.name ?? "Card face") : "Card back"}
+                          />
+                        )}
+                        <small className="muted">
+                          {card.id} · {card.faceUp ? "face up" : "face down"} · owner{" "}
+                          {card.owner
+                            ? (players.find((p) => p.id === card.owner)?.name ?? card.owner)
+                            : "none"}
+                          {" · "}position {card.position ? `${card.position.x}, ${card.position.y}` : "unset"}
+                          {" · "}facing {card.facing ?? "unset"}
+                        </small>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <div className="card-controls">
+              <div className="row">
+                <strong>Collection</strong>
+                <input
+                  value={f("collection-id")}
+                  onChange={set("collection-id")}
+                  placeholder="ID (auto if blank)"
+                  aria-label="New collection ID"
+                />
+                <input
+                  value={f("collection-name", "Collection")}
+                  onChange={set("collection-name")}
+                  aria-label="New collection name"
+                />
+                <button
+                  onClick={() =>
+                    send({
+                      type: "collection/add",
+                      collection: {
+                        id: f("collection-id") || `collection-${short()}`,
+                        name: f("collection-name", "Collection"),
+                        cards: [],
+                      },
+                    })
+                  }
+                >
+                  Create collection
+                </button>
+              </div>
+              <div className="row">
+                <strong>Destination</strong>
+                <select
+                  value={cardDestination}
+                  onChange={set("card-collection")}
+                  aria-label="Card destination"
+                >
+                  {!collections.length && <option value="">(no collection)</option>}
+                  {collections.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} ({c.id})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  size={6}
+                  value={f("card-index")}
+                  onChange={set("card-index")}
+                  placeholder="end"
+                  aria-label="Card insertion index (after removals)"
+                />
+                <button
+                  disabled={!selected.length || !cardDestination}
+                  onClick={() =>
+                    send({
+                      type: "cards/move",
+                      cards: selected,
+                      to: cardDestination,
+                      ...cardIndex,
+                    })
+                  }
+                >
+                  Move selected ({selected.length})
+                </button>
+                <button
+                  disabled={!selected.length}
+                  onClick={() => send({ type: "cards/remove", cards: selected })}
+                >
+                  Remove selected
+                </button>
+                <button disabled={!selected.length} onClick={() => setSelectedCards([])}>
+                  Clear selection
+                </button>
+              </div>
+              <div className="row">
+                <strong>Card fields</strong>
+                <select
+                  value={f("card-visibility", "hidden")}
+                  onChange={set("card-visibility")}
+                  aria-label="Card visibility"
+                >
+                  <option value="hidden">Hidden (no viewers)</option>
+                  <option value="public">Public (everyone)</option>
+                  <option value="private">Private (chosen viewers)</option>
+                </select>
+                {f("card-visibility", "hidden") === "private" &&
+                  players.map((p) => (
+                    <label key={p.id}>
+                      <input
+                        type="checkbox"
+                        checked={cardViewers.includes(p.id)}
+                        onChange={(e) =>
+                          setCardViewers(
+                            e.target.checked
+                              ? [...cardViewers, p.id]
+                              : cardViewers.filter((id) => id !== p.id),
+                          )
+                        }
+                      />{" "}
+                      {p.name}
+                    </label>
+                  ))}
+                <select value={f("card-owner")} onChange={set("card-owner")} aria-label="Card owner">
+                  <option value="">No owner</option>
+                  {players.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={f("card-faceup", "false")}
+                  onChange={set("card-faceup")}
+                  aria-label="Card orientation"
+                >
+                  <option value="false">Face down</option>
+                  <option value="true">Face up</option>
+                </select>
+                <input
+                  size={4}
+                  value={f("card-x")}
+                  onChange={set("card-x")}
+                  placeholder="x"
+                  aria-label="Card x (supply both coordinates)"
+                />
+                <input
+                  size={4}
+                  value={f("card-y")}
+                  onChange={set("card-y")}
+                  placeholder="y"
+                  aria-label="Card y (supply both coordinates)"
+                />
+                <input
+                  size={7}
+                  value={f("card-facing")}
+                  onChange={set("card-facing")}
+                  placeholder="facing"
+                  aria-label="Card facing (blank leaves unchanged)"
+                />
+                <button
+                  disabled={!selected.length}
+                  onClick={() => {
+                    for (const card of selected) send({ type: "card/set", card, set: cardFields });
+                  }}
+                >
+                  Update selected
+                </button>
+              </div>
+              <p className="muted">
+                Owner and face-up state do not grant visibility. Fields above apply to additions and updates;
+                supply both position coordinates, or leave both blank to keep position.
+              </p>
+              <div className="row">
+                <strong>Add card</strong>
+                <input
+                  value={f("card-id")}
+                  onChange={set("card-id")}
+                  placeholder="ID (auto if blank)"
+                  aria-label="New card ID"
+                />
+                <input
+                  value={f("card-name", "New card")}
+                  onChange={set("card-name")}
+                  aria-label="New card name"
+                />
+                <button
+                  disabled={!cardDestination}
+                  onClick={() =>
+                    send({
+                      type: "card/add",
+                      collection: cardDestination,
+                      ...cardIndex,
+                      card: {
+                        id: f("card-id") || `card-${short()}`,
+                        name: f("card-name", "New card"),
+                        ...cardFields,
+                      },
+                    })
+                  }
+                >
+                  Add card
+                </button>
+              </div>
+            </div>
           </Section>
 
           <Section title="Primitive intents">
@@ -700,13 +1447,11 @@ export function App() {
                         : "missing"}
                   </span>
                   {!have && (
-                    <button onClick={() => requestPackage(p.hash, { trust: true })}>
+                    <button onClick={() => requestPackage(p.hash, { trust: false })}>
                       Ask the room for it
                     </button>
                   )}
-                  {have && !library[p.hash]!.trusted && (
-                    <button onClick={() => useLibrary.getState().trust(p.hash, true)}>Trust</button>
-                  )}
+                  {have && <PackageConsent pkg={library[p.hash]!} />}
                 </div>
               );
             })}
@@ -756,7 +1501,10 @@ export function App() {
             )}
           </Section>
 
-          <Section title={`Event log (newest first, ${record.events.length} total)`} open>
+          <Section
+            title={`Raw debug event log (newest first, ${record.events.length} total; exposes hidden cards)`}
+            open
+          >
             <table>
               <tbody>
                 {events.map((e) => (
@@ -772,7 +1520,7 @@ export function App() {
             </table>
           </Section>
 
-          <Section title="State and network">
+          <Section title="Raw debug state and network (exposes hidden cards)">
             <pre>{JSON.stringify(game, null, 1)}</pre>
             <pre>{JSON.stringify(net, null, 1)}</pre>
           </Section>

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "urn:open-battle:schema:peer-message@3",
-  "title": "Open Battle peer-message v3",
+  "$id": "urn:open-battle:schema:peer-message@11",
+  "title": "Open Battle peer-message v11",
   "$ref": "#/definitions/NetMessage",
   "definitions": {
     "NetMessage": {
@@ -268,6 +268,12 @@
                 },
                 "ready": {
                   "type": "boolean"
+                },
+                "seat": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 }
               }
             }
@@ -319,55 +325,6 @@
             "app",
             "system",
             "packages"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "settings/set"
-            },
-            "settings": {
-              "type": "object",
-              "properties": {
-                "modelsBlock": {
-                  "type": "boolean"
-                },
-                "blockers": {
-                  "type": "object",
-                  "properties": {
-                    "enemiesOnly": {
-                      "type": "boolean"
-                    },
-                    "tall": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "los": {
-                  "type": "string",
-                  "enum": [
-                    "true",
-                    "heights",
-                    "footprint"
-                  ]
-                },
-                "visionArc": {
-                  "type": "number"
-                },
-                "teamSize": {
-                  "type": "number"
-                }
-              }
-            }
-          },
-          "required": [
-            "type",
-            "settings"
           ]
         },
         {
@@ -929,19 +886,15 @@
           "properties": {
             "type": {
               "type": "string",
-              "const": "deck/discard"
+              "const": "collection/add"
             },
-            "deck": {
-              "type": "string"
-            },
-            "key": {
-              "type": "string"
+            "collection": {
+              "$ref": "#/definitions/CardCollection"
             }
           },
           "required": [
             "type",
-            "deck",
-            "key"
+            "collection"
           ]
         },
         {
@@ -949,23 +902,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "const": "deck/shuffle"
-            },
-            "deck": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "deck"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "deck/remove"
+              "const": "collection/remove"
             },
             "id": {
               "type": "string"
@@ -974,6 +911,110 @@
           "required": [
             "type",
             "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/add"
+            },
+            "card": {
+              "$ref": "#/definitions/Card"
+            },
+            "collection": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "collection"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/remove"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "cards"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/move"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "to": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "cards",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/set"
+            },
+            "card": {
+              "type": "string"
+            },
+            "set": {
+              "$ref": "#/definitions/CardFields"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "set"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "collection/shuffle"
+            },
+            "collection": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "collection"
           ]
         },
         {
@@ -990,80 +1031,6 @@
           "required": [
             "type",
             "text"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "ranked/card"
-            },
-            "key": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/PlayerKey"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [
-            "type",
-            "key"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/commit"
-            },
-            "hash": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "hash"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/seed"
-            },
-            "seed": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "seed"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/reveal"
-            },
-            "seed": {
-              "type": "string"
-            },
-            "next": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "seed"
           ]
         },
         {
@@ -1111,16 +1078,19 @@
               "type": "string"
             },
             "args": {
-              "type": "object",
-              "additionalProperties": {
-                "$ref": "#/definitions/Json"
-              }
+              "$ref": "#/definitions/Args"
             },
             "cause": {
               "type": "number"
             },
+            "reaction": {
+              "type": "string"
+            },
             "force": {
               "type": "boolean"
+            },
+            "warning": {
+              "type": "string"
             }
           },
           "required": [
@@ -1136,7 +1106,7 @@
               "const": "macro/answer"
             },
             "answer": {
-              "type": "string"
+              "$ref": "#/definitions/Json"
             }
           },
           "required": [
@@ -1275,10 +1245,16 @@
             "$ref": "#/definitions/Zone"
           }
         },
-        "decks": {
+        "cards": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/CardDeck"
+            "$ref": "#/definitions/Card"
+          }
+        },
+        "cardCollections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CardCollection"
           }
         }
       },
@@ -1333,28 +1309,19 @@
             "$ref": "#/definitions/TerrainSolid"
           }
         },
-        "losHeight": {
-          "type": "number"
-        },
-        "sight": {
-          "type": "string",
-          "enum": [
-            "true",
-            "heights"
-          ]
-        },
-        "visibility": {
-          "type": "string",
-          "enum": [
-            "open",
-            "obscuring",
-            "blocking"
-          ]
-        },
         "hull": {
           "type": "array",
           "items": {
             "type": "number"
+          }
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         }
       },
@@ -1446,6 +1413,34 @@
         "z": {
           "type": "number"
         },
+        "base": {
+          "$ref": "#/definitions/BaseShape"
+        },
+        "height": {
+          "type": "number"
+        },
+        "bands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "r": {
+                "type": "number"
+              },
+              "z0": {
+                "type": "number"
+              },
+              "z1": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "r",
+              "z0",
+              "z1"
+            ]
+          }
+        },
         "label": {
           "type": "string"
         },
@@ -1468,6 +1463,66 @@
     "TokenId": {
       "type": "string"
     },
+    "BaseShape": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "round"
+            },
+            "diameterMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "diameterMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "oval"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "rect"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        }
+      ]
+    },
     "Zone": {
       "type": "object",
       "properties": {
@@ -1486,7 +1541,85 @@
         "points"
       ]
     },
-    "CardDeck": {
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "face": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "back": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visibility": {
+          "$ref": "#/definitions/CardVisibility"
+        },
+        "faceUp": {
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "visibility",
+        "faceUp"
+      ]
+    },
+    "CardFace": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "cols": {
+          "type": "number"
+        },
+        "rows": {
+          "type": "number"
+        },
+        "index": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "url",
+        "cols",
+        "rows",
+        "index"
+      ]
+    },
+    "CardVisibility": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "all"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "CardCollection": {
       "type": "object",
       "properties": {
         "id": {
@@ -1498,69 +1631,7 @@
         "cards": {
           "type": "array",
           "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "face": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "cols": {
-                    "type": "number"
-                  },
-                  "rows": {
-                    "type": "number"
-                  },
-                  "index": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "url",
-                  "cols",
-                  "rows",
-                  "index"
-                ]
-              },
-              "back": {
-                "type": "object",
-                "properties": {
-                  "url": {
-                    "type": "string"
-                  },
-                  "cols": {
-                    "type": "number"
-                  },
-                  "rows": {
-                    "type": "number"
-                  },
-                  "index": {
-                    "type": "number"
-                  }
-                },
-                "required": [
-                  "url",
-                  "cols",
-                  "rows",
-                  "index"
-                ]
-              },
-              "sideways": {
-                "type": "boolean"
-              }
-            },
-            "required": [
-              "id",
-              "name",
-              "face"
-            ]
+            "type": "string"
           }
         }
       },
@@ -1685,66 +1756,6 @@
         "base"
       ]
     },
-    "BaseShape": {
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "shape": {
-              "type": "string",
-              "const": "round"
-            },
-            "diameterMm": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "shape",
-            "diameterMm"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "shape": {
-              "type": "string",
-              "const": "oval"
-            },
-            "widthMm": {
-              "type": "number"
-            },
-            "depthMm": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "shape",
-            "widthMm",
-            "depthMm"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "shape": {
-              "type": "string",
-              "const": "rect"
-            },
-            "widthMm": {
-              "type": "number"
-            },
-            "depthMm": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "shape",
-            "widthMm",
-            "depthMm"
-          ]
-        }
-      ]
-    },
     "EntityRef": {
       "type": "object",
       "properties": {
@@ -1794,8 +1805,71 @@
         "$ref": "#/definitions/Json"
       }
     },
-    "PlayerKey": {
-      "type": "string"
+    "CardFields": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "face": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "back": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visibility": {
+          "$ref": "#/definitions/CardVisibility"
+        },
+        "faceUp": {
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        }
+      }
+    },
+    "Args": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/ReadonlyJson"
+      }
+    },
+    "ReadonlyJson": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReadonlyJson"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ReadonlyJson"
+          }
+        }
+      ]
     },
     "LoggedEvent": {
       "type": "object",
@@ -1815,11 +1889,11 @@
         "host": {
           "$ref": "#/definitions/PlayerId"
         },
-        "intent": {
-          "$ref": "#/definitions/Intent"
-        },
-        "seed": {
-          "type": "number"
+        "reactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Reaction"
+          }
         }
       },
       "required": [
@@ -1888,6 +1962,12 @@
                 },
                 "ready": {
                   "type": "boolean"
+                },
+                "seat": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
                 }
               }
             }
@@ -1939,55 +2019,6 @@
             "packages",
             "system",
             "type"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "settings/set"
-            },
-            "settings": {
-              "type": "object",
-              "properties": {
-                "modelsBlock": {
-                  "type": "boolean"
-                },
-                "blockers": {
-                  "type": "object",
-                  "properties": {
-                    "enemiesOnly": {
-                      "type": "boolean"
-                    },
-                    "tall": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    }
-                  }
-                },
-                "los": {
-                  "type": "string",
-                  "enum": [
-                    "true",
-                    "heights",
-                    "footprint"
-                  ]
-                },
-                "visionArc": {
-                  "type": "number"
-                },
-                "teamSize": {
-                  "type": "number"
-                }
-              }
-            }
-          },
-          "required": [
-            "type",
-            "settings"
           ]
         },
         {
@@ -2492,23 +2523,15 @@
           "properties": {
             "type": {
               "type": "string",
-              "const": "deck/discard"
+              "const": "collection/add"
             },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "deck": {
-              "type": "string"
-            },
-            "key": {
-              "type": "string"
+            "collection": {
+              "$ref": "#/definitions/CardCollection"
             }
           },
           "required": [
             "type",
-            "player",
-            "deck",
-            "key"
+            "collection"
           ]
         },
         {
@@ -2516,27 +2539,7 @@
           "properties": {
             "type": {
               "type": "string",
-              "const": "deck/shuffle"
-            },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "deck": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "player",
-            "deck"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "deck/remove"
+              "const": "collection/remove"
             },
             "id": {
               "type": "string"
@@ -2548,100 +2551,121 @@
           ]
         },
         {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/add"
+            },
+            "card": {
+              "$ref": "#/definitions/Card"
+            },
+            "collection": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "collection"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/remove"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "cards"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/move"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "to": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "cards",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/set"
+            },
+            "card": {
+              "type": "string"
+            },
+            "set": {
+              "$ref": "#/definitions/CardFields"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "set"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "collection/shuffle"
+            },
+            "collection": {
+              "type": "string"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "collection",
+            "order"
+          ]
+        },
+        {
           "$ref": "#/definitions/LogNote"
         },
         {
           "$ref": "#/definitions/ModuleSet"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "ranked/card"
-            },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "key": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/PlayerKey"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          },
-          "required": [
-            "type",
-            "player",
-            "key"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/commit"
-            },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "hash": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "player",
-            "hash"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/seed"
-            },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "seed": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "player",
-            "seed"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "type": {
-              "type": "string",
-              "const": "dice/reveal"
-            },
-            "player": {
-              "$ref": "#/definitions/PlayerId"
-            },
-            "seed": {
-              "type": "string"
-            },
-            "next": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "type",
-            "player",
-            "seed"
-          ]
         },
         {
           "type": "object",
@@ -2867,6 +2891,9 @@
         "macro": {
           "type": "string"
         },
+        "namespace": {
+          "type": "string"
+        },
         "by": {
           "$ref": "#/definitions/PlayerId"
         },
@@ -2882,6 +2909,32 @@
         },
         "cause": {
           "type": "number"
+        },
+        "reaction": {
+          "type": "string"
+        },
+        "answered": {
+          "type": "object",
+          "properties": {
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "command": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/definitions/Json"
+            },
+            "head": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "player",
+            "command",
+            "value",
+            "head"
+          ]
         },
         "events": {
           "type": "array",
@@ -2906,22 +2959,20 @@
       "required": [
         "type",
         "macro",
+        "namespace",
         "by",
         "run",
         "events",
         "script"
       ]
     },
-    "Args": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/Json"
-      }
-    },
     "MacroState": {
       "type": "object",
       "properties": {
         "system": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         },
         "macro": {
@@ -2939,6 +2990,15 @@
         "cause": {
           "type": "number"
         },
+        "reaction": {
+          "type": "string"
+        },
+        "identities": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PlayerId"
+          }
+        },
         "results": {
           "type": "array",
           "items": {
@@ -2952,6 +3012,15 @@
               },
               "head": {
                 "type": "number"
+              },
+              "recipient": {
+                "$ref": "#/definitions/PlayerId"
+              },
+              "identities": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/PlayerId"
+                }
               }
             },
             "required": [
@@ -2960,53 +3029,330 @@
           }
         },
         "waiting": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "$ref": "#/definitions/InputSpec"
+                },
+                "player": {
+                  "$ref": "#/definitions/PlayerId"
+                },
+                "question": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "input",
+                "player",
+                "question"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label"
+                    ]
+                  }
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "reveal": {
+                  "type": "string"
+                },
+                "player": {
+                  "$ref": "#/definitions/PlayerId"
+                },
+                "question": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "options",
+                "player",
+                "question"
+              ]
+            }
+          ]
+        },
+        "waitingCommand": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "system",
+        "namespace",
+        "macro",
+        "args",
+        "by",
+        "startSeq",
+        "results"
+      ]
+    },
+    "InputSpec": {
+      "anyOf": [
+        {
           "type": "object",
           "properties": {
-            "player": {
-              "$ref": "#/definitions/PlayerId"
+            "kind": {
+              "type": "string",
+              "const": "choice"
             },
-            "question": {
-              "type": "string"
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/InputOption"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string",
+              "const": "multiChoice"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/InputOption"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "number"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "integer": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "text"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "multiline": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string",
+              "const": "reference"
             },
             "options": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "id": {
-                    "type": "string"
+                  "ref": {
+                    "$ref": "#/definitions/InputRef"
                   },
                   "label": {
                     "type": "string"
                   }
                 },
                 "required": [
-                  "id",
+                  "ref",
                   "label"
                 ]
               }
             },
-            "secret": {
-              "type": "string"
-            },
-            "reveal": {
-              "type": "string"
+            "multiple": {
+              "type": "boolean"
             }
           },
           "required": [
-            "player",
-            "question",
+            "kind",
             "options"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "point"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "pose"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "path"
+            },
+            "minPoints": {
+              "type": "number"
+            },
+            "maxPoints": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "InputOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
         }
       },
       "required": [
+        "id",
+        "label"
+      ]
+    },
+    "InputRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "unit",
+            "model",
+            "token",
+            "card",
+            "terrain"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ]
+    },
+    "Reaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "macro": {
+          "type": "string"
+        },
+        "args": {
+          "$ref": "#/definitions/Args"
+        },
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "cause": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
         "system",
         "macro",
         "args",
         "by",
-        "startSeq",
-        "results"
+        "cause",
+        "depth"
       ]
     },
     "Check": {
@@ -3029,7 +3375,7 @@
       "properties": {
         "format": {
           "type": "string",
-          "const": "open-battle/record@2"
+          "const": "open-battle/record@9"
         },
         "initial": {
           "$ref": "#/definitions/GameState"
@@ -3129,32 +3475,20 @@
         "secrets": {
           "$ref": "#/definitions/Secrets"
         },
-        "decks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/CardDeck"
-          }
-        },
-        "cardPiles": {
+        "cards": {
           "type": "object",
           "additionalProperties": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/definitions/CardPile"
-            }
+            "$ref": "#/definitions/Card"
+          }
+        },
+        "cardCollections": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/CardCollection"
           }
         },
         "branch": {
           "$ref": "#/definitions/BranchInfo"
-        },
-        "ranked": {
-          "$ref": "#/definitions/RankedState"
-        },
-        "sharedDice": {
-          "$ref": "#/definitions/SharedDice"
-        },
-        "settings": {
-          "$ref": "#/definitions/GameSettings"
         }
       },
       "required": [
@@ -3168,7 +3502,8 @@
         "zones",
         "pointer",
         "mods",
-        "settings"
+        "cards",
+        "cardCollections"
       ]
     },
     "GamePackages": {
@@ -3220,110 +3555,6 @@
       },
       "required": [
         "commitment"
-      ]
-    },
-    "CardPile": {
-      "type": "object",
-      "properties": {
-        "discarded": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "returned": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "discarded",
-        "returned"
-      ]
-    },
-    "RankedState": {
-      "type": "object",
-      "properties": {
-        "keys": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/PlayerKey"
-          }
-        }
-      },
-      "required": [
-        "keys"
-      ]
-    },
-    "SharedDice": {
-      "type": "object",
-      "properties": {
-        "by": {
-          "$ref": "#/definitions/PlayerId"
-        },
-        "commit": {
-          "type": "string"
-        },
-        "seeds": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "round": {
-          "type": "number"
-        },
-        "from": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "by",
-        "commit",
-        "seeds",
-        "round",
-        "from"
-      ]
-    },
-    "GameSettings": {
-      "type": "object",
-      "properties": {
-        "modelsBlock": {
-          "type": "boolean"
-        },
-        "blockers": {
-          "type": "object",
-          "properties": {
-            "enemiesOnly": {
-              "type": "boolean"
-            },
-            "tall": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "los": {
-          "type": "string",
-          "enum": [
-            "true",
-            "heights",
-            "footprint"
-          ]
-        },
-        "visionArc": {
-          "type": "number"
-        },
-        "teamSize": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "modelsBlock"
       ]
     },
     "SideMessage": {

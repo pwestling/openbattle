@@ -4,6 +4,16 @@
  * run. The manifest is the `export const manifest = { ... }` literal at the top
  * of the bundle (see the game modules spec), parsed as data.
  */
+/** An intentional replacement of a symbol supplied by a declared dependency. */
+export interface PackageOverride {
+  system: string;
+  kind: "action" | "macro" | "quantity" | "phase" | "panel" | "setup";
+  id: string;
+  from: string;
+  /** Required for a quantity: stats on different entity kinds are different symbols. */
+  on?: "player" | "unit" | "model" | "token";
+}
+
 export interface Manifest {
   id: string;
   name: string;
@@ -14,6 +24,7 @@ export interface Manifest {
   kind: "system" | "extension";
   systems: string[];
   requires: { id: string; hash?: string }[];
+  overrides?: PackageOverride[];
   adds?: string;
   changelog?: string;
 }
@@ -46,21 +57,73 @@ function check(v: unknown): ManifestResult {
     !id && "id",
     !name && "name",
     !version && "version",
-    typeof o.api !== "number" && "api",
+    (!Number.isSafeInteger(o.api) || (o.api as number) < 1) && "api",
     !["system", "extension"].includes(o.kind as string) && "kind",
-    !(Array.isArray(o.systems) && o.systems.every((x) => typeof x === "string")) && "systems",
+    !(
+      Array.isArray(o.systems) &&
+      o.systems.length &&
+      o.systems.every((x) => typeof x === "string" && x.trim())
+    ) && "systems",
   ].filter(Boolean);
   if (missing.length) return { error: `The manifest is missing ${missing.join(", ")}.` };
-  const requires = Array.isArray(o.requires)
-    ? o.requires.flatMap((r) => {
-        if (typeof r === "string") return [{ id: r }];
-        if (r && typeof r === "object" && typeof (r as { id?: unknown }).id === "string") {
-          const { id: rid, hash } = r as { id: string; hash?: unknown };
-          return [typeof hash === "string" ? { id: rid, hash } : { id: rid }];
-        }
-        return [];
-      })
-    : [];
+  if (!/^[A-Za-z0-9_.:-]{1,64}$/.test(id!) || ["__proto__", "constructor", "prototype"].includes(id!))
+    return { error: "Package id must be a safe module-state namespace (1–64 letters, digits, _, ., :, -)." };
+  if (o.requires !== undefined && !Array.isArray(o.requires))
+    return { error: "Manifest requires must be an array of { id, hash? } dependencies." };
+  const requires: Manifest["requires"] = [];
+  for (const r of (o.requires ?? []) as unknown[]) {
+    if (!r || typeof r !== "object" || Array.isArray(r))
+      return { error: "Each manifest dependency must be { id, hash? }." };
+    const dependency = r as Record<string, unknown>;
+    if (
+      typeof dependency.id !== "string" ||
+      !dependency.id.trim() ||
+      (dependency.hash !== undefined &&
+        (typeof dependency.hash !== "string" || !/^[a-f0-9]{64}$/.test(dependency.hash)))
+    )
+      return { error: "Each dependency needs a nonempty id and, when pinned, a lowercase SHA-256 hash." };
+    if (dependency.id === id || requires.some((x) => x.id === dependency.id))
+      return { error: `Duplicate or self dependency: ${dependency.id}` };
+    requires.push({
+      id: dependency.id,
+      ...(dependency.hash === undefined ? {} : { hash: dependency.hash as string }),
+    });
+  }
+  if (o.overrides !== undefined && !Array.isArray(o.overrides))
+    return { error: "Manifest overrides must be an array." };
+  const overrides: PackageOverride[] = [];
+  for (const value of (o.overrides ?? []) as unknown[]) {
+    if (!value || typeof value !== "object" || Array.isArray(value))
+      return { error: "Each override must name system, kind, id and from." };
+    const entry = value as Record<string, unknown>;
+    if (
+      !["system", "id", "from"].every(
+        (key) => typeof entry[key] === "string" && (entry[key] as string).trim(),
+      ) ||
+      !["action", "macro", "quantity", "phase", "panel", "setup"].includes(entry.kind as string) ||
+      !requires.some((r) => r.id === entry.from) ||
+      (entry.kind === "quantity"
+        ? !["player", "unit", "model", "token"].includes(entry.on as string)
+        : entry.on !== undefined) ||
+      (entry.kind === "panel" && entry.id !== "panel")
+    )
+      return {
+        error:
+          "An override needs a symbol and system, a declared dependency as from, and on for quantities (panel id is panel).",
+      };
+    const override = entry as unknown as PackageOverride;
+    if (
+      overrides.some(
+        (x) =>
+          x.system === override.system &&
+          x.kind === override.kind &&
+          x.id === override.id &&
+          x.on === override.on,
+      )
+    )
+      return { error: `Duplicate override: ${override.kind} ${override.id}` };
+    overrides.push(override);
+  }
   const manifest: Manifest = {
     id: id!,
     name: name!,
@@ -69,6 +132,7 @@ function check(v: unknown): ManifestResult {
     kind: o.kind as Manifest["kind"],
     systems: o.systems as string[],
     requires,
+    ...(overrides.length ? { overrides } : {}),
   };
   const author = str("author");
   const adds = str("adds");

@@ -1,3 +1,4 @@
+<meta charset="utf-8" />
 <title>Open Battle Architecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -559,8 +560,9 @@
   <footer>
     <p>
       Source of truth: <code>docs/architecture.html</code> in the repo. Reflects the repo after the core
-      rebuild (physical primitives, module macros, record@2, PROTOCOL 3). Git tag
-      <code>pre-minimal-cut</code> has everything that was removed.
+      rebuild (physical primitives, neutral cards/geometry, explicit seats, recoverable reactions, module
+      macros, structured inputs, advisory overrides, setup/data intake and predictable composition, record@9,
+      PROTOCOL 11, MODULE_API 12). Git tag <code>pre-minimal-cut</code> has removed features.
     </p>
     <details>
       <summary>Keeping this page current</summary>
@@ -650,9 +652,9 @@
           zoom: "store",
           blurb: "The barest UI that can start, join and inspect a game.",
           summary:
-            "One page: connect (hotseat, tabs, or WebRTC), load a rules package, send every kind of primitive intent, start a module's actions and answer its questions, read the event log, entities, modifiers and state.",
+            "Connect, choose explicit seats, load a rules package, send primitives, start module actions and answer questions. Seating controls log assignment/clearing, not alliances. Inspect the event log, entities, modifiers and state.",
           owns: [
-            "Connect form, primitive intent forms, raw intent box",
+            "Connect and Seating forms, primitive intent forms, raw intent box",
             "The module's actions and its waiting question",
             "Entities, modifiers, event log, state viewer",
           ],
@@ -740,12 +742,12 @@
           zoom: "core",
           blurb: "Physical state, primitive events, a pure fold.",
           summary:
-            "Players, units of models, tokens, terrain and decks, each with open quantity and tag bags; modifier records; a pointer; macros. It turns intents into events and folds events into state the same way on every peer.",
+            "Players, units of models, tokens, terrain, cards and ordered collections; open quantity/tag bags on the entity carriers; modifiers; a pointer; macros. The host resolves intents, and every peer folds the same concrete events.",
           owns: [
             "GameState, Intent, GameEvent, applyEvent",
             "Quantities, modifiers, the pointer",
             "Macros, undo, branch, checksums",
-            "Secrets, decks, shared dice",
+            "Cards and collections; independent secrets; resolved dice",
           ],
           talks: ["Used by Net (host and peers) and by the Sandbox worker"],
           files: ["src/core/types.ts", "src/core/actions.ts", "src/core/reducer.ts", "src/core/macro.ts"],
@@ -860,8 +862,12 @@
           zoom: "sdk",
           blurb: "The contract a module is written against.",
           summary:
-            "Types for what a module exports and what its macros may do. Authors (agents) write to this.",
-          owns: ["defineModule, ModuleDef, CodeAction", "Ctx commands, GameView, PanelSpec"],
+            "API 12 binds extension macros and pure callbacks to package-local state. Strict dependencies and explicit provider-targeted replacements make composition predictable. Recorded inputs, advisory overrides and setup/data forms remain; there is no universal army schema or engine rule interpreter.",
+          owns: [
+            "defineModule, ModuleDef, CodeAction",
+            "Ctx commands, GameView, PanelSpec",
+            "SetupSpec, SetupField",
+          ],
           talks: ["Read by package authors; implemented by Sandbox and Core"],
           files: ["src/sdk/index.ts"],
           look: "Look deeper before changing anything a module can see: it is a compatibility promise (MODULE_API).",
@@ -952,14 +958,21 @@
           status: "kept",
           blurb: "Connect, primitive intents, module actions, log, state.",
           summary:
-            "Everything the page does. It mounts usePackageSandbox() and usePackageSharing(), asks the sandbox what the current player can start (requestApp), and answers a waiting macro (including secret choices and reveals, with this device's secrets).",
+            "App renders actions/panels and actor-attributed setup forms. MacroInput and SetupForms share controlled InputEditor widgets; setup JSON is parsed as data, never evaluated. Drafts/defaults/optional values remain local until macro submission, with visible import errors and late-file/actor guards. Advisory confirmations retain exact proposals and discard stale ones.",
           owns: [
             "Start or join a game with a chosen package",
             "A form for each primitive intent, and a raw intent box",
-            "The module's actions and panel; the waiting question",
+            "Actions/panel, advisory confirmation, shared inputs and package setup forms",
             "Entities, modifiers, event log, hidden values",
           ],
-          files: ["src/App.tsx"],
+          files: [
+            "src/App.tsx",
+            "src/MacroInput.tsx",
+            "src/InputEditor.tsx",
+            "src/SetupForms.tsx",
+            "src/core/input.ts",
+            "src/core/setup.ts",
+          ],
           talks: [
             "Store",
             "Sandbox runtime (useSandbox, requestApp)",
@@ -1001,25 +1014,25 @@
           w: 230,
           h: 70,
           status: "kept",
-          blurb: "Picks the transport, builds the Session, seats the host.",
+          blurb: "Picks the transport and records chosen participant seats.",
           summary:
-            "hotseat → in-memory loopback with two screen players. local → BroadcastChannel between tabs. online → WebRTC (Trystero, loaded on demand). A host dispatches player/join, game/system and layout/set.",
+            "hotseat records an explicit p1/p2 preset at seats 0/1. local uses BroadcastChannel; online uses WebRTC. Network setup chooses a seat or stays unseated, never fills sides. Recorded device identity recovery preserves the old seat. player/set records live assignments/clearing.",
           files: ["src/store.ts"],
           talks: ["net/loopback, broadcast, trystero", "systems (the module's layout, once known)"],
           look: "To add a transport mode or change what a fresh game starts with.",
         },
         {
           id: "seat",
-          label: "takeSeat()",
+          label: "joinParticipant()",
           sub: ["clients & resumed hosts"],
           x: 365,
           y: 330,
           w: 230,
           h: 70,
           status: "kept",
-          blurb: "Reclaims an old seat or joins an open one.",
+          blurb: "Reclaims identity or records a chosen optional seat.",
           summary:
-            "Waits for a host and a non-empty game, then for the game's packages to be in the library. Prefers this tab's seat, then this browser's, then a free seat on the emptier side. Spectators never sit.",
+            "Waits for a host, game and required packages. Reclaims the recorded tab/browser player ID when appropriate, preserving its logged seat; otherwise joins with the setup's explicit optional seat. No free-side allocation, capacity or resumed-host seat-0 inference. Spectators never create participants.",
           files: ["src/store.ts"],
           talks: ["packages/library.ts"],
           look: "When a reconnect gives the wrong seat or a joiner sits too early.",
@@ -1033,9 +1046,9 @@
           w: 230,
           h: 70,
           status: "kept",
-          blurb: "The log and seat kept per room, so a reload rejoins.",
+          blurb: "The versioned log and player identity kept per room.",
           summary:
-            "sessionStorage keeps the record, role and player id per room (per tab). localStorage keeps the seat per room (per browser) so a new tab on the same invite finds its player.",
+            "sessionStorage keeps the current-major record, role and player ID per room/tab. localStorage remembers the player ID per room/browser, not a seat number. Reclamation carries that identity's recorded seat forward.",
           files: ["src/store.ts"],
           look: "When rejoining misbehaves.",
         },
@@ -1131,8 +1144,8 @@
           label: ["hostApply: one at a time"],
           title: "The host takes it, one intent at a time",
           summary:
-            "Intents are serialised (a second waits while the first resolves). If shared dice are active the host uses the committed seeds for its rng. Only the host may send dice/commit and dice/reveal.",
-          files: ["src/net/session.ts: hostApply, sharedDiceFor"],
+            "Intents are serialised (a second waits while the first resolves). Direct rolls use the host's injected RNG; sandbox execution receives a seed from that same RNG. Only resolved outcomes enter the log; there is no shared-dice verification protocol.",
+          files: ["src/net/session.ts: hostApply"],
         },
         {
           from: "host",
@@ -1242,7 +1255,7 @@
           summary:
             "One per peer per game. A host resolves intents and sends numbered events. Clients and spectators fold them. When the host leaves, peers wait a grace period, then elect the one with the longest log.",
           owns: [
-            "Host authority: hostApply, hostLog, hooks (macro intents set off by events)",
+            "Host authority: generation-scoped resolutions; hostLog records obligations before broadcast, runHooks drains pendingReactions",
             "Election: longer log wins, then a resumed host, then the lower peer id; peers missing a game's packages never win",
             "Catch-up: send only the events a peer lacks, or the whole record",
             "Checksums: a checkpoint hash rides on events (every 10th, and wherever the pointer moves); mismatch = desync",
@@ -1251,7 +1264,7 @@
           ],
           talks: [
             "Transport (any)",
-            "Core (resolveLogged, applyEvent, stateAt, hookIntents)",
+            "Core (resolveLogged, applyEvent, stateAt, hookIntents, pendingReactions)",
             "Sandbox (setIntentRouter)",
             "Packages (listenSide, key 'packages')",
           ],
@@ -1259,6 +1272,7 @@
           watch: [
             "The host never trusts a client's state, only its intents.",
             "Hooks set off by hooks stop four runs deep.",
+            "Leave, demotion and router replacement invalidate late resolutions. Outstanding reactions survive host reconstruction.",
           ],
           look: "Almost any multiplayer bug ends here. Start at receive() and hostApply().",
         },
@@ -1290,7 +1304,7 @@
           w: 220,
           h: 60,
           status: "kept",
-          blurb: "PROTOCOL = 3. hello and host carry it.",
+          blurb: "PROTOCOL = 5. hello and host carry it.",
           summary:
             "Peers on a different protocol number are parked: not followed as host, not sent events. Build ids are shown in net status.",
           files: ["src/protocol.ts"],
@@ -1431,7 +1445,7 @@
           zoom: "primitives",
           blurb: "Physical entities, quantities, modifiers, the pointer.",
           summary:
-            "A GameState is plain data: players, units of models, models, tokens, terrain, zones, decks, secrets; an open q bag and tags on players, units, models and tokens; a list of modifier records; the pointer; the running macro. Nothing in it is a game's rule.",
+            "GameState is plain physical/event data. Seats are explicit optional identifiers, never inferred sides/allies or turn order. Claims rebind engine addresses and record active-macro identity mappings without rewriting package JSON. There are no settings, ranked keys or shared-dice seeds. Model containment is reciprocal.",
           owns: [
             "Entities with q and tags",
             "mods: records, never results",
@@ -1477,14 +1491,15 @@
           zoom: "macro",
           blurb: "A module's actions, as generators that expand into primitives.",
           summary:
-            "A macro yields commands (roll, ask, emit, set, secret, reveal, note). The host runs it in the sandbox, replaying from the start to carry on after an answer, and logs one macro/step with the primitive events it emitted.",
+            "A macro yields existing roll/input/emit/set/secret/reveal/note commands. ctx.ask constructs choice input; yield* ctx.warn uses a recorded proceed/cancel choice and override note. The host validates participants/domains, preserves replay, and logs effects/answers. Forced action acknowledgements log their reason without bypassing malformed mechanics or callback failures.",
           owns: [
             "startMacro, stepMacro",
             "The replay check, head rebase, MAX_COMMANDS",
             "Hook tables and hookIntents",
             "emit guard (validate.ts)",
+            "InputSpec/domain validation and recorded answers",
           ],
-          files: ["src/core/macro.ts", "src/core/view.ts", "src/core/validate.ts"],
+          files: ["src/core/macro.ts", "src/core/input.ts", "src/core/view.ts", "src/core/validate.ts"],
           look: "Zoom in to see how an action becomes events, and what undo and branch do with a macro.",
         },
         {
@@ -1498,38 +1513,52 @@
           status: "kept",
           blurb: "The record, stateAt, undo with dependents, branches, checksums.",
           summary:
-            "A GameRecord is the starting state plus numbered events (record@2). stateAt rebuilds any moment and honours undo. Undo takes a macro run (and any run its event set off) with it. A branch starts a new record from any point between macros. stateHash fingerprints a state for desync checks.",
+            "A GameRecord is the starting state plus numbered events (record@9), including accepted input answers, owed reactions and macro owner namespaces. stateAt honours undo; pendingReactions reconstructs unstarted work. Undo follows engine prerequisites and macro causes, not opaque package rules. Branches require no owed execution; stateHash fingerprints the table.",
           owns: [
             "resolveLogged, appendEvent, stateAt",
-            "canUndo, dependents",
-            "branchRecord (null mid-macro)",
+            "canUndo, dependents, structuralDependencies",
+            "pendingReactions; branchRecord (null while execution is owed)",
             "stateHash, isCheckpoint",
           ],
-          files: ["src/core/log.ts", "src/core/branch.ts", "src/core/checksum.ts"],
+          files: [
+            "src/core/log.ts",
+            "src/core/structural-dependencies.ts",
+            "src/core/branch.ts",
+            "src/core/checksum.ts",
+          ],
           look: "When undo, replays, late joining or what-if branches misbehave.",
         },
         {
           id: "hidden",
-          label: "Hidden info and fair dice",
-          sub: ["secrets · cards · sharedDice · dice"],
+          label: "Secrets and resolved dice",
+          sub: ["secrets · dice"],
           x: 30,
           y: 400,
           w: 290,
           h: 100,
           status: "kept",
-          blurb: "Commitments, decks, commit-reveal dice, told dice.",
+          blurb: "Independent choice commitments and logged rolls.",
           summary:
-            "A secret's value stays on its owner's device; the log holds only a SHA-256 commitment, and every peer's reducer checks a reveal against it. Shared dice: the host commits to a seed, the other player answers, each event's dice derive from both seeds.",
-          files: [
-            "src/core/secrets.ts",
-            "src/core/cards.ts",
-            "src/core/sharedDice.ts",
-            "src/core/dice.ts",
-            "src/core/ranked.ts",
-            "src/secrets/",
-          ],
+            "A secret's value stays on its owner's device; the log holds a SHA-256 commitment and every peer checks its reveal. Dice use the host's injected RNG and log resolved outcomes. Replay needs no seed or RNG; independently verified fair dice and ranked keys are not engine capabilities.",
+          files: ["src/core/secrets.ts", "src/core/dice.ts", "src/secrets/"],
           watch: ["A host-run macro cannot compute on a secret before it is revealed."],
-          look: "Before building anything with hidden hands, objectives, or fair dice.",
+          look: "Before changing committed choices or resolved rolls. Cards use a separate trusted-tabletop model.",
+        },
+        {
+          id: "cards",
+          label: "Cards and collections",
+          sub: ["cards.ts · neutral mechanics"],
+          x: 350,
+          y: 400,
+          w: 290,
+          h: 100,
+          status: "kept",
+          zoom: "cards",
+          blurb: "Ordered membership, movement, resolved shuffle, face visibility.",
+          summary:
+            "Cards belong to exactly one ordered collection. The engine knows no deck, hand, discard, draw count or card effect. Visibility redacts normal views only; full identity and order remain in the replicated record.",
+          files: ["src/core/cards.ts", "src/core/actions.ts", "src/core/reducer.ts"],
+          look: "When card membership, shuffle, visibility or a package's card rules interact.",
         },
         {
           id: "geometry",
@@ -1540,16 +1569,16 @@
           w: 260,
           h: 100,
           status: "kept",
-          blurb: "Distances, terrain, line of sight, rigid moves.",
+          zoom: "geometry",
+          blurb: "Raw contacts, ray sampling, containment, overlap, height and distance.",
           summary:
-            "What a module can ask through ctx.view: edge-to-edge distance, sight across terrain and models (true, heights or footprint), and the maths of moving a unit as a block. No rule decides what any of it means.",
+            "ctx.view.geometry reads physical state deterministically. A package explicitly selects 3D bodies, terrain solids/hulls/prisms or 2D footprints and gets raw hits/sample counts. The engine knows no LOS, cover, tags-as-blockers, alliances, arcs or unit sight aggregation. Distance/angle and rigid formation moves remain separate measurements.",
           files: [
             "src/core/geometry.ts",
             "src/core/terrain.ts",
             "src/core/los.ts",
             "src/core/formation.ts",
             "src/core/view.ts",
-            "src/core/teams.ts",
           ],
           look: "When a rule needs a measurement, or the table view needs the same maths.",
         },
@@ -1576,8 +1605,9 @@
             [200, 360],
             [400, 330],
           ],
-          label: "secrets · decks",
+          label: "committed secrets",
         },
+        { from: "cards", to: "state", label: "cards · cardCollections", at: [495, 360] },
       ],
       about: {
         summary:
@@ -1590,7 +1620,243 @@
           "src/core/macro.ts",
         ],
         watch: RULES.slice(0, 3),
-        look: "Look deeper before any change to an event, the state or the fold: it is a protocol question (PROTOCOL, record@2).",
+        look: "Look deeper before changing events, state or the fold: PROTOCOL 11 and record@9 are compatibility contracts.",
+      },
+    },
+
+    geometry: {
+      title: "Geometry: measurements and package policy",
+      parent: "core",
+      lede: "Physical geometry → explicit blocker shapes → raw hits and sample counts → package policy → emitted primitive events. No engine visibility or cover verdict.",
+      W: 960,
+      H: 520,
+      nodes: [
+        {
+          id: "physical",
+          label: "Physical state",
+          sub: ["models · terrain · tokens"],
+          x: 30,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Bases, heights, bands, solids and triangle hulls.",
+          summary:
+            "Model bodies use circular bands, or a facing-rotated base extruded to a physical height. Terrain has rotated footprints, solid boxes and optional independent hull meshes. Tokens have an optional base/height/bands; otherwise they are points. Terrain q/tags classify only when package code interprets them.",
+          files: ["src/core/types.ts", "src/core/geometry.ts", "src/core/terrain.ts"],
+          watch: [
+            "No losHeight, sight or visibility on terrain. No generic GameSettings/settings or implicit seat policy.",
+            "height(model): explicit height, else highest band, else max base width/depth in inches. Point tokens have height 0.",
+          ],
+        },
+        {
+          id: "selection",
+          label: "Explicit blockers",
+          sub: ["package chooses shape"],
+          x: 345,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "body · solids · hull · prism, or 2D footprint.",
+          summary:
+            "GeometryBlocker identifies a model, terrain or token and selects its shape. Terrain solids indexes choose boxes; omitted indexes include every kind, even foliage. Hull requires a mesh and never falls back. Prism specifies world-inch bottom/top. Footprint is strictly 2D; all other shapes are 3D. Package rules choose whether either side, target, observer or terrain belongs in the list.",
+          files: ["src/core/los.ts: GeometryRef, GeometryBlocker", "docs/packages.md"],
+          watch: [
+            "Empty blockers mean clear geometry. Explicit observer/target blockers are not exempted.",
+            "Reject missing references, malformed shapes/dimensions and nonfinite inputs with Error; never infer policy from tags or solid kinds.",
+          ],
+        },
+        {
+          id: "measure",
+          label: "Raw geometry results",
+          sub: ["ctx.view.geometry"],
+          x: 660,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "segment · segment2D · sample · contains · overlaps · height",
+          summary:
+            "Segments report nearest contact per selected object, sorted by t then lexical kind/id. Samples count clear rays / total rays and list all intersecting blockers, not just first hits or each target's best eye. contains and overlaps measure footprints; height measures physical extent. These queries read state and never emit or mutate it.",
+          files: ["src/core/los.ts: geometryView, GeometryView", "src/core/view.ts", "src/sdk/index.ts"],
+          watch: [
+            "Endpoints, inside starts and tangency count. Slab/length tolerance is 1e-9; mesh determinant tolerance is 1e-12.",
+            "Mesh hits are triangle surface contacts, not assumed enclosed volume; coplanar rays are ignored.",
+            "Body/height samples accept model IDs and optional nonempty absolute world-inch eyes. Off/missing models are errors; footprint eyes are unsupported.",
+            "Body: five eyes, 19 target points (17 per band). Height: top eye, three target heights. Footprint: center plus eight 95%-rim targets, ignoring z.",
+            "Curved-base overlaps reuse the 48-vertex convex approximation; boundaries and tangency count.",
+          ],
+        },
+        {
+          id: "policy",
+          label: "Package policy",
+          sub: ["LOS · cover · arcs · units"],
+          x: 660,
+          y: 300,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Interpret hits/counts; offer advisory game checks.",
+          summary:
+            "The package chooses blocker eligibility and shape, vision arcs, clear-ray thresholds, cover and per-model to unit aggregation. anyClear/allClear are raw ray facts, not visible/hidden or cover classifications. A rule check remains a warning players can override; no engine setting imposes gameplay policy.",
+          files: ["examples/packages/ember-skirmish.js", "docs/packages.md", "src/sdk/index.ts"],
+        },
+        {
+          id: "events",
+          label: "Emitted primitive events",
+          sub: ["macro/step → pure fold"],
+          x: 345,
+          y: 300,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Log resolved effects, not instructions to rerun LOS rules.",
+          summary:
+            "Package macros emit resolved primitive effects through ctx.emit. The host records them and every peer folds them without the package or a geometry-policy registry. Completed replay never reruns package LOS; macro continuation still requires package code.",
+          files: ["src/core/macro.ts", "src/core/reducer.ts", "src/core/log.ts"],
+        },
+      ],
+      edges: [
+        { from: "physical", to: "selection", label: "shape references", at: [322, 25] },
+        { from: "selection", to: "measure", label: "query inputs", at: [638, 25] },
+        { from: "measure", to: "policy", label: "raw hits / ray counts" },
+        { from: "policy", to: "events", label: "ctx.emit", at: [638, 285] },
+      ],
+      about: {
+        summary:
+          "API 4 draws a firm boundary: deterministic neutral geometry in the engine, game meaning in packages. The record stores geometry and resolved effects, not LOS policy. There is no built-in visibility, cover, enemy filter, vision arc or unit sight aggregation.",
+        files: [
+          "src/core/los.ts",
+          "src/sdk/index.ts",
+          "docs/engine.md",
+          "docs/packages.md",
+          "docs/protocols/packages.md",
+        ],
+        watch: [
+          "record@9 / PROTOCOL 11 / MODULE_API 12 are current. Macro owner namespaces are recorded; dependencies and replacements use manifest.v3. Older rebuild formats are not adapted.",
+          "Bands/hulls, cards/collections and generic secrets remain. Ranked/shared dice and automatic two-side seating are removed.",
+        ],
+        look: "Open this level when a package needs LOS/cover or a table view needs the same physical measurements.",
+      },
+    },
+
+    cards: {
+      title: "Cards: mechanics and rules",
+      parent: "core",
+      lede: "The engine owns card identities and ordered movement. Packages decide collection roles and effects. Trusted-tabletop visibility hides normal views, not the replicated record.",
+      W: 960,
+      H: 520,
+      nodes: [
+        {
+          id: "rules",
+          label: "Game package",
+          sub: ["actions · macros"],
+          x: 30,
+          y: 40,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Draw counts, hand/discard roles, play effects, eligibility.",
+          summary:
+            "The example draws two top signals into a private hand, plays one publicly for a command point, and returns or recycles cards. None of those rules is in the card reducer.",
+          files: ["examples/packages/ember-skirmish.js", "src/sdk/index.ts"],
+        },
+        {
+          id: "resolve",
+          label: "Host resolution",
+          sub: ["resolveCardIntent · ctx.shuffle"],
+          x: 345,
+          y: 40,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Validate mechanics; resolve Fisher–Yates from injected RNG.",
+          summary:
+            "Direct intents and macro emissions share structural checks. A shuffle command records its permutation and result; resuming the macro restores it without RNG.",
+          files: ["src/core/cards.ts", "src/core/macro.ts", "src/core/validate.ts"],
+        },
+        {
+          id: "events",
+          label: "Concrete events",
+          sub: ["card/* · cards/* · collection/*"],
+          x: 660,
+          y: 40,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Add/remove, move, set fields, shuffle with an explicit order.",
+          summary:
+            "The reducer reads no package and draws no RNG. Moves preserve the request's order; insertion indexes apply after removals. Invalid references and permutations do not alter card state.",
+          files: ["src/core/actions.ts", "src/core/reducer.ts"],
+        },
+        {
+          id: "state",
+          label: "Card table",
+          sub: ["cards · cardCollections"],
+          x: 345,
+          y: 235,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Exactly one collection per card; top is index zero.",
+          summary:
+            "Physical fields, owner and visibility are independent. Moving a card does not change them. Layouts replace cards and collections together or preserve both when omitted.",
+          files: ["src/core/types.ts", "src/core/cards.ts"],
+        },
+        {
+          id: "view",
+          label: "Perspective view",
+          sub: ["cardsIn · GameView.cards"],
+          x: 660,
+          y: 235,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Unauthorized name/face omitted; back and metadata preserved.",
+          summary:
+            "Visibility is all viewers or an explicit player-ID list. Ownership and face-up orientation never grant permission. Normal UI also hides a question's choices from nonrecipients.",
+          files: ["src/core/cards.ts", "src/core/view.ts", "src/App.tsx"],
+        },
+        {
+          id: "secrets",
+          label: "Separate secret commitments",
+          sub: ["secret/commit · secret/reveal"],
+          x: 30,
+          y: 235,
+          w: 270,
+          h: 100,
+          status: "kept",
+          blurb: "Player-chosen values stay on their owner's device.",
+          summary:
+            "Cards do not infer hands from secret keys. The full card record is inspectable; commitments are independent and do not prove fair hidden draws.",
+          files: ["src/core/secrets.ts", "src/secrets/local.ts"],
+        },
+      ],
+      edges: [
+        { from: "rules", to: "resolve", label: "intent / command", at: [322, 28] },
+        { from: "resolve", to: "events", label: "resolved effects", at: [638, 28] },
+        { from: "events", to: "state", label: "pure fold" },
+        {
+          from: "state",
+          to: "view",
+          label: "explicit viewer",
+          via: [
+            [480, 390],
+            [795, 390],
+          ],
+          at: [638, 382],
+        },
+      ],
+      about: {
+        summary:
+          "Trusted tabletop: normal views conceal private faces, but all peers hold identities and orders. No encrypted hands, anti-cheat shuffle guarantee, or built-in card-game rules.",
+        files: ["src/core/cards.ts", "docs/packages.md", "examples/packages/ember-skirmish.js"],
+        watch: [
+          "Every card has exactly one ordered membership.",
+          "Random order is resolved once and logged.",
+          "Card rules belong to the package.",
+        ],
       },
     },
 
@@ -1613,7 +1879,7 @@
           status: "kept",
           blurb: "Create, remove and describe entities.",
           summary:
-            "Units own models; tokens are markers (objectives, templates, cards on the table). entity/set changes static fields (a model's off flag, a token's position); identity, containment and the q and tags bags are protected. A model that is off the table keeps its place in the state but blocks and sees nothing.",
+            "Units contain models reciprocally: model/add attaches its unitId, replacement/transfer cleans old membership, and unit removal deletes only actual members. Tokens are markers. entity/set changes static fields but protects identity, containment, seats, q and tags. Off-table models keep state but have no queryable table geometry.",
           files: ["src/core/reducer.ts", "src/core/actions.ts: EntityFields"],
           look: "When a rule needs to remove, hide or relabel something.",
         },
@@ -1682,18 +1948,34 @@
         },
         {
           id: "dice",
-          label: "Dice, secrets, decks",
-          sub: ["dice/roll · secret/* · deck/*"],
+          label: "Dice and secrets",
+          sub: ["dice/roll · secret/*"],
           x: 640,
           y: 230,
           w: 290,
           h: 110,
           status: "kept",
-          blurb: "Rolled by the host; hidden values committed; decks per player.",
+          blurb: "Dice results logged; player-chosen hidden values committed.",
           summary:
-            "dice/roll logs results only (a label is for the log). secret/commit and secret/reveal keep a value on its owner's device. deck/discard and deck/shuffle track each player's pile of a table deck.",
-          files: ["src/core/dice.ts", "src/core/secrets.ts", "src/core/cards.ts"],
+            "dice/roll logs results only. secret/commit and secret/reveal keep a chosen value on its owner's device until a checked reveal. These are separate from replicated card state.",
+          files: ["src/core/dice.ts", "src/core/secrets.ts"],
           look: "For anything random or hidden.",
+        },
+        {
+          id: "cards",
+          label: "Cards and collections",
+          sub: ["card/* · cards/* · collection/*"],
+          x: 640,
+          y: 370,
+          w: 290,
+          h: 110,
+          status: "kept",
+          zoom: "cards",
+          blurb: "Ordered membership and physical fields, no game roles.",
+          summary:
+            "cards/move preserves requested order; card/set changes ownership, visibility and orientation explicitly. ctx.shuffle resolves and logs a permutation. Names/faces are redacted in normal views only.",
+          files: ["src/core/cards.ts", "src/core/actions.ts", "src/core/reducer.ts"],
+          look: "For card mechanics versus game-package rules.",
         },
         {
           id: "envelope",
@@ -1738,7 +2020,7 @@
       ],
       about: {
         summary:
-          "About thirty event types in all. A module may emit the table's primitives (things, moves, bags, modifiers, the pointer, deck shuffles, notes, its own state) but not players, packages, undo, secrets or dice: those have their own commands.",
+          "Modules emit physical moves, bags, modifiers, the pointer, card/collection edits, notes and their own state. Players, packages, undo, secrets, dice and random shuffles have separate commands or host handling.",
         files: ["src/core/actions.ts", "src/core/reducer.ts", "src/core/quantity.ts", "src/core/validate.ts"],
         watch: [
           "Add a primitive only when no module could express it as an existing one.",
@@ -1765,9 +2047,9 @@
           w: 260,
           h: 90,
           status: "kept",
-          blurb: "ctx.roll · ask · emit · set · secret · reveal · note",
+          blurb: "ctx.roll · input/ask/warn · emit · set · secret · reveal · note",
           summary:
-            "Plain JavaScript in the package. It reads the game only through ctx.view and rolls only with ctx.roll. It must yield the same commands every time it is replayed.",
+            "Plain JavaScript yields frozen commands/results and reads ctx.view. ctx.input describes data and ctx.ask is the choice shortcut. yield* ctx.warn returns false on Cancel or logs an override before true; packages guard proposed effects/dice. The reducer knows no warning policy, and force cannot make malformed effects valid.",
           files: ["src/sdk/index.ts: Ctx", "examples/packages/ember-skirmish.js"],
           look: "Writing one: docs/packages.md.",
         },
@@ -1782,8 +2064,8 @@
           status: "kept",
           blurb: "Replays from the start against the recorded results, then continues.",
           summary:
-            "Each answered question recorded head, the seq the macro carries on from. On a replay the view is rebased onto history(head), so after an answer the macro reads the table as it stands then, including anything that moved while the question was open. A different command stops the macro as nondeterministic; so does passing 5000 commands.",
-          files: ["src/core/macro.ts: runMacro"],
+            "Accepted JSON answers record their head and remain in macro/step.answered even on completion/failure. Historical results replay unchanged; claims redirect only live recipients/primitive addresses, not candidate IDs or answer data. Reference proposals can be stale and spatial input never moves the table. Changed commands/suspension or runaway code stops execution.",
+          files: ["src/core/macro.ts: runMacro", "src/core/input.ts", "src/MacroInput.tsx"],
           watch: ["Before any answer the view is the start table plus the macro's own emitted events."],
           look: "When a macro behaves differently after a reconnect or an opponent's move.",
         },
@@ -1796,10 +2078,10 @@
           w: 260,
           h: 90,
           status: "kept",
-          blurb: "Only table primitives may be emitted.",
+          blurb: "Shared structural checks, then the emit allowlist.",
           summary:
-            "ctx.emit accepts the primitive events (no players, packages, undo, secrets, dice) and checks entity/set and mod/add shapes. An invalid emit stops the macro with an error in the step.",
-          files: ["src/core/validate.ts: emitProblem"],
+            "Direct intents and macro effects share eventProblem for finite fields, valid JSON, physical shapes, references and membership. emitProblem additionally allows only table primitives, not player/session/randomness bookkeeping. Game legality is not structural validation; random shuffles use ctx.shuffle.",
+          files: ["src/core/validate.ts: eventProblem, emitProblem", "src/core/actions.ts"],
           look: "When a macro wants an event it isn't allowed.",
         },
         {
@@ -1813,7 +2095,7 @@
           status: "kept",
           blurb: "One event per step; the run is its first step's startSeq.",
           summary:
-            "A step has events (the primitives), script (the macro's state, null when done), run (the run id), started (on the first step), cause (the logged event a hook answers) and error. A macro that asks logs a step that ends waiting; the answer logs the next.",
+            "A step carries primitives, script (null when done), run, started, cause, reaction ID, error and ordinary answered metadata {player,command,value,head}. Script retains historical results, waitingCommand and reclaim mappings. Input answers remain recorded even without emitted effects; a recorded reaction start consumes its obligation.",
           files: ["src/core/macro.ts: MacroStep, MacroState"],
           look: "How to read the log of an action.",
         },
@@ -1828,8 +2110,8 @@
           status: "kept",
           blurb: "Undoing a step takes its whole run, and what it set off.",
           summary:
-            "dependents(record, seq) lists the later steps of the same run and any run whose cause is in the set. The host adds them to the undo event's also, so the table never keeps half an action. Undoing only the last step is allowed: it takes back the answer and reopens the question.",
-          files: ["src/core/log.ts: dependents, canUndo"],
+            "dependents(record, seq, roots) expands every undo root through explicit engine reference/membership prerequisites and macro steps/causes. The host records the closure in also; unrelated events survive. Undoing a last answer can reopen its prior question. Trigger undo cancels queued reactions; undoing reaction effects does not automatically reexecute them.",
+          files: ["src/core/log.ts: dependents, canUndo", "src/core/structural-dependencies.ts"],
           look: "When undo leaves a macro or a hook run in a strange state.",
         },
         {
@@ -1843,23 +2125,27 @@
           status: "kept",
           blurb: "Starts between actions, never inside one.",
           summary:
-            "branchRecord starts a new record from any point of another, with secrets dropped (their values live on devices). Mid-macro it returns null: a half-run macro cannot replay without its parent's log.",
+            "branchRecord starts a new record with device-held secrets dropped. It returns null while a macro or recorded reaction is pending: unfinished work requires its parent log and exact code.",
           files: ["src/core/branch.ts"],
           look: "Before offering what-if branches in a UI.",
         },
         {
           id: "hooks",
-          label: "Hooks",
-          sub: ["hookIntents · registerHooks"],
+          label: "Recorded reactions",
+          sub: ["LoggedEvent.reactions", "pendingReactions"],
           x: 350,
           y: 380,
           w: 260,
           h: 90,
           status: "kept",
-          blurb: "Macros started after logged events of chosen types.",
+          blurb: "Triggers record owed work; committed starts consume it.",
           summary:
-            "A module's hooks.on[eventType] runs after a logged event of that type (including inner events of a step), one at a time and only when no macro is waiting. The host starts it with args { event, seq } (and from, the previous pointer, for pointer/set) and cause = that seq. Chains stop four deep.",
-          files: ["src/core/macro.ts: hookIntents", "src/net/session.ts: runHooks"],
+            "The host records each hook obligation in its trigger's LoggedEvent.reactions, with a distinct ID even for repeated inner events. A started macro/step consumes it. Reconstruction drains pendingReactions without current-hook reevaluation; trigger undo cancels queued work and caused runs. Undoing reaction effects never reruns them. Chains stop four deep.",
+          files: [
+            "src/core/macro.ts: hookIntents",
+            "src/core/log.ts: pendingReactions",
+            "src/net/session.ts: runHooks",
+          ],
           look: "For reactions to a move, or to the pointer moving.",
         },
       ],
@@ -1868,8 +2154,8 @@
         { from: "run", to: "emit", label: "ctx.emit" },
         { from: "run", to: "step", label: "returns" },
         { from: "step", to: "undo", label: "run · cause" },
-        { from: "step", to: "branch", dashed: true, label: "script must be null" },
-        { from: "step", to: "hooks", label: "inner events" },
+        { from: "step", to: "branch", dashed: true, label: "no owed work" },
+        { from: "step", to: "hooks", label: "obligations" },
         {
           from: "hooks",
           to: "run",
@@ -1884,12 +2170,12 @@
       ],
       about: {
         summary:
-          "Module code runs only on the host. Everything else sees the result: primitive events in a macro/step. That is why replays, undo and a package-less spectator all work.",
+          "Only the host executes effectful macros. Other peers fold the resulting primitives in macro/step without package code; trusted peers may separately run pure presentation callbacks. Completed replay, undo and a package-less spectator remain package-independent.",
         files: ["src/core/macro.ts", "src/core/log.ts", "src/core/branch.ts", "src/net/session.ts"],
         watch: [
           "Macros span one action, never a phase.",
           "Replay must yield the same commands, or the macro is stopped.",
-          "A branch is refused while a macro is running.",
+          "Branches and composition changes are refused while a macro or reaction remains owed; exact-hash recovery reloads are allowed.",
         ],
         look: "Look deeper when a macro asks the wrong player, resumes on the wrong table, or an undo leaves a half-run action.",
       },
@@ -1899,7 +2185,7 @@
     sandbox: {
       title: "Sandbox",
       parent: "top",
-      lede: "How a package's code runs: only on the host, only for macro intents, in a worker with no network and an opaque origin.",
+      lede: "Only the host resolves macros into effects. Trusted peer sandboxes compute readonly presentation; workers have no network and an opaque origin.",
       W: 960,
       H: 520,
       nodes: [
@@ -1914,7 +2200,7 @@
           status: "kept",
           blurb: "Starts the sandbox, keeps it in step, routes macro intents.",
           summary:
-            "usePackageSandbox starts the sandbox when the game names packages this player trusts, sends it every logged event (or the whole record when history changed), registers what it reports (module info, hooks) on the app's side, and sets the intent router so macro/start and macro/answer are resolved there. requestApp asks what a player can start.",
+            "usePackageSandbox starts trusted recorded packages, forwards every event/full record, and registers committed metadata and hook descriptors. Descriptors survive worker restart so new triggers still record obligations. setIntentRouter enables execution and wakes recovery; replacing it invalidates stale resolutions. requestApp asks what a player can start.",
           owns: [
             "start, stop, a second start before giving up",
             "sync: record replica",
@@ -1965,7 +2251,7 @@
           status: "kept",
           blurb: "Loads modules, holds a replica, resolves macro intents, lists actions.",
           summary:
-            "load imports each package (whole games first), checks its api and registers its macros, actions, hooks and panel; it reports ModuleInfo data. events() folds logged events into a replica; resolve() runs resolveLogged with a seeded rng (the host's); appState(player) lists the actions that player can start and the panel.",
+            "Before import, validate hashes and dependency order. Track symbol providers: collisions require explicit replacement declarations and failures preserve prior code atomically. Macros/actions/panels/setup bind package-local namespaces; setup collisions are checked when offered. Pending work pins exact hashes. init/events check code readiness; host resolve emits primitive effects.",
           files: ["src/sandbox/engine.ts"],
           watch: [
             "Module code is the only thing that runs in here. The reducer it folds with is the app's own.",
@@ -1982,9 +2268,9 @@
           h: 90,
           status: "kept",
           zoom: "systems",
-          blurb: "ModuleInfo, hook types, action rows, panel: all data.",
+          blurb: "ModuleInfo, hooks, actions, panel and setup fields: all data.",
           summary:
-            "Nothing returns code. The app learns a module's table and layout, quantities, phases, hook event types and action list, and what a player can start now.",
+            "The app receives physical module metadata plus actor/seq-attributed presentation. SetupSpec names typed/JSON fields and a registered macro; local input is not a reducer primitive. Submitted data flows through existing macro arguments and effects.",
           files: ["src/sandbox/protocol.ts"],
           look: "Zoom in on the module registry.",
         },
@@ -2047,23 +2333,23 @@
           status: "kept",
           blurb: "This device's packages, by hash, with trust.",
           summary:
-            "Stored in IndexedDB. Several versions live side by side; each game uses exactly the bytes its log names. Trust is per hash: code runs only after the player says yes to those bytes once. systemMatches maps a manifest's system names (a prefix) to game ids.",
+            "IndexedDB keeps lossless UTF-8 source, including BOMs; re-encoding yields the exact hashed bytes. A previously stripped BOM is restored only with matching byte count and SHA-256 proof. Versions live side by side and consent stays per hash. systemMatches maps manifest prefixes to game ids.",
           files: ["src/packages/library.ts"],
           look: "Trust, versions, why a package is or isn't running.",
         },
         {
           id: "manifest",
-          label: "Manifest",
-          sub: ["manifest.ts"],
+          label: "Manifest + composition",
+          sub: ["manifest.ts", "composition.ts"],
           x: 345,
           y: 40,
           w: 270,
           h: 110,
           status: "kept",
-          blurb: "Read as data, without running the file.",
+          blurb: "Literal consent data, dependency closure and exact hash pins.",
           summary:
-            "The export const manifest literal: id, name, version, api, kind (system or extension), systems, requires, adds. A literal parser reads it, so the consent screen can show what a package is before any code runs.",
-          files: ["src/packages/manifest.ts"],
+            "The manifest.v3 literal names id, version, api, kind, systems, strict requires/hash pins and explicit overrides from a named dependency. The app reads consent data without executing code. composition.ts selects unambiguous dependency closure and orders packages; loader validates before import.",
+          files: ["src/packages/manifest.ts", "src/packages/composition.ts", "src/App.tsx"],
           look: "When a package is refused before loading.",
         },
         {
@@ -2077,7 +2363,7 @@
           status: "kept",
           blurb: "Peers send each other the packages a game names.",
           summary:
-            "package/want, package/part and package/status on the side channel; 48 KB base64 parts; the bytes are checked against the hash before they are kept. A peer without a game's packages doesn't sit down and never wins a host election, but it can still watch.",
+            "package/want, package/part and package/status use 48 KB base64 parts; decoded bytes are checked against the original SHA-256 before storage. BOMs and multibyte text survive exact re-encoding. A peer missing packages cannot qualify for host election, but can still watch the primitive fold.",
           files: ["src/packages/share.ts", "src/net/transport.ts: SideMessage"],
           look: "Why a peer can't join, or a package never arrives.",
         },
@@ -2092,22 +2378,24 @@
           status: "kept",
           blurb: "The log names the packages a game runs.",
           summary:
-            "A host dispatches game/packages with the module id and package refs (id, version, hash). The sandbox starts from what the latest such event names, for packages this player trusts.",
+            "game/packages records module id and ordered package hashes. The sandbox runs those trusted bytes. Different composition/system choices are refused while a macro or reaction is owed; exact-hash reloads support reconstruction. Failed loads cannot leave partial code active.",
           files: ["src/core/actions.ts", "src/sandbox/runtime.ts: usePackageSandbox"],
           look: "How a game pins the code it plays.",
         },
       ],
       edges: [
         { from: "manifest", to: "lib", label: "read on add" },
+        { from: "manifest", to: "game", label: "ordered selection" },
         { from: "lib", to: "share", label: "serve and receive" },
         { from: "game", to: "lib", dashed: true, label: "hash lookup" },
       ],
       about: {
         summary:
-          "Identity by content: the same bytes always mean the same package. Nothing runs until a player trusts it, and only the host's sandbox ever runs it for a game.",
+          "Identity by content: the same bytes mean the same package. Dependencies and replacements are explicit; consent is per hash. Only the host resolves effects, while trusted peers may run pure presentation callbacks. Completed replay needs no package code.",
         files: [
           "src/packages/library.ts",
           "src/packages/manifest.ts",
+          "src/packages/composition.ts",
           "src/packages/share.ts",
           "docs/protocols/packages.md",
         ],
@@ -2120,7 +2408,7 @@
     sdk: {
       title: "SDK",
       parent: "top",
-      lede: "The contract a module is written against (MODULE_API = 2).",
+      lede: "The contract a module is written against (MODULE_API = 12).",
       W: 960,
       H: 460,
       nodes: [
@@ -2133,9 +2421,10 @@
           w: 270,
           h: 110,
           status: "kept",
-          blurb: "id, table, layout, quantities, pointer, actions, macros, hooks, panel.",
+          zoom: "authoring",
+          blurb: "id, layout, quantities, pointer, actions, macros, hooks, panel, setup.",
           summary:
-            "What a package's default export holds. layout(table) returns the starting terrain, tokens, zones and decks; quantities and pointer register what the game adds; macros are ids hooks and panel buttons can start.",
+            "The default export names layout and package rules. Pure action/panel/setup callbacks use frozen package-local views; only host macros produce events. Whole-game local state uses its system ID, extension state its manifest ID. Global symbol replacements require explicit named-provider declarations.",
           files: ["src/sdk/index.ts: ModuleDef"],
           look: "The first thing to read before writing a package.",
         },
@@ -2150,7 +2439,7 @@
           status: "kept",
           blurb: "by unit or player; phases, applies, available, targets, run.",
           summary:
-            "available returns true or why not. targets lists what it can be aimed at. run is the macro. The page lists what a player can start; the host refuses a raw macro/start the action says no to.",
+            "available returns true or an advisory reason; targets still run for warnings. Selecting a warned target snapshots the proposal and explicitly confirms proceed/cancel. The host rechecks acknowledgements and logs accepted overrides. Callback failures are errors, never rule warnings.",
           files: ["src/sdk/index.ts: CodeAction"],
           look: "How an action is offered and checked.",
         },
@@ -2163,41 +2452,62 @@
           w: 270,
           h: 110,
           status: "kept",
-          blurb: "roll · ask · emit · set · secret · reveal · note, and ctx.view.",
+          blurb: "roll · shuffle · input/ask/warn · emit · set · secret · reveal · note.",
           summary:
-            "ctx.view is a GameView rebased after answers. emit accepts only the table's primitive events. secret and reveal keep hidden values on devices.",
-          files: ["src/sdk/index.ts: Ctx, Command"],
+            "ctx.input/ask collect recorded proposals. ctx.set writes the recorded package-local namespace. yield* ctx.warn uses a choice input and override note before effects/dice. Views rebase after answers; malformed primitives remain rejected. Secrets keep device-held commitments.",
+          files: ["src/sdk/index.ts: Ctx, Command", "src/core/input.ts: InputSpec"],
           look: "What a macro can do.",
         },
         {
           id: "view",
           label: "GameView",
           sub: ["read-only"],
-          x: 190,
+          x: 30,
           y: 250,
           w: 270,
           h: 110,
           status: "kept",
-          blurb: "state, pointer, q, mods, until, units, distance, visible, sight, angle, own.",
+          zoom: "geometry",
+          blurb: "state, pointer, q, mods, until, units, cards, geometry, own.",
           summary:
-            "q folds a quantity with its modifiers; until builds a modifier's expiry; distance, visible, sight and angle use the core's geometry; own is the module's state.",
-          files: ["src/sdk/index.ts: GameView", "src/core/view.ts"],
+            "State, pointer, package-local own data and returned records are deeply frozen with memoized traversal. Whole games read own under their system ID, extensions under manifest ID; deliberate shared reads use state.modules. q folds quantities; cards returns perspective views; geometry supplies raw measurements. Full state remains inspectable; never mutate the replica.",
+          files: [
+            "src/sdk/index.ts: GameView",
+            "src/core/view.ts",
+            "src/core/immutable.ts",
+            "src/core/los.ts: GeometryView",
+          ],
           look: "What a module can ask of the table.",
         },
         {
           id: "panel",
           label: "PanelSpec",
           sub: ["data only"],
-          x: 500,
+          x: 345,
           y: 250,
           w: 270,
           h: 110,
           status: "kept",
           blurb: "Title, lines and buttons that start macros.",
           summary:
-            "A package can't ship React components; it describes a panel as data and the page draws it.",
+            "A package describes panel text/buttons as data. Optional warnings use explicit proceed/cancel confirmation, retaining arguments/player; clients cannot impersonate another participant. Failed panels are omitted with visible provider/callback/source diagnostics, not silent disappearance. Callback errors are never rule warnings.",
           files: ["src/sdk/index.ts: PanelSpec"],
           look: "To show a module's own status text and buttons.",
+        },
+        {
+          id: "setup",
+          label: "SetupSpec",
+          sub: ["fields → registered macro"],
+          x: 660,
+          y: 250,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Local typed/JSON drafts; one macro submission.",
+          summary:
+            "SetupField describes input, validated initial values and optional inclusion. Shared editors collect current drafts and JSON paste/files without events. Submit captures args.form/data as the actor; package macros validate/version their own format and emit existing primitives. Submitted data is public; no engine army schema is created.",
+          files: ["src/core/setup.ts", "src/SetupForms.tsx", "src/InputEditor.tsx"],
+          look: "To receive player-owned profiles, rosters and scenario options.",
         },
       ],
       edges: [
@@ -2210,21 +2520,143 @@
           dashed: true,
           via: [
             [165, 200],
-            [635, 200],
+            [480, 200],
           ],
           label: "panel()",
-          at: [400, 194],
+          at: [320, 194],
+        },
+        {
+          from: "def",
+          to: "setup",
+          dashed: true,
+          via: [
+            [310, 95],
+            [310, 220],
+            [795, 220],
+          ],
+          label: "setup(view, player)",
+          at: [555, 214],
         },
       ],
       about: {
         summary:
-          "Types only: no runtime code ships from here (defineModule is the identity function). A package file has no imports, so it exports a plain object of this shape.",
-        files: ["src/sdk/index.ts", "docs/packages.md", "examples/packages/ember-skirmish.js"],
+          "Runtime contracts plus build-time helpers: typed source modules bundle into one import-free package. Explicit creation helpers put starting quantities into primitive event data, never reducer metadata. Open ModuleDef for the authoring build/scenario/diagnostic workflow.",
+        files: [
+          "src/sdk/index.ts",
+          "src/sdk/authoring.ts",
+          "docs/packages.md",
+          "docs/authoring.md",
+          "examples/authoring/lantern-game/index.ts",
+        ],
         watch: [
           "Anything an existing package would notice raises MODULE_API.",
           "The example package is the best documentation: it uses every part once.",
         ],
         look: "Look deeper before changing anything a module can see: it is a compatibility promise.",
+      },
+    },
+
+    authoring: {
+      title: "Package authoring",
+      parent: "sdk",
+      lede: "Typed sources become one consented package. Local scenarios exercise real execution; diagnostics identify failures.",
+      W: 960,
+      H: 460,
+      nodes: [
+        {
+          id: "source",
+          label: "Typed source + helpers",
+          sub: ["ModuleDef · explicit defaults"],
+          x: 30,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Stable namespaced IDs; explicit entity starting quantities.",
+          summary:
+            "Local modules import SDK types and authoring helpers. Creation helpers copy defaults under explicit q values and return primitive events. No reducer lookup or implicit initialization of existing entities.",
+          files: ["src/sdk/authoring.ts", "examples/authoring/lantern-game/index.ts"],
+        },
+        {
+          id: "build",
+          label: "package:build",
+          sub: ["TypeScript · esbuild"],
+          x: 345,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Check before output; no execution of package code.",
+          summary:
+            "Strict source graph checking precedes bundling. A readable literal manifest, default module, no runtime imports and inline source map form the artifact. Failed builds do not overwrite successful output.",
+          files: ["scripts/package-build.mjs", "docs/authoring.md"],
+        },
+        {
+          id: "artifact",
+          label: "Single-file package",
+          sub: ["SHA-256 · per-hash consent"],
+          x: 660,
+          y: 40,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "The unchanged API-12 runtime format.",
+          summary:
+            "Players consent to exact generated bytes. Browser loading enforces the same dependencies, collision declarations and composition pins as handwritten packages.",
+          files: ["src/packages/manifest.ts", "src/packages/composition.ts", "src/sandbox/engine.ts"],
+        },
+        {
+          id: "scenario",
+          label: "package:scenario",
+          sub: ["trusted local code"],
+          x: 345,
+          y: 260,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Resolve · answer · reconstruct · assert · replay.",
+          summary:
+            "Versioned local scenario JSON drives the actual host resolver and SandboxEngine with seeded RNG, drains recorded hooks, reconstructs suspended input and compares package-free replay hashes. Errors or unfinished work fail nonzero. Not iframe isolation or CI.",
+          files: [
+            "src/authoring/scenario.ts",
+            "scripts/package-scenario.mjs",
+            "docs/protocols/package-scenarios.md",
+          ],
+        },
+        {
+          id: "diagnostics",
+          label: "Structured diagnostics",
+          sub: ["app and scenario reports"],
+          x: 660,
+          y: 260,
+          w: 270,
+          h: 110,
+          status: "kept",
+          blurb: "Exact provider, callback and available source location.",
+          summary:
+            "Load, presentation and execution failures identify package/hash and callback/symbol. Real stack coordinates are optional; reconstruction recovers logged failure identity/message. Refresh replaces presentation diagnostics. Errors do not become overridable warnings.",
+          files: ["src/sandbox/protocol.ts", "src/sandbox/engine.ts", "src/App.tsx"],
+        },
+      ],
+      edges: [
+        { from: "source", to: "build", label: "source graph" },
+        { from: "build", to: "artifact", label: "one JS file" },
+        { from: "artifact", to: "scenario", label: "execute trusted bytes" },
+        { from: "scenario", to: "diagnostics", label: "report" },
+      ],
+      about: {
+        summary:
+          "Authoring conveniences are outside the deterministic fold. Defaults are recorded data; failures remain ordinary macro errors. Runtime API, record and peer versions stay unchanged; scenario files have their own major.",
+        files: [
+          "docs/authoring.md",
+          "docs/protocols/package-scenarios.md",
+          "src/sdk/authoring.ts",
+          "src/authoring/scenario.ts",
+        ],
+        watch: [
+          "The Node scenario runner executes trusted code without browser sandbox isolation.",
+          "A source map changes artifact bytes and therefore consent/hash.",
+        ],
       },
     },
 
@@ -2247,7 +2679,7 @@
           status: "kept",
           blurb: "id, name, version, table, layout, quantities, pointer, hooks, actions, hasPanel.",
           summary:
-            "Plain data the sandbox reports when a package loads. registerModuleInfo stores it; extendModuleInfo merges what an extension adds to a game; startingLayout gives a fresh game its layout (an empty one when the module isn't known).",
+            "Plain data reported only after atomic collision-checked load. registerModuleInfo stores games; extendModuleInfo merges authorized extension contributions (quantities keyed by entity kind and ID), removes superseded action metadata and preserves hooks. startingLayout gives a fresh game its declared layout.",
           files: ["src/systems/index.ts"],
           look: "To see what the page learns about a game.",
         },
@@ -2630,28 +3062,32 @@
     if (!item) {
       const a = view.about;
       box.append(
-        h("h3", {}, "About this level"),
-        h("p", {}, a.summary),
-        section("Open first", a.files, true),
-        section("Must stay true", a.watch),
-        a.look ? h("div", {}, h("h4", {}, "Why look deeper"), h("p", {}, a.look)) : null,
+        ...[
+          h("h3", {}, "About this level"),
+          h("p", {}, a.summary),
+          section("Open first", a.files, true),
+          section("Must stay true", a.watch),
+          a.look ? h("div", {}, h("h4", {}, "Why look deeper"), h("p", {}, a.look)) : null,
+        ].filter(Boolean),
       );
       return;
     }
     const title = item.label;
     box.append(
-      h(
-        "h3",
-        {},
-        title,
-        item.status ? h("span", { class: "pill " + item.status }, STATUS_LABEL[item.status]) : null,
-      ),
-      h("p", {}, item.summary || item.blurb || ""),
-      section("Owns", item.owns),
-      section("Talks to", item.talks),
-      section("Open first", item.files, true),
-      section("Watch out for", item.watch),
-      item.look ? h("div", {}, h("h4", {}, "Look deeper when"), h("p", {}, item.look)) : null,
+      ...[
+        h(
+          "h3",
+          {},
+          title,
+          item.status ? h("span", { class: "pill " + item.status }, STATUS_LABEL[item.status]) : null,
+        ),
+        h("p", {}, item.summary || item.blurb || ""),
+        section("Owns", item.owns),
+        section("Talks to", item.talks),
+        section("Open first", item.files, true),
+        section("Watch out for", item.watch),
+        item.look ? h("div", {}, h("h4", {}, "Look deeper when"), h("p", {}, item.look)) : null,
+      ].filter(Boolean),
     );
     if (item.zoom)
       box.append(

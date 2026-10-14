@@ -38,6 +38,7 @@ export function registerModuleInfo(info: ModuleInfo): void {
 export function extendModuleInfo(
   id: string,
   add: Pick<ModuleInfo, "quantities" | "pointer" | "hooks" | "actions">,
+  removedActions: string[] = [],
 ): void {
   const own = MODULES.get(id);
   if (!own) return;
@@ -47,9 +48,15 @@ export function extendModuleInfo(
   ];
   MODULES.set(id, {
     ...own,
-    quantities: merge(own.quantities, add.quantities),
+    quantities: [
+      ...own.quantities.filter((q) => !add.quantities.some((more) => more.on === q.on && more.id === q.id)),
+      ...add.quantities,
+    ],
     pointer: merge(own.pointer, add.pointer),
-    actions: merge(own.actions, add.actions),
+    actions: merge(
+      own.actions.filter((a) => !removedActions.includes(a.id)),
+      add.actions,
+    ),
     hooks: [...new Set([...own.hooks, ...add.hooks])],
   });
 }

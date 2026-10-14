@@ -7,6 +7,7 @@ import {
   lastSeq,
   resolveLogged,
   stateAt,
+  pendingReactions,
   type GameEvent,
   type GameRecord,
   type GameState,
@@ -14,10 +15,10 @@ import {
   type LoggedEvent,
   type Rng,
 } from "../core";
+import { jsonProblem } from "../core/validate";
 import { hookIntents } from "../core/macro";
 import type { Check, NetMessage, SideMessage, Transport } from "./transport";
 import { buildInfo, MY_BUILD, type BuildInfo } from "../protocol";
-import { sharedRng } from "../core/sharedDice";
 
 /** Spectators receive the game like clients but never send intents. */
 export type Role = "host" | "client" | "spectator";
@@ -59,9 +60,12 @@ type IntentRouter = (
 ) => ((seed: number) => Promise<GameEvent | null>) | null;
 
 let router: IntentRouter | null = null;
+const routerListeners = new Set<() => void>();
 
 export function setIntentRouter(r: IntentRouter | null): void {
+  if (router === r) return;
   router = r;
+  for (const listener of routerListeners) listener();
 }
 
 interface SessionOptions {
@@ -88,8 +92,6 @@ interface SessionOptions {
   ready?: (state: GameState) => boolean;
   /** A spectator: how far behind the game it watches (ms); the host holds the events back. */
   delay?: number;
-  /** Shared dice (core/sharedDice.ts): this host's secret seed for a commitment it made, if it has it. */
-  sharedSecret?: (commit: string) => string | undefined;
 }
 
 /** A short fingerprint of the log up to `seq`, so a peer can tell it holds the same history. */
@@ -146,6 +148,12 @@ export class Session {
   /** Peers that greeted the host: until one does, it may have missed the host's announcement. */
   private readonly greeted = new Set<string>();
   private left = false;
+  /** Invalidates a resolution whenever this session loses its execution authority. */
+  private authority = 0;
+  private readonly routerChanged = () => {
+    this.invalidateResolution();
+    queueMicrotask(() => this.runHooks());
+  };
   private readonly transport: Transport;
   private readonly onChange: SessionOptions["onChange"];
   private readonly onNet: SessionOptions["onNet"];
@@ -176,7 +184,6 @@ export class Session {
   /** Spectator: how far behind it asked to watch; the host's answer is `hostDelay`. */
   private readonly delay: number;
   private hostDelay = 0;
-  private readonly sharedSecret?: (commit: string) => string | undefined;
 
   constructor({
     transport,
@@ -190,9 +197,7 @@ export class Session {
     onNet,
     ready,
     delay,
-    sharedSecret,
   }: SessionOptions) {
-    this.sharedSecret = sharedSecret;
     this.delay = Math.max(0, Math.round(delay ?? 0));
     this.isReady = ready ?? (() => true);
     this.transport = transport;
@@ -236,6 +241,9 @@ export class Session {
     });
 
     transport.onMessage((message, from) => this.receive(message, from));
+    routerListeners.add(this.routerChanged);
+    // Recovery starts after the caller has installed its session and sandbox replica.
+    queueMicrotask(() => this.runHooks());
   }
 
   get selfId(): string {
@@ -330,12 +338,15 @@ export class Session {
     // Watchers behind the game get the rest of it before the host goes (PX).
     this.flushBehind();
     this.left = true;
+    routerListeners.delete(this.routerChanged);
+    this.invalidateResolution();
     if (this.timer) clearTimeout(this.timer);
     if (this.asking) clearTimeout(this.asking);
     this.transport.leave();
   }
 
   private receive(message: NetMessage, from: string): void {
+    if (this.left) return;
     // A message this build can't read is ignored, never an error (docs/protocols/peer-protocol.md).
     if (typeof (message as { t?: unknown } | null)?.t !== "string") return;
     if (message.t.startsWith("package/")) {
@@ -581,6 +592,7 @@ export class Session {
   }
 
   private standDown(winner: string, info: { seq: number; resumed?: boolean }): void {
+    this.invalidateResolution();
     this.role = "client";
     this.resumed = false;
     this.transport.send({ t: "yield", to: winner });
@@ -622,6 +634,7 @@ export class Session {
       this.migrating = false;
       this.announce();
       for (const intent of this.queue.splice(0)) this.hostApply(intent, this.selfId);
+      this.runHooks();
       this.notify();
       return;
     }
@@ -633,82 +646,125 @@ export class Session {
   /** Intents waiting while the sandbox resolves one, so events keep their order. */
   private waiting: [Intent, string][] = [];
   private resolving = false;
+  private drainingHooks = false;
 
-  private hostApply(intent: Intent, from: string): void {
+  private invalidateResolution(): void {
+    this.authority++;
+    this.resolving = false;
+    this.waiting = [];
+  }
+
+  private hostApply(intent: Intent, from: string): boolean {
+    if (this.left || this.role !== "host" || jsonProblem(intent)) return false;
     if (this.resolving) {
       this.waiting.push([intent, from]);
-      return;
+      return true;
     }
-    // Only the host commits to and reveals shared dice, for itself.
-    if ((intent.type === "dice/commit" || intent.type === "dice/reveal") && from !== this.selfId) return;
-    const shared = this.sharedDiceFor(intent);
-    const rng = shared.rng ?? this.rng;
+    // Package composition cannot change while execution still owns it.
+    if (
+      (intent.type === "game/packages" || intent.type === "game/system") &&
+      (this.state.macro || pendingReactions(this.record).length) &&
+      (intent.type === "game/system"
+        ? intent.system !== this.state.system
+        : JSON.stringify({ app: intent.app, system: intent.system, packages: intent.packages }) !==
+          JSON.stringify(this.state.packages))
+    )
+      return false;
     const routed = router?.(intent, from, this.state);
     if (routed) {
       this.resolving = true;
-      const seed = Math.floor(rng() * 2 ** 32);
+      const authority = this.authority;
+      const seed = Math.floor(this.rng() * 2 ** 32);
       void routed(seed)
         .catch(() => null)
         .then((event) => {
-          this.resolving = false;
-          if (event && this.role === "host")
+          if (this.left || this.role !== "host" || authority !== this.authority) return;
+          if (event)
             this.hostLog({
               seq: lastSeq(this.record) + 1,
               by: from,
               at: this.now(),
               event,
-              ...shared.note,
-              ...(shared.note ? { seed } : {}),
             });
+          this.resolving = false;
           for (const [i, f] of this.waiting.splice(0)) this.hostApply(i, f);
-          this.runHooks();
+          // A refused/unavailable reaction remains owed; don't spin on it.
+          if (event || intent.type !== "macro/start" || !intent.reaction) this.runHooks();
         });
-      return;
+      return true;
     }
-    const resolved = resolveLogged(this.record, intent, from, rng, this.now(), this.state);
-    if (resolved) this.hostLog({ ...resolved, ...shared.note });
+    const resolved = resolveLogged(this.record, intent, from, this.rng, this.now(), this.state);
+    if (!resolved) return false;
+    this.hostLog(resolved);
+    return true;
   }
 
-  /**
-   * Under shared dice: the dice for the next event (if this host made the
-   * commitment in force) and what the log keeps so the other player can roll
-   * it again.
-   */
-  private sharedDiceFor(intent: Intent): { rng?: Rng; note?: { intent: Intent } } {
-    const d = this.state.sharedDice;
-    if (!d) return {};
-    const secret = d.by === this.selfId ? this.sharedSecret?.(d.commit) : undefined;
-    return {
-      ...(secret ? { rng: sharedRng(secret, d.seeds, lastSeq(this.record) + 1) } : {}),
-      note: { intent },
-    };
-  }
-
-  /** Macros a logged event's hooks set off, started one at a time once none is waiting (core/macro.ts). */
-  private hooks: [Intent, string][] = [];
-
-  /** How many hook runs deep an event is: each step's `cause` points at the event that set its run off. */
-  private hookDepth(seq: number): number {
-    let depth = 0;
-    let at: number | undefined = seq;
-    while (at !== undefined && depth <= MAX_HOOK_DEPTH) {
-      const e: GameEvent | undefined = this.record.events.find((x) => x.seq === at)?.event;
-      at = e?.type === "macro/step" ? e.cause : undefined;
-      if (at !== undefined) depth++;
-    }
-    return depth;
+  /** Depth follows recorded reaction identity, not a volatile host queue. */
+  private hookDepth(event: GameEvent): number {
+    if (event.type !== "macro/step" || !event.reaction) return 0;
+    for (const logged of this.record.events)
+      for (const reaction of logged.reactions ?? [])
+        if (reaction.id === event.reaction) return reaction.depth;
+    return 0;
   }
 
   private runHooks(): void {
-    while (this.hooks.length && !this.resolving && !this.state.macro && this.role === "host") {
-      const [intent, from] = this.hooks.shift()!;
-      this.hostApply(intent, from);
+    if (this.drainingHooks || this.left || this.role !== "host") return;
+    this.drainingHooks = true;
+    try {
+      while (!this.resolving && !this.state.macro) {
+        const reaction = pendingReactions(this.record)[0];
+        if (!reaction || reaction.system !== this.state.system) return;
+        if (
+          !this.hostApply(
+            {
+              type: "macro/start",
+              macro: reaction.macro,
+              args: reaction.args,
+              cause: reaction.cause,
+              reaction: reaction.id,
+            },
+            reaction.by,
+          )
+        )
+          return;
+      }
+    } finally {
+      this.drainingHooks = false;
     }
   }
 
   private hostLog(resolved: LoggedEvent): void {
+    if (this.left || this.role !== "host") return;
     const before = this.state;
-    const logged: LoggedEvent = { ...resolved, host: this.selfId };
+    const after =
+      resolved.event.type === "undo"
+        ? stateAt(appendEvent(this.record, resolved))
+        : { ...applyEvent(before, resolved.event), seq: resolved.seq };
+    const depth = this.hookDepth(resolved.event);
+    const reactions =
+      depth < MAX_HOOK_DEPTH
+        ? hookIntents(before, after, resolved.event, resolved.seq).flatMap((intent, ordinal) =>
+            intent.type === "macro/start"
+              ? [
+                  {
+                    id: `${resolved.seq}:${ordinal}`,
+                    system: after.system ?? "",
+                    macro: intent.macro,
+                    args: intent.args ?? {},
+                    by: resolved.by,
+                    cause: resolved.seq,
+                    depth: depth + 1,
+                  },
+                ]
+              : [],
+          )
+        : [];
+    const logged: LoggedEvent = {
+      ...resolved,
+      host: this.selfId,
+      ...(reactions.length ? { reactions } : {}),
+    };
     // The previous checkpoint's hash rides along with this event.
     const due = this.pendingCheck;
     this.pendingCheck = null;
@@ -729,10 +785,7 @@ export class Session {
       this.flushBehind();
       this.spectatorFloorMs = 0;
     }
-    // A hook's own events may set off hooks too, but not without end: a chain of causes stops here.
-    if (this.hookDepth(logged.seq) < MAX_HOOK_DEPTH)
-      for (const intent of hookIntents(before, this.state, logged.event, logged.seq))
-        this.hooks.push([intent, logged.by]);
+    // The trigger already records the work; recovery never re-evaluates its hook table.
     this.runHooks();
   }
 

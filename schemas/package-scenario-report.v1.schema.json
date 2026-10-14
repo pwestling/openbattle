@@ -1,0 +1,3364 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:open-battle:schema:package-scenario-report@1",
+  "title": "Open Battle package-scenario-report v1",
+  "$ref": "#/definitions/ScenarioOutput",
+  "definitions": {
+    "ScenarioOutput": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "const": "open-battle/package-scenario-report@1"
+            },
+            "ok": {
+              "type": "boolean"
+            },
+            "seed": {
+              "type": "number"
+            },
+            "steps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "index": {
+                    "type": "number"
+                  },
+                  "op": {
+                    "type": "string",
+                    "enum": [
+                      "intent",
+                      "answer",
+                      "reconstruct",
+                      "appState",
+                      "assert",
+                      "assertHash",
+                      "replay"
+                    ]
+                  },
+                  "seq": {
+                    "type": "number"
+                  },
+                  "hash": {
+                    "type": "number"
+                  },
+                  "waiting": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "input": {
+                            "$ref": "#/definitions/InputSpec"
+                          },
+                          "player": {
+                            "$ref": "#/definitions/PlayerId"
+                          },
+                          "question": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "input",
+                          "player",
+                          "question"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "label"
+                              ]
+                            }
+                          },
+                          "secret": {
+                            "type": "string"
+                          },
+                          "reveal": {
+                            "type": "string"
+                          },
+                          "player": {
+                            "$ref": "#/definitions/PlayerId"
+                          },
+                          "question": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "options",
+                          "player",
+                          "question"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "events": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/LoggedEvent"
+                    }
+                  },
+                  "diagnostics": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/PackageDiagnostic"
+                    }
+                  },
+                  "appState": {
+                    "$ref": "#/definitions/AppState"
+                  },
+                  "reconstructed": {
+                    "type": "boolean",
+                    "const": true
+                  },
+                  "replayHash": {
+                    "type": "number"
+                  },
+                  "error": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "index",
+                  "op",
+                  "seq",
+                  "hash",
+                  "events",
+                  "diagnostics"
+                ]
+              }
+            },
+            "diagnostics": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PackageDiagnostic"
+              }
+            },
+            "terminalErrors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "seq": {
+                    "type": "number"
+                  },
+                  "macro": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "seq",
+                  "macro",
+                  "message"
+                ]
+              }
+            },
+            "loaded": {
+              "$ref": "#/definitions/Loaded"
+            },
+            "error": {
+              "type": "string"
+            },
+            "waiting": {
+              "anyOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "input": {
+                      "$ref": "#/definitions/InputSpec"
+                    },
+                    "player": {
+                      "$ref": "#/definitions/PlayerId"
+                    },
+                    "question": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "input",
+                    "player",
+                    "question"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "options": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "label": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label"
+                        ]
+                      }
+                    },
+                    "secret": {
+                      "type": "string"
+                    },
+                    "reveal": {
+                      "type": "string"
+                    },
+                    "player": {
+                      "$ref": "#/definitions/PlayerId"
+                    },
+                    "question": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "options",
+                    "player",
+                    "question"
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "state": {
+              "$ref": "#/definitions/GameState"
+            },
+            "hash": {
+              "type": "number"
+            },
+            "replayHash": {
+              "type": "number"
+            },
+            "record": {
+              "$ref": "#/definitions/GameRecord"
+            }
+          },
+          "required": [
+            "format",
+            "ok",
+            "seed",
+            "steps",
+            "diagnostics",
+            "terminalErrors",
+            "state",
+            "hash",
+            "replayHash",
+            "record"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string",
+              "const": "open-battle/package-scenario-report@1"
+            },
+            "ok": {
+              "type": "boolean",
+              "const": false
+            },
+            "error": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "format",
+            "ok",
+            "error"
+          ]
+        }
+      ]
+    },
+    "InputSpec": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "choice"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/InputOption"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string",
+              "const": "multiChoice"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/InputOption"
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "number"
+            },
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "integer": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "text"
+            },
+            "minLength": {
+              "type": "number"
+            },
+            "maxLength": {
+              "type": "number"
+            },
+            "multiline": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "min": {
+              "type": "number"
+            },
+            "max": {
+              "type": "number"
+            },
+            "ordered": {
+              "type": "boolean"
+            },
+            "kind": {
+              "type": "string",
+              "const": "reference"
+            },
+            "options": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "ref": {
+                    "$ref": "#/definitions/InputRef"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "ref",
+                  "label"
+                ]
+              }
+            },
+            "multiple": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "kind",
+            "options"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "point"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "pose"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "path"
+            },
+            "minPoints": {
+              "type": "number"
+            },
+            "maxPoints": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "InputOption": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ]
+    },
+    "InputRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "unit",
+            "model",
+            "token",
+            "card",
+            "terrain"
+          ]
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ]
+    },
+    "PlayerId": {
+      "type": "string"
+    },
+    "LoggedEvent": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "number"
+        },
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "at": {
+          "type": "number"
+        },
+        "event": {
+          "$ref": "#/definitions/GameEvent"
+        },
+        "host": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "reactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Reaction"
+          }
+        }
+      },
+      "required": [
+        "seq",
+        "by",
+        "at",
+        "event"
+      ]
+    },
+    "GameEvent": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "player/join"
+            },
+            "player": {
+              "$ref": "#/definitions/Player"
+            }
+          },
+          "required": [
+            "type",
+            "player"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "player/claim"
+            },
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "by": {
+              "$ref": "#/definitions/PlayerId"
+            }
+          },
+          "required": [
+            "type",
+            "player",
+            "by"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "player/set"
+            },
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "set": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "color": {
+                  "type": "string"
+                },
+                "ready": {
+                  "type": "boolean"
+                },
+                "seat": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              }
+            }
+          },
+          "required": [
+            "type",
+            "player",
+            "set"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "game/system"
+            },
+            "system": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "system"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "app": {
+              "type": "string"
+            },
+            "system": {
+              "type": "string"
+            },
+            "packages": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PackageRef"
+              }
+            },
+            "type": {
+              "type": "string",
+              "const": "game/packages"
+            }
+          },
+          "required": [
+            "app",
+            "packages",
+            "system",
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "layout/set"
+            },
+            "layout": {
+              "$ref": "#/definitions/Layout"
+            }
+          },
+          "required": [
+            "type",
+            "layout"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "terrain/add"
+            },
+            "piece": {
+              "$ref": "#/definitions/TerrainPiece"
+            }
+          },
+          "required": [
+            "type",
+            "piece"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "terrain/update"
+            },
+            "piece": {
+              "$ref": "#/definitions/TerrainPiece"
+            }
+          },
+          "required": [
+            "type",
+            "piece"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "terrain/remove"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "unit/add"
+            },
+            "unit": {
+              "$ref": "#/definitions/Unit"
+            },
+            "models": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Model"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "unit",
+            "models"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "unit/remove"
+            },
+            "id": {
+              "$ref": "#/definitions/UnitId"
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "unit/members"
+            },
+            "id": {
+              "$ref": "#/definitions/UnitId"
+            },
+            "add": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ModelId"
+              }
+            },
+            "remove": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ModelId"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "model/add"
+            },
+            "model": {
+              "$ref": "#/definitions/Model"
+            }
+          },
+          "required": [
+            "type",
+            "model"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "model/remove"
+            },
+            "id": {
+              "$ref": "#/definitions/ModelId"
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "token/add"
+            },
+            "token": {
+              "$ref": "#/definitions/Token"
+            }
+          },
+          "required": [
+            "type",
+            "token"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "token/remove"
+            },
+            "id": {
+              "$ref": "#/definitions/TokenId"
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "entity/set"
+            },
+            "ref": {
+              "$ref": "#/definitions/EntityRef"
+            },
+            "set": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/Json"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "ref",
+            "set"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "models/move"
+            },
+            "moves": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "$ref": "#/definitions/ModelId"
+                  },
+                  "to": {
+                    "$ref": "#/definitions/Vec2"
+                  },
+                  "z": {
+                    "type": "number"
+                  },
+                  "facing": {
+                    "type": "number"
+                  },
+                  "via": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Vec2"
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "to"
+                ]
+              }
+            },
+            "setup": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "type",
+            "moves"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "unit/move"
+            },
+            "id": {
+              "$ref": "#/definitions/UnitId"
+            },
+            "pivot": {
+              "$ref": "#/definitions/Vec2"
+            },
+            "turn": {
+              "type": "number"
+            },
+            "delta": {
+              "$ref": "#/definitions/Vec2"
+            }
+          },
+          "required": [
+            "type",
+            "id",
+            "pivot",
+            "turn",
+            "delta"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "q/set"
+            },
+            "ref": {
+              "$ref": "#/definitions/EntityRef"
+            },
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          "required": [
+            "type",
+            "ref",
+            "key",
+            "value"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "q/adjust"
+            },
+            "ref": {
+              "$ref": "#/definitions/EntityRef"
+            },
+            "key": {
+              "type": "string"
+            },
+            "delta": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "ref",
+            "key",
+            "delta"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "tag/set"
+            },
+            "ref": {
+              "$ref": "#/definitions/EntityRef"
+            },
+            "tag": {
+              "type": "string"
+            },
+            "on": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "type",
+            "ref",
+            "tag",
+            "on"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "mod/add"
+            },
+            "mod": {
+              "$ref": "#/definitions/Mod"
+            }
+          },
+          "required": [
+            "type",
+            "mod"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "mod/remove"
+            },
+            "id": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "pointer/set"
+            },
+            "pointer": {
+              "$ref": "#/definitions/Pointer"
+            }
+          },
+          "required": [
+            "type",
+            "pointer"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "dice/roll"
+            },
+            "roll": {
+              "$ref": "#/definitions/DiceRoll"
+            }
+          },
+          "required": [
+            "type",
+            "roll"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "secret/commit"
+            },
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "secrets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string"
+                  },
+                  "commitment": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "key",
+                  "commitment"
+                ]
+              }
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "player",
+            "secrets"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "secret/reveal"
+            },
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "key": {
+              "type": "string"
+            },
+            "value": {},
+            "salt": {
+              "type": "string"
+            },
+            "label": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "player",
+            "key",
+            "value",
+            "salt"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "collection/add"
+            },
+            "collection": {
+              "$ref": "#/definitions/CardCollection"
+            }
+          },
+          "required": [
+            "type",
+            "collection"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "collection/remove"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "id"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/add"
+            },
+            "card": {
+              "$ref": "#/definitions/Card"
+            },
+            "collection": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "collection"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/remove"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "cards"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "cards/move"
+            },
+            "cards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "to": {
+              "type": "string"
+            },
+            "index": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "cards",
+            "to"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "card/set"
+            },
+            "card": {
+              "type": "string"
+            },
+            "set": {
+              "$ref": "#/definitions/CardFields"
+            }
+          },
+          "required": [
+            "type",
+            "card",
+            "set"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "collection/shuffle"
+            },
+            "collection": {
+              "type": "string"
+            },
+            "order": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "collection",
+            "order"
+          ]
+        },
+        {
+          "$ref": "#/definitions/LogNote"
+        },
+        {
+          "$ref": "#/definitions/ModuleSet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "player/resync"
+            },
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            }
+          },
+          "required": [
+            "type",
+            "player"
+          ]
+        },
+        {
+          "$ref": "#/definitions/BranchEvent"
+        },
+        {
+          "$ref": "#/definitions/MacroStep"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "undo"
+            },
+            "seq": {
+              "type": "number"
+            },
+            "also": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "required": [
+            "type",
+            "seq"
+          ]
+        }
+      ]
+    },
+    "Player": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "seat": {
+          "type": "number"
+        },
+        "ready": {
+          "type": "boolean"
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "color"
+      ]
+    },
+    "Bag": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/Json"
+      }
+    },
+    "Json": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Json"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Json"
+          }
+        }
+      ]
+    },
+    "PackageRef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "hash": {
+          "type": "string"
+        },
+        "bytes": {
+          "type": "number"
+        },
+        "kind": {
+          "type": "string",
+          "const": "system"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "hash",
+        "bytes"
+      ]
+    },
+    "Layout": {
+      "type": "object",
+      "properties": {
+        "table": {
+          "$ref": "#/definitions/Table"
+        },
+        "terrain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TerrainPiece"
+          }
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Token"
+          }
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Zone"
+          }
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Card"
+          }
+        },
+        "cardCollections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CardCollection"
+          }
+        }
+      },
+      "required": [
+        "terrain",
+        "tokens",
+        "zones"
+      ]
+    },
+    "Table": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "width",
+        "depth"
+      ]
+    },
+    "TerrainPiece": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "width": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        },
+        "facing": {
+          "type": "number"
+        },
+        "solids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TerrainSolid"
+          }
+        },
+        "hull": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "position",
+        "width",
+        "depth",
+        "facing",
+        "solids"
+      ]
+    },
+    "Vec2": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "TerrainSolid": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "wall",
+            "floor",
+            "block",
+            "foliage"
+          ]
+        },
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        },
+        "w": {
+          "type": "number"
+        },
+        "d": {
+          "type": "number"
+        },
+        "h": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "x",
+        "y",
+        "z",
+        "w",
+        "d",
+        "h"
+      ]
+    },
+    "Token": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/TokenId"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        },
+        "base": {
+          "$ref": "#/definitions/BaseShape"
+        },
+        "height": {
+          "type": "number"
+        },
+        "bands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "r": {
+                "type": "number"
+              },
+              "z0": {
+                "type": "number"
+              },
+              "z1": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "r",
+              "z0",
+              "z1"
+            ]
+          }
+        },
+        "label": {
+          "type": "string"
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "position"
+      ]
+    },
+    "TokenId": {
+      "type": "string"
+    },
+    "BaseShape": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "round"
+            },
+            "diameterMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "diameterMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "oval"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "shape": {
+              "type": "string",
+              "const": "rect"
+            },
+            "widthMm": {
+              "type": "number"
+            },
+            "depthMm": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "shape",
+            "widthMm",
+            "depthMm"
+          ]
+        }
+      ]
+    },
+    "Zone": {
+      "type": "object",
+      "properties": {
+        "seat": {
+          "type": "number"
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Vec2"
+          }
+        }
+      },
+      "required": [
+        "seat",
+        "points"
+      ]
+    },
+    "Card": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "face": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "back": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visibility": {
+          "$ref": "#/definitions/CardVisibility"
+        },
+        "faceUp": {
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "visibility",
+        "faceUp"
+      ]
+    },
+    "CardFace": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "cols": {
+          "type": "number"
+        },
+        "rows": {
+          "type": "number"
+        },
+        "index": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "url",
+        "cols",
+        "rows",
+        "index"
+      ]
+    },
+    "CardVisibility": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "all"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "CardCollection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "cards": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "cards"
+      ]
+    },
+    "Unit": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/UnitId"
+        },
+        "owner": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "name": {
+          "type": "string"
+        },
+        "modelIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ModelId"
+          }
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "owner",
+        "name",
+        "modelIds"
+      ]
+    },
+    "UnitId": {
+      "type": "string"
+    },
+    "ModelId": {
+      "type": "string"
+    },
+    "Model": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/ModelId"
+        },
+        "owner": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "label": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        },
+        "base": {
+          "$ref": "#/definitions/BaseShape"
+        },
+        "unitId": {
+          "$ref": "#/definitions/UnitId"
+        },
+        "off": {
+          "type": "boolean"
+        },
+        "z": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "bands": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "r": {
+                "type": "number"
+              },
+              "z0": {
+                "type": "number"
+              },
+              "z1": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "r",
+              "z0",
+              "z1"
+            ]
+          }
+        },
+        "q": {
+          "$ref": "#/definitions/Bag"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "owner",
+        "label",
+        "position",
+        "facing",
+        "base"
+      ]
+    },
+    "EntityRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/EntityKind"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "id"
+      ]
+    },
+    "EntityKind": {
+      "type": "string",
+      "enum": [
+        "player",
+        "unit",
+        "model",
+        "token"
+      ]
+    },
+    "Mod": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/definitions/EntityRef"
+        },
+        "q": {
+          "type": "string"
+        },
+        "op": {
+          "type": "string",
+          "enum": [
+            "add",
+            "set",
+            "min",
+            "max"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        },
+        "until": {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string"
+            },
+            "is": {
+              "$ref": "#/definitions/Json"
+            }
+          },
+          "required": [
+            "field",
+            "is"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "target",
+        "q",
+        "op",
+        "value"
+      ]
+    },
+    "Pointer": {
+      "type": "object",
+      "properties": {
+        "round": {
+          "type": "number"
+        },
+        "seat": {
+          "type": "number"
+        },
+        "phase": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "round",
+        "seat",
+        "phase"
+      ],
+      "additionalProperties": {
+        "$ref": "#/definitions/Json"
+      }
+    },
+    "DiceRoll": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "sides": {
+          "type": "number"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "label": {
+          "type": "string"
+        },
+        "faces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "by",
+        "sides",
+        "results"
+      ]
+    },
+    "CardFields": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "face": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "back": {
+          "$ref": "#/definitions/CardFace"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "visibility": {
+          "$ref": "#/definitions/CardVisibility"
+        },
+        "faceUp": {
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/definitions/Vec2"
+        },
+        "facing": {
+          "type": "number"
+        }
+      }
+    },
+    "LogNote": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "log/note"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "text"
+      ]
+    },
+    "ModuleSet": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "module/set"
+        },
+        "module": {
+          "type": "string"
+        },
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/Json"
+        }
+      },
+      "required": [
+        "type",
+        "module",
+        "key",
+        "value"
+      ]
+    },
+    "BranchEvent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "game/branch"
+        },
+        "branch": {
+          "$ref": "#/definitions/BranchInfo"
+        }
+      },
+      "required": [
+        "type",
+        "branch"
+      ]
+    },
+    "BranchInfo": {
+      "type": "object",
+      "properties": {
+        "parentHash": {
+          "type": "string"
+        },
+        "parentSeq": {
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        },
+        "moment": {
+          "type": "string"
+        },
+        "round": {
+          "type": "number"
+        },
+        "droppedSecrets": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "parentHash",
+        "parentSeq",
+        "title",
+        "round",
+        "droppedSecrets"
+      ]
+    },
+    "MacroStep": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "macro/step"
+        },
+        "macro": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "run": {
+          "type": "number"
+        },
+        "started": {
+          "type": "boolean",
+          "const": true
+        },
+        "args": {
+          "$ref": "#/definitions/Args"
+        },
+        "cause": {
+          "type": "number"
+        },
+        "reaction": {
+          "type": "string"
+        },
+        "answered": {
+          "type": "object",
+          "properties": {
+            "player": {
+              "$ref": "#/definitions/PlayerId"
+            },
+            "command": {
+              "type": "string"
+            },
+            "value": {
+              "$ref": "#/definitions/Json"
+            },
+            "head": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "player",
+            "command",
+            "value",
+            "head"
+          ]
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GameEvent"
+          }
+        },
+        "script": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MacroState"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "macro",
+        "namespace",
+        "by",
+        "run",
+        "events",
+        "script"
+      ]
+    },
+    "Args": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/ReadonlyJson"
+      }
+    },
+    "ReadonlyJson": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReadonlyJson"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ReadonlyJson"
+          }
+        }
+      ]
+    },
+    "MacroState": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "macro": {
+          "type": "string"
+        },
+        "args": {
+          "$ref": "#/definitions/Args"
+        },
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "startSeq": {
+          "type": "number"
+        },
+        "cause": {
+          "type": "number"
+        },
+        "reaction": {
+          "type": "string"
+        },
+        "identities": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PlayerId"
+          }
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "command": {
+                "type": "string"
+              },
+              "value": {
+                "$ref": "#/definitions/Json"
+              },
+              "head": {
+                "type": "number"
+              },
+              "recipient": {
+                "$ref": "#/definitions/PlayerId"
+              },
+              "identities": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/definitions/PlayerId"
+                }
+              }
+            },
+            "required": [
+              "command"
+            ]
+          }
+        },
+        "waiting": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "input": {
+                  "$ref": "#/definitions/InputSpec"
+                },
+                "player": {
+                  "$ref": "#/definitions/PlayerId"
+                },
+                "question": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "input",
+                "player",
+                "question"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label"
+                    ]
+                  }
+                },
+                "secret": {
+                  "type": "string"
+                },
+                "reveal": {
+                  "type": "string"
+                },
+                "player": {
+                  "$ref": "#/definitions/PlayerId"
+                },
+                "question": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "options",
+                "player",
+                "question"
+              ]
+            }
+          ]
+        },
+        "waitingCommand": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "system",
+        "namespace",
+        "macro",
+        "args",
+        "by",
+        "startSeq",
+        "results"
+      ]
+    },
+    "Reaction": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "macro": {
+          "type": "string"
+        },
+        "args": {
+          "$ref": "#/definitions/Args"
+        },
+        "by": {
+          "$ref": "#/definitions/PlayerId"
+        },
+        "cause": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "system",
+        "macro",
+        "args",
+        "by",
+        "cause",
+        "depth"
+      ]
+    },
+    "PackageDiagnostic": {
+      "type": "object",
+      "properties": {
+        "severity": {
+          "type": "string",
+          "const": "error"
+        },
+        "phase": {
+          "type": "string",
+          "enum": [
+            "load",
+            "presentation",
+            "execution"
+          ]
+        },
+        "hash": {
+          "type": "string"
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "callback": {
+          "type": "string",
+          "enum": [
+            "import",
+            "layout",
+            "panel",
+            "setup",
+            "applies",
+            "available",
+            "label",
+            "targets",
+            "macro"
+          ]
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "line": {
+              "type": "number"
+            },
+            "column": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "url",
+            "line",
+            "column"
+          ]
+        }
+      },
+      "required": [
+        "severity",
+        "phase",
+        "hash",
+        "system",
+        "callback",
+        "message"
+      ]
+    },
+    "AppState": {
+      "type": "object",
+      "properties": {
+        "player": {
+          "type": "string"
+        },
+        "seq": {
+          "type": "number"
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ActionRow"
+          }
+        },
+        "panel": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PanelSpec"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "setup": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SetupSpec"
+          }
+        },
+        "setupError": {
+          "type": "string"
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageWarning"
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageDiagnostic"
+          }
+        }
+      },
+      "required": [
+        "player",
+        "seq",
+        "actions",
+        "panel",
+        "setup",
+        "warnings",
+        "diagnostics"
+      ]
+    },
+    "ActionRow": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "by": {
+          "type": "string",
+          "enum": [
+            "unit",
+            "player"
+          ]
+        },
+        "unitId": {
+          "type": "string"
+        },
+        "available": {
+          "type": "boolean",
+          "enum": [
+            true
+          ]
+        },
+        "error": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Target"
+          }
+        },
+        "targeted": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "by",
+        "available",
+        "targets",
+        "targeted"
+      ]
+    },
+    "Target": {
+      "type": "object",
+      "properties": {
+        "unitId": {
+          "$ref": "#/definitions/Id"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "label"
+      ]
+    },
+    "Id": {
+      "type": "string"
+    },
+    "PanelSpec": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "lines": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "buttons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string"
+              },
+              "macro": {
+                "$ref": "#/definitions/Id"
+              },
+              "args": {
+                "$ref": "#/definitions/Args"
+              },
+              "player": {
+                "$ref": "#/definitions/Id"
+              },
+              "warning": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "macro"
+            ]
+          }
+        }
+      },
+      "required": [
+        "title"
+      ]
+    },
+    "SetupSpec": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "macro": {
+          "type": "string"
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SetupField"
+          }
+        },
+        "args": {
+          "$ref": "#/definitions/Args"
+        },
+        "warning": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "macro",
+        "fields"
+      ]
+    },
+    "SetupField": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "hint": {
+          "type": "string"
+        },
+        "input": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/InputSpec"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "json"
+                }
+              },
+              "required": [
+                "kind"
+              ]
+            }
+          ]
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "initial": {
+          "$ref": "#/definitions/ReadonlyJson"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "input"
+      ]
+    },
+    "PackageWarning": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string"
+        },
+        "packageId": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "action",
+            "macro",
+            "quantity",
+            "phase",
+            "setup"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "on": {
+          "$ref": "#/definitions/EntityKind"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "hash",
+        "packageId",
+        "system",
+        "kind",
+        "id",
+        "message"
+      ]
+    },
+    "Loaded": {
+      "type": "object",
+      "properties": {
+        "packages": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hash": {
+                "type": "string"
+              },
+              "systems": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "macros": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "hooks": {
+                "$ref": "#/definitions/HookTable"
+              },
+              "info": {
+                "$ref": "#/definitions/ModuleInfo"
+              },
+              "adds": {
+                "type": "object",
+                "properties": {
+                  "quantities": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/QuantityDef"
+                    }
+                  },
+                  "pointer": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/PhaseDef"
+                    }
+                  },
+                  "hooks": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "actions": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "by": {
+                          "type": "string",
+                          "enum": [
+                            "unit",
+                            "player"
+                          ]
+                        },
+                        "phases": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "by"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "quantities",
+                  "pointer",
+                  "hooks",
+                  "actions"
+                ]
+              },
+              "removedActions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "hash",
+              "systems",
+              "macros",
+              "hooks"
+            ]
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "hash": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "hash",
+              "error"
+            ]
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageWarning"
+          }
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageDiagnostic"
+          }
+        }
+      },
+      "required": [
+        "packages",
+        "errors",
+        "warnings",
+        "diagnostics"
+      ]
+    },
+    "HookTable": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "ModuleInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "table": {
+          "$ref": "#/definitions/Table"
+        },
+        "layout": {
+          "$ref": "#/definitions/Layout"
+        },
+        "quantities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/QuantityDef"
+          }
+        },
+        "pointer": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PhaseDef"
+          }
+        },
+        "hooks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "by": {
+                "type": "string",
+                "enum": [
+                  "unit",
+                  "player"
+                ]
+              },
+              "phases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "by"
+            ]
+          }
+        },
+        "hasPanel": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "table",
+        "layout",
+        "quantities",
+        "pointer",
+        "hooks",
+        "actions",
+        "hasPanel"
+      ]
+    },
+    "QuantityDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "on": {
+          "$ref": "#/definitions/EntityKind"
+        },
+        "initial": {
+          "$ref": "#/definitions/Json"
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "on"
+      ]
+    },
+    "PhaseDef": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/definitions/Id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "hint": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "GameState": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "number"
+        },
+        "table": {
+          "$ref": "#/definitions/Table"
+        },
+        "players": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Player"
+          }
+        },
+        "units": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Unit"
+          }
+        },
+        "models": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Model"
+          }
+        },
+        "tokens": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Token"
+          }
+        },
+        "terrain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TerrainPiece"
+          }
+        },
+        "zones": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Zone"
+          }
+        },
+        "pointer": {
+          "$ref": "#/definitions/Pointer"
+        },
+        "mods": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Mod"
+          }
+        },
+        "system": {
+          "type": "string"
+        },
+        "packages": {
+          "$ref": "#/definitions/GamePackages"
+        },
+        "macro": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/MacroState"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "modules": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/definitions/Json"
+            }
+          }
+        },
+        "secrets": {
+          "$ref": "#/definitions/Secrets"
+        },
+        "cards": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Card"
+          }
+        },
+        "cardCollections": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/CardCollection"
+          }
+        },
+        "branch": {
+          "$ref": "#/definitions/BranchInfo"
+        }
+      },
+      "required": [
+        "seq",
+        "table",
+        "players",
+        "units",
+        "models",
+        "tokens",
+        "terrain",
+        "zones",
+        "pointer",
+        "mods",
+        "cards",
+        "cardCollections"
+      ]
+    },
+    "GamePackages": {
+      "type": "object",
+      "properties": {
+        "app": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PackageRef"
+          }
+        }
+      },
+      "required": [
+        "app",
+        "system",
+        "packages"
+      ]
+    },
+    "Secrets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "$ref": "#/definitions/SecretEntry"
+        }
+      }
+    },
+    "SecretEntry": {
+      "type": "object",
+      "properties": {
+        "commitment": {
+          "type": "string"
+        },
+        "revealed": {
+          "type": "object",
+          "properties": {
+            "value": {}
+          },
+          "required": [
+            "value"
+          ]
+        }
+      },
+      "required": [
+        "commitment"
+      ]
+    },
+    "GameRecord": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "const": "open-battle/record@9"
+        },
+        "initial": {
+          "$ref": "#/definitions/GameState"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LoggedEvent"
+          }
+        }
+      },
+      "required": [
+        "format",
+        "initial",
+        "events"
+      ]
+    }
+  }
+}

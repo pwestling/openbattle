@@ -1,0 +1,25 @@
+{
+  "$schema": "../../../schemas/package-scenario.v1.schema.json",
+  "format": "open-battle/package-scenario@1",
+  "packages": ["./lantern-game.js"],
+  "system": "lantern-game",
+  "seed": 19,
+  "players": [{ "id": "p1", "name": "Lantern Keeper", "color": "#d1a947", "seat": 0 }],
+  "steps": [
+    { "op": "appState", "player": "p1" },
+    { "op": "assert", "target": "appState", "path": ["actions", "0", "id"], "equals": "muster" },
+    { "op": "intent", "from": "p1", "intent": { "type": "macro/start", "macro": "muster" } },
+    { "op": "assert", "path": ["units", "lantern-game:s4:unit:s2:p1", "q", "energy"], "equals": 2 },
+    { "op": "assert", "path": ["models", "lantern-game:s5:model:s2:p1", "q", "hp"], "equals": 3 },
+    { "op": "assert", "target": "waiting", "path": ["player"], "equals": "p1" },
+    { "op": "assert", "target": "waiting", "path": ["input", "kind"], "equals": "number" },
+    { "op": "assert", "target": "waiting", "path": ["input", "min"], "equals": 0 },
+    { "op": "assert", "target": "waiting", "path": ["input", "max"], "equals": 10 },
+    { "op": "reconstruct" },
+    { "op": "answer", "from": "p1", "answer": 4 },
+    { "op": "assert", "path": ["modules", "lantern-game", "answer"], "equals": 4 },
+    { "op": "assert", "target": "waiting", "path": [], "equals": null },
+    { "op": "replay" },
+    { "op": "appState", "player": "p1" }
+  ]
+}

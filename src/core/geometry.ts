@@ -1,6 +1,16 @@
-import type { BaseShape, Model, Vec2 } from "./types";
+import type { BaseShape, Vec2 } from "./types";
 
 const MM_PER_INCH = 25.4;
+
+/** Length/slab tolerance in inches, shared by the neutral geometry queries. */
+export const GEOMETRY_EPSILON = 1e-9;
+
+/** No base means a geometric point; facing is clockwise from +y. */
+export interface Footprint {
+  position: Vec2;
+  facing?: number;
+  base?: BaseShape;
+}
 
 function mmToInches(mm: number): number {
   return mm / MM_PER_INCH;
@@ -38,9 +48,10 @@ const outlines = new WeakMap<
 >();
 
 /** The base outline as a convex polygon in table space (curves approximated). Shared: don't change it. */
-function baseOutline(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
+function baseOutline(model: Footprint): Vec2[] {
   const was = outlines.get(model);
-  const { position, facing, base } = model;
+  const { position, base } = model;
+  const facing = model.facing ?? 0;
   if (
     was &&
     was.position === position &&
@@ -51,14 +62,14 @@ function baseOutline(model: Pick<Model, "position" | "facing" | "base">): Vec2[]
   )
     return was.outline;
   const outline = outlineOf(model);
-  outlines.set(model, { position, x: position.x, y: position.y, facing, base, outline });
+  outlines.set(model, { position, x: position.x, y: position.y, facing, base: base!, outline });
   return outline;
 }
 
-function outlineOf(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
-  const { width, depth } = baseSizeInches(model.base);
+function outlineOf(model: Footprint): Vec2[] {
+  const { width, depth } = baseSizeInches(model.base!);
   const local: Vec2[] =
-    model.base.shape === "rect"
+    model.base!.shape === "rect"
       ? [
           { x: -width / 2, y: -depth / 2 },
           { x: width / 2, y: -depth / 2 },
@@ -70,7 +81,7 @@ function outlineOf(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
           return { x: (Math.cos(a) * width) / 2, y: (Math.sin(a) * depth) / 2 };
         });
   return local.map((p) => {
-    const r = rotate(p, model.facing);
+    const r = rotate(p, model.facing ?? 0);
     return { x: r.x + model.position.x, y: r.y + model.position.y };
   });
 }
@@ -79,9 +90,12 @@ function outlineOf(model: Pick<Model, "position" | "facing" | "base">): Vec2[] {
  * Shortest distance between two bases, measured edge to edge. This is how
  * most miniatures games measure; 0 means the bases touch or overlap.
  */
-export function baseToBaseDistance(a: Model, b: Model): number {
-  if (a.base.shape === "round" && b.base.shape === "round") {
-    const r = mmToInches(a.base.diameterMm) / 2 + mmToInches(b.base.diameterMm) / 2;
+export function baseToBaseDistance(a: Footprint, b: Footprint): number {
+  if (isPoint(a) && isPoint(b)) return distance(a.position, b.position);
+  if (isPoint(a)) return pointBaseDistance(a.position, b);
+  if (isPoint(b)) return pointBaseDistance(b.position, a);
+  if (a.base!.shape === "round" && b.base!.shape === "round") {
+    const r = mmToInches(a.base!.diameterMm) / 2 + mmToInches(b.base!.diameterMm) / 2;
     return Math.max(0, distance(a.position, b.position) - r);
   }
   // Two models that haven't changed are as far apart as they were: kept by model pair, as outlines are.
@@ -146,8 +160,56 @@ function convexOverlap(p: Vec2[], q: Vec2[]): boolean {
         qMin = Math.min(qMin, d);
         qMax = Math.max(qMax, d);
       }
-      if (pMax < qMin || qMax < pMin) return false;
+      const tolerance = GEOMETRY_EPSILON * Math.hypot(ax, ay);
+      if (pMax < qMin - tolerance || qMax < pMin - tolerance) return false;
     }
   }
   return true;
+}
+
+function isPoint(footprint: Footprint): boolean {
+  if (!footprint.base) return true;
+  const { width, depth } = baseSizeInches(footprint.base);
+  return width === 0 && depth === 0;
+}
+
+/** Exact footprint containment, including boundary; no height is consulted. */
+export function footprintContains(footprint: Footprint, point: Vec2): boolean {
+  const dx = point.x - footprint.position.x;
+  const dy = point.y - footprint.position.y;
+  if (isPoint(footprint)) return Math.hypot(dx, dy) <= GEOMETRY_EPSILON;
+  const { width, depth } = baseSizeInches(footprint.base!);
+  const c = Math.cos(footprint.facing ?? 0);
+  const s = Math.sin(footprint.facing ?? 0);
+  const x = Math.abs(dx * c - dy * s);
+  const y = Math.abs(dx * s + dy * c);
+  if (footprint.base!.shape === "rect")
+    return x <= width / 2 + GEOMETRY_EPSILON && y <= depth / 2 + GEOMETRY_EPSILON;
+  if (width === 0) return x <= GEOMETRY_EPSILON && y <= depth / 2 + GEOMETRY_EPSILON;
+  if (depth === 0) return y <= GEOMETRY_EPSILON && x <= width / 2 + GEOMETRY_EPSILON;
+  return Math.hypot(x / (width / 2 + GEOMETRY_EPSILON), y / (depth / 2 + GEOMETRY_EPSILON)) <= 1;
+}
+
+/**
+ * Footprint overlap includes contact. Round/round and point queries are exact;
+ * other curved bases use the existing inscribed 48-vertex convex approximation.
+ */
+export function footprintsOverlap(a: Footprint, b: Footprint): boolean {
+  if (isPoint(a)) return footprintContains(b, a.position);
+  if (isPoint(b)) return footprintContains(a, b.position);
+  if (a.base!.shape === "round" && b.base!.shape === "round")
+    return baseToBaseDistance(a, b) <= GEOMETRY_EPSILON;
+  return convexOverlap(baseOutline(a), baseOutline(b));
+}
+
+function pointBaseDistance(point: Vec2, footprint: Footprint): number {
+  if (footprintContains(footprint, point)) return 0;
+  if (footprint.base!.shape === "round")
+    return Math.max(0, distance(point, footprint.position) - footprint.base!.diameterMm / MM_PER_INCH / 2);
+  // Keep the established polygon approximation for curved base distances.
+  const outline = baseOutline(footprint);
+  let best = Infinity;
+  for (let i = 0; i < outline.length; i++)
+    best = Math.min(best, pointSegmentDistance(point, outline[i]!, outline[(i + 1) % outline.length]!));
+  return best;
 }

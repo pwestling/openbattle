@@ -11,7 +11,7 @@ pnpm install
 pnpm dev          # http://localhost:5173, the debug page
 ```
 
-The debug page starts a hotseat game (one screen, both sides), or hosts and joins a room: open two tabs, host in one with mode "local" and join in the other. Load a rules package from `examples/` with **Load a package**.
+The debug page starts an explicit hotseat preset (participants at seats 0 and 1), or hosts/joins a room: open tabs in "local" mode. Choose a seat identifier or stay unseated; the Seating controls record later changes. Packages own player-count/alliance/turn policy. Load a rules package from `examples/` with **Load a package**.
 
 ## Before you push
 
@@ -42,8 +42,10 @@ How the pieces fit is on the architecture page, [docs/architecture.html](docs/ar
 ## More docs
 
 - [docs/packages.md](docs/packages.md): write a rules package that players load at runtime.
+- [docs/authoring.md](docs/authoring.md): typed package builds, explicit entity defaults, diagnostics and local scenarios.
+- [docs/engine.md](docs/engine.md): engine/package responsibilities and the neutral geometry API.
 - [docs/self-host.md](docs/self-host.md): run your own copy of the app, signalling relay and TURN server.
-- [docs/compatibility.md](docs/compatibility.md): how forks, builds and rules packages coexist, and how ranked ladders keep house rules apart.
+- [docs/compatibility.md](docs/compatibility.md): how forks, builds and rules packages coexist.
 - [GOVERNANCE.md](GOVERNANCE.md): who decides, and which changes need a proposal first.
 
 ## Working with Claude Code

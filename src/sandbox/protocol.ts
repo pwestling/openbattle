@@ -1,7 +1,8 @@
 import type { GameEvent, GameRecord, Intent, LoggedEvent } from "../core";
 import type { Rng } from "../core/actions";
 import type { HookTable } from "../core/macro";
-import type { PanelSpec, Target } from "../sdk";
+import type { PanelSpec, SetupSpec, Target } from "../sdk";
+import type { EntityKind } from "../core/types";
 import type { ModuleInfo } from "../systems";
 
 /**
@@ -16,7 +17,7 @@ export type ToSandbox =
   | { id: number; t: "init"; record: GameRecord }
   | { id: number; t: "events"; events: LoggedEvent[] }
   | { id: number; t: "resolve"; intent: Intent; from: string; seed: number }
-  /** What `player` can start now, and the module's side panel. */
+  /** What `player` can start now, and the module's side panel and setup forms. */
   | { id: number; t: "appState"; player: string };
 
 export type FromSandbox =
@@ -24,6 +25,33 @@ export type FromSandbox =
   | { id: number; t: "error"; error: string }
   /** The worker is up and listening. */
   | { id: 0; t: "ready" };
+
+/** Advisory global-symbol naming diagnostics; package identity is exact, not inferred from a label. */
+export interface PackageWarning {
+  hash: string;
+  packageId: string;
+  system: string;
+  kind: "action" | "macro" | "quantity" | "phase" | "setup";
+  id: string;
+  on?: EntityKind;
+  message: string;
+}
+
+/** Local package failures, never protocol events or advisory rules warnings. */
+export interface PackageDiagnostic {
+  severity: "error";
+  phase: "load" | "presentation" | "execution";
+  hash: string;
+  packageId?: string;
+  system: string;
+  callback: "import" | "layout" | "panel" | "setup" | "applies" | "available" | "label" | "targets" | "macro";
+  symbol?: string;
+  /** Unit id for a unit action, otherwise the participant invoking the callback. */
+  actor?: string;
+  message: string;
+  /** Actual bundle coordinates from a stack or a persisted error, best effort. */
+  source?: { url: string; line: number; column: number };
+}
 
 /** What a load reports: the code each package added, by game. */
 export interface Loaded {
@@ -39,8 +67,12 @@ export interface Loaded {
     info?: ModuleInfo;
     /** What an extension adds to the games it extends, as data. */
     adds?: Pick<ModuleInfo, "quantities" | "pointer" | "hooks" | "actions">;
+    /** Raw macro replacements remove the former provider's action UI and checks. */
+    removedActions?: string[];
   }[];
   errors: { hash: string; error: string }[];
+  warnings: PackageWarning[];
+  diagnostics: PackageDiagnostic[];
 }
 
 /** A code action as the page shows it, worked out in the sandbox. */
@@ -49,18 +81,26 @@ export interface ActionRow {
   name: string;
   by: "unit" | "player";
   unitId?: string;
-  /** True, or why not. */
+  /** True, or an advisory warning that can be explicitly overridden. */
   available: true | string;
+  /** A package callback failure, never an overridable rule warning. */
+  error?: string;
   targets: Target[];
   /** Whether it needs a target picked. */
   targeted: boolean;
 }
 
-/** What the module offers for the game as it stands (the actions and the panel), as of event `seq`. */
+/** What the module offers this participant, as of event `seq`. */
 export interface AppState {
+  player: string;
   seq: number;
   actions: ActionRow[];
   panel: PanelSpec | null;
+  setup: SetupSpec[];
+  /** Invalid setup callbacks or descriptors do not hide other package controls. */
+  setupError?: string;
+  warnings: PackageWarning[];
+  diagnostics: PackageDiagnostic[];
 }
 
 export type Resolved = GameEvent | null;

@@ -1,4 +1,0 @@
-{
-  "about": "Named rulesets for ranked ladders (docs/compatibility.md). A ranked result whose system, app version and exact set of package hashes match an entry counts on that entry's ladder; anything else counts on a ladder named by its exact rules. Changes go through a proposal (GOVERNANCE.md). A balance change starts a new season with a new id; a change that plays the same (a typo, a label) adds its hash to the current season.",
-  "rulesets": []
-}

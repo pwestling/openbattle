@@ -14,7 +14,6 @@ import { createLoopbackNetwork } from "./net/loopback";
 import { Session, type NetStatus, type Role } from "./net/session";
 import type { trysteroTransport as TrysteroTransport } from "./net/trystero";
 import { useLibrary } from "./packages/library";
-import { sharedSecret } from "./secrets/diceSecrets";
 import { moduleInfo, startingLayout } from "./systems";
 
 let trystero: typeof TrysteroTransport | null = null;
@@ -24,12 +23,12 @@ const loadTrystero = () =>
     trystero = m.trysteroTransport;
   });
 
-/** Side colours, told apart with colour blindness too (blue, orange, teal, yellow). */
+/** Player colours, told apart with colour blindness too (blue, orange, teal, yellow). */
 const COLORS = ["#3b82f6", "#f97316", "#2dd4bf", "#fde047"];
 
 /**
  * How peers reach each other. "online" is WebRTC between browsers;
- * "local" links tabs of the same browser; "hotseat" is one screen, both sides.
+ * "local" links tabs of the same browser; "hotseat" is one screen, multiple players.
  */
 export type Mode = "online" | "local" | "hotseat";
 
@@ -38,6 +37,8 @@ interface StartOptions {
   mode: Mode;
   roomId?: string;
   name: string;
+  /** Explicit recorded assignment for a new participant; omitted means unseated. */
+  seat?: number;
   /** Resume a saved game (host only). */
   record?: GameRecord;
   /** The module id a new game plays (host only); none when missing. */
@@ -56,7 +57,7 @@ interface Store {
   net: NetStatus | null;
   start: (options: StartOptions) => void;
   leave: () => void;
-  /** Send an intent. In hotseat the active side sends it, unless `as` names another. */
+  /** Send an intent. Hosts may name another participant; hotseat defaults to the active player. */
   dispatch: (intent: Intent, as?: PlayerId) => void;
 }
 
@@ -67,7 +68,7 @@ interface SavedRoom {
   role?: Role;
 }
 
-const roomKey = (roomId: string) => `open-battle:room:${roomId}`;
+const roomKey = (roomId: string) => `open-battle:record@9:room:${roomId}`;
 const seatKey = (roomId: string) => `open-battle:seat:${roomId}`;
 
 function loadRoom(roomId: string): SavedRoom | null {
@@ -79,8 +80,8 @@ function loadRoom(roomId: string): SavedRoom | null {
   }
 }
 
-/** The seat this browser last had in a room, kept beyond the tab, so a new tab finds its player again. */
-function deviceSeat(roomId: string): string | undefined {
+/** The player this browser last was in a room, so a new tab can reclaim that identity. */
+function devicePlayer(roomId: string): string | undefined {
   try {
     return localStorage.getItem(seatKey(roomId)) ?? undefined;
   } catch {
@@ -88,11 +89,11 @@ function deviceSeat(roomId: string): string | undefined {
   }
 }
 
-function saveRoom(roomId: string, record: GameRecord, seatedAs: string | undefined, role: Role) {
+function saveRoom(roomId: string, record: GameRecord, participant: string | undefined, role: Role) {
   try {
-    if (seatedAs && localStorage.getItem(seatKey(roomId)) !== seatedAs)
-      localStorage.setItem(seatKey(roomId), seatedAs);
-    const playerId = seatedAs ?? loadRoom(roomId)?.playerId;
+    if (participant && localStorage.getItem(seatKey(roomId)) !== participant)
+      localStorage.setItem(seatKey(roomId), participant);
+    const playerId = participant ?? loadRoom(roomId)?.playerId;
     sessionStorage.setItem(
       roomKey(roomId),
       JSON.stringify({ record, role, ...(playerId ? { playerId } : {}) }),
@@ -117,7 +118,7 @@ export const useStore = create<Store>((set, get) => ({
   net: null,
 
   start(options) {
-    const { role, mode, roomId, name, record, system, rng } = options;
+    const { role, mode, roomId, name, seat, record, system, rng } = options;
     // WebRTC (Trystero) loads on demand.
     if (mode !== "hotseat" && mode !== "local" && !trystero) {
       void loadTrystero().then(() => get().start(options));
@@ -133,14 +134,13 @@ export const useStore = create<Store>((set, get) => ({
     // A client coming back to a room picks up the log it saved there, and asks only for what it missed.
     const room = mode === "hotseat" || !roomId ? null : loadRoom(roomId);
     const resumed = role === "host" && !!record && mode !== "hotseat";
-    let seated = role === "spectator";
+    let joined = role === "spectator";
     const session: Session = new Session({
       transport,
       role,
       record: record ?? (role === "client" ? room?.record : undefined),
       resumed,
       ...(rng ? { rng } : {}),
-      sharedSecret,
       // A peer missing one of the game's rules packages can't host it.
       ready: (state) =>
         (state.packages?.packages ?? []).every((p) => !!useLibrary.getState().packages[p.hash]),
@@ -151,12 +151,12 @@ export const useStore = create<Store>((set, get) => ({
         const current = session.status.role ?? role;
         if (roomId && mode !== "hotseat")
           saveRoom(roomId, rec, game.players[session.selfId] ? session.selfId : undefined, current);
-        takeSeat();
+        joinParticipant();
       },
       onNet: (status) => {
         if (get().session !== session) return;
         set({ net: status, role: status.role });
-        takeSeat();
+        joinParticipant();
       },
     });
     set({
@@ -169,14 +169,14 @@ export const useStore = create<Store>((set, get) => ({
       role,
     });
 
-    /** Once there is a host and a game: take back our old seat, or a free one. */
-    function takeSeat() {
-      if (seated || mode === "hotseat" || get().session !== session) return;
+    /** Once there is a host and a game: reclaim our identity, or record a new participant. */
+    function joinParticipant() {
+      if (joined || mode === "hotseat" || get().session !== session) return;
       const status = session.status;
       if (status.role === "host" ? false : status.hostId === null) return;
       const game = session.current;
       if (game.seq === 0 && status.role !== "host") return;
-      // Sit down only with the game's rules loaded.
+      // Join only with the game's rules loaded.
       if (status.role !== "host") {
         const lib = useLibrary.getState();
         if (!lib.loaded) return;
@@ -184,47 +184,43 @@ export const useStore = create<Store>((set, get) => ({
       }
       const players = Object.values(game.players);
       if (players.some((p) => p.id === session.selfId)) {
-        seated = true;
+        joined = true;
         return;
       }
-      // This tab's seat, else this browser's (a new tab on the same invite), else a resumed host's own.
-      const mine =
-        room?.playerId ??
-        (roomId ? deviceSeat(roomId) : undefined) ??
-        (resumed ? players.find((p) => p.seat === 0)?.id : undefined);
-      seated = true;
+      // This tab's identity, else this browser's; the recorded assignment stays with the player.
+      const mine = room?.playerId ?? (roomId ? devicePlayer(roomId) : undefined);
+      joined = true;
       if (mine && game.players[mine] && (room?.playerId === mine || !status.peers.includes(mine))) {
         session.dispatch({ type: "player/claim", player: mine });
         return;
       }
-      if (status.role === "host") return;
-      // Sides fill up to the team size, the emptier side first.
-      const size = game.settings.teamSize ?? 1;
-      const count = (seat: number) => players.filter((p) => p.seat === seat).length;
-      if (count(0) >= size && count(1) >= size) return;
-      const seat = count(0) >= size ? 1 : count(1) >= size ? 0 : count(1) < count(0) ? 1 : 0;
       session.dispatch({
         type: "player/join",
-        player: { id: session.selfId, name, color: COLORS[seat + 2 * count(seat)] ?? COLORS[seat]!, seat },
+        player: {
+          id: session.selfId,
+          name,
+          color: COLORS[players.length % COLORS.length]!,
+          ...(seat !== undefined ? { seat } : {}),
+        },
       });
     }
 
     if (role !== "host") {
-      takeSeat();
+      joinParticipant();
       return;
     }
     if (record) {
-      // A resumed host first finds out whether the room has moved on without it, then takes its seat back.
-      setTimeout(takeSeat, 1500);
+      // A resumed host first finds out whether the room moved on, then reclaims its recorded identity.
+      setTimeout(joinParticipant, 1500);
       return;
     }
-    seated = true;
+    joined = true;
     if (mode === "hotseat") {
       for (const p of HOTSEAT_PLAYERS) session.dispatch({ type: "player/join", player: p }, p.id);
     } else {
       session.dispatch({
         type: "player/join",
-        player: { id: session.selfId, name, color: COLORS[0]!, seat: 0 },
+        player: { id: session.selfId, name, color: COLORS[0]!, ...(seat !== undefined ? { seat } : {}) },
       });
     }
     if (system) session.dispatch({ type: "game/system", system });
@@ -247,6 +243,6 @@ export const useStore = create<Store>((set, get) => ({
     if (mode === "hotseat") {
       const active = Object.values(game.players).find((p) => p.seat === game.pointer.seat);
       session.dispatch(intent, as ?? active?.id);
-    } else session.dispatch(intent);
+    } else session.dispatch(intent, session.status.role === "host" ? as : undefined);
   },
 }));

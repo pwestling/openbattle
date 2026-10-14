@@ -1,7 +1,7 @@
 import type { GameState, PlayerId } from "./types";
 
 /**
- * Secrets (hidden cards, secret objectives, a committed choice). The value
+ * Secrets (secret objectives or a committed choice). The value
  * stays on its owner's device; the game log only ever holds a commitment,
  * SHA-256 of a random salt and the value. Revealing sends the value and the
  * salt, and every peer's reducer checks them against the commitment, so
@@ -44,17 +44,6 @@ export const isCommitment = (s: unknown): s is string => typeof s === "string" &
 
 export function secretOf(state: GameState, player: PlayerId, key: string): SecretEntry | undefined {
   return state.secrets?.[player]?.[key];
-}
-
-/** A player's secrets whose keys start with `prefix`, in key order. */
-export function secretsWithPrefix(
-  state: GameState,
-  player: PlayerId,
-  prefix: string,
-): [string, SecretEntry][] {
-  return Object.entries<SecretEntry>(state.secrets?.[player] ?? {})
-    .filter(([k]) => k.startsWith(prefix))
-    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 // SHA-256 (FIPS 180-4), synchronous so the reducer can check reveals.

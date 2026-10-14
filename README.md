@@ -6,6 +6,11 @@ A peer-to-peer tabletop engine for miniatures wargames. Players connect over Web
 
 The app is being rebuilt from a minimal base (the core, the network, the sandbox and a debug page). See [docs/architecture.html](docs/architecture.html) for how the pieces fit, and [CLAUDE.md](CLAUDE.md) for the rules of the repo.
 
+[Engine boundaries and API](docs/engine.md) separates recorded mechanics and
+geometric measurements from package-owned rules. Package authors use
+[the authoring guide](docs/packages.md); current contracts are listed in
+[the protocol registry](docs/protocols/README.md).
+
 ## Running it
 
 ```sh

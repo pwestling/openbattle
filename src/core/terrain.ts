@@ -1,12 +1,5 @@
-import { baseSizeInches } from "./geometry";
-import type { Model, TerrainPiece, TerrainSolid, Vec2 } from "./types";
-
-/**
- * Terrain geometry. Pieces are boxes on a rotated footprint; the engine uses
- * the same boxes for drawing, line of sight and floors. Nothing here
- * simulates physics: models stand at a chosen floor height and never fall,
- * tip or collide.
- */
+import { baseSizeInches, GEOMETRY_EPSILON } from "./geometry";
+import type { Model, TerrainPiece, Token } from "./types";
 
 export interface Vec3 {
   x: number;
@@ -14,158 +7,168 @@ export interface Vec3 {
   z: number;
 }
 
-/** Table position to a piece's local footprint coordinates. */
-function toLocal(piece: TerrainPiece, p: Vec2): Vec2 {
-  const dx = p.x - piece.position.x;
-  const dy = p.y - piece.position.y;
-  const c = Math.cos(piece.facing);
-  const s = Math.sin(piece.facing);
-  return { x: dx * c - dy * s, y: dx * s + dy * c };
+/** A reusable local-space segment; direction is b-a, never normalized. */
+export interface LocalSegment {
+  x: number;
+  y: number;
+  z: number;
+  dx: number;
+  dy: number;
+  dz: number;
+  /** 1e-9 inches divided by world segment length, computed once per ray. */
+  tolerance: number;
 }
 
-export function inFootprint(piece: TerrainPiece, p: Vec2, margin = 0): boolean {
-  const l = toLocal(piece, p);
-  return Math.abs(l.x) <= piece.width / 2 + margin && Math.abs(l.y) <= piece.depth / 2 + margin;
-}
-
-function blocksSight(solid: TerrainSolid): boolean {
-  return solid.kind !== "foliage";
-}
-
-/** Default miniature height from its base, until players set one. */
-export function modelHeight(model: Model): number {
-  if (model.height) return model.height;
-  if (model.bands?.length) return Math.max(...model.bands.map((b) => b.z1));
+/** Physical height, without interpreting game data or guessing a miniature profile. */
+export function modelHeight(model: Model | Token): number {
+  if (model.height !== undefined) return model.height;
+  if (model.bands?.length) {
+    let top = -Infinity;
+    for (const band of model.bands) top = Math.max(top, band.z1);
+    return top;
+  }
+  if (!model.base) return 0;
   const { width, depth } = baseSizeInches(model.base);
-  if (model.base.shape === "rect") return Math.min(3.5, 1 + Math.max(width, depth) * 0.3);
-  return Math.min(5, 1.1 + (Math.min(width, depth) / 2) * 1.6);
+  return Math.max(width, depth);
+}
+
+/** Highest recorded solid top or mesh vertex; an empty piece has height zero. */
+export function terrainHeight(piece: TerrainPiece): number {
+  let top = -Infinity;
+  for (const solid of piece.solids) top = Math.max(top, solid.z + solid.h);
+  if (piece.hull) for (let i = 2; i < piece.hull.length; i += 3) top = Math.max(top, piece.hull[i]!);
+  return top === -Infinity ? 0 : top;
 }
 
 /**
- * Whether the segment a→b passes through a box (slab test), ignoring the very
- * ends so a model touching a wall can still see past it.
+ * Closed box slab intersection. Infinity means no contact, including for the
+ * other contact functions below. Endpoints and tangencies count; starting in
+ * the volume returns zero. Parallel lengths and slab boundaries use 1e-9 inch.
  */
-function segmentHitsBox(a: Vec3, b: Vec3, min: Vec3, max: Vec3): boolean {
-  let t0 = 0.001;
-  let t1 = 0.999;
-  for (const k of ["x", "y", "z"] as const) {
-    const d = b[k] - a[k];
-    if (Math.abs(d) < 1e-9) {
-      if (a[k] < min[k] || a[k] > max[k]) return false;
-      continue;
-    }
-    let ta = (min[k] - a[k]) / d;
-    let tb = (max[k] - a[k]) / d;
-    if (ta > tb) [ta, tb] = [tb, ta];
-    t0 = Math.max(t0, ta);
-    t1 = Math.min(t1, tb);
-    if (t0 > t1) return false;
-  }
-  return true;
-}
-
-/** The first terrain piece whose solids block a sight line, or null. */
-export function sightBlockedBy(terrain: TerrainPiece[], a: Vec3, b: Vec3): TerrainPiece | null {
-  for (const piece of terrain) {
-    // Quick reject: both ends on the same side of the footprint's bounding circle.
-    const r = Math.hypot(piece.width, piece.depth) / 2;
-    if (segmentPointDistance2D(a, b, piece.position) > r) continue;
-    const la = { ...toLocal(piece, a), z: a.z };
-    const lb = { ...toLocal(piece, b), z: b.z };
-    if (piece.hull) {
-      if (segmentHitsMesh(la, lb, piece.hull)) return piece;
-      continue;
-    }
-    for (const s of piece.solids) {
-      if (!blocksSight(s)) continue;
-      const min = { x: s.x - s.w / 2, y: s.y - s.d / 2, z: s.z };
-      const max = { x: s.x + s.w / 2, y: s.y + s.d / 2, z: s.z + s.h };
-      if (segmentHitsBox(la, lb, min, max)) return piece;
+export function segmentBoxContact(
+  ray: LocalSegment,
+  minX: number,
+  maxX: number,
+  minY: number,
+  maxY: number,
+  minZ = -Infinity,
+  maxZ = Infinity,
+): number {
+  let lo = 0;
+  let hi = 1;
+  for (let axis = 0; axis < 3; axis++) {
+    const a = axis === 0 ? ray.x : axis === 1 ? ray.y : ray.z;
+    const d = axis === 0 ? ray.dx : axis === 1 ? ray.dy : ray.dz;
+    const min = axis === 0 ? minX : axis === 1 ? minY : minZ;
+    const max = axis === 0 ? maxX : axis === 1 ? maxY : maxZ;
+    if (Math.abs(d) <= GEOMETRY_EPSILON) {
+      if (a < min - GEOMETRY_EPSILON || a > max + GEOMETRY_EPSILON) return Infinity;
+    } else {
+      const t0 = (min - a) / d;
+      const t1 = (max - a) / d;
+      lo = Math.max(lo, Math.min(t0, t1));
+      hi = Math.min(hi, Math.max(t0, t1));
+      if (lo > hi + ray.tolerance) return Infinity;
     }
   }
-  return null;
+  return lo > 1 + ray.tolerance || hi < -ray.tolerance ? Infinity : Math.max(0, Math.min(1, lo));
 }
 
-/** Whether the segment a→b crosses any triangle of a flat [x,y,z,...] list (Möller–Trumbore). */
-function segmentHitsMesh(a: Vec3, b: Vec3, tris: number[]): boolean {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const dz = b.z - a.z;
-  for (let i = 0; i + 8 < tris.length; i += 9) {
-    const [x0, y0, z0, x1, y1, z1, x2, y2, z2] = tris.slice(i, i + 9) as [
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-    ];
-    const e1x = x1 - x0,
-      e1y = y1 - y0,
-      e1z = z1 - z0;
-    const e2x = x2 - x0,
-      e2y = y2 - y0,
-      e2z = z2 - z0;
-    const px = dy * e2z - dz * e2y;
-    const py = dz * e2x - dx * e2z;
-    const pz = dx * e2y - dy * e2x;
+/** Exact upright elliptic cylinder, optionally unbounded in z for a footprint. */
+export function segmentCylinderContact(
+  ray: LocalSegment,
+  rx: number,
+  ry: number,
+  bottom = -Infinity,
+  top = Infinity,
+): number {
+  // Zero-width geometry is a line/point, not an invented small volume.
+  if (rx === 0 || ry === 0) return segmentBoxContact(ray, -rx, rx, -ry, ry, bottom, top);
+  let lo = 0;
+  let hi = 1;
+  if (Math.abs(ray.dz) <= GEOMETRY_EPSILON) {
+    if (ray.z < bottom - GEOMETRY_EPSILON || ray.z > top + GEOMETRY_EPSILON) return Infinity;
+  } else {
+    const t0 = (bottom - ray.z) / ray.dz;
+    const t1 = (top - ray.z) / ray.dz;
+    lo = Math.max(lo, Math.min(t0, t1));
+    hi = Math.min(hi, Math.max(t0, t1));
+    if (lo > hi + ray.tolerance) return Infinity;
+  }
+  const x = ray.x / rx;
+  const y = ray.y / ry;
+  const dx = ray.dx / rx;
+  const dy = ray.dy / ry;
+  const a = dx * dx + dy * dy;
+  const b = 2 * (x * dx + y * dy);
+  const c = x * x + y * y - 1;
+  const radialTolerance = GEOMETRY_EPSILON / Math.min(rx, ry);
+  if (a === 0) return c <= 2 * radialTolerance ? Math.max(0, Math.min(1, lo)) : Infinity;
+  let discriminant = b * b - 4 * a * c;
+  if (discriminant < -8 * a * radialTolerance) return Infinity;
+  discriminant = Math.max(0, discriminant);
+  // Stable quadratic roots avoid catastrophic cancellation near an endpoint.
+  const q = -0.5 * (b + (b >= 0 ? 1 : -1) * Math.sqrt(discriminant));
+  const t0 = discriminant === 0 ? -b / (2 * a) : q / a;
+  const t1 = discriminant === 0 ? t0 : c / q;
+  lo = Math.max(lo, Math.min(t0, t1));
+  hi = Math.min(hi, Math.max(t0, t1));
+  if (lo > hi + ray.tolerance || lo > 1 + ray.tolerance || hi < -ray.tolerance) return Infinity;
+  return Math.max(0, Math.min(1, lo));
+}
+
+/** Immutable hulls cache triangle origins/edges, not rays or game decisions. */
+const meshEdges = new WeakMap<readonly number[], Float64Array>();
+
+function edgesOf(mesh: readonly number[]): Float64Array {
+  const cached = meshEdges.get(mesh);
+  if (cached) return cached;
+  const edges = new Float64Array(mesh.length);
+  for (let i = 0; i < mesh.length; i += 9) {
+    for (let axis = 0; axis < 3; axis++) {
+      edges[i + axis] = mesh[i + axis]!;
+      edges[i + 3 + axis] = mesh[i + 3 + axis]! - mesh[i + axis]!;
+      edges[i + 6 + axis] = mesh[i + 6 + axis]! - mesh[i + axis]!;
+    }
+  }
+  meshEdges.set(mesh, edges);
+  return edges;
+}
+
+/**
+ * Triangle surface contact only (Möller–Trumbore), not a filled mesh volume.
+ * Coplanar rays are ignored at determinant tolerance 1e-12. No temporary
+ * vectors or triangle slices are allocated in this per-ray hot loop.
+ */
+export function segmentMeshContact(ray: LocalSegment, mesh: readonly number[]): number {
+  const edges = edgesOf(mesh);
+  let nearest = Infinity;
+  for (let i = 0; i < edges.length; i += 9) {
+    const e1x = edges[i + 3]!,
+      e1y = edges[i + 4]!,
+      e1z = edges[i + 5]!;
+    const e2x = edges[i + 6]!,
+      e2y = edges[i + 7]!,
+      e2z = edges[i + 8]!;
+    const px = ray.dy * e2z - ray.dz * e2y;
+    const py = ray.dz * e2x - ray.dx * e2z;
+    const pz = ray.dx * e2y - ray.dy * e2x;
     const det = e1x * px + e1y * py + e1z * pz;
-    if (Math.abs(det) < 1e-12) continue;
+    if (Math.abs(det) <= 1e-12) continue;
     const inv = 1 / det;
-    const tx = a.x - x0,
-      ty = a.y - y0,
-      tz = a.z - z0;
+    const tx = ray.x - edges[i]!,
+      ty = ray.y - edges[i + 1]!,
+      tz = ray.z - edges[i + 2]!;
     const u = (tx * px + ty * py + tz * pz) * inv;
-    if (u < 0 || u > 1) continue;
+    if (u < -GEOMETRY_EPSILON || u > 1 + GEOMETRY_EPSILON) continue;
     const qx = ty * e1z - tz * e1y;
     const qy = tz * e1x - tx * e1z;
     const qz = tx * e1y - ty * e1x;
-    const v = (dx * qx + dy * qy + dz * qz) * inv;
-    if (v < 0 || u + v > 1) continue;
+    const v = (ray.dx * qx + ray.dy * qy + ray.dz * qz) * inv;
+    if (v < -GEOMETRY_EPSILON || u + v > 1 + GEOMETRY_EPSILON) continue;
     const t = (e2x * qx + e2y * qy + e2z * qz) * inv;
-    // Ignore the very ends, as for boxes.
-    if (t > 0.001 && t < 0.999) return true;
+    if (t >= -ray.tolerance && t <= 1 + ray.tolerance)
+      nearest = Math.min(nearest, Math.max(0, Math.min(1, t)));
   }
-  return false;
-}
-
-/** A piece's stand-in height for "heights" line of sight. */
-export function standInHeight(piece: TerrainPiece): number {
-  if (piece.losHeight !== undefined) return piece.losHeight;
-  return piece.solids.reduce((h, s) => Math.max(h, s.z + s.h), 0);
-}
-
-/** A piece's visibility class for "footprint" line of sight: tall pieces block, low ones obscure. */
-export function footprintVisibility(piece: TerrainPiece): "open" | "obscuring" | "blocking" {
-  if (piece.visibility) return piece.visibility;
-  const solid = piece.solids.filter((s) => s.kind !== "foliage");
-  const top = solid.reduce((h, s) => Math.max(h, s.z + s.h), 0);
-  if (top >= 2) return "blocking";
-  if (top > 0 || piece.solids.length) return "obscuring";
-  return "open";
-}
-
-/** Whether a 2D segment crosses a piece's footprint (heights ignored). */
-export function segmentCrossesFootprint2D(piece: TerrainPiece, a: Vec2, b: Vec2): boolean {
-  return segmentCrossesFootprint(piece, { ...a, z: 0 }, { ...b, z: 0 }, 1);
-}
-
-/** Whether the segment passes over a piece's footprint, low enough to be "through" it. */
-export function segmentCrossesFootprint(piece: TerrainPiece, a: Vec3, b: Vec3, below: number): boolean {
-  const la = { ...toLocal(piece, a), z: a.z };
-  const lb = { ...toLocal(piece, b), z: b.z };
-  const min = { x: -piece.width / 2, y: -piece.depth / 2, z: -1 };
-  const max = { x: piece.width / 2, y: piece.depth / 2, z: below };
-  return segmentHitsBox(la, lb, min, max);
-}
-
-export function segmentPointDistance2D(a: Vec2, b: Vec2, p: Vec2): number {
-  const abx = b.x - a.x;
-  const aby = b.y - a.y;
-  const len = abx * abx + aby * aby;
-  const t = len === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - a.x) * abx + (p.y - a.y) * aby) / len));
-  return Math.hypot(p.x - a.x - t * abx, p.y - a.y - t * aby);
+  return nearest;
 }

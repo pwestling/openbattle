@@ -1,5 +1,5 @@
 import type { GameRecord } from "./log";
-import { createRecord, stateAt } from "./log";
+import { createRecord, pendingReactions, stateAt } from "./log";
 import { sha256Hex } from "./secrets";
 import type { PlayerId } from "./types";
 
@@ -41,7 +41,7 @@ export function branchRecord(
 ): GameRecord | null {
   const at = Math.max(parent.initial.seq, Math.min(seq, parent.events.at(-1)?.seq ?? parent.initial.seq));
   const state = stateAt(parent, at);
-  if (state.macro) return null;
+  if (state.macro || pendingReactions(parent, at).length) return null;
   const players = Object.values(state.players)
     .filter((p) => p.seat !== undefined)
     .sort((a, b) => a.seat! - b.seat!)
