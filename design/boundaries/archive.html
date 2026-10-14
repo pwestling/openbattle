@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archive — Boundary</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="boundaries/archive">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Boundary</nav>
+    <h1>Archive</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../concepts/game.html">Game</a>
+      <a rel="realizes" href="../concepts/log.html">Log</a>
+      <a rel="realizes" href="../intent.html#durability">Games survive</a>
+    </nav>
+  </header>
+  <section id="hides">
+    <h2>Hides</h2>
+    <p>Where a game is kept in the browser, and the format of a saved game file.</p>
+  </section>
+  <section id="knows">
+    <h2>Knows about</h2>
+    <dl>
+      <dt>Concepts</dt><dd><a href="../concepts/game.html">game</a>, <a href="../concepts/log.html">log</a>, <a href="../concepts/player.html">player</a></dd>
+      <dt>Modules</dt><dd><a href="../boundaries/record.html">Record</a>.</dd>
+    </dl>
+  </section>
+  <section id="owns">
+    <h2>Owns</h2>
+    <ul><li>Once an action is in a player's log, closing the tab does not lose it.</li><li>A saved file loads back into the same game.</li></ul>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-006.html">ADR-006</a>
+  </footer>
+</article>
+</body>
+</html>

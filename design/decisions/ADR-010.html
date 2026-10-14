@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-010: Measuring is its own module — Decision</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="decisions/ADR-010">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Decision</nav>
+    <h1>ADR-010: Measuring is its own module</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>Distance geometry could live in the record, next to the positions.</dd>
+    <dt>Decision</dt><dd>A separate Measure module owns all geometry. The record stores positions and shapes but never computes distances.</dd>
+    <dt>Because</dt><dd>The record stays small and only concerned with history. Geometry is the most numerically fiddly code and is easier to test on its own.</dd>
+    <dt>Rejected</dt><dd>Geometry inside the record: the record grows a second job.</dd>
+    <dt>Affects</dt><dd><a href="../boundaries/measure.html">Measure</a>, <a href="../boundaries/record.html">Record</a></dd>
+  </dl>
+</article>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-009: Undo takes back only the latest action — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-009">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-009: Undo takes back only the latest action</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>Players need to take back mistakes. The first attempt let any action anywhere in history be undone, with a web of dependent actions undone with it.</dd>
+    <dt>Decision</dt><dd>Undo cancels the latest action in the game that hasn't been cancelled, and only the player who took it can undo it.</dd>
+    <dt>Because</dt><dd>Easy to understand and impossible to tangle. Mistakes are almost always noticed straight away.</dd>
+    <dt>Rejected</dt><dd>Undoing any past action: hard to explain what else disappears with it.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/log.html">log</a></dd>
+  </dl>
+</article>
+</body>
+</html>

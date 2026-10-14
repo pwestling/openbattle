@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/host">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Host</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#shared-truth">One table</a>
+      <a rel="realizes" href="../intent.html#peer-to-peer">Browser to browser</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Someone has to decide the order things happen in.</dd>
+    <dt>Meaning</dt><dd>The <a href="../concepts/player.html">player</a> who opened the <a href="../concepts/game.html">game</a>. Their browser puts every <a href="../concepts/action.html">action</a> in order and rolls the dice.</dd>
+    <dt>Invariants</dt><dd><ul><li>Every game has exactly one host, and it never changes.</li><li>While the host is away nobody can act, and both players can see the game is paused.</li></ul></dd>
+    <dt>Not</dt><dd>A server, and not a referee: the host cannot overrule anything.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+  </footer>
+</article>
+</body>
+</html>

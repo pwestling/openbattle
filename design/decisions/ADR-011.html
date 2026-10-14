@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-011: The link knows nothing about games — Decision</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="decisions/ADR-011">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Decision</nav>
+    <h1>ADR-011: The link knows nothing about games</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>The connection layer could understand game messages, or just carry them.</dd>
+    <dt>Decision</dt><dd>The link carries opaque messages between the browsers of one game and reports when the connection is up or down.</dd>
+    <dt>Because</dt><dd>Connection code changes for network reasons and game code for game reasons; keeping them apart stops each one's churn reaching the other.</dd>
+    <dt>Rejected</dt><dd>A link that understands actions: couples the two fastest-changing parts.</dd>
+    <dt>Affects</dt><dd><a href="../boundaries/link.html">Link</a></dd>
+  </dl>
+</article>
+</body>
+</html>

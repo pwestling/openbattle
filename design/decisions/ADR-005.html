@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-005: Our own signalling and TURN on Craftworld — Decision</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="decisions/ADR-005">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Decision</nav>
+    <h1>ADR-005: Our own signalling and TURN on Craftworld</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>Browsers need help to find each other, and sometimes a relay to reach each other. The first attempt used a library that met through public relays and needed workarounds for dropped connections.</dd>
+    <dt>Decision</dt><dd>Run a small signalling server and a TURN server on Craftworld, and connect browsers with WebRTC.</dd>
+    <dt>Because</dt><dd>No outside service sits between the players, and connection problems show up in our own server logs.</dd>
+    <dt>Rejected</dt><dd>Public meeting relays through a library: an outside dependency we can't see into. Sending all game traffic through the server: not browser to browser.</dd>
+    <dt>Affects</dt><dd><a href="../boundaries/link.html">Link</a>, <a href="../boundaries/relay.html">Relay</a></dd>
+  </dl>
+</article>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link — Boundary</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="boundaries/link">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Boundary</nav>
+    <h1>Link</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../concepts/game.html">Game</a>
+      <a rel="realizes" href="../intent.html#peer-to-peer">Browser to browser</a>
+    </nav>
+  </header>
+  <section id="hides">
+    <h2>Hides</h2>
+    <p>WebRTC, signalling and TURN: how two browsers find each other and keep a connection open.</p>
+  </section>
+  <section id="knows">
+    <h2>Knows about</h2>
+    <dl>
+      <dt>Concepts</dt><dd>Only a <a href="../concepts/game.html">game</a>'s link, used as the name of the meeting place.</dd>
+      <dt>Modules</dt><dd><a href="../boundaries/relay.html">Relay</a>, through its published protocol.</dd>
+    </dl>
+  </section>
+  <section id="owns">
+    <h2>Owns</h2>
+    <ul><li>Messages arrive whole and in the order they were sent, or the link reports that it is down.</li></ul>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-005.html">ADR-005</a>
+    <a rel="decision" href="../decisions/ADR-011.html">ADR-011</a>
+  </footer>
+</article>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-003: The log is the game; the table is worked out from it — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-003">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-003: The log is the game; the table is worked out from it</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>Two browsers must hold the same game, survive reloads, and support undo and looking back.</dd>
+    <dt>Decision</dt><dd>A game is an ordered log of actions. The table at any point is the result of applying the log from the start up to that point.</dd>
+    <dt>Because</dt><dd>One ordered log gives undo, looking back, resuming and catching up without extra machinery, and makes disagreement easy to detect. This part of the first attempt worked.</dd>
+    <dt>Rejected</dt><dd>Sharing the table itself and merging changes: harder to keep identical, and no history.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/log.html">log</a>, <a href="../concepts/action.html">action</a>, <a href="../concepts/table.html">table</a>, <a href="../boundaries/record.html">Record</a></dd>
+  </dl>
+</article>
+</body>
+</html>

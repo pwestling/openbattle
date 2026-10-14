@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/log">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Log</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#durability">Games survive</a>
+      <a rel="realizes" href="../intent.html#shared-truth">One table</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>The history of the game, which is also the game itself.</dd>
+    <dt>Meaning</dt><dd>Every <a href="../concepts/action.html">action</a> in a <a href="../concepts/game.html">game</a>, in order.</dd>
+    <dt>Invariants</dt><dd><ul><li>The log only grows.</li><li>Undo is a new action that cancels the latest one; nothing is erased.</li><li>Applying the log from the start gives the <a href="../concepts/table.html">table</a>.</li><li>Anyone can look back at the table as it stood at any point.</li></ul></dd>
+    <dt>Not</dt><dd>A chat.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+    <a rel="decision" href="../decisions/ADR-009.html">ADR-009</a>
+  </footer>
+</article>
+</body>
+</html>
