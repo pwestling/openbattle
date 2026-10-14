@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Screen — Boundary</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -18,17 +18,21 @@
       <a rel="realizes" href="../concepts/table.html">Table</a>
       <a rel="realizes" href="../concepts/model.html">Model</a>
       <a rel="realizes" href="../concepts/unit.html">Unit</a>
+      <a rel="realizes" href="../concepts/group.html">Group</a>
       <a rel="realizes" href="../concepts/terrain.html">Terrain</a>
       <a rel="realizes" href="../concepts/army.html">Army</a>
       <a rel="realizes" href="../concepts/measurement.html">Measurement</a>
       <a rel="realizes" href="../concepts/roll.html">Roll</a>
+      <a rel="realizes" href="../concepts/phase.html">Phase</a>
       <a rel="realizes" href="../concepts/counter.html">Counter</a>
+      <a rel="realizes" href="../concepts/mark.html">Mark</a>
       <a rel="realizes" href="../concepts/player.html">Player</a>
+      <a rel="realizes" href="../concepts/spectator.html">Spectator</a>
     </nav>
   </header>
   <section id="hides">
     <h2>Hides</h2>
-    <p>How the table is drawn, and how clicks, drags and typing become actions.</p>
+    <p>How the 3D table and the panels are drawn, and how the camera, clicks, drags and typing become actions.</p>
   </section>
   <section id="knows">
     <h2>Knows about</h2>
@@ -39,7 +43,7 @@
   </section>
   <section id="owns">
     <h2>Owns</h2>
-    <ul><li>What is drawn matches the record's table.</li><li>A player's zoom, pan and selection never become actions.</li></ul>
+    <ul><li>What is drawn matches the record's table.</li><li>Dice are shown landing on the result the record holds.</li><li>Camera, zoom and selection never become actions.</li></ul>
   </section>
   <footer class="decisions">
     Decisions:

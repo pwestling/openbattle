@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle — Intent</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -18,9 +18,13 @@
     <h2>What it is for</h2>
     <p>Two people who own miniatures armies play a full game of their tabletop wargame together online, each in their own browser, with nothing to install.</p>
   </section>
+  <section id="feel">
+    <h2>It feels like the real table</h2>
+    <p>Playing should feel like standing over a real table: a 3D table you look around, models you pick up and set down, dice you throw. Tabletop Simulator mostly gets this feel right. OpenBattle keeps that feel and adds help Tabletop Simulator doesn't give: exact measuring, moving a unit as a unit, a readable history, and undo.</p>
+  </section>
   <section id="for-whom">
     <h2>For whom</h2>
-    <p>Porter and the friends he plays with: people who already know their game's rules and want a shared table, not a referee.</p>
+    <p>Porter and the friends he plays with: people who already know their game's rules and want a shared table.</p>
   </section>
   <section id="success">
     <h2>How we would know it worked</h2>
@@ -31,32 +35,37 @@
     <h2>What a player can do</h2>
     <ol>
       <li>Open a new table and get a link to send to the other player.</li>
-      <li>Join from the link, with a name, and see the same table.</li>
+      <li>Join from the link, with a name, and see the same table. Others can join to watch.</li>
+      <li>Look around the table from any angle.</li>
       <li>Place terrain: named shapes with a height.</li>
       <li>Bring an army by typing or pasting a list of units, model counts and base sizes.</li>
-      <li>Move a model or a whole unit, and see the distance in inches while dragging.</li>
+      <li>Pick up and move a model or a whole unit, and see the distance in inches while moving.</li>
       <li>Measure between any two points or models.</li>
-      <li>Roll dice that both players see at the same moment.</li>
-      <li>Keep counters: wounds, victory points, the round.</li>
-      <li>Read every action in a shared log, scrub back through it, and undo the latest action.</li>
+      <li>Throw dice that everyone sees land on the same result.</li>
+      <li>Keep track of the round, the phase, counters such as wounds and victory points, and marks such as "has moved".</li>
+      <li>Read every action in a shared log, look back through it, and undo the latest action.</li>
       <li>Close the tab, come back later from the same link, and carry on. Save the game to a file.</li>
     </ol>
   </section>
-  <section id="rules-by-players">
-    <h2>The players apply the rules</h2>
-    <p>The app enforces no game's rules and never refuses a move. It handles the physical parts of the table; the players handle the rest, as they would at home.</p>
+  <section id="rules">
+    <h2>Players apply the rules; packages can help later</h2>
+    <p>In the first version the players apply their game's rules and the app never refuses a move. The engine is built so that rules packages can later automate parts of a game. They use the same physical actions a player has, plus the few rules ideas nearly every wargame shares: groups of models and units, phases, counters and marks. A player can always override a package.</p>
   </section>
   <section id="shared-truth">
     <h2>One table, seen the same way</h2>
-    <p>Once both browsers have caught up, both players see exactly the same table. If they ever disagree, the app says so instead of quietly picking one.</p>
+    <p>Once everyone's browser has caught up, everyone sees exactly the same table. If two browsers ever disagree, the app says so instead of quietly picking one.</p>
+  </section>
+  <section id="fair-dice">
+    <h2>Dice nobody can fix</h2>
+    <p>Nobody, the host included, can choose a dice result without the others being able to tell.</p>
   </section>
   <section id="durability">
     <h2>Games survive</h2>
-    <p>A game survives closing the tab, reloading, and either player's connection dropping.</p>
+    <p>A game survives closing the tab, reloading, and anyone's connection dropping. If the host drops, the game picks up from the host's copy when they return. Any player or spectator can save the game to a file.</p>
   </section>
   <section id="peer-to-peer">
     <h2>Browser to browser</h2>
-    <p>The players' browsers talk directly. Porter's Craftworld server hands out the app, introduces the browsers to each other, and relays their traffic only when their networks allow nothing else. It never stores a game.</p>
+    <p>The browsers talk directly. Porter's Craftworld server hands out the app, introduces the browsers to each other, and relays their traffic only when their networks allow nothing else. It never stores a game.</p>
   </section>
   <section id="no-publisher-content">
     <h2>No publisher content</h2>
@@ -65,14 +74,15 @@
   <section id="not-in-v0">
     <h2>Not in the first version</h2>
     <ul>
-      <li>Automating any game's rules, or loading rules as add-ons</li>
-      <li>A 3D table, or line-of-sight checks</li>
-      <li>More than two players, spectators, or computer opponents</li>
+      <li>Rules packages. The engine is shaped for them, but none ship.</li>
+      <li>Line-of-sight checks</li>
+      <li>Imported 3D sculpts of miniatures. Models are simple stand-ins of the right base and height.</li>
+      <li>More than two players, or computer opponents</li>
       <li>Hidden information such as cards in hand</li>
       <li>Accounts, or games stored on a server</li>
       <li>Phone layouts and translations</li>
     </ul>
-    <p>Something leaves this list only through a decision Porter accepts, after real games have been played.</p>
+    <p>Something leaves this list only through a decision Porter accepts.</p>
   </section>
   <footer class="decisions">
     Decisions:

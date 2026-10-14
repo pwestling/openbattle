@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADR-006: Games are kept only in the players' browsers — Decision</title>
+<title>ADR-006: Games are kept only in the browsers — Decision</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
 <article data-level="0" id="decisions/ADR-006">
   <header>
     <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 0 · Decision</nav>
-    <h1>ADR-006: Games are kept only in the players' browsers</h1>
+    <h1>ADR-006: Games are kept only in the browsers</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark></dd>
     <dt>Context</dt><dd>Games must survive reloads and dropped connections, and the server should stay simple.</dd>
     <dt>Decision</dt><dd>Each browser keeps its copy of the log in browser storage that outlives the tab. A game can be saved to a file and loaded back. The server keeps nothing.</dd>
     <dt>Because</dt><dd>The server stays stateless and cheap, and there is nothing private on it to protect.</dd>
-    <dt>Rejected</dt><dd>Server storage: needs accounts or secrets, backups and a privacy story. Per-tab storage, as in the first attempt: lost when the tab closes.</dd>
+    <dt>Rejected</dt><dd>Server storage: needs accounts, backups and a privacy story. Per-tab storage, as in the first attempt: lost when the tab closes.</dd>
     <dt>Affects</dt><dd><a href="../intent.html#durability">Games survive</a>, <a href="../boundaries/archive.html">Archive</a></dd>
   </dl>
 </article>

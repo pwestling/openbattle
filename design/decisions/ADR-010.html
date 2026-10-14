@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-010: Measuring is its own module — Decision</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-010: Measuring is its own module</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark></dd>
     <dt>Context</dt><dd>Distance geometry could live in the record, next to the positions.</dd>
     <dt>Decision</dt><dd>A separate Measure module owns all geometry. The record stores positions and shapes but never computes distances.</dd>
     <dt>Because</dt><dd>The record stays small and only concerned with history. Geometry is the most numerically fiddly code and is easier to test on its own.</dd>

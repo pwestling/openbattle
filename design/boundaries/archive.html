@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Archive — Boundary</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -17,6 +17,7 @@
       Realizes:
       <a rel="realizes" href="../concepts/game.html">Game</a>
       <a rel="realizes" href="../concepts/log.html">Log</a>
+      <a rel="realizes" href="../concepts/spectator.html">Spectator</a>
       <a rel="realizes" href="../intent.html#durability">Games survive</a>
     </nav>
   </header>
@@ -27,13 +28,13 @@
   <section id="knows">
     <h2>Knows about</h2>
     <dl>
-      <dt>Concepts</dt><dd><a href="../concepts/game.html">game</a>, <a href="../concepts/log.html">log</a>, <a href="../concepts/player.html">player</a></dd>
+      <dt>Concepts</dt><dd><a href="../concepts/game.html">game</a>, <a href="../concepts/log.html">log</a>, <a href="../concepts/player.html">player</a>, <a href="../concepts/spectator.html">spectator</a></dd>
       <dt>Modules</dt><dd><a href="../boundaries/record.html">Record</a>.</dd>
     </dl>
   </section>
   <section id="owns">
     <h2>Owns</h2>
-    <ul><li>Once an action is in a player's log, closing the tab does not lose it.</li><li>A saved file loads back into the same game.</li></ul>
+    <ul><li>Once an action is in a browser's log, closing the tab does not lose it.</li><li>A saved file loads back into the same game.</li></ul>
   </section>
   <footer class="decisions">
     Decisions:

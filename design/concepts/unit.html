@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unit — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -16,14 +16,19 @@
     <nav class="realizes">
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#rules">Players apply the rules</a>
     </nav>
   </header>
   <dl>
     <dt>Purpose</dt><dd>Models that act together.</dd>
-    <dt>Meaning</dt><dd>A named group of <a href="../concepts/model.html">models</a> in one <a href="../concepts/army.html">army</a>, moved and tracked together.</dd>
-    <dt>Invariants</dt><dd><ul><li>Every model belongs to exactly one unit; a lone model is a unit of one.</li><li>Every unit belongs to exactly one army.</li></ul></dd>
+    <dt>Meaning</dt><dd>A named group of <a href="../concepts/model.html">models</a>, moved and tracked together.</dd>
+    <dt>Invariants</dt><dd><ul><li>Every model belongs to exactly one unit; a lone model is a unit of one.</li><li>Every unit is in exactly one <a href="../concepts/army.html">army</a>.</li></ul></dd>
     <dt>Not</dt><dd>A single model.</dd>
   </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
+  </footer>
 </article>
 </body>
 </html>

@@ -36,7 +36,7 @@ const nodes = walk(DESIGN).map((file) => {
     title: strip(html.match(/<h1>([\s\S]*?)<\/h1>/)[1]),
     derived: html.match(/name="pdd-derived" content="([^"]+)"/)?.[1] ?? "never",
     parents: [...new Set(parents)],
-    status: strip(html.match(/<dt>Status<\/dt><dd>([\s\S]*?)<\/dd>/)?.[1] ?? ""),
+    status: html.match(/<dt>Status<\/dt><dd><mark>([^<]*)<\/mark>/)?.[1] ?? "",
     open: [...html.matchAll(/<mark>Open<\/mark>([\s\S]*?)<\/p>/g)].map((m) => strip(m[1])),
   };
 });

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Terrain — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -16,18 +16,19 @@
     <nav class="realizes">
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
-      <a rel="realizes" href="../intent.html#rules-by-players">The players apply the rules</a>
+      <a rel="realizes" href="../intent.html#feel">Feels like the real table</a>
     </nav>
   </header>
   <dl>
     <dt>Purpose</dt><dd>The scenery that shapes the battle.</dd>
-    <dt>Meaning</dt><dd>A named rectangle or circle on the <a href="../concepts/table.html">table</a>, with a height in inches.</dd>
-    <dt>Invariants</dt><dd><ul><li>Every piece has a shape, a size and a height.</li><li>The app gives terrain no rule meaning, such as cover or impassable.</li></ul></dd>
+    <dt>Meaning</dt><dd>A named solid shape on the <a href="../concepts/table.html">table</a>, such as a box, a cylinder or a ramp, with a size in inches.</dd>
+    <dt>Invariants</dt><dd><ul><li>Every piece has a shape, a size and a position.</li><li>In the first version terrain has no rules meaning, such as cover or impassable.</li></ul></dd>
     <dt>Not</dt><dd>A <a href="../concepts/model.html">model</a>.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
+    <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
   </footer>
 </article>
 </body>

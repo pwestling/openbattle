@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-005: Our own signalling and TURN on Craftworld — Decision</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-005: Our own signalling and TURN on Craftworld</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark></dd>
     <dt>Context</dt><dd>Browsers need help to find each other, and sometimes a relay to reach each other. The first attempt used a library that met through public relays and needed workarounds for dropped connections.</dd>
     <dt>Decision</dt><dd>Run a small signalling server and a TURN server on Craftworld, and connect browsers with WebRTC.</dd>
     <dt>Because</dt><dd>No outside service sits between the players, and connection problems show up in our own server logs.</dd>

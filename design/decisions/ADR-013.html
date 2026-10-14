@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-013: Deploy to Craftworld by pull — Decision</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,11 +15,11 @@
     <h1>ADR-013: Deploy to Craftworld by pull</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
-    <dt>Context</dt><dd>The app, signalling and TURN run on Craftworld (vps-01, NixOS). The first attempt's deploy worked: the server pulled each release built from main.</dd>
-    <dt>Decision</dt><dd>Keep that shape: a NixOS module runs the web server, signalling and TURN; a timer pulls each release, checks it, switches to it, health-checks it, and rolls back on failure. The site is openbattle.thehivemind5.com.</dd>
-    <dt>Because</dt><dd>Nothing in GitHub can reach the server, and Porter already runs it this way.</dd>
-    <dt>Rejected</dt><dd>Pushing from GitHub to the server: needs a deploy key on the server's front door.</dd>
+    <dt>Status</dt><dd><mark>Deferred</mark> Porter: deploy from the laptop for now, decide later.</dd>
+    <dt>Context</dt><dd>The app, signalling and TURN run on Craftworld (vps-01, NixOS). The first attempt's server pulled each release built from main.</dd>
+    <dt>Decision</dt><dd>Not decided. Until then Porter deploys by hand from his laptop.</dd>
+    <dt>Because</dt><dd>Nothing to deploy yet.</dd>
+    <dt>Rejected</dt><dd>Nothing yet. The first attempt's pull-based deploy is the leading option.</dd>
     <dt>Affects</dt><dd><a href="../boundaries/relay.html">Relay</a></dd>
   </dl>
 </article>

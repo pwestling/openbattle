@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spectator — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/spectator">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Spectator</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#durability">Games survive</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Let someone watch a game, and keep a copy of it.</dd>
+    <dt>Meaning</dt><dd>A person following a <a href="../concepts/game.html">game</a> who takes no <a href="../concepts/action.html">actions</a>.</dd>
+    <dt>Invariants</dt><dd><ul><li>A spectator never takes actions.</li><li>A spectator sees the same table as the players.</li><li>A spectator can save the game to a file.</li></ul></dd>
+    <dt>Not</dt><dd>A <a href="../concepts/player.html">player</a>, and never a <a href="../concepts/host.html">host</a>.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
+  </footer>
+</article>
+</body>
+</html>

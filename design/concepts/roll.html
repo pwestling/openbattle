@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roll — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -16,18 +16,17 @@
     <nav class="realizes">
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
-      <a rel="realizes" href="../intent.html#shared-truth">One table</a>
+      <a rel="realizes" href="../intent.html#fair-dice">Dice nobody can fix</a>
     </nav>
   </header>
   <dl>
-    <dt>Purpose</dt><dd>Dice both players trust equally.</dd>
+    <dt>Purpose</dt><dd>Dice everyone trusts equally.</dd>
     <dt>Meaning</dt><dd>A number of dice of one size, thrown at once with an optional label, and the numbers that came up.</dd>
-    <dt>Invariants</dt><dd><ul><li>A roll happens once, and its result never changes.</li><li>Both players see the same result.</li><li>Every roll is in the <a href="../concepts/log.html">log</a>.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>A roll happens once, and its result never changes.</li><li>Everyone sees the same result.</li><li>Nobody, the host included, can choose the result without the others being able to tell.</li><li>Every roll is in the <a href="../concepts/log.html">log</a>.</li></ul></dd>
     <dt>Not</dt><dd>A rule such as "hits on 3+". The players read the dice.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
-    <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
     <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
   </footer>
 </article>

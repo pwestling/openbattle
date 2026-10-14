@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Army — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -17,13 +17,12 @@
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
       <a rel="realizes" href="../intent.html#no-publisher-content">No publisher content</a>
-      <a rel="realizes" href="../intent.html#rules-by-players">The players apply the rules</a>
     </nav>
   </header>
   <dl>
     <dt>Purpose</dt><dd>What a player brings to the game.</dd>
-    <dt>Meaning</dt><dd>A <a href="../concepts/player.html">player</a>'s list of <a href="../concepts/unit.html">units</a>, typed or pasted in, named however the player likes.</dd>
-    <dt>Invariants</dt><dd><ul><li>An army belongs to one player.</li><li>The app never checks an army against any game's rules.</li><li>No army content ships with the app.</li></ul></dd>
+    <dt>Meaning</dt><dd>A <a href="../concepts/player.html">player</a>'s top-level <a href="../concepts/group.html">group</a>: every <a href="../concepts/unit.html">unit</a> they brought, typed or pasted in, named however they like.</dd>
+    <dt>Invariants</dt><dd><ul><li>A player has one army in a game.</li><li>Every unit is in exactly one army.</li><li>The app never checks an army against a game's rules.</li><li>No army content ships with the app.</li></ul></dd>
     <dt>Not</dt><dd>A checked army list with points, and not a faction.</dd>
   </dl>
   <footer class="decisions">

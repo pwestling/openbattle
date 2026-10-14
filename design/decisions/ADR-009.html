@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-009: Undo takes back only the latest action — Decision</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-009: Undo takes back only the latest action</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark></dd>
     <dt>Context</dt><dd>Players need to take back mistakes. The first attempt let any action anywhere in history be undone, with a web of dependent actions undone with it.</dd>
     <dt>Decision</dt><dd>Undo cancels the latest action in the game that hasn't been cancelled, and only the player who took it can undo it.</dd>
     <dt>Because</dt><dd>Easy to understand and impossible to tangle. Mistakes are almost always noticed straight away.</dd>

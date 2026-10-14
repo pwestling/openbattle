@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADR-012: The screen draws with React and SVG — Decision</title>
+<title>ADR-012: The screen uses three.js for the table and React for panels — Decision</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
 <article data-level="2" id="decisions/ADR-012">
   <header>
     <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Decision</nav>
-    <h1>ADR-012: The screen draws with React and SVG</h1>
+    <h1>ADR-012: The screen uses three.js for the table and React for panels</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
-    <dt>Context</dt><dd>The screen needs a way to draw the table and the panels around it.</dd>
-    <dt>Decision</dt><dd>Panels in React; the table as SVG, in inches, scaled to the window.</dd>
-    <dt>Because</dt><dd>SVG keeps measurements exact at any zoom and is easy to hit-test. React is well known and only the screen knows about it.</dd>
-    <dt>Rejected</dt><dd>Canvas or WebGL: faster for thousands of models, which a game doesn't have, and harder to make precise and accessible.</dd>
+    <dt>Status</dt><dd><mark>Proposed</mark> Revisited after the table became 3D.</dd>
+    <dt>Context</dt><dd>The screen draws a 3D table and information panels around it.</dd>
+    <dt>Decision</dt><dd>The table is drawn with three.js (WebGL), in inches. Panels such as the log, the army list and counters are React.</dd>
+    <dt>Because</dt><dd>three.js is the most widely used 3D library for the web, small enough to stay in one module, and the first attempt's table used it. React is well known and only the screen knows about it.</dd>
+    <dt>Rejected</dt><dd>Babylon.js: capable, but heavier and with its own scene and UI system we don't need. A game engine exported to the web: large downloads and a second toolchain. SVG: flat only.</dd>
     <dt>Affects</dt><dd><a href="../boundaries/screen.html">Screen</a></dd>
   </dl>
 </article>

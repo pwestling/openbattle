@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-011: The link knows nothing about games — Decision</title>
 <meta name="pdd-level" content="2">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-011: The link knows nothing about games</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark></dd>
     <dt>Context</dt><dd>The connection layer could understand game messages, or just carry them.</dd>
     <dt>Decision</dt><dd>The link carries opaque messages between the browsers of one game and reports when the connection is up or down.</dd>
     <dt>Because</dt><dd>Connection code changes for network reasons and game code for game reasons; keeping them apart stops each one's churn reaching the other.</dd>

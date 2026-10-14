@@ -3,24 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADR-001: The first version is a shared table, not a rules engine — Decision</title>
+<title>ADR-001: The engine knows physical things and a few shared rules ideas; rules packages come later — Decision</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
 <article data-level="0" id="decisions/ADR-001">
   <header>
     <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 0 · Decision</nav>
-    <h1>ADR-001: The first version is a shared table, not a rules engine</h1>
+    <h1>ADR-001: The engine knows physical things and a few shared rules ideas; rules packages come later</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
-    <dt>Context</dt><dd>OpenBattle could automate a game's rules or leave the rules to the players. The first attempt built a general engine that loaded rules as sandboxed add-ons, plus three game systems, before any one game was pleasant to play.</dd>
-    <dt>Decision</dt><dd>The app handles the physical parts of the table (positions, measuring, dice, counters, the log) and enforces no rules.</dd>
-    <dt>Because</dt><dd>A table two friends can finish a game on is useful by itself and small enough to build well. Rules automation multiplies the work for every game.</dd>
-    <dt>Rejected</dt><dd>Automating one game's rules from the start: bigger scope, and rules code shapes the core before we know what players want automated. A general rules add-on system: what the first attempt collapsed under.</dd>
-    <dt>Affects</dt><dd><a href="../intent.html#rules-by-players">The players apply the rules</a>, <a href="../concepts/terrain.html">terrain</a>, <a href="../concepts/army.html">army</a>, <a href="../concepts/measurement.html">measurement</a>, <a href="../concepts/roll.html">roll</a></dd>
+    <dt>Status</dt><dd><mark>Proposed</mark> Rewritten from Porter's review on 2026-10-14.</dd>
+    <dt>Context</dt><dd>Porter wants rules automation from packages eventually. Nearly every wargame shares a few rules ideas beyond the physical table: units and groups of units, phases, and numbers and states on things. The first attempt built a general package runtime (sandboxes, replayed scripts, hooks, branches) before any one game was pleasant to play.</dd>
+    <dt>Decision</dt><dd>The engine knows the physical table (terrain, models, dice, measuring) plus <a href="../concepts/unit.html">units</a>, <a href="../concepts/group.html">groups</a>, <a href="../concepts/phase.html">phases</a>, <a href="../concepts/counter.html">counters</a> and <a href="../concepts/mark.html">marks</a>, and nothing about any particular game. In the first version players drive all of these by hand. A later <a href="../concepts/rules-package.html">rules-package</a> automates by taking the same actions a player could, so a game replays without it, and a player can always override it.</dd>
+    <dt>Because</dt><dd>Every game gets units, phases and counters without reinventing them, and the log stays readable without package code. Building the package system is deferred until the table is good to play on.</dd>
+    <dt>Rejected</dt><dd>An engine with physical things only: every game would rebuild units and phases. Automating one game from the start: rules code shapes the core too early. The first attempt's package runtime: what it collapsed under.</dd>
+    <dt>Affects</dt><dd><a href="../intent.html#rules">Players apply the rules</a>, <a href="../concepts/unit.html">unit</a>, <a href="../concepts/group.html">group</a>, <a href="../concepts/phase.html">phase</a>, <a href="../concepts/counter.html">counter</a>, <a href="../concepts/mark.html">mark</a>, <a href="../concepts/rules-package.html">rules-package</a>, <a href="../boundaries/record.html">Record</a></dd>
   </dl>
 </article>
 </body>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -16,14 +16,19 @@
     <nav class="realizes">
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#feel">Feels like the real table</a>
     </nav>
   </header>
   <dl>
     <dt>Purpose</dt><dd>One miniature on the table.</dd>
-    <dt>Meaning</dt><dd>A base of a given size in millimetres (round, oval or rectangular), at a position on the <a href="../concepts/table.html">table</a> in inches, facing a direction.</dd>
+    <dt>Meaning</dt><dd>A miniature represented by its base (round, oval or rectangular, sized in millimetres) and its height, at a position on the <a href="../concepts/table.html">table</a> in inches, facing a direction.</dd>
     <dt>Invariants</dt><dd><ul><li>A model is either on the table or set aside as removed; it is never deleted.</li><li>A model's base size does not change during a game.</li></ul></dd>
-    <dt>Not</dt><dd>The miniature's look or its rules profile.</dd>
+    <dt>Not</dt><dd>The miniature's sculpt or its rules profile.</dd>
   </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
+  </footer>
 </article>
 </body>
 </html>

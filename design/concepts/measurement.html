@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Measurement — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T06:40Z">
+<meta name="pdd-derived" content="2026-10-14T07:01Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -16,18 +16,17 @@
     <nav class="realizes">
       Realizes:
       <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
-      <a rel="realizes" href="../intent.html#rules-by-players">The players apply the rules</a>
+      <a rel="realizes" href="../intent.html#feel">Feels like the real table</a>
     </nav>
   </header>
   <dl>
     <dt>Purpose</dt><dd>Answer "how far?" exactly.</dd>
-    <dt>Meaning</dt><dd>The distance in inches between two points, or between two <a href="../concepts/model.html">models</a> measured base edge to base edge.</dd>
-    <dt>Invariants</dt><dd><ul><li>The same question gets the same answer in both browsers.</li><li>Measuring changes nothing and is not an <a href="../concepts/action.html">action</a>.</li></ul></dd>
-    <dt>Not</dt><dd>A range check. The app never says whether something is in range.</dd>
+    <dt>Meaning</dt><dd>The distance in inches between two points, or between two <a href="../concepts/model.html">models</a> measured base edge to base edge, with any height difference shown alongside.</dd>
+    <dt>Invariants</dt><dd><ul><li>The same question gets the same answer in every browser.</li><li>Measuring changes nothing and is not an <a href="../concepts/action.html">action</a>.</li></ul></dd>
+    <dt>Not</dt><dd>A range check. The first version never says whether something is in range.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
-    <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
     <a rel="decision" href="../decisions/ADR-007.html">ADR-007</a>
   </footer>
 </article>
