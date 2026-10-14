@@ -11,7 +11,7 @@ The engine has three parts, and a boundary to the game:
 | Measurements    | [`los.ts`](../src/core/los.ts), [`geometry.ts`](../src/core/geometry.ts)              | Read-only geometric queries a package calls. Their results are never logged.                    |
 | Package (rules) | [`src/sdk`](../src/sdk/index.ts), loaded by [`src/sandbox`](../src/sandbox/engine.ts) | Says what quantities mean, what an action does, when to roll, what to warn about.               |
 
-Current contracts: **module API 12, `open-battle/record@9`, peer protocol 11, manifest schema v3**. Versioning rules are in the [protocol registry](protocols/README.md); the wire format is in [peer-protocol.md](protocols/peer-protocol.md); how to write a package is in the [package guide](packages.md) and [authoring workflow](authoring.md); [the architecture page](architecture.html) draws the runtime components. The TypeScript in [`types.ts`](../src/core/types.ts), [`actions.ts`](../src/core/actions.ts) and [`src/sdk/index.ts`](../src/sdk/index.ts) is the authoritative shape of everything named here.
+Current contracts: **module API 12, `open-battle/record@9`, peer protocol 11, manifest schema v3**. Versioning rules are in the [protocol registry](protocols/README.md); how peers share the log is in [How networking works](networking.md) and the wire format in [peer-protocol.md](protocols/peer-protocol.md); how to write a package is in the [package guide](packages.md) and [authoring workflow](authoring.md); [the architecture page](architecture.html) draws the runtime components. The TypeScript in [`types.ts`](../src/core/types.ts), [`actions.ts`](../src/core/actions.ts) and [`src/sdk/index.ts`](../src/sdk/index.ts) is the authoritative shape of everything named here.
 
 ## Invariants
 
@@ -424,7 +424,7 @@ Presentation callbacks are pure functions of a frozen view. They return data; a 
 
 ## The session around the engine
 
-The engine assumes a session that delivers events in order and has exactly one host. The [peer protocol](protocols/peer-protocol.md) specifies the messages; these are the guarantees the engine relies on.
+The engine assumes a session that delivers events in order and has exactly one host. [How networking works](networking.md) describes that layer and the [peer protocol](protocols/peer-protocol.md) specifies its messages; these are the guarantees the engine relies on.
 
 - **Roles.** A peer is host, client or spectator. Clients send intents to the host; the host logs and broadcasts events; a peer applies an event only when its seq is the next one, and asks to catch up on a gap.
 - **Joining.** A peer that says how far its log goes receives the events after that point, or the whole record. A package's bytes travel separately, are checked against their hash, and run only on a device whose user has agreed to that hash.
