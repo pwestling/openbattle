@@ -93,7 +93,7 @@ function body(prefix) {
   const designNodes = nodes.filter((n) => !n.id.startsWith("decisions/"));
   const decisions = nodes.filter((n) => n.id.startsWith("decisions/")).sort((a, b) => a.id.localeCompare(b.id));
   const count = (l) => designNodes.filter((n) => n.level === l).length;
-  const proposed = decisions.filter((d) => d.status === "Proposed");
+  const proposed = nodes.filter((d) => d.status === "Proposed").sort((a, b) => a.id.localeCompare(b.id));
   const opens = nodes.flatMap((n) => n.open.map((text) => ({ n, text })));
   const intent = byId.get("intent");
   const waiting = [
@@ -104,7 +104,7 @@ function body(prefix) {
   <header>
     <nav>Projection, regenerated ${now}</nav>
     <h1>OpenBattle design</h1>
-    <p>${[0, 1, 2, 3].map((l) => `${count(l)} ${LEVEL[l].toLowerCase()}`).join(" · ")} · ${decisions.length} decisions, ${proposed.length} proposed · ${driftSections.length} open drift</p>
+    <p>${[0, 1, 2, 3].map((l) => `${count(l)} ${LEVEL[l].toLowerCase()}`).join(" · ")} · ${decisions.length} decisions · ${proposed.length} awaiting approval · ${driftSections.length} open drift</p>
   </header>
   <section id="waiting">
     <h2>Waiting on Porter</h2>

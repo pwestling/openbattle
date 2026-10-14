@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-015: Fifteen kinds of action, each a physical or shared-rules change — Decision</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="decisions/ADR-015">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Decision</nav>
+    <h1>ADR-015: Fifteen kinds of action, each a physical or shared-rules change</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Context</dt><dd>The record needs a fixed list of actions. The first attempt's list grew to over thirty kinds, plus scripts that produced more, and its format changed nine times in days.</dd>
+    <dt>Decision</dt><dd>Fifteen kinds, listed on the <a href="../surfaces/record.html">Record surface</a>. Bringing an army is one action, so a whole army arrives or none of it. Units don't change members after they arrive; attaching a leader is a <a href="../concepts/group.html">group</a>.</dd>
+    <dt>Because</dt><dd>Small enough to read in one table and to test completely. Each kind maps to something a player does with their hands at a real table, or to a phase, counter or mark.</dd>
+    <dt>Rejected</dt><dd>Separate actions per unit or model when bringing an army: the log fills with setup noise and a half-arrived army is possible. Changeable unit membership: breaks "every model is in exactly one unit" for no need OnePageRules has.</dd>
+    <dt>Affects</dt><dd><a href="../surfaces/record.html">Record surface</a></dd>
+  </dl>
+</article>
+</body>
+</html>

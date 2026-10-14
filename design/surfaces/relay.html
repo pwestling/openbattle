@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relay — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/relay">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Relay surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/relay.html">Relay</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> First draft, 2026-10-14.</dd>
+  </dl>
+  <p>What the server offers browsers, over HTTPS at the site's address. This is a published protocol: changes only add, within a version.</p>
+
+  <section id="signal">
+    <h2><code>WebSocket /signal?game={link}</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>The game link is 8 to 64 safe characters.</dd>
+      <dt>Post</dt><dd>The server tells this browser who else is announced under that link, tells the others when browsers arrive and leave, and forwards <code>{ to, data }</code> handshake messages between them. It keeps nothing once everyone has gone.</dd>
+      <dt>Fails</dt><dd>Closes the socket if more than 16 browsers are announced under one link, or if a message is over 64 KB.</dd>
+    </dl>
+  </section>
+
+  <section id="turn">
+    <h2><code>GET /turn</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A TURN address, user name and password, valid for 24 hours.</dd>
+      <dt>Fails</dt><dd>503 if TURN is not configured; browsers then try only direct connections.</dd>
+    </dl>
+  </section>
+
+  <section id="health">
+    <h2><code>GET /health</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>Whether signalling and TURN are up, as JSON.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-005.html">ADR-005</a>
+    <a rel="decision" href="../decisions/ADR-013.html">ADR-013</a>
+  </footer>
+</article>
+</body>
+</html>

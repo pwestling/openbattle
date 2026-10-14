@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/session">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Session surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/session.html">Session</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> First draft, 2026-10-14.</dd>
+  </dl>
+  <p>Two ways in, and five operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
+
+  <section id="open">
+    <h2><code>open(size: { width, depth }, me: { name, colour }): Session</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved.</dd>
+      <dt>Fails</dt><dd>Rejects if the relay cannot be reached; nothing is saved.</dd>
+    </dl>
+  </section>
+
+  <section id="enter">
+    <h2><code>enter(link: string, as: { name, colour } | "watch"): Session</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host.</dd>
+      <dt>Fails</dt><dd>Rejects if the link is malformed. If the host is away, it still resolves, with the snapshot saying so.</dd>
+    </dl>
+  </section>
+
+  <section id="act">
+    <h2><code>session.act(action: Action): Promise&lt;void&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player. The action is any kind but roll.</dd>
+      <dt>Post</dt><dd>Resolves once the host has put the action in the <a href="../concepts/log.html">log</a> and this browser has it.</dd>
+      <dt>Fails</dt><dd>Rejects, with nothing logged, if the host is away, this browser is a spectator, or the record finds a problem with the action.</dd>
+    </dl>
+  </section>
+
+  <section id="roll">
+    <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player; 1 to 100 dice of 2 to 100 sides.</dd>
+      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log.</dd>
+      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered.</dd>
+    </dl>
+  </section>
+
+  <section id="watch">
+    <h2><code>session.watch(listener: (now: Snapshot) =&gt; void): () =&gt; void</code></h2>
+    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); and whether browsers disagree.</p>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The listener is called now and after every change. The returned function stops it.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+
+  <section id="resync">
+    <h2><code>session.resync(): Promise&lt;void&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>The snapshot says this browser disagrees with the host.</dd>
+      <dt>Post</dt><dd>This browser's log is replaced by the host's, and the snapshot agrees again.</dd>
+      <dt>Fails</dt><dd>Rejects if the host is away; nothing changes.</dd>
+    </dl>
+  </section>
+
+  <section id="leave">
+    <h2><code>session.leave(): void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The connection closes. The saved game stays, so <code>enter</code> with the same link comes back.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+    <a rel="decision" href="../decisions/ADR-016.html">ADR-016</a>
+  </footer>
+</article>
+</body>
+</html>

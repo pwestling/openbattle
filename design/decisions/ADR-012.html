@@ -15,7 +15,7 @@
     <h1>ADR-012: The screen uses three.js for the table and React for panels</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Revisited after the table became 3D.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Revisited after the table became 3D. Accepted by Porter on 2026-10-14.</dd>
     <dt>Context</dt><dd>The screen draws a 3D table and information panels around it.</dd>
     <dt>Decision</dt><dd>The table is drawn with three.js (WebGL), in inches. Panels such as the log, the army list and counters are React.</dd>
     <dt>Because</dt><dd>three.js is the most widely used 3D library for the web, small enough to stay in one module, and the first attempt's table used it. React is well known and only the screen knows about it.</dd>

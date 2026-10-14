@@ -15,7 +15,7 @@
     <h1>ADR-001: The engine knows physical things and a few shared rules ideas; rules packages come later</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Rewritten from Porter's review on 2026-10-14.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Rewritten from Porter's review on 2026-10-14. Accepted by Porter on 2026-10-14.</dd>
     <dt>Context</dt><dd>Porter wants rules automation from packages eventually. Nearly every wargame shares a few rules ideas beyond the physical table: units and groups of units, phases, and numbers and states on things. The first attempt built a general package runtime (sandboxes, replayed scripts, hooks, branches) before any one game was pleasant to play.</dd>
     <dt>Decision</dt><dd>The engine knows the physical table (terrain, models, dice, measuring) plus <a href="../concepts/unit.html">units</a>, <a href="../concepts/group.html">groups</a>, <a href="../concepts/phase.html">phases</a>, <a href="../concepts/counter.html">counters</a> and <a href="../concepts/mark.html">marks</a>, and nothing about any particular game. In the first version players drive all of these by hand. A later <a href="../concepts/rules-package.html">rules-package</a> automates by taking the same actions a player could, so a game replays without it, and a player can always override it.</dd>
     <dt>Because</dt><dd>Every game gets units, phases and counters without reinventing them, and the log stays readable without package code. Building the package system is deferred until the table is good to play on.</dd>

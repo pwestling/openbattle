@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measure — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/measure">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Measure surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/measure.html">Measure</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> First draft, 2026-10-14.</dd>
+  </dl>
+  <p>One operation. A pure function of the <a href="../concepts/table.html">table</a>.</p>
+
+  <section id="distance">
+    <h2><code>distance(table: Table, from: Spot, to: Spot): { across, up }</code></h2>
+    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, or a <a href="../concepts/unit.html">unit</a>.</p>
+    <dl>
+      <dt>Pre</dt><dd>Named models and units are on the table.</dd>
+      <dt>Post</dt><dd><code>across</code> is the shortest distance in inches across the table between the two, base edge to base edge; for a unit, its closest model. <code>up</code> is the height difference between their bases. Both are rounded to a hundredth of an inch, and the same in every browser.</dd>
+      <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-010.html">ADR-010</a>
+  </footer>
+</article>
+</body>
+</html>
