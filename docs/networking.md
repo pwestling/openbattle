@@ -164,7 +164,7 @@ Rules packages travel as **side messages**, never in the log and never checksumm
 - **Asking.** A player asks the room for a package the game names that their library lacks. It may ask again after a transfer has stalled for 15 seconds.
 - **Answering.** Any peer holding the package answers, if the package is no larger than 4 MiB; bigger packages are loaded from a file.
 - **Receiving.** A peer takes parts only for a hash it asked for, only from the first peer that answers, and only within the size bound. Once all parts are in it decodes them and adds the bytes to its library, which checks them against the hash.
-- **Running.** Arriving bytes are not trusted automatically. Package code runs only after the player has trusted that hash, or chose "trust what arrives" when asking.
+- **Running.** Arriving bytes are not trusted automatically. Package code runs only after the player has trusted that hash. (`requestPackage` can also mark a hash as trusted on arrival; the app does not currently use that.)
 
 A peer that still lacks a package is not `ready`: it cannot win a host election, and the app does not join it to the game until its library has every package.
 
