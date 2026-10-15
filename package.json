@@ -10,7 +10,7 @@
     "dev": "node tools/dev.mjs",
     "build": "tsc && vite build",
     "relay": "node --experimental-strip-types --no-warnings server/relay.ts",
-    "check": "tsc",
+    "check": "tsc && node tools/boundaries.mjs",
     "proofs": "playwright test",
     "design": "node tools/pdd.mjs"
   },
