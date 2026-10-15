@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 import type { Log } from "../src/record/index.ts";
 
 // The Archive, driven through its public face only, in real Chromium (ADR-018).
@@ -77,6 +78,67 @@ test("when the browser refuses storage, saving rejects and loading gives nothing
   );
   expect(saving).toContain("rejected");
   expect(await page.evaluate(() => window.archive.load("game-c"))).toBeNull();
+});
+
+// The same pattern of bytes, made here and in the page, so the proof can fingerprint it independently.
+function pattern(length: number, seed: number): Uint8Array {
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) bytes[i] = (i * 31 + seed) % 251;
+  return bytes;
+}
+
+test("a kept file is found by the SHA-256 of its bytes after the tab closes", async ({ context }) => {
+  const first = await context.newPage();
+  await openArchive(first);
+  const fingerprint = await first.evaluate(
+    `window.archive.keepFile("game-d", new Blob([(${pattern})(100000, 7)], { type: "model/stl" }))`,
+  );
+  expect(fingerprint).toBe(createHash("sha256").update(pattern(100000, 7)).digest("hex"));
+  await first.close();
+
+  const second = await context.newPage();
+  await openArchive(second);
+  const back = await second.evaluate(async (fingerprint) => {
+    const blob = await window.archive.getFile(fingerprint);
+    return blob && { type: blob.type, bytes: Array.from(new Uint8Array(await blob.arrayBuffer())) };
+  }, fingerprint as string);
+  expect(back?.type).toBe("model/stl");
+  expect(Uint8Array.from(back?.bytes ?? [])).toEqual(pattern(100000, 7));
+  expect(await second.evaluate(() => window.archive.getFile("0".repeat(64)))).toBeNull();
+});
+
+test("the same bytes kept twice, even for two games, are stored once", async ({ page }) => {
+  await openArchive(page);
+  const grew = await page.evaluate(`(async () => {
+    const pattern = ${pattern};
+    const used = async () => (await navigator.storage.estimate()).usage ?? 0;
+    const start = await used();
+    const a = await window.archive.keepFile("game-e", new Blob([pattern(20000000, 3)]));
+    const once = await used();
+    const b = await window.archive.keepFile("game-f", new Blob([pattern(20000000, 3)]));
+    const twice = await used();
+    return { same: a === b, first: once - start, second: twice - once };
+  })()`);
+  expect(grew).toMatchObject({ same: true });
+  const { first, second } = grew as { first: number; second: number };
+  expect(first).toBeGreaterThan(20000000);
+  expect(second).toBeLessThan(1000000);
+});
+
+test("when the browser refuses storage, keeping a file rejects", async ({ page }) => {
+  await page.addInitScript(() => {
+    IDBFactory.prototype.open = () => {
+      throw new DOMException("The user denied permission to access the database.", "SecurityError");
+    };
+  });
+  await openArchive(page);
+  const keeping = await page.evaluate(() =>
+    window.archive.keepFile("game-g", new Blob(["solid cube"])).then(
+      () => "kept",
+      (error: Error) => `rejected: ${error.message}`,
+    ),
+  );
+  expect(keeping).toContain("rejected");
 });
 
 declare global {
