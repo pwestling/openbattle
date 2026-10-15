@@ -123,8 +123,8 @@
     </dl>
   </section>
   <section id="guestStatement">
-    <h2><ins><code>guestStatement(action: RollAction | ShuffledDrawAction): string</code></ins></h2>
-    <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck.</p>
+    <h2><ins><code>guestStatement(action: (RollAction | ShuffledDrawAction) &amp; { guestBy: PlayerId }): string</code></ins></h2>
+    <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck. <ins>Only one the other player signed: one taken alone has nothing to sign.</ins></p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of the action's link, the kind of action, the dice and sides or the deck and count, the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action. The signature fields, the host's value and the roll's label are left out.</dd>
