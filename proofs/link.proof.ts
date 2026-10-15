@@ -189,18 +189,20 @@ test("a browser signs for others, and anyone can check it against its public key
   const signature = await alice.evaluate(() => (window as any).proof.sign("seal:1f2e value:42"));
 
   // Bob checks it with nothing but the public key, as a spectator or a saved file would.
-  expect(await bob.evaluate((key) => (window as any).proof.idOf(key), key)).toBe(a);
+  expect(await bob.evaluate((key) => (window as any).proof.idFor(key), key)).toBe(a);
   const check = (text: string, sig: string, k = key) => bob.evaluate(([k, t, s]) => (window as any).proof.verify(k, t, s), [k, text, sig]);
   expect(await check("seal:1f2e value:42", signature)).toBe(true);
   expect(await check("seal:1f2e value:43", signature)).toBe(false);
   expect(await check("seal:1f2e value:42", signature, await bob.evaluate(() => (window as any).proof.link.publicKey))).toBe(false);
   expect(await check("seal:1f2e value:42", "not a signature")).toBe(false);
-  expect(await bob.evaluate(() => (window as any).proof.idOf("bm90IGEga2V5").then(() => "accepted", () => "rejected"))).toBe("rejected");
+  expect(await bob.evaluate(() => (window as any).proof.idFor("bm90IGEga2V5").then(() => "accepted", () => "rejected"))).toBe("rejected");
 });
 
-test("a browser's id is worked out from its public key", async ({ browser }) => {
+test("a browser's id is worked out from its public key, and known before joining a game", async ({ browser }) => {
   const alice = await player(browser);
+  const before = await alice.evaluate(() => (window as any).proof.thisBrowser());
   const a = await join(alice, game("id"));
+  expect(before).toEqual({ id: a, publicKey: await alice.evaluate(() => (window as any).proof.link.publicKey) });
   const key = await alice.evaluate(() => (window as any).proof.link.publicKey as string);
   // base64url of the first 16 bytes of SHA-256 of the raw public key (ADR-022), computed here outside the browser.
   const { createHash } = await import("node:crypto");

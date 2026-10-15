@@ -68,25 +68,34 @@
     </dl>
   </section>
   <section id="sign">
-    <h2><code>link.publicKey: string</code> and <code>link.sign(bytes: Uint8Array): Promise&lt;string&gt;</code></h2>
+    <h2><code>link.publicKey: string</code> and <code>link.sign(data: string): Promise&lt;string&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>This browser's public key, and its signature of the bytes, both base64url. What is signed this way can never pass as the link's own proof of id.</dd>
+      <dt>Post</dt><dd>This browser's raw P-256 public key, and its signature of the text (as UTF-8), both base64url. What is signed this way can never pass as the link's own proof of id.</dd>
       <dt>Fails</dt><dd>Never.</dd>
     </dl>
   </section>
 
   <section id="verify">
-    <h2><code>verify(publicKey: string, bytes: Uint8Array, signature: string): Promise&lt;boolean&gt;</code></h2>
+    <h2><code>verify(publicKey: string, data: string, signature: string): Promise&lt;boolean&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None. It needs no link, so a spectator or a saved file can be checked too.</dd>
-      <dt>Post</dt><dd>True only if the signature was made by <code>link.sign</code> of those bytes in the browser with that public key.</dd>
+      <dt>Post</dt><dd>True only if the signature was made by <code>link.sign</code> of that text in the browser with that public key.</dd>
       <dt>Fails</dt><dd>Never: a malformed key or signature is false.</dd>
     </dl>
   </section>
 
-  <section id="idOf">
-    <h2><code>idOf(publicKey: string): Promise&lt;browserId&gt;</code></h2>
+  <section id="thisBrowser">
+    <h2><code>thisBrowser(): Promise&lt;{ id: browserId; publicKey: string }&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>This browser's id and public key, without connecting, so a new game's link can name its host. Makes the key pair if this is the browser's first use.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+
+  <section id="idFor">
+    <h2><code>idFor(publicKey: string): Promise&lt;browserId&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The <code>browserId</code> that belongs to the public key, so a key in the log can be matched to a player.</dd>

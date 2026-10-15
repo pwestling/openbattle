@@ -20,8 +20,8 @@ export interface Link {
   send(message: Json, to?: BrowserId): void;
   onMessage(listener: (message: Json, from: BrowserId) => void): () => void;
   onChange(listener: (connected: BrowserId[]) => void): () => void;
-  /** Signs bytes with this browser's key, for checking with verify. Base64url. */
-  sign(bytes: Uint8Array): Promise<string>;
+  /** Signs a string (as UTF-8) with this browser's key, for checking with verify. Base64url. */
+  sign(data: string): Promise<string>;
   close(): void;
 }
 
@@ -32,13 +32,23 @@ export async function connect(link: string): Promise<Link> {
   return new Connection(link, me, socket, iceServers).start();
 }
 
-/** Whether signature is publicKey's signature of bytes, made with Link.sign. False for anything malformed. */
-export function verify(publicKey: string, bytes: Uint8Array, signature: string): Promise<boolean> {
-  return keys.verify(publicKey, concat([forSigning, bytes]), signature);
+/** This browser's id and public key, before connecting to any game. */
+export async function thisBrowser(): Promise<{ id: BrowserId; publicKey: string }> {
+  const { id, publicKey } = await keys.identity();
+  return { id, publicKey };
+}
+
+/** Whether signature is publicKey's signature of data, made with Link.sign. False for anything malformed; never throws. */
+export async function verify(publicKey: string, data: string, signature: string): Promise<boolean> {
+  try {
+    return await keys.verify(publicKey, concat([forSigning, encoder.encode(data)]), signature);
+  } catch {
+    return false;
+  }
 }
 
 /** The browser id belonging to a public key. Rejects if it is not a public key. */
-export async function idOf(publicKey: string): Promise<BrowserId> {
+export async function idFor(publicKey: string): Promise<BrowserId> {
   const raw = keys.fromBase64url(publicKey);
   await keys.checkPublicKey(raw);
   return keys.idOf(raw);
@@ -168,8 +178,8 @@ class Connection implements Link {
     return () => this.changeListeners.delete(listener);
   }
 
-  sign(bytes: Uint8Array): Promise<string> {
-    return keys.sign(this.identity.keys, concat([forSigning, bytes]));
+  sign(data: string): Promise<string> {
+    return keys.sign(this.identity.keys, concat([forSigning, encoder.encode(data)]));
   }
 
   close(): void {
@@ -348,7 +358,7 @@ class Connection implements Link {
   /** Answers the peer's challenge, and checks the peer's answer to ours. A peer that fails is dropped. */
   private async prove(browser: BrowserId, peer: Peer, proof: Proof) {
     if ("challenge" in proof) {
-      if (peer.publicKey !== null || (await idOf(proof.publicKey)) !== browser) throw new Error("not that browser's key");
+      if (peer.publicKey !== null || (await idFor(proof.publicKey)) !== browser) throw new Error("not that browser's key");
       peer.publicKey = proof.publicKey;
       const answer = await keys.sign(this.identity.keys, this.proofBytes(keys.fromBase64url(proof.challenge), browser));
       this.ask(peer);
