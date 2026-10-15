@@ -1,7 +1,7 @@
-// Players' keys and the bytes the other player signs in a sealed exchange (ADR-022).
-// The record never checks a signature; Session signs and verifies these exact bytes.
+// Players' keys and the text the other player signs in a sealed exchange (ADR-022).
+// The record never checks a signature; Session signs and verifies the UTF-8 of this exact text.
 import { sha256Bytes } from "./sha256.ts";
-import type { PlayerId } from "./types.ts";
+import type { PlayerId, RollAction, ShuffledDrawAction } from "./types.ts";
 
 const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
@@ -42,21 +42,18 @@ export function playerIdOf(publicKey: string): PlayerId | null {
   return raw ? toBase64url(sha256Bytes(raw).slice(0, 16)) : null;
 }
 
-/** The parts of a roll or a shuffled draw that the other player's signature covers. */
-export type Exchange =
-  | { kind: "roll"; dice: number; sides: number; seal: string; guestValue: string }
-  | { kind: "draw"; deck: string; cards: number; seal: string; guestValue: string };
-
 /**
- * The bytes the other player signs: the UTF-8 of a JSON object with its keys in alphabetical order,
- * holding the game's link, the kind of action, what is rolled or drawn, the seal and their value.
+ * The text the other player signs: a JSON object with its keys in alphabetical order, holding the
+ * link of the game it was signed in, the kind of action, what is rolled or drawn, the seal and their value. The signature
+ * fields are left out, and so is the host's value, which isn't known when the other player signs.
  * {"dice":2,"guestValue":"…","kind":"roll","link":"…","seal":"…","sides":6} for a roll, and
  * {"cards":1,"deck":"…","guestValue":"…","kind":"draw","link":"…","seal":"…"} for a draw.
  */
-export function signedBytes(link: string, exchange: Exchange): Uint8Array {
+export function guestStatement(action: RollAction | ShuffledDrawAction): string {
+  const link = action.link;
   const fields =
-    exchange.kind === "roll"
-      ? { dice: exchange.dice, guestValue: exchange.guestValue, kind: "roll", link, seal: exchange.seal, sides: exchange.sides }
-      : { cards: exchange.cards, deck: exchange.deck, guestValue: exchange.guestValue, kind: "draw", link, seal: exchange.seal };
-  return new TextEncoder().encode(JSON.stringify(fields));
+    action.kind === "roll"
+      ? { dice: action.dice, guestValue: action.guestValue, kind: "roll", link, seal: action.seal, sides: action.sides }
+      : { cards: action.cards, deck: action.deck, guestValue: action.guestValue, kind: "draw", link, seal: action.seal };
+  return JSON.stringify(fields);
 }

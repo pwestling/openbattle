@@ -132,11 +132,13 @@ export interface Deck {
  * Both random values of the sealed exchange (ADR-008). The host commits to hostValue by sending
  * seal = hex SHA-256 of hostValue; the other player then sends guestValue; the host opens the seal.
  * The outcome is derived from both values by the record, the same in every browser.
- * guestBy is the player who sent guestValue, and guestSignature their signature over it with the seal
- * (ADR-022), so the host cannot change guestValue. The record keeps the signature but never checks it:
+ * guestBy is the player who sent guestValue, and guestSignature their signature over guestStatement
+ * (ADR-022), so the host cannot change guestValue. link is the game the exchange was signed in, so a
+ * signature from one game can't be replayed in another. The record keeps the signature but never checks it:
  * Session does, and shows a roll or draw whose signature is wrong or empty as tampered.
  */
 export interface Sealed {
+  link: string;
   seal: string;
   hostValue: string;
   guestValue: string;
@@ -230,6 +232,12 @@ export type Action =
     }
   | { kind: "undo" };
 
+/** A roll: the action whose values the other player signs. */
+export type RollAction = Extract<Action, { kind: "roll" }>;
+
+/** A draw from a shuffled deck: the other kind of action whose values the other player signs. */
+export type ShuffledDrawAction = Extract<Action, { kind: "draw" } & Sealed>;
+
 export interface Entry {
   /** Numbered from 1. */
   n: number;
@@ -239,6 +247,10 @@ export interface Entry {
 
 export interface Log {
   size: Size;
+  /** The game's link. Entries copied from a saved file keep the link of the game they were taken in. */
+  link: string;
+  /** The host of this game. Opening a saved file starts a new game, with its own link and host. */
+  host: PlayerId;
   entries: Entry[];
 }
 

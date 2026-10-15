@@ -147,9 +147,9 @@ test("the same question gets the same answer in the browser and out of it, and a
   const there = await inBrowser(page, ask, many);
   expect(there).toEqual(ask(nodeMeasure, many));
 
-  let log = nodeRecord.newLog({ width: 44, depth: 30 });
   const annKey = "YW5uJ3Mga2V5";
   const ann = nodeRecord.playerIdOf(annKey)!;
+  let log = nodeRecord.newLog({ width: 44, depth: 30 }, "Xy3kP9qA-ann-browser", ann);
   log = nodeRecord.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
   log = nodeRecord.append(
     log,

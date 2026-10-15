@@ -6,10 +6,10 @@ import { sha256 } from "./sha256.ts";
 import type { Action, Log, PlayerId, Problem, Size, Table } from "./types.ts";
 
 export type * from "./types.ts";
-export { playerIdOf, signedBytes, type Exchange } from "./keys.ts";
+export { guestStatement, playerIdOf } from "./keys.ts";
 
-export function newLog(size: Size): Log {
-  return { size: { width: size.width, depth: size.depth }, entries: [] };
+export function newLog(size: Size, link: string, host: PlayerId): Log {
+  return { size: { width: size.width, depth: size.depth }, link, host, entries: [] };
 }
 
 export function check(log: Log, action: Action, by: PlayerId): Problem | null {
@@ -20,7 +20,7 @@ export function check(log: Log, action: Action, by: PlayerId): Problem | null {
 export function append(log: Log, action: Action, by: PlayerId): Log {
   const problem = check(log, action, by);
   if (problem) throw new Error(problem.problem);
-  return { size: log.size, entries: [...log.entries, { n: log.entries.length + 1, by, action: structuredClone(action) }] };
+  return { size: log.size, link: log.link, host: log.host, entries: [...log.entries, { n: log.entries.length + 1, by, action: structuredClone(action) }] };
 }
 
 export function tableAt(log: Log, upTo: number = log.entries.length): Table {

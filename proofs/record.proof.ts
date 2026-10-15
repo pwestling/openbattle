@@ -11,14 +11,17 @@ type Log = ReturnType<RecordModule["newLog"]>;
 // The same constants are written into the browser page ahead of every scenario.
 const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
-const cyKey = "Y3kncyBrZXk", cy = "tbo45df-YItJZP0k4aLgmg";`;
+const cyKey = "Y3kncyBrZXk", cy = "tbo45df-YItJZP0k4aLgmg";
+const link = "Xy3kP9qA-ann-browser";`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];
 const [cyKey, cy] = ["Y3kncyBrZXk", "tbo45df-YItJZP0k4aLgmg"];
+// The game's link: eight random base64url characters, then the host's browser id, as Session makes it.
+const link = "Xy3kP9qA-ann-browser";
 
-// A short game several proofs start from: two players join, Ann brings a unit of two models and moves them.
+// A short game several proofs start from, hosted by Ann: two players join, Ann brings a unit of two models and moves them.
 const opening = (r: RecordModule): Log => {
-  let log = r.newLog({ width: 44, depth: 30 });
+  let log = r.newLog({ width: 44, depth: 30 }, link, ann);
   log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
   log = r.append(log, { kind: "join", name: "Bo", colour: "#33c", publicKey: boKey }, bo);
   const base = { shape: "round" as const, width: 32, depth: 32 };
@@ -198,9 +201,9 @@ test("check says in plain words why an action can't be taken, and append refuses
       malformed: p({ kind: "move" }),
       tooManyDice: p({ kind: "roll", dice: 1025, sides: 6, seal: "", hostValue: "", guestValue: "" }),
       oneSided: p({ kind: "roll", dice: 1, sides: 1, seal: "", hostValue: "", guestValue: "" }),
-      unsigned: p({ kind: "roll", dice: 1, sides: 6, seal: "", hostValue: "", guestValue: "", guestBy: bo }),
-      emptySignature: p({ kind: "roll", dice: 1, sides: 6, seal: "", hostValue: "", guestValue: "", guestBy: bo, guestSignature: "" }),
-      strangerSigned: p({ kind: "roll", dice: 1, sides: 6, seal: "", hostValue: "", guestValue: "", guestBy: "eve", guestSignature: "x" }),
+      unsigned: p({ kind: "roll", dice: 1, sides: 6, link, seal: "", hostValue: "", guestValue: "", guestBy: bo }),
+      emptySignature: p({ kind: "roll", dice: 1, sides: 6, link, seal: "", hostValue: "", guestValue: "", guestBy: bo, guestSignature: "" }),
+      strangerSigned: p({ kind: "roll", dice: 1, sides: 6, link, seal: "", hostValue: "", guestValue: "", guestBy: "eve", guestSignature: "x" }),
       noKey: p({ kind: "join", name: "Cy", colour: "#0c0" }, cy),
       sameKey: p({ kind: "join", name: "Cy", colour: "#0c0", publicKey: boKey }, cy),
       wrongId: p({ kind: "join", name: "Cy", colour: "#0c0", publicKey: cyKey }, "cy"),
@@ -279,7 +282,7 @@ const sealedWith = async (hostValue: string, guestValue: string) => {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hostValue));
   const seal = Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
   // Session signs and checks the other player's value (ADR-022); the record only needs a signature there.
-  return { seal, hostValue, guestValue, guestBy: bo, guestSignature: `signed ${guestValue}` };
+  return { link, seal, hostValue, guestValue, guestBy: bo, guestSignature: `signed ${guestValue}` };
 };
 
 test("a roll's result comes from both random values, the same in every browser, and a bad seal shows as tampered", async ({ page }) => {
@@ -472,7 +475,7 @@ test("a player's id comes from their key, and only the right player can send the
     const byBrowser = btoa(String.fromCharCode(...hash)).replace(/\\+/g, "-").replace(/\\//g, "_").replace(/=+$/, "");
     const log = r.append(opening(r), { kind: "join", name: "Cy", colour: "#0c0", publicKey: cyKey }, cy);
     const roll = (by, guestBy, seal) =>
-      r.check(log, { kind: "roll", dice: 1, sides: 6, seal, hostValue: "h", guestValue: "g", guestBy, guestSignature: "sig" }, by)?.problem ?? null;
+      r.check(log, { kind: "roll", dice: 1, sides: 6, link, seal, hostValue: "h", guestValue: "g", guestBy, guestSignature: "sig" }, by)?.problem ?? null;
     return {
       ids: [r.playerIdOf(annKey), byBrowser],
       hostRollsBoSigns: roll(ann, bo, "s1"),
@@ -481,8 +484,8 @@ test("a player's id comes from their key, and only the right player can send the
       boRollsBoSigns: roll(bo, bo, "s4"),
       boRollsCySigns: roll(bo, cy, "s5"),
       boRollsHostSigns: roll(bo, ann, "s6"),
-      bytes: new TextDecoder().decode(r.signedBytes("openbattle:g1", { kind: "roll", dice: 2, sides: 6, seal: "ab", guestValue: "cd" })),
-      drawBytes: new TextDecoder().decode(r.signedBytes("openbattle:g1", { kind: "draw", deck: "d1", cards: 1, seal: "ab", guestValue: "cd" })),
+      bytes: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
+      drawBytes: r.guestStatement({ kind: "draw", deck: "d1", cards: 1, to: "hand", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
     };
   })()`) as { ids: string[]; bytes: string; drawBytes: string } & Record<string, string | null>;
   expect(seen.ids).toEqual([ann, ann]);
@@ -495,5 +498,38 @@ test("a player's id comes from their key, and only the right player can send the
   // The signature covers the game's link, the kind of action, what is rolled or drawn, the seal and the value.
   expect(seen.bytes).toBe('{"dice":2,"guestValue":"cd","kind":"roll","link":"openbattle:g1","seal":"ab","sides":6}');
   expect(seen.drawBytes).toBe('{"cards":1,"deck":"d1","guestValue":"cd","kind":"draw","link":"openbattle:g1","seal":"ab"}');
-  expect(new TextDecoder().decode(nodeRecord.signedBytes("openbattle:g1", { kind: "roll", dice: 2, sides: 6, seal: "ab", guestValue: "cd" }))).toBe(seen.bytes);
+  expect(nodeRecord.guestStatement({ kind: "roll", dice: 2, sides: 6, link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" })).toBe(seen.bytes);
+});
+
+test("an exchange is signed for one game, and a saved game opened again is a new game with its own link and host", async ({ page }) => {
+  const sealed = await sealedWith("host value", "guest value");
+  const scenario = (r: RecordModule, start: typeof opening, s: typeof sealed) => {
+    // Ann hosted the first game and rolled in it; the saved entries go into a new game Bo hosts.
+    const first = r.append(start(r), { kind: "roll", dice: 2, sides: 6, ...s }, ann);
+    const reopened = { size: first.size, link: "Qm7tZ2wB-bo-browser", host: bo, entries: first.entries };
+    const fresh = (seal: string) => ({ ...s, link: reopened.link, seal });
+    const problem = (log: Log, action: Parameters<RecordModule["check"]>[1], by: string) => r.check(log, action, by)?.problem ?? null;
+    return {
+      otherGame: problem(first, { kind: "roll", dice: 1, sides: 6, ...s, link: "Qm7tZ2wB-bo-browser", seal: "new" }, ann),
+      oldRollStands: r.tableAt(reopened).rolls.map((roll) => roll.result.length),
+      oldLinkHere: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...s, seal: "new" }, bo),
+      boHostsAnnSends: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, bo),
+      boSendsOwn: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: bo }, bo),
+      annNowSendsOwn: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, ann),
+      oldSeal: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh(s.seal), guestBy: ann }, bo),
+      longer: r.append(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, bo),
+    };
+  };
+  const seen = (await page.evaluate(
+    `(() => { ${players} return (${scenario.toString()})(window.record, ${opening.toString()}, ${JSON.stringify(sealed)}); })()`,
+  )) as ReturnType<typeof scenario>;
+  expect(seen.otherGame).toBe("A roll must be signed for this game's link.");
+  expect(seen.oldRollStands).toEqual([2]);
+  expect(seen.oldLinkHere).toBe("A roll must be signed for this game's link.");
+  expect(seen.boHostsAnnSends).toBeNull();
+  expect(seen.boSendsOwn).toBe("The host can't send the other value: it would choose both.");
+  expect(seen.annNowSendsOwn).toBeNull();
+  expect(seen.oldSeal).toBe("This seal was already used, in action 5.");
+  expect([seen.longer.link, seen.longer.host, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser", bo, 6]);
+  expect(scenario(nodeRecord, opening, sealed)).toEqual(seen);
 });
