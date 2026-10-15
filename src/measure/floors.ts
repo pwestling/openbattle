@@ -5,12 +5,14 @@
 // No trigonometry: the same mesh and size give the same floors in every browser.
 import type { Floor, Mesh, Point } from "./index.ts";
 
-/** How nearly upright a triangle's normal must be for it to count as flat: within about 6°. */
-const flatEnough = 0.995;
+/** How nearly upright a triangle's normal must be for it to count as flat: within 2°, so ramps are not floors. */
+const flatEnough = 0.9994;
 /** Flat areas within this height of each other (inches) are one floor. */
 const sameHeight = 0.05;
 /** Separate flat areas at one height this close together (inches) are merged into one floor. */
 const nearby = 0.1;
+/** Separate areas merge only if the outline around them all covers at most this much more than they do. */
+const mostlyCovered = 1.1;
 /** A flat area smaller than this (square inches) is a ledge or a detail, too small to stand on. */
 const smallest = 0.25;
 /** Corners closer than this (inches) are the same corner, so separate triangles join up. */
@@ -70,8 +72,10 @@ export function floorsOf(mesh: Mesh, size: { width: number; depth: number; heigh
   const flat: number[] = [];
   const heightOf = new Float64Array(triangleCount);
   const sizeOf = new Float64Array(triangleCount);
+  const real = (i: number) => Number.isInteger(i) && i >= 0 && i < corners;
   for (let t = 0; t < triangleCount; t++) {
     const [a, b, c] = [index(t * 3), index(t * 3 + 1), index(t * 3 + 2)];
+    if (!real(a) || !real(b) || !real(c)) continue;
     const ux = xs[b]! - xs[a]!, uy = ys[b]! - ys[a]!, uh = hs[b]! - hs[a]!;
     const vx = xs[c]! - xs[a]!, vy = ys[c]! - ys[a]!, vh = hs[c]! - hs[a]!;
     // The normal, with h up; table x, y and h are a right-handed set, like mesh x, -z and y.
@@ -79,14 +83,25 @@ export function floorsOf(mesh: Mesh, size: { width: number; depth: number; heigh
     const ny = uh * vx - ux * vh;
     const nh = ux * vy - uy * vx;
     const length = Math.sqrt(nx * nx + ny * ny + nh * nh);
-    if (length === 0 || nh / length < flatEnough) continue;
+    // Written so that a normal that is not a number (a broken mesh) never counts as flat.
+    if (!(nh / length >= flatEnough)) continue;
+    // A triangle that rises more than a floor may is part of a slope, however gentle.
+    if (Math.max(hs[a]!, hs[b]!, hs[c]!) - Math.min(hs[a]!, hs[b]!, hs[c]!) > sameHeight) continue;
     flat.push(t);
     heightOf[t] = (hs[a]! + hs[b]! + hs[c]!) / 3;
     sizeOf[t] = nh / 2;
   }
 
-  // Flat triangles sharing an edge at the same height are one area.
+  // Flat triangles sharing an edge are one area, as long as the whole area stays within one
+  // floor's height: otherwise a gentle slope of nearly flat triangles would chain into a floor.
   const parent = new Map<number, number>(flat.map((t) => [t, t]));
+  const lowest = new Map<number, number>();
+  const highest = new Map<number, number>();
+  for (const t of flat) {
+    const [a, b, c] = [index(t * 3), index(t * 3 + 1), index(t * 3 + 2)];
+    lowest.set(t, Math.min(hs[a]!, hs[b]!, hs[c]!));
+    highest.set(t, Math.max(hs[a]!, hs[b]!, hs[c]!));
+  }
   const root = (t: number): number => {
     let r = t;
     while (parent.get(r) !== r) r = parent.get(r)!;
@@ -95,7 +110,14 @@ export function floorsOf(mesh: Mesh, size: { width: number; depth: number; heigh
   };
   const join = (a: number, b: number) => {
     const [ra, rb] = [root(a), root(b)];
-    if (ra !== rb) parent.set(Math.max(ra, rb), Math.min(ra, rb));
+    if (ra === rb) return;
+    const lo = Math.min(lowest.get(ra)!, lowest.get(rb)!);
+    const hi = Math.max(highest.get(ra)!, highest.get(rb)!);
+    if (hi - lo > sameHeight) return;
+    const [keep, gone] = [Math.min(ra, rb), Math.max(ra, rb)];
+    parent.set(gone, keep);
+    lowest.set(keep, lo);
+    highest.set(keep, hi);
   };
   const edgeKey = (p: number, q: number) => (p < q ? `${p}:${q}` : `${q}:${p}`);
   const edgeOwner = new Map<string, number>();
@@ -106,7 +128,7 @@ export function floorsOf(mesh: Mesh, size: { width: number; depth: number; heigh
       const key = edgeKey(p, q);
       const other = edgeOwner.get(key);
       if (other === undefined) edgeOwner.set(key, t);
-      else if (Math.abs(heightOf[other]! - heightOf[t]!) <= sameHeight) join(other, t);
+      else join(other, t);
     }
   }
   const byRoot = new Map<number, number[]>();
@@ -134,20 +156,33 @@ export function floorsOf(mesh: Mesh, size: { width: number; depth: number; heigh
     return { triangles, height: size > 0 ? weighted / size : heightOf[triangles[0]!]!, size, low: lo, high: hi };
   });
 
-  // Nearby areas at almost the same height are one floor.
+  // Nearby areas at almost the same height are one floor, unless the outline around them would
+  // take in empty space, such as the inside corner of an L-shaped walkway made of two plates.
   areas.sort((a, b) => a.height - b.height || a.triangles[0]! - b.triangles[0]!);
   const group = areas.map((_, i) => i);
   const top = (i: number): number => (group[i] === i ? i : (group[i] = top(group[i]!)));
+  const around = areas.map((area) => hull(area.triangles.flatMap((t) => cornersOf(t).map((p) => ({ x: xs[p]!, y: ys[p]! })))));
+  const covered = areas.map((area) => area.size);
+  const floorOf = areas.map((area) => ({ lo: area.height, hi: area.height }));
   for (let i = 0; i < areas.length; i++) {
     const a = areas[i]!;
     for (let j = i + 1; j < areas.length && areas[j]!.height - a.height <= sameHeight; j++) {
       const b = areas[j]!;
       const gapX = Math.max(a.low.x - b.high.x, b.low.x - a.high.x);
       const gapY = Math.max(a.low.y - b.high.y, b.low.y - a.high.y);
-      if (gapX <= nearby && gapY <= nearby) {
-        const [ti, tj] = [top(i), top(j)];
-        if (ti !== tj) group[Math.max(ti, tj)] = Math.min(ti, tj);
-      }
+      if (gapX > nearby || gapY > nearby) continue;
+      const [ti, tj] = [top(i), top(j)];
+      if (ti === tj) continue;
+      const lo = Math.min(floorOf[ti]!.lo, floorOf[tj]!.lo);
+      const hi = Math.max(floorOf[ti]!.hi, floorOf[tj]!.hi);
+      const outline = hull([...around[ti]!, ...around[tj]!]);
+      const size = covered[ti]! + covered[tj]!;
+      if (hi - lo > sameHeight || Math.abs(signedArea(outline)) > size * mostlyCovered) continue;
+      const [keep, gone] = [Math.min(ti, tj), Math.max(ti, tj)];
+      group[gone] = keep;
+      around[keep] = outline;
+      covered[keep] = size;
+      floorOf[keep] = { lo, hi };
     }
   }
   const merged = new Map<number, Area[]>();

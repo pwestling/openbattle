@@ -269,3 +269,87 @@ test("a mesh of 100,000 triangles, the most a mesh is simplified to, gets its fl
   expect(seen.heights).toEqual([2.985]);
   expect(seen.ms).toBeLessThan(2000);
 });
+
+test("a gentle slope is never a floor, two plates in an L stay two floors, and a broken mesh gives no bad floors", async ({ page }) => {
+  const seen = await inBrowser(
+    page,
+    (m, _: null) => {
+      // A 5° ramp 10" long, its top made of 20 strips, each nearly flat on its own.
+      const ramp: number[] = [];
+      const rise = Math.tan((5 * Math.PI) / 180);
+      for (let i = 0; i < 20; i++) {
+        const [x0, x1] = [i * 0.5, (i + 1) * 0.5];
+        const [y0, y1] = [x0 * rise, x1 * rise];
+        ramp.push(x0, y0, 0, x0, y0, 2, x1, y1, 2, x0, y0, 0, x1, y1, 2, x1, y1, 0);
+      }
+      // Two walkway plates in an L, 0.05" apart, with nothing in the inside corner.
+      const top = (x0: number, x1: number, z0: number, z1: number) => [x0, 0, z0, x0, 0, z1, x1, 0, z1, x0, 0, z0, x1, 0, z1, x1, 0, z0];
+      const walkway = [...top(0, 4, 0, 1), ...top(0, 1, 1.05, 4)];
+      return {
+        ramp: m.floors({ positions: new Float32Array(ramp) }, { width: 10, depth: 2, height: 0.875 }),
+        walkway: m.floors({ positions: new Float32Array(walkway) }, { width: 4, depth: 4, height: 1 }),
+        broken: m.floors(
+          { positions: new Float32Array([0, 1, 0, 0, 1, 10, 10, 1, 10, 10, 1, 0]), indices: new Uint32Array([0, 1, 2, 0, 2, 99]) },
+          { width: 2, depth: 2, height: 1 },
+        ),
+      };
+    },
+    null,
+  );
+  expect(seen.ramp).toEqual([]);
+  expect(seen.walkway).toEqual([
+    { height: 0, outline: [{ x: -2, y: -2 }, { x: -1, y: -2 }, { x: -1, y: 0.95 }, { x: -2, y: 0.95 }] },
+    { height: 0, outline: [{ x: -2, y: 1 }, { x: 2, y: 1 }, { x: 2, y: 2 }, { x: -2, y: 2 }] },
+  ]);
+  // The broken triangle is left out; the other half of the square is still a floor.
+  expect(seen.broken).toHaveLength(1);
+  expect(seen.broken[0]!.height).toBe(0);
+  expect(seen.broken[0]!.outline.every((p) => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
+});
+
+test("turned bases measure true at any angle, and ids every object inherits are not models", async ({ page }) => {
+  const seen = await inBrowser(
+    page,
+    (m, t) => {
+      const fails = (f: () => unknown) => {
+        try {
+          f();
+          return null;
+        } catch (e) {
+          return (e as Error).message;
+        }
+      };
+      return {
+        thirty: m.distance(t, { model: "r30" }, { x: 10, y: 0 }),
+        lessThanZero: m.distance(t, { model: "rMinus330" }, { x: 10, y: 0 }),
+        manyTurns: m.distance(t, { model: "r750" }, { x: 10, y: 0 }),
+        toString: fails(() => m.distance(t, { model: "toString" }, { x: 0, y: 0 })),
+        proto: fails(() => m.distance(t, { model: "__proto__" }, { x: 0, y: 0 })),
+      };
+    },
+    {
+      models: {
+        r30: model("u", 0, 0, rect, 30),
+        rMinus330: model("u", 0, 0, rect, -330),
+        r750: model("u", 0, 0, rect, 750),
+      },
+      terrain: {},
+    },
+  );
+  // The same measurement worked out here with Math.cos and Math.sin: the gap from the point to the
+  // nearest edge of the rect turned 30° clockwise.
+  const [c, sn] = [Math.cos(Math.PI / 6), Math.sin(Math.PI / 6)];
+  const [w, d] = [12.5 / 25.4, 25 / 25.4];
+  const corners = [[-w, -d], [w, -d], [w, d], [-w, d]].map(([a, b]) => ({ x: a! * c + b! * sn, y: -a! * sn + b! * c }));
+  const toEdge = (a: { x: number; y: number }, b: { x: number; y: number }) => {
+    const [dx, dy] = [b.x - a.x, b.y - a.y];
+    const t = Math.max(0, Math.min(1, ((10 - a.x) * dx + (0 - a.y) * dy) / (dx * dx + dy * dy)));
+    return Math.hypot(10 - (a.x + t * dx), 0 - (a.y + t * dy));
+  };
+  const expected = Math.round(Math.min(...corners.map((p, i) => toEdge(p, corners[(i + 1) % 4]!))) * 100) / 100;
+  expect(seen.thirty).toEqual({ across: expected, up: 0 });
+  expect(seen.lessThanZero).toEqual(seen.thirty);
+  expect(seen.manyTurns).toEqual(seen.thirty);
+  expect(seen.toString).toBe('There is no model "toString".');
+  expect(seen.proto).toBe('There is no model "__proto__".');
+});
