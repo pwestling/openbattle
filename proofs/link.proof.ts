@@ -148,6 +148,65 @@ test("closing a link disconnects it from everyone, and the relay forgets it", as
   expect(await received(alice)).toEqual([]);
 });
 
+test("a browser claiming another's id is refused, and the real one stays connected", async ({ browser }) => {
+  const g = game("spoof");
+  const host = await player(browser);
+  const bob = await player(browser);
+  const h = await join(host, g);
+  const b = await join(bob, g);
+  await expect.poll(() => connected(bob)).toEqual([h]);
+  const hostKey = await host.evaluate(() => (window as any).proof.link.publicKey as string);
+
+  // A modified client: it shows the host's public key, so it claims the host's id, but it can only sign with its own key.
+  const mallory = await player(browser, (page) =>
+    page.addInitScript((key) => {
+      const real = crypto.subtle.exportKey.bind(crypto.subtle);
+      crypto.subtle.exportKey = (async (format: string, k: CryptoKey) => {
+        if (format !== "raw") return real(format as any, k);
+        const plain = atob(key.replaceAll("-", "+").replaceAll("_", "/"));
+        return Uint8Array.from(plain, (c) => c.charCodeAt(0)).buffer;
+      }) as typeof crypto.subtle.exportKey;
+    }, hostKey),
+  );
+  expect(await join(mallory, g)).toBe(h);
+
+  // Bob tries the newcomer, which cannot prove it, and keeps the connection to the real host.
+  await mallory.waitForTimeout(3000);
+  expect(await connected(bob)).toEqual([h]);
+  expect(await connected(mallory)).toEqual([]);
+  await send(host, "still me");
+  await send(mallory, "I am the host now");
+  await expect.poll(() => received(bob)).toEqual([{ from: h, message: "still me" }]);
+});
+
+test("a browser signs for others, and anyone can check it against its public key and id", async ({ browser }) => {
+  const g = game("sign");
+  const alice = await player(browser);
+  const bob = await player(browser);
+  const a = await join(alice, g);
+  await join(bob, g);
+  const key = await alice.evaluate(() => (window as any).proof.link.publicKey as string);
+  const signature = await alice.evaluate(() => (window as any).proof.sign("seal:1f2e value:42"));
+
+  // Bob checks it with nothing but the public key, as a spectator or a saved file would.
+  expect(await bob.evaluate((key) => (window as any).proof.idOf(key), key)).toBe(a);
+  const check = (text: string, sig: string, k = key) => bob.evaluate(([k, t, s]) => (window as any).proof.verify(k, t, s), [k, text, sig]);
+  expect(await check("seal:1f2e value:42", signature)).toBe(true);
+  expect(await check("seal:1f2e value:43", signature)).toBe(false);
+  expect(await check("seal:1f2e value:42", signature, await bob.evaluate(() => (window as any).proof.link.publicKey))).toBe(false);
+  expect(await check("seal:1f2e value:42", "not a signature")).toBe(false);
+  expect(await bob.evaluate(() => (window as any).proof.idOf("bm90IGEga2V5").then(() => "accepted", () => "rejected"))).toBe("rejected");
+});
+
+test("a browser's id is worked out from its public key", async ({ browser }) => {
+  const alice = await player(browser);
+  const a = await join(alice, game("id"));
+  const key = await alice.evaluate(() => (window as any).proof.link.publicKey as string);
+  // base64url of the first 16 bytes of SHA-256 of the raw public key (ADR-022), computed here outside the browser.
+  const { createHash } = await import("node:crypto");
+  expect(a).toBe(createHash("sha256").update(Buffer.from(key, "base64url")).digest().subarray(0, 16).toString("base64url"));
+});
+
 test("connecting rejects when the relay cannot be reached", async ({ browser }) => {
   // The relay's socket is refused before the page loads.
   const alice = await player(browser, (page) => page.routeWebSocket(/\/signal/, (ws) => ws.close()));

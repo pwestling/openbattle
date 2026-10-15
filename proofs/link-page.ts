@@ -1,6 +1,6 @@
 // A page that holds one link and records what it sees, for proofs/link.proof.ts to drive.
 // It uses only the link module's public face.
-import { connect, type BrowserId, type Json, type Link } from "../src/link/index.ts";
+import { connect, idOf, verify, type BrowserId, type Json, type Link } from "../src/link/index.ts";
 
 type Received = { from: BrowserId; message: Json };
 
@@ -17,6 +17,10 @@ const page = {
     return link.me;
   },
   connected: (): BrowserId[] => page.changes.at(-1) ?? [],
+  /** Signing for others, with text in and base64url out, so the proof can pass them across. */
+  sign: (text: string) => page.link!.sign(new TextEncoder().encode(text)),
+  verify: (publicKey: string, text: string, signature: string) => verify(publicKey, new TextEncoder().encode(text), signature),
+  idOf,
 };
 
 Object.assign(window, { proof: page });
