@@ -302,7 +302,7 @@ test("a roll's result comes from both random values, the same in every browser, 
   for (const count of seen.counts) expect(Math.abs(count - 10240 / 6)).toBeLessThan(160);
 });
 
-test("a shuffled deck is drawn from with the same sealed exchange, and a draw the host could have chosen is refused", async ({ page }) => {
+test("a shuffled deck is drawn from with the same sealed exchange, and a bad seal shows the draw as tampered", async ({ page }) => {
   const fair = await sealedWith("host value for the draw", "guest value for the draw");
   const draw = (r: RecordModule, sealed: Partial<Awaited<ReturnType<typeof sealedWith>>>, order: "ordered" | "shuffled" = "shuffled") => {
     let log = opening(r);
@@ -316,6 +316,7 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a draw th
     return {
       drawn: Object.values(table.cards).filter((c) => c.place.in === "hand").map((c) => c.id),
       left: table.decks.d1!.cards,
+      draws: table.draws,
       undo: r.check(log, { kind: "undo" }, "bo")?.problem,
     };
   };
@@ -331,15 +332,25 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a draw th
         ordered: draw(r, {}, "ordered"),
       };
     })()`,
-  ) as Record<string, { drawn?: string[]; left?: string[]; undo?: string; problem?: string }>;
+  ) as Record<string, { drawn?: string[]; left?: string[]; draws?: nodeRecord.Draw[]; undo?: string; problem?: string }>;
   expect(seen.fair!.drawn).toHaveLength(3);
   expect(new Set([...seen.fair!.drawn!, ...seen.fair!.left!]).size).toBe(10);
   expect(draw(nodeRecord, fair)).toEqual(seen.fair);
   expect(seen.fair!.undo).toBe("A draw from a shuffled deck can't be undone, or it could be drawn again until it suited.");
-  expect(seen.tampered!.problem).toBe("The host's value does not open the seal, so the draw could have been chosen.");
+  // The draw keeps the cards in the order they were picked.
+  expect(seen.fair!.draws).toMatchObject([{ at: 6, by: "bo", deck: "d1", to: "hand", tampered: false }]);
+  expect([...seen.fair!.draws![0]!.cards].sort()).toEqual(seen.fair!.drawn);
+  // A host value that does not open the seal is still logged, and everyone sees the draw flagged as tampered.
+  expect(seen.tampered!.drawn).toHaveLength(3);
+  expect(seen.tampered!.draws?.[0]?.tampered).toBe(true);
   expect(seen.unsealed!.problem).toBe("A draw from a shuffled deck needs the seal and both random values.");
   expect(seen.orderedWithValues!.problem).toBe("An ordered deck gives its top cards; a draw from it has no random values.");
-  expect(seen.ordered).toEqual({ drawn: ["c0", "c1", "c2"], left: ["c3", "c4", "c5", "c6", "c7", "c8", "c9"], undo: undefined });
+  expect(seen.ordered).toEqual({
+    drawn: ["c0", "c1", "c2"],
+    left: ["c3", "c4", "c5", "c6", "c7", "c8", "c9"],
+    draws: [{ at: 6, by: "bo", deck: "d1", cards: ["c0", "c1", "c2"], to: "hand", tampered: false }],
+    undo: undefined,
+  });
 });
 
 test("equal tables have equal fingerprints, in the browser and out of it, and any change shows", async ({ page }) => {

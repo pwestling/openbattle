@@ -1,6 +1,5 @@
 // Whether an action can be appended: everything it names exists, numbers are finite, no group
 // contains itself, and the player may take it. Game rules are never checked.
-import { opens } from "./chance.ts";
 import { latestStanding } from "./fold.ts";
 import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Shape, Table, Terrain } from "./types.ts";
 
@@ -333,8 +332,6 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
           refuse("An ordered deck gives its top cards; a draw from it has no random values.");
       } else {
         sealed(action, "A draw from a shuffled deck");
-        if (!opens({ seal: action.seal!, hostValue: action.hostValue!, guestValue: action.guestValue! }))
-          refuse("The host's value does not open the seal, so the draw could have been chosen.");
       }
       return;
     }

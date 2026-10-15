@@ -149,6 +149,17 @@ export interface Roll {
   tampered: boolean;
 }
 
+export interface Draw {
+  /** The log number of the draw action. */
+  at: number;
+  by: PlayerId;
+  deck: DeckId;
+  cards: CardId[];
+  to: "hand" | "table";
+  /** From a shuffled deck, the seal did not match the host's value. Never true for an ordered deck. */
+  tampered: boolean;
+}
+
 export interface NewModel {
   id: ModelId;
   name: string;
@@ -221,7 +232,7 @@ export interface Log {
   entries: Entry[];
 }
 
-/** One moment of the game: everything on the table, plus the hands, decks and rolls. */
+/** One moment of the game: everything on the table, plus the hands, decks, rolls and draws. */
 export interface Table {
   size: Size;
   players: Record<PlayerId, Player>;
@@ -233,6 +244,7 @@ export interface Table {
   counters: Record<Target, Record<string, number>>;
   marks: Record<Target, string[]>;
   rolls: Roll[];
+  draws: Draw[];
   decks: Record<DeckId, Deck>;
   cards: Record<CardId, Card>;
   /** Log numbers of the actions undo has cancelled. */

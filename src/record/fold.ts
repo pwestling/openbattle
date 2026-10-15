@@ -14,6 +14,7 @@ export function bareTable(size: Size): Table {
     counters: {},
     marks: {},
     rolls: [],
+    draws: [],
     decks: {},
     cards: {},
     cancelled: [],
@@ -191,6 +192,14 @@ function apply(table: Table, { n, by, action }: Entry) {
       const drawn =
         deck.order === "ordered" ? deck.cards.slice(0, action.cards) : drawFrom(action as Sealed, deck.cards, action.cards);
       deck.cards = deck.cards.filter((id) => !drawn.includes(id));
+      table.draws.push({
+        at: n,
+        by,
+        deck: action.deck,
+        cards: drawn,
+        to: action.to,
+        tampered: deck.order === "shuffled" && !opens(action as Sealed),
+      });
       for (const id of drawn) {
         table.cards[id]!.place =
           action.to === "hand" ? { in: "hand", player: by } : { in: "table", position: copy(deck.position), faceUp: true };
