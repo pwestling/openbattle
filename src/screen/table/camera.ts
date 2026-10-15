@@ -18,6 +18,8 @@ export class Camera {
   constructor(size: { width: number; depth: number }, edge: number) {
     this.size = size;
     this.edge = edge;
+    this.camera.far = Math.max(2000, Math.max(size.width, size.depth) * 10);
+    this.camera.updateProjectionMatrix();
     this.home();
   }
 
@@ -55,13 +57,15 @@ export class Camera {
     const right = new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     const forward = new Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     this.target.addScaledVector(right, -dx * k).addScaledVector(forward, dy * k);
-    this.target.x = MathUtils.clamp(this.target.x, -20, this.size.width + 20);
-    this.target.z = MathUtils.clamp(this.target.z, -this.size.depth - 20, 20);
+    // Not so far that the table is lost; how far depends on the table's size.
+    const m = Math.max(this.size.width, this.size.depth) / 2;
+    this.target.x = MathUtils.clamp(this.target.x, -m, this.size.width + m);
+    this.target.z = MathUtils.clamp(this.target.z, -this.size.depth - m, m);
     this.apply();
   }
 
   zoom(delta: number) {
-    this.distance = MathUtils.clamp(this.distance * Math.exp(delta * 0.001), 3, 400);
+    this.distance = MathUtils.clamp(this.distance * Math.exp(delta * 0.001), 3, Math.max(this.size.width, this.size.depth) * 4);
     this.apply();
   }
 
@@ -73,6 +77,11 @@ export class Camera {
 
   keyUp(key: string) {
     this.held.delete(key);
+  }
+
+  /** Forgets held keys, as when the window loses focus and their release goes unseen. */
+  releaseKeys() {
+    this.held.clear();
   }
 
   /** Called every frame: slides while arrow keys are held. */

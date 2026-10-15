@@ -38,18 +38,26 @@ interface Carry {
   offsets: Map<string, Point>;
   waypoints: Map<string, Point[]>;
   turn: number;
+  /** Steps from the floor the pointer is on: positive is down, negative is up. */
   floorStep: number;
+  /** The floor the pointer is on, and the model it carries by. */
+  aimFloor: FloorRef | null;
+  by: string;
   grab: Point;
   moved: boolean;
 }
 
+type Spot3 = Point & { h: number };
+
 interface Ruler {
   from: Spot;
-  fromPoint: Point;
-  via: Point[];
+  fromPoint: Spot3;
+  via: Spot3[];
   to: Spot;
-  toPoint: Point;
+  toPoint: Spot3;
 }
+
+const sameFloor = (a: FloorRef | null, b: FloorRef | null) => a === b || (!!a && !!b && a.terrain === b.terrain && a.floor === b.floor);
 
 /** Turns a point clockwise (seen from above) about the origin, as facing turns. */
 const rotate = (p: Point, degrees: number): Point => {
@@ -131,6 +139,7 @@ export class Gestures {
     on(window, "keydown", (e) => this.keyDown(e));
     on(window, "keyup", (e) => this.keyUp(e));
     on(window, "blur", () => {
+      this.view.camera.releaseKeys();
       this.rulerKey = false;
       this.ruler = null;
       this.redraw();
@@ -208,10 +217,32 @@ export class Gestures {
     return hit ? { x: hit.x, y: -hit.z } : null;
   }
 
+  /** The surface under the pointer: the nearest floor the pointer meets, or else the table. */
+  private surfaceAt(e: { clientX: number; clientY: number }, except?: string): { point: Point; floor: FloorRef | null; h: number } | null {
+    this.aim(e);
+    const ray = this.raycaster.ray;
+    let best: { point: Point; floor: FloorRef | null; h: number; d: number } | null = null;
+    for (const t of Object.values(this.table?.terrain ?? {})) {
+      if (t.id === except) continue;
+      t.floors.forEach((f, i) => {
+        const hit = ray.intersectPlane(new Plane(new Vector3(0, 1, 0), -f.height), new Vector3());
+        if (!hit) return;
+        const point = { x: hit.x, y: -hit.z };
+        if (!inside(rotate({ x: point.x - t.position.x, y: point.y - t.position.y }, -t.facing), f.outline)) return;
+        const d = hit.distanceTo(ray.origin);
+        if (!best || d < best.d) best = { point, floor: { terrain: t.id, floor: i }, h: f.height, d };
+      });
+    }
+    if (best) return best;
+    const point = this.pointAt(e);
+    return point ? { point, floor: null, h: 0 } : null;
+  }
+
   // Pointer.
 
   private down(e: PointerEvent) {
     this.view.renderer.domElement.focus();
+    if (this.carry && e.button !== 0) return;
     if (e.button === 2 && (this.carry || this.ruler)) return this.pin();
     if (e.button === 2 || e.button === 1) {
       this.orbit = { button: e.button, x: e.clientX, y: e.clientY };
@@ -221,19 +252,27 @@ export class Gestures {
     const thing = this.thingAt(e);
     const model = thing?.kind === "model" ? thing.id : null;
     if (this.rulerKey) {
-      const point = this.pointAt(e);
-      if (!point) return;
-      const at = model ? this.table.models[model]?.position : undefined;
-      const from: Spot = model ? { model } : point;
-      this.ruler = { from, fromPoint: at ?? point, via: [], to: point, toPoint: point };
+      const at = this.spotAt(e, model);
+      if (!at) return;
+      this.ruler = { from: at.spot, fromPoint: at.point, via: [], to: at.spot, toPoint: at.point };
       this.redraw();
       return;
     }
     this.press = { x: e.clientX, y: e.clientY, thing, detail: e.detail, shift: e.shiftKey };
   }
 
+  /** A spot for the ruler: the model under the pointer, or the surface there. */
+  private spotAt(e: { clientX: number; clientY: number }, model: string | null): { spot: Spot; point: Spot3 } | null {
+    const m = model ? this.table?.models[model] : undefined;
+    if (m) return { spot: { model: m.id }, point: { ...m.position, h: floorHeight(this.table!, m.floor) } };
+    const s = this.surfaceAt(e);
+    return s ? { spot: s.point, point: { ...s.point, h: s.h } } : null;
+  }
+
   private move(e: PointerEvent) {
     this.hover = { clientX: e.clientX, clientY: e.clientY };
+    // A right button pressed while the left is held comes as a move, not a press.
+    if (e.button === 2 && e.buttons & 2 && (this.carry || this.ruler)) return this.pin();
     if (this.orbit) {
       const dx = e.clientX - this.orbit.x;
       const dy = e.clientY - this.orbit.y;
@@ -244,11 +283,10 @@ export class Gestures {
       return;
     }
     if (this.ruler && e.buttons & 1) {
-      const point = this.pointAt(e);
-      if (!point || !this.table) return;
-      const model = this.modelAt(e);
-      this.ruler.to = model ? { model } : point;
-      this.ruler.toPoint = model ? this.table.models[model]!.position : point;
+      const at = this.spotAt(e, this.modelAt(e));
+      if (!at) return;
+      this.ruler.to = at.spot;
+      this.ruler.toPoint = at.point;
       this.redraw();
       return;
     }
@@ -261,7 +299,7 @@ export class Gestures {
     if (this.readOnly) return;
     if (thing.kind === "model" || thing.kind === "terrain") {
       if (!this.selected.has(thing.id)) this.selected = new Set([thing.id]);
-      this.lift(press);
+      this.lift(press, thing);
       this.carryTo(e);
     } else if (thing.kind === "card") {
       const card = this.table?.cards[thing.id];
@@ -309,7 +347,8 @@ export class Gestures {
 
   private wheel(e: WheelEvent) {
     e.preventDefault();
-    if (this.carry && e.shiftKey) return this.stepFloor(e.deltaY > 0 ? 1 : -1);
+    // With Shift held, some browsers turn the wheel sideways.
+    if (this.carry && e.shiftKey) return this.stepFloor((e.deltaY || e.deltaX) > 0 ? 1 : -1);
     this.view.camera.zoom(e.deltaY);
   }
 
@@ -341,6 +380,7 @@ export class Gestures {
     for (const m of Object.values(this.table.models)) {
       if (m.aside) continue;
       const v = new Vector3(m.position.x, floorHeight(this.table, m.floor), -m.position.y).project(this.view.camera.camera);
+      if (v.z > 1) continue; // Behind the camera.
       const sx = rect.left + ((v.x + 1) / 2) * rect.width;
       const sy = rect.top + ((1 - v.y) / 2) * rect.height;
       if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) this.selected.add(m.id);
@@ -350,11 +390,12 @@ export class Gestures {
 
   // Carrying.
 
-  private lift(press: { x: number; y: number }) {
+  private lift(press: { x: number; y: number }, thing: Thing) {
     const table = this.table!;
-    const grab = this.pointAt({ clientX: press.x, clientY: press.y });
-    if (!grab) return;
-    const piece = [...this.selected].map((id) => table.terrain[id]).find((t) => t);
+    const piece = thing.kind === "terrain" ? table.terrain[thing.id] : undefined;
+    const surface = this.surfaceAt({ clientX: press.x, clientY: press.y }, piece?.id);
+    if (!surface) return;
+    const grab = surface.point;
     const ids = piece ? [piece.id] : [...this.selected].filter((id) => table.models[id] && !table.models[id].aside);
     const starts = new Map<string, Place>();
     const offsets = new Map<string, Point>();
@@ -371,15 +412,37 @@ export class Gestures {
       waypoints: new Map(ids.map((id) => [id, []])),
       turn: 0,
       floorStep: 0,
+      aimFloor: surface.floor,
+      by: thing.id,
       grab,
       moved: false,
     };
   }
 
   private carryTo(e: { clientX: number; clientY: number }) {
-    const point = this.pointAt(e);
-    if (point && this.carry) this.carry.grab = point;
+    const c = this.carry;
+    if (!c) return;
+    const surface = this.surfaceAt(e, c.terrain ? c.ids[0] : undefined);
+    if (surface) {
+      if (!sameFloor(surface.floor, c.aimFloor)) c.floorStep = 0;
+      c.grab = surface.point;
+      c.aimFloor = c.terrain ? null : surface.floor;
+    }
     this.place();
+  }
+
+  /** The floors under a carried model, and which of them it is on before stepping. */
+  private floorsFor(id: string, position: Point): { under: (FloorRef | null)[]; base: number } {
+    const c = this.carry!;
+    if (c.terrain) return { under: [null], base: 0 };
+    const under = floorsUnder(this.table!, position);
+    return {
+      under,
+      base: Math.max(
+        0,
+        under.findIndex((f) => sameFloor(f, c.aimFloor)),
+      ),
+    };
   }
 
   /** Works out where each carried model is from the grab point, the turn and the chosen floor. */
@@ -392,8 +455,8 @@ export class Gestures {
       const start = c.starts.get(id)!;
       const offset = rotate(c.offsets.get(id)!, c.turn);
       const position = { x: c.grab.x + offset.x, y: c.grab.y + offset.y };
-      const under = c.terrain ? [null] : floorsUnder(table, position);
-      const floor = under[Math.min(c.floorStep, under.length - 1)] ?? null;
+      const { under, base } = this.floorsFor(id, position);
+      const floor = under[Math.min(Math.max(base + c.floorStep, 0), under.length - 1)] ?? null;
       this.carried.set(id, { position, facing: (((start.facing + c.turn) % 360) + 360) % 360, floor, lift: 0.5 });
     }
     this.redraw();
@@ -430,12 +493,18 @@ export class Gestures {
   }
 
   private stepFloor(by: number) {
-    if (!this.carry) return;
-    this.carry.floorStep = Math.max(0, this.carry.floorStep + by);
+    const c = this.carry;
+    const at = c && this.carried.get(c.by);
+    if (!c || !at) return;
+    // Only as far as there are floors under the model carried by.
+    const { under, base } = this.floorsFor(c.by, at.position);
+    c.floorStep = Math.min(Math.max(c.floorStep + by, -base), under.length - 1 - base);
     this.place();
   }
 
   private cancelCarry() {
+    // The button may still be held: letting go of it now does nothing.
+    this.press = null;
     this.carry = null;
     this.carried.clear();
     this.redraw();
@@ -447,6 +516,7 @@ export class Gestures {
     this.carry = null;
     if (!c?.moved) return this.cancelCarry();
     const piece = c.terrain ? this.table?.terrain[c.ids[0]!] : undefined;
+    if (c.terrain && !piece) return this.cancelCarry(); // Removed while carried.
     if (piece) {
       const at = this.carried.get(piece.id)!;
       this.carried.set(piece.id, { ...at, lift: 0 });
@@ -504,6 +574,8 @@ export class Gestures {
   /** Turns the card under the pointer over. */
   private flip() {
     if (!this.hover || this.readOnly) return;
+    const over = document.elementFromPoint(this.hover.clientX, this.hover.clientY);
+    if (over && !this.view.host.contains(over)) return; // Over a panel.
     const thing = this.thingAt(this.hover);
     const card = thing?.kind === "card" ? this.table?.cards[thing.id] : undefined;
     if (card?.place.in !== "table") return;
@@ -517,14 +589,16 @@ export class Gestures {
     const table = this.table!;
     let text = "";
     try {
-      const { across, up } = distance(table, r.from, r.to, r.via);
-      text = `${inches(across)}${Math.abs(up) >= 0.05 ? `, ${inches(Math.abs(up))} ${up > 0 ? "up" : "down"}` : ""}`;
+      const via = r.via.map(({ x, y }) => ({ x, y }));
+      const measured = distance(table, r.from, r.to, via);
+      // Measure knows a model's floor but not a bare point's, so a point's height is the surface it is on.
+      const up = "x" in r.from || "x" in r.to ? r.toPoint.h - r.fromPoint.h : measured.up;
+      text = `${inches(measured.across)}${Math.abs(up) >= 0.05 ? `, ${inches(Math.abs(up))} ${up > 0 ? "up" : "down"}` : ""}`;
     } catch {
       text = "";
     }
-    const h = (s: Spot) => ("model" in s ? floorHeight(table, table.models[s.model]?.floor ?? null) : 0);
     return {
-      points: [{ ...r.fromPoint, h: h(r.from) }, ...r.via.map((p) => ({ ...p, h: 0 })), { ...r.toPoint, h: h(r.to) }],
+      points: [r.fromPoint, ...r.via, r.toPoint],
       colour: "#ffffff",
       text,
     };
@@ -541,6 +615,9 @@ export class Gestures {
     if (this.typing(e)) return;
     const key = e.key;
     if (key === "Tab") {
+      // Tab still moves between the panels' buttons; it is the ruler only while the table has focus.
+      const focus = document.activeElement;
+      if (focus && focus !== document.body && focus !== this.view.renderer.domElement) return;
       e.preventDefault();
       this.rulerKey = true;
       return;
