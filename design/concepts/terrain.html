@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Terrain — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-15T05:55Z">
+<meta name="pdd-derived" content="2026-10-15T06:05Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
   <dl>
     <dt>Purpose</dt><dd>The scenery that shapes the battle.</dd>
     <dt>Meaning</dt><dd>A named piece of scenery on the <a href="../concepts/table.html">table</a>: either a simple solid (a box, a cylinder or a ramp) or a 3D mesh loaded from a file, sized in inches.</dd>
-    <dt>Invariants</dt><dd><ul><li>Every piece has a shape, a size and a position.</li><li>A mesh piece looks the same in every browser: everyone has the same file, checked by its fingerprint.</li><li>In the first version terrain has no rules meaning, such as cover or impassable.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>Every piece has a shape, a size and a position.</li><li>A mesh piece looks the same in every browser: everyone has the same file, checked by its fingerprint.</li><li>Every piece has a short list of floors: the flat surfaces a model can stand on, such as the ground level of a ruin, its upper storeys and its roof. For a mesh they are worked out from the mesh once, when the piece is placed, and kept with it.</li><li>Nothing is solid. Models pass through terrain; whether that matters is for the players, or later a rules package.</li><li>In the first version terrain has no rules meaning, such as cover or impassable.</li></ul></dd>
     <dt>Not</dt><dd>A <a href="../concepts/model.html">model</a>.</dd>
   </dl>
   <footer class="decisions">
