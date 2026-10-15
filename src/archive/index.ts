@@ -1,5 +1,6 @@
 // Archive: games and files kept in this browser, and saved game files. Realizes design/surfaces/archive.html.
-import type { Fingerprint, Log, PlayerId } from "../record/index.ts";
+import type { Entry, Fingerprint, Log, PlayerId } from "../record/index.ts";
+import { NotAGame, pack, unpack, type Packed } from "./gamefile.ts";
 import { isSaved } from "./shape.ts";
 import { FILES, GAMES, request, within } from "./store.ts";
 
@@ -7,10 +8,6 @@ export interface Saved {
   log: Log;
   me: PlayerId | "watch";
 }
-
-const notYet = (op: string): never => {
-  throw new Error(`archive.${op} is not built yet`);
-};
 
 export async function save(link: string, saved: Saved): Promise<void> {
   const copy: Saved = { log: saved.log, me: saved.me };
@@ -28,6 +25,11 @@ export async function load(link: string): Promise<Saved | null> {
 
 export async function keepFile(link: string, file: Blob): Promise<Fingerprint> {
   const fingerprint = await fingerprintOf(file);
+  await keep(link, file, fingerprint);
+  return fingerprint;
+}
+
+async function keep(link: string, file: Blob, fingerprint: Fingerprint): Promise<void> {
   await within([FILES], "readwrite", async (tx) => {
     const files = tx.objectStore(FILES);
     const kept: unknown = await request(files.get(fingerprint));
@@ -38,7 +40,6 @@ export async function keepFile(link: string, file: Blob): Promise<Fingerprint> {
       await request(files.put({ bytes, links: [link] } satisfies Kept, fingerprint));
     }
   });
-  return fingerprint;
 }
 
 export async function getFile(fingerprint: Fingerprint): Promise<Blob | null> {
@@ -60,11 +61,43 @@ async function fingerprintOf(file: Blob): Promise<Fingerprint> {
   return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** The surface says Blob; it is a promise because the kept mesh files are read from storage. */
+/**
+ * The surface says Blob; it is a promise because the kept mesh files are read from storage.
+ * The Blob is a File, so it carries its name. A file this browser never kept is left out.
+ */
 export async function toFile(link: string, log: Log): Promise<Blob> {
-  return notYet("toFile");
+  const files: Packed[] = [];
+  for (const fingerprint of filesUsed(log.entries)) {
+    const bytes = await getFile(fingerprint).catch(() => null);
+    if (bytes) files.push({ fingerprint, bytes });
+  }
+  return pack(link, log, files, fileName(link, new Date()));
 }
 
 export async function fromFile(file: Blob): Promise<{ link: string; log: Log }> {
-  return notYet("fromFile");
+  const { link, log, files } = await unpack(file);
+  // Check every file before keeping any, so a damaged saved game leaves nothing behind.
+  for (const { fingerprint, bytes } of files) {
+    if ((await fingerprintOf(bytes)) !== fingerprint) throw new NotAGame("This saved game is damaged.");
+  }
+  for (const { fingerprint, bytes } of files) await keep(link, bytes, fingerprint);
+  return { link, log };
+}
+
+/** Every mesh and card picture the log names, each once, in the order they first appear. */
+function filesUsed(entries: Entry[]): Fingerprint[] {
+  const used = new Set<Fingerprint>();
+  for (const { action } of entries) {
+    if (action.kind === "place terrain" && action.terrain.shape.kind === "mesh") used.add(action.terrain.shape.mesh);
+    if (action.kind === "add to army") for (const m of action.models) if (m.mesh) used.add(m.mesh);
+    if (action.kind === "add deck") for (const c of action.cards) if (c.picture) used.add(c.picture);
+  }
+  return [...used];
+}
+
+/** Named after the game and the day, for example "OpenBattle k3j9x 2026-10-15.openbattle". */
+function fileName(link: string, now: Date): string {
+  const game = link.split(/[/#?=&]/).filter(Boolean).pop()?.replace(/[^A-Za-z0-9_-]+/g, "-") || "game";
+  const day = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((n) => String(n).padStart(2, "0")).join("-");
+  return `OpenBattle ${game} ${day}.openbattle`;
 }

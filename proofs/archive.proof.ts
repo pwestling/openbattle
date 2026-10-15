@@ -141,6 +141,134 @@ test("when the browser refuses storage, keeping a file rejects", async ({ page }
   expect(keeping).toContain("rejected");
 });
 
+// A game that uses a terrain mesh, a model mesh and a card picture, and names one file this browser never kept.
+function gameUsing(terrainMesh: string, modelMesh: string, picture: string): Log {
+  const base = { shape: "round", width: 32, depth: 32 } as const;
+  return {
+    size: { width: 72, depth: 48 },
+    entries: [
+      { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33" } },
+      {
+        n: 2,
+        by: "ann",
+        action: {
+          kind: "place terrain",
+          terrain: {
+            id: "ruin",
+            name: "Ruin",
+            shape: { kind: "mesh", mesh: terrainMesh, width: 8, depth: 6, height: 4 },
+            position: { x: 30, y: 20 },
+            facing: 0,
+            floors: [],
+          },
+        },
+      },
+      {
+        n: 3,
+        by: "ann",
+        action: {
+          kind: "add to army",
+          units: [{ id: "u1", name: "Wardens" }],
+          models: [
+            { id: "m1", unit: "u1", name: "Warden", base, mesh: modelMesh, height: 1.2, position: { x: 2, y: 2 }, facing: 0, floor: null },
+            { id: "m2", unit: "u1", name: "Warden", base, mesh: modelMesh, height: 1.2, position: { x: 3, y: 2 }, facing: 0, floor: null },
+            { id: "m3", unit: "u1", name: "Lost", base, mesh: "f".repeat(64), height: 1.2, position: { x: 4, y: 2 }, facing: 0, floor: null },
+          ],
+          groups: [],
+        },
+      },
+      {
+        n: 4,
+        by: "ann",
+        action: {
+          kind: "add deck",
+          deck: "d1",
+          name: "Orders",
+          owner: "ann",
+          order: "ordered",
+          cards: [{ id: "c1", name: "Charge", picture }],
+          position: { x: 70, y: 2 },
+        },
+      },
+    ],
+  };
+}
+
+/** Saves the game to a file in one browser and hands back its name and bytes, as a download would. */
+async function saveToFile(page: Page): Promise<{ name: string; bytes: number[]; log: Log; files: Record<string, number[]> }> {
+  return page.evaluate(`(async () => {
+    const pattern = ${pattern};
+    const gameUsing = ${gameUsing};
+    const terrain = await window.archive.keepFile("game-h", new Blob([pattern(3000, 1)], { type: "model/gltf-binary" }));
+    const model = await window.archive.keepFile("game-h", new Blob([pattern(2000, 2)], { type: "model/stl" }));
+    const picture = await window.archive.keepFile("game-h", new Blob([pattern(500, 3)], { type: "image/png" }));
+    const log = gameUsing(terrain, model, picture);
+    const file = await window.archive.toFile("https://openbattle.example/#game-h", log);
+    const bytes = Array.from(new Uint8Array(await file.arrayBuffer()));
+    const files = {
+      [terrain]: Array.from(pattern(3000, 1)),
+      [model]: Array.from(pattern(2000, 2)),
+      [picture]: Array.from(pattern(500, 3)),
+    };
+    return { name: file.name, bytes, log, files };
+  })()`);
+}
+
+test("a game saved to a file opens in another browser with its log and every mesh and picture it uses", async ({ page, browser }) => {
+  await openArchive(page);
+  const saved = await saveToFile(page);
+  expect(saved.name).toMatch(/^OpenBattle game-h \d{4}-\d{2}-\d{2}\.openbattle$/);
+
+  // Another browser, with nothing kept, opens the file.
+  const elsewhere = await browser.newContext();
+  const other = await elsewhere.newPage();
+  await openArchive(other);
+  const opened = await other.evaluate(async ({ bytes, fingerprints }) => {
+    const game = await window.archive.fromFile(new Blob([new Uint8Array(bytes)]));
+    const files: Record<string, { type: string; bytes: number[] } | null> = {};
+    for (const f of fingerprints) {
+      const blob = await window.archive.getFile(f);
+      files[f] = blob && { type: blob.type, bytes: Array.from(new Uint8Array(await blob.arrayBuffer())) };
+    }
+    return { game, files };
+  }, { bytes: saved.bytes, fingerprints: [...Object.keys(saved.files), "f".repeat(64)] });
+
+  expect(opened.game).toEqual({ link: "https://openbattle.example/#game-h", log: saved.log });
+  const types = ["model/gltf-binary", "model/stl", "image/png"];
+  Object.entries(saved.files).forEach(([fingerprint, bytes], i) => {
+    expect(opened.files[fingerprint]).toEqual({ type: types[i], bytes });
+  });
+  expect(opened.files["f".repeat(64)]).toBeNull();
+  await elsewhere.close();
+});
+
+test("opening a file that is not a saved game, is cut short, or came from a newer version is refused", async ({ page }) => {
+  await openArchive(page);
+  const saved = await saveToFile(page);
+  const attempt = (bytes: number[]) =>
+    page.evaluate(
+      (bytes) =>
+        window.archive.fromFile(new Blob([new Uint8Array(bytes)])).then(
+          () => "opened",
+          (error: Error) => error.message,
+        ),
+      bytes,
+    );
+
+  expect(await attempt(Array.from(new TextEncoder().encode("solid cube\nendsolid cube\n")))).toMatch(/not a saved OpenBattle game/);
+  expect(await attempt(saved.bytes.slice(0, saved.bytes.length - 100))).toMatch(/cut short/);
+
+  const version = Buffer.from(saved.bytes).indexOf('"version":1,');
+  expect(version).toBeGreaterThan(0);
+  const newer = [...saved.bytes];
+  newer[version + '"version":'.length] = "2".charCodeAt(0);
+  expect(await attempt(newer)).toMatch(/newer version of OpenBattle/);
+
+  const spoiled = [...saved.bytes];
+  spoiled[spoiled.length - 1] = (spoiled[spoiled.length - 1]! + 1) % 256;
+  expect(await attempt(spoiled)).toMatch(/damaged/);
+});
+
 declare global {
   interface Window {
     archive: typeof import("../src/archive/index.ts");
