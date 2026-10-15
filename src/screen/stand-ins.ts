@@ -32,7 +32,7 @@ export const enterGame = (link: string, as: Me | "watch"): Promise<Session> =>
     () => fakeEnter(link, as),
   );
 
-/** Opens a saved game's log as a new game, with a fresh link, this browser as its host in the seat of the game's first player. */
+/** Opens a saved game's log as a new game, with a fresh link and this browser as its host. */
 export const openSaved = (log: Log, me: Me): Promise<Session> =>
   orFake(
     () => session.open(log.size, me, log),

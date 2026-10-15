@@ -227,8 +227,8 @@ test("a piece whose mesh file arrives late shows as missing until it does", asyn
     const mesh = Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
     const shape = { kind: "mesh", mesh, width: 3, depth: 2, height: 1 };
     const terrain = { id: "bo-ruin", name: "Ruin", shape, position: { x: 30, y: 22 }, facing: 0, floors: [] };
-    (window as any).openbattleFake.actAs("bo", { kind: "join", name: "Bo", colour: "#2f6fd6" });
-    (window as any).openbattleFake.actAs("bo", { kind: "place terrain", terrain });
+    const bo = (window as any).openbattleFake.join("Bo", "#2f6fd6");
+    (window as any).openbattleFake.actAs(bo, { kind: "place terrain", terrain });
   }, stl);
   await expect(labels(page, "Ruin")).toHaveClass(/missing/);
   await page.evaluate((stl) => (window as any).openbattleFake.arrive(stl), stl);

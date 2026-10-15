@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away.</dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
@@ -27,7 +27,7 @@
     <h2><code>open(size: { width, depth }, me: { name, colour }, from?: Log): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved. Given a starting log (from a saved file), the new game starts from that log instead, and this browser takes the seat of the log's first player; <code>me</code> is not used. Other players come in by the new link as new seats.</dd>
+      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved. Given a starting log (from a saved file), the new game starts from that log instead (Record's <code>reopen</code>), with this browser as its host; it joins as <code>me</code> unless its key is already one of the log's players. Other players come in by the new link.</dd>
       <dt>Fails</dt><dd>Rejects if the relay cannot be reached, or a starting log has no players; nothing is saved.</dd>
     </dl>
   </section>
@@ -44,7 +44,7 @@
   <section id="act">
     <h2><code>session.act(action: Action): Promise&lt;void&gt;</code></h2>
     <dl>
-      <dt>Pre</dt><dd>This browser is a player. The action is any kind but roll.</dd>
+      <dt>Pre</dt><dd>This browser is a player. The action is any kind but roll, draw and join, which have their own operations (<code>roll</code>, <code>draw</code>, and <code>open</code> or <code>enter</code>).</dd>
       <dt>Post</dt><dd>Resolves once the host has put the action in the <a href="../concepts/log.html">log</a> and this browser has it.</dd>
       <dt>Fails</dt><dd>Rejects, with nothing logged, if the host is away, this browser is a spectator, or the record finds a problem with the action.</dd>
     </dl>
@@ -54,8 +54,8 @@
     <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
-      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log.</dd>
-      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered.</dd>
+      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice and the host's seal, and every browser checks the signature as the roll arrives and when a saved game is loaded (<a href="../decisions/ADR-022.html">ADR-022</a>).</dd>
+      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails, including a missing or wrong signature on the other player's value, is still logged, flagged as tampered.</dd>
     </dl>
   </section>
 
@@ -70,7 +70,7 @@
 
   <section id="watch">
     <h2><code>session.watch(listener: (now: Snapshot) =&gt; void): () =&gt; void</code></h2>
-    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); and whether browsers disagree.</p>
+    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); whether browsers disagree; which rolls and draws failed their signature check; and whether the game is being kept in this browser, which it is not when the browser refuses storage.</p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The listener is called now and after every change. The returned function stops it.</dd>
@@ -112,6 +112,7 @@
     <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
     <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
     <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
+    <a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>
   </footer>
 </article>
 </body>

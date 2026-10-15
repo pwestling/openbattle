@@ -107,15 +107,13 @@ test("another player's hand shows as backs with a count", async ({ page }) => {
   await expect(labels(page, "Missions · 3 · shuffled")).toHaveCount(1);
   await page.evaluate(() => {
     const fake = (window as any).openbattleFake;
-    fake.actAs("ben", { kind: "join", name: "Ben", colour: "#2f6fd6" });
+    const ben = fake.join("Ben", "#2f6fd6");
+    const log = fake.log();
+    const deck = log.entries.find((e: any) => e.action.kind === "add deck").action.deck;
+    // A seal that its host value doesn't open.
+    const sealed = { link: log.link, seal: "rigged", hostValue: "a", guestValue: "b", guestBy: ben, guestSignature: "s" };
+    fake.actAs(ben, { kind: "draw", deck, cards: 2, to: "hand", ...sealed });
   });
-  const deckId = await page.evaluate(
-    () => (window as any).openbattleFake.log().entries.find((e: any) => e.action.kind === "add deck").action.deck,
-  );
-  await page.evaluate((deck) => {
-    const fake = (window as any).openbattleFake;
-    fake.actAs("ben", { kind: "draw", deck, cards: 2, to: "hand", seal: "", hostValue: "a", guestValue: "b" });
-  }, deckId);
   await expect(page.getByLabel("Ben's hand")).toContainText("2");
   await expect(page.getByLabel("Ben's hand").locator(".back")).toHaveCount(2);
   await expect(log(page).last()).toContainText("Ben drew 2 cards from Missions into their hand");

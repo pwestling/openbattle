@@ -45,6 +45,12 @@ Object.assign(window, {
     log() {
       return [...knobs.sessions][0]?.snapshot().log;
     },
+    /** Someone else joins, as if from another browser; resolves to their player id. */
+    join(name: string, colour: string) {
+      const { publicKey, id } = newKey();
+      knobs.sessions.forEach((s) => s.append({ kind: "join", name, colour, publicKey }, id));
+      return id;
+    },
     /** Takes an action as someone else, as if another browser had. */
     actAs(player: PlayerId, action: Action) {
       knobs.sessions.forEach((s) => s.append(action, player));
@@ -64,12 +70,30 @@ Object.assign(window, {
   },
 });
 
-const randomId = () => crypto.randomUUID().replaceAll("-", "").slice(0, 10);
+const base64url = (bytes: Uint8Array) =>
+  btoa(String.fromCharCode(...bytes))
+    .replaceAll("+", "-")
+    .replaceAll("/", "_")
+    .replaceAll("=", "");
+
+/** A made-up browser key and the player id it gives (ADR-022). Nothing is ever signed with it. */
+function newKey(): { publicKey: string; id: PlayerId } {
+  const publicKey = base64url(crypto.getRandomValues(new Uint8Array(65)));
+  return { publicKey, id: record.playerIdOf(publicKey)! };
+}
+
+/** This browser's key, the same for every game while the page is open. */
+const mine = newKey();
+
 /** As Session makes them: 8 random base64url characters, "-", then the host's browser id. */
-const gameId = (host: string) => {
-  const bytes = crypto.getRandomValues(new Uint8Array(6));
-  return `${btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_")}-${host}`;
-};
+const gameId = (host: PlayerId) => `${base64url(crypto.getRandomValues(new Uint8Array(6)))}-${host}`;
+
+/**
+ * Record lets the host roll only with a value from another player, and the fake has no other
+ * browser. So each fake game's host is a browser that never joins, and this browser plays as a
+ * guest, sending its own value.
+ */
+const absentHost = () => newKey().id;
 const randomValue = () => crypto.randomUUID().replaceAll("-", "");
 
 class FakeSession implements Session {
@@ -98,7 +122,7 @@ class FakeSession implements Session {
   snapshot(): Snapshot {
     return {
       link: this.link,
-      who: this.me === "watch" ? { watching: true } : { player: this.me, host: true },
+      who: this.me === "watch" ? { watching: true } : { player: this.me, host: false },
       log: this.log,
       table: record.tableAt(this.log),
       connection: knobs.connection,
@@ -137,18 +161,18 @@ class FakeSession implements Session {
 
   async roll(dice: number, sides: number, label?: string): Promise<number[]> {
     const by = await this.player();
-    const action: Action = { kind: "roll", dice, sides, ...(await this.sealed()) };
+    const action: Action = { kind: "roll", dice, sides, ...(await this.sealed(by)) };
     if (label) action.label = label;
     this.append(action, by);
     return record.tableAt(this.log).rolls.at(-1)?.result ?? [];
   }
 
   /** Both values of the sealed exchange; with tamperNext, a seal the host's value doesn't open. */
-  private async sealed() {
+  private async sealed(by: PlayerId) {
     const hostValue = randomValue();
     const seal = await sha256(knobs.tamper ? "something else" : hostValue);
     knobs.tamper = false;
-    return { seal, hostValue, guestValue: randomValue() };
+    return { link: this.log.link, seal, hostValue, guestValue: randomValue(), guestBy: by, guestSignature: "not checked by the fake" };
   }
 
   async draw(deck: string, cards: number, to: "hand" | "table"): Promise<CardId[]> {
@@ -156,7 +180,7 @@ class FakeSession implements Session {
     const before = record.tableAt(this.log).decks[deck];
     if (!before) throw new Error("There is no such deck.");
     if (before.cards.length < cards) throw new Error(`${before.name} is empty.`);
-    const sealed = before.order === "shuffled" ? await this.sealed() : {};
+    const sealed = before.order === "shuffled" ? await this.sealed(by) : {};
     this.append({ kind: "draw", deck, cards, to, ...sealed }, by);
     return record.tableAt(this.log).draws.at(-1)?.cards ?? [];
   }
@@ -184,35 +208,33 @@ class FakeSession implements Session {
   }
 }
 
-/** A new game; from a saved log, it starts from that log with this browser in its first player's seat. */
+const urlOf = (id: string) => `${location.origin}/?game=${id}`;
+
+/** A new game. From a saved log, it starts from that log, and this browser joins it unless it is already a player there. */
 export async function fakeOpen(size: Size, me: Me, from?: Log): Promise<Session> {
   if (knobs.unreachable) throw new Error("The relay cannot be reached.");
-  const link = `${location.origin}/?game=${gameId(randomId())}`;
-  if (from) {
-    const first = from.entries.find((e) => e.action.kind === "join")?.by;
-    if (!first) throw new Error("That saved game has no players.");
-    return new FakeSession(link, from, first);
-  }
-  const player = randomId();
-  const session = new FakeSession(link, record.newLog(size), player);
-  session.append({ kind: "join", name: me.name, colour: me.colour }, player);
+  const host = absentHost();
+  const log = from ? record.reopen(from, gameId(host), host) : record.newLog(size, gameId(host), host);
+  const session = new FakeSession(urlOf(log.link), log, mine.id);
+  if (!record.tableAt(log).players[mine.id])
+    session.append({ kind: "join", name: me.name, colour: me.colour, publicKey: mine.publicKey }, mine.id);
   return session;
 }
 
 export async function fakeEnter(link: string, as: Me | "watch"): Promise<Session> {
-  let url: URL;
+  let id: string | null;
   try {
-    url = new URL(link);
+    id = new URL(link).searchParams.get("game");
   } catch {
     throw new Error("That is not a game link.");
   }
-  if (!url.searchParams.get("game")) throw new Error("That is not a game link.");
+  if (!id || id.length < 31) throw new Error("That is not a game link.");
   const kept = await archive.load(link);
   if (kept) return new FakeSession(link, kept.log, kept.me);
   // A game this browser has never seen: the fake has no host to catch up with, so it starts bare.
-  if (as === "watch") return new FakeSession(link, record.newLog({ width: 60, depth: 44 }), "watch");
-  const player = randomId();
-  const session = new FakeSession(link, record.newLog({ width: 60, depth: 44 }), player);
-  session.append({ kind: "join", name: as.name, colour: as.colour }, player);
+  const log = record.newLog({ width: 60, depth: 44 }, id, id.slice(9, 31));
+  if (as === "watch") return new FakeSession(link, log, "watch");
+  const session = new FakeSession(link, log, mine.id);
+  session.append({ kind: "join", name: as.name, colour: as.colour, publicKey: mine.publicKey }, mine.id);
   return session;
 }

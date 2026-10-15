@@ -28,7 +28,7 @@ test("counters, marks, setting aside and groups", async ({ page }) => {
   const raise = scouts.getByRole("button", { name: "Raise Wounds" });
   await raise.click();
   await raise.click();
-  await page.evaluate(() => (window as any).openbattleFake.actAs("bo", { kind: "join", name: "Bo", colour: "#2f6fd6" }));
+  await page.evaluate(() => (window as any).openbattleFake.join("Bo", "#2f6fd6"));
   await raise.click();
   await raise.click();
   await raise.click();
