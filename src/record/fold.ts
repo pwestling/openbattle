@@ -2,21 +2,27 @@
 import { drawFrom, opens, rollDice } from "./chance.ts";
 import type { Card, Entry, FloorRef, Log, Sealed, Size, Table } from "./types.ts";
 
+/**
+ * A record keyed by ids, with nothing inherited, so an id such as "__proto__" or "toString"
+ * is only ever a key the log put there.
+ */
+const byId = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
+
 export function bareTable(size: Size): Table {
   return {
     size: { width: size.width, depth: size.depth },
-    players: {},
-    terrain: {},
-    units: {},
-    models: {},
-    groups: {},
+    players: byId(),
+    terrain: byId(),
+    units: byId(),
+    models: byId(),
+    groups: byId(),
     phase: { round: 0, turn: null, name: "" },
-    counters: {},
-    marks: {},
+    counters: byId(),
+    marks: byId(),
     rolls: [],
     draws: [],
-    decks: {},
-    cards: {},
+    decks: byId(),
+    cards: byId(),
     cancelled: [],
   };
 }
@@ -143,7 +149,7 @@ function apply(table: Table, { n, by, action }: Entry) {
       table.phase = copy(action.phase);
       return;
     case "counter": {
-      const counters = (table.counters[action.target] ??= {});
+      const counters = (table.counters[action.target] ??= byId());
       if (action.value === null) delete counters[action.name];
       else counters[action.name] = action.value;
       if (Object.keys(counters).length === 0) delete table.counters[action.target];
@@ -191,7 +197,8 @@ function apply(table: Table, { n, by, action }: Entry) {
       const deck = table.decks[action.deck]!;
       const drawn =
         deck.order === "ordered" ? deck.cards.slice(0, action.cards) : drawFrom(action as Sealed, deck.cards, action.cards);
-      deck.cards = deck.cards.filter((id) => !drawn.includes(id));
+      const taken = new Set(drawn);
+      deck.cards = deck.cards.filter((id) => !taken.has(id));
       table.draws.push({
         at: n,
         by,

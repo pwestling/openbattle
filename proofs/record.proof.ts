@@ -376,3 +376,54 @@ test("equal tables have equal fingerprints, in the browser and out of it, and an
   expect(seen.moved).not.toBe(seen.print);
   expect(seen.earlier).not.toBe(seen.print);
 });
+
+test("ids that every object inherits, such as __proto__ and toString, can't break or pollute the game", async ({ page }) => {
+  const seen = await inBrowser(page, (r, start) => {
+    let log = start(r);
+    const problems = [
+      r.check(log, { kind: "counter", target: "__proto__", name: "polluted", value: 1 }, "ann")?.problem,
+      r.check(log, { kind: "mark", target: "toString", name: "pinned", on: true }, "ann")?.problem,
+      r.check(log, { kind: "move card", card: "constructor", to: { in: "hand", player: "ann" } }, "ann")?.problem,
+      r.check(log, { kind: "set aside", models: ["hasOwnProperty"] }, "ann")?.problem,
+    ];
+    // Such an id is just a name when a player chooses it for something new.
+    log = r.append(log, { kind: "add to army", units: [{ id: "__proto__", name: "Odd name" }], models: [], groups: [] }, "ann");
+    log = r.append(log, { kind: "counter", target: "__proto__", name: "polluted", value: 1 }, "ann");
+    const table = r.tableAt(log);
+    return {
+      problems,
+      unit: table.units["__proto__"]?.name,
+      counter: table.counters["__proto__"],
+      polluted: "polluted" in {},
+      stillWorks: r.check(log, { kind: "undo" }, "ann"),
+      print: r.fingerprint(table).length,
+    };
+  });
+  expect(seen.problems).toEqual([
+    '"__proto__" is not a model, unit, group, player or the game.',
+    '"toString" is not a model, unit, group, player or the game.',
+    'There is no card "constructor".',
+    'There is no model "hasOwnProperty".',
+  ]);
+  expect(seen.unit).toBe("Odd name");
+  expect(seen.counter).toEqual({ polluted: 1 });
+  expect(seen.polluted).toBe(false);
+  expect(seen.stillWorks).toBeNull();
+  expect(seen.print).toBe(16);
+});
+
+test("a roll of dice with more sides than 2^32 still comes up, quickly and fairly", async ({ page }) => {
+  const sealed = await sealedWith("host", "guest");
+  const huge = (r: RecordModule, s: typeof sealed) => {
+    const log = r.append(opening(r), { kind: "roll", dice: 1000, sides: 2 ** 40, ...s }, "ann");
+    return r.tableAt(log).rolls[0]!.result;
+  };
+  const seen = (await page.evaluate(
+    `(() => { const opening = ${opening.toString()}, huge = ${huge.toString()}; return huge(window.record, ${JSON.stringify(sealed)}); })()`,
+  )) as number[];
+  expect(seen).toHaveLength(1000);
+  expect(seen.every((d) => Number.isInteger(d) && d >= 1 && d <= 2 ** 40)).toBe(true);
+  // Half the dice land in the top half, give or take four standard deviations.
+  expect(Math.abs(seen.filter((d) => d > 2 ** 39).length - 500)).toBeLessThan(64);
+  expect(huge(nodeRecord, sealed)).toEqual(seen);
+});

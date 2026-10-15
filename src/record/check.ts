@@ -298,7 +298,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       return;
     case "roll":
       if (!isWhole(action.dice) || action.dice < 1 || action.dice > mostDice) refuse(`A roll is 1 to ${mostDice} dice.`);
-      if (!isWhole(action.sides) || action.sides < 2) refuse("A die has a whole number of sides, at least two.");
+      if (!Number.isSafeInteger(action.sides) || action.sides < 2) refuse("A die has a whole number of sides, at least two.");
       if (action.label !== undefined) text(action.label, "The roll's label");
       sealed(action, "A roll");
       return;

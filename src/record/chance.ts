@@ -25,9 +25,12 @@ export function picker(sealed: Sealed): (below: number) => number {
     return words[next++]!;
   };
   return (below) => {
-    const fair = Math.floor(2 ** 32 / below) * below;
+    // Up to 2^32, one word; above, two words make a 53-bit number, enough for any whole number.
+    const wide = below > 2 ** 32;
+    const span = wide ? 2 ** 53 : 2 ** 32;
+    const fair = Math.floor(span / below) * below;
     for (;;) {
-      const w = word();
+      const w = wide ? (word() & 0x1fffff) * 2 ** 32 + word() : word();
       if (w < fair) return w % below;
     }
   };
@@ -38,9 +41,18 @@ export function rollDice(sealed: Sealed, dice: number, sides: number): number[] 
   return Array.from({ length: dice }, () => 1 + pick(sides));
 }
 
-/** Which cards a shuffled draw takes: each pick is from the cards still left, in the deck's listed order. */
+/**
+ * Which cards a shuffled draw takes, in the order picked. Each pick is from the cards still left,
+ * in the deck's listed order, with the last card left moved into the picked card's place.
+ */
 export function drawFrom(sealed: Sealed, cards: string[], count: number): string[] {
   const pick = picker(sealed);
   const left = [...cards];
-  return Array.from({ length: count }, () => left.splice(pick(left.length), 1)[0]!);
+  return Array.from({ length: count }, () => {
+    const at = pick(left.length);
+    const card = left[at]!;
+    left[at] = left[left.length - 1]!;
+    left.pop();
+    return card;
+  });
 }
