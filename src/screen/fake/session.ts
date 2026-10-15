@@ -18,6 +18,7 @@ const knobs = {
   connection: "playing" as Snapshot["connection"],
   disagreement: false,
   refuse: null as string | null,
+  tamper: false,
   sessions: new Set<FakeSession>(),
 };
 Object.assign(window, {
@@ -32,6 +33,9 @@ Object.assign(window, {
     },
     refuseNext(reason: string) {
       knobs.refuse = reason;
+    },
+    tamperNext() {
+      knobs.tamper = true;
     },
   },
 });
@@ -119,7 +123,9 @@ class FakeSession implements Session {
   async roll(dice: number, sides: number, label?: string): Promise<number[]> {
     const by = await this.player();
     const hostValue = randomValue();
-    const action: Action = { kind: "roll", dice, sides, seal: fakeHash(hostValue), hostValue, guestValue: randomValue() };
+    const seal = knobs.tamper ? fakeHash("something else") : fakeHash(hostValue);
+    knobs.tamper = false;
+    const action: Action = { kind: "roll", dice, sides, seal, hostValue, guestValue: randomValue() };
     if (label) action.label = label;
     this.append(action, by);
     return fakeTableAt(this.log).rolls.at(-1)?.result ?? [];

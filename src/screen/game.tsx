@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Action } from "../record/index.ts";
 import type { Session, Snapshot } from "../session/index.ts";
 import { ArmyPanel } from "./panels/army.tsx";
+import { DicePanel } from "./panels/dice.tsx";
 import { LogPanel } from "./panels/log.tsx";
 import { PhaseBar } from "./panels/phase.tsx";
 import { TerrainPanel } from "./panels/terrain.tsx";
@@ -64,6 +65,9 @@ export function Game({ session }: { session: Session }) {
         </aside>
         <aside className="right">
           <LogPanel lookingAt={lookingAt} lookAt={lookAt} />
+        </aside>
+        <aside className="corner">
+          <DicePanel />
         </aside>
         <div className="notes">
           {notes.map((n) => (
