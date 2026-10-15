@@ -168,15 +168,18 @@ test("a browser claiming another's id is refused, and the real one stays connect
       }) as typeof crypto.subtle.exportKey;
     }, hostKey),
   );
-  expect(await join(mallory, g)).toBe(h);
+  // The relay asks it to sign for that id as it joins, and it can't.
+  const outcome = await mallory.evaluate((g) => (window as any).proof.connect(g).then(() => "joined", (e: Error) => e.message), g);
+  expect(outcome).toBe("The relay refused this browser's proof of id.");
 
-  // Bob tries the newcomer, which cannot prove it, and keeps the connection to the real host.
-  await mallory.waitForTimeout(3000);
-  expect(await connected(bob)).toEqual([h]);
-  expect(await connected(mallory)).toEqual([]);
+  // The host keeps its place: its connection to bob stays, and a newcomer still reaches it.
+  const carol = await player(browser);
+  const c = await join(carol, g);
+  await expect.poll(() => connected(carol)).toEqual([b, h].sort());
+  expect(await connected(bob)).toEqual([c, h].sort());
   await send(host, "still me");
-  await send(mallory, "I am the host now");
   await expect.poll(() => received(bob)).toEqual([{ from: h, message: "still me" }]);
+  await expect.poll(() => received(carol)).toEqual([{ from: h, message: "still me" }]);
 });
 
 test("a browser signs for others, and anyone can check it against its public key and id", async ({ browser }) => {

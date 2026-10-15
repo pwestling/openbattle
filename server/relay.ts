@@ -1,9 +1,9 @@
 // The relay: signalling and TURN credentials. Realizes design/surfaces/relay.html.
 // It keeps who is announced under each game link while they are connected, and nothing else.
-import { createHmac, randomBytes } from "node:crypto";
+import { createHash, createHmac, createPublicKey, randomBytes, verify } from "node:crypto";
 import { createServer } from "node:http";
 import { WebSocketServer, type WebSocket } from "ws";
-import { closeCode, linkPattern, maxMessage, type BrowserId, type FromRelay, type Health, type Json, type ToRelay, type TurnCredentials } from "./protocol.ts";
+import { closeCode, helloText, linkPattern, maxMessage, type BrowserId, type FromRelay, type Health, type Json, type ToRelay, type TurnCredentials } from "./protocol.ts";
 
 const port = Number(process.env.RELAY_PORT ?? 8787);
 // coturn's shared secret (use-auth-secret / static-auth-secret) and its addresses, comma separated.
@@ -33,14 +33,35 @@ function parse(raw: string): ToRelay | null {
   }
   if (typeof value !== "object" || value === null) return null;
   const m = value as Record<string, unknown>;
-  if (m.kind === "hello" && typeof m.browser === "string" && m.browser !== "") return { kind: "hello", browser: m.browser };
+  if (m.kind === "hello" && typeof m.browser === "string" && typeof m.publicKey === "string" && typeof m.signature === "string")
+    return { kind: "hello", browser: m.browser, publicKey: m.publicKey, signature: m.signature };
   if (m.kind === "signal" && typeof m.to === "string" && "data" in m) return { kind: "signal", to: m.to, data: m.data as Json };
   return null;
+}
+
+/** Whether hello proves its id: the id is worked out from the key, and the key signed our nonce (ADR-022). */
+function proven(hello: Extract<ToRelay, { kind: "hello" }>, nonce: string, game: string): boolean {
+  try {
+    const raw = Buffer.from(hello.publicKey, "base64url");
+    if (raw.length !== 65 || raw[0] !== 4) return false;
+    const id = createHash("sha256").update(raw).digest().subarray(0, 16).toString("base64url");
+    if (id !== hello.browser) return false;
+    const key = createPublicKey({
+      key: { kty: "EC", crv: "P-256", x: raw.subarray(1, 33).toString("base64url"), y: raw.subarray(33).toString("base64url") },
+      format: "jwk",
+    });
+    const text = Buffer.from(helloText(nonce, game));
+    return verify("sha256", text, { key, dsaEncoding: "ieee-p1363" }, Buffer.from(hello.signature, "base64url"));
+  } catch {
+    return false;
+  }
 }
 
 function join(game: string, socket: WebSocket) {
   let me: BrowserId | null = null;
   let room: Map<BrowserId, WebSocket> | null = null;
+  const nonce = randomBytes(32).toString("base64url");
+  send(socket, { kind: "challenge", nonce });
 
   socket.on("message", (raw, isBinary) => {
     const message = isBinary ? null : parse(raw.toString());
@@ -49,12 +70,16 @@ function join(game: string, socket: WebSocket) {
       return;
     }
     if (message.kind === "hello") {
+      if (!proven(message, nonce, game)) {
+        socket.close(closeCode.notProven, "hello does not prove its id");
+        return;
+      }
       me = message.browser;
       room = rooms.get(game) ?? new Map();
       rooms.set(game, room);
       const earlier = room.get(me);
       if (earlier) {
-        // The newest tab or visit is this browser. Forget the earlier one before it closes.
+        // The newest tab or visit is this browser; it proved it holds the key. Forget the earlier one before it closes.
         room.delete(me);
         for (const other of room.values()) send(other, { kind: "left", browser: me });
         earlier.close(closeCode.replaced, "this browser joined again elsewhere");

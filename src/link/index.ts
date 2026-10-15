@@ -7,7 +7,7 @@
 // Messages are cut into chunks so any size arrives whole, and queued so a fast sender never overruns
 // the channel's buffer.
 import type { BrowserId, FromRelay, Json, ToRelay, TurnCredentials } from "../../server/protocol.ts";
-import { closeCode } from "../../server/protocol.ts";
+import { closeCode, helloText } from "../../server/protocol.ts";
 import * as keys from "./keys.ts";
 
 export type { BrowserId, Json };
@@ -153,7 +153,9 @@ class Connection implements Link {
   start(): Promise<Link> {
     return new Promise((resolve, reject) => {
       this.ready = () => resolve(this);
-      this.attach(this.socket, () => reject(new Error("The relay cannot be reached.")));
+      this.attach(this.socket, (code) =>
+        reject(new Error(code === closeCode.notProven ? "The relay refused this browser's proof of id." : "The relay cannot be reached.")),
+      );
     });
   }
 
@@ -195,12 +197,11 @@ class Connection implements Link {
 
   // Signalling
 
-  private attach(socket: WebSocket, failed?: () => void) {
+  private attach(socket: WebSocket, failed?: (code: number) => void) {
     this.socket = socket;
-    this.relay({ kind: "hello", browser: this.me });
     socket.onmessage = (e) => this.fromRelay(JSON.parse(e.data as string) as FromRelay);
     socket.onclose = (e) => {
-      failed?.();
+      failed?.(e.code);
       if (this.closed || this.socket !== socket) return;
       this.announced.clear();
       if (e.code === closeCode.replaced) {
@@ -237,6 +238,12 @@ class Connection implements Link {
 
   private fromRelay(message: FromRelay) {
     switch (message.kind) {
+      case "challenge":
+        // Announce this browser, proving at the relay that it holds the key its id comes from.
+        void keys.sign(this.identity.keys, encoder.encode(helloText(message.nonce, this.link))).then((signature) =>
+          this.relay({ kind: "hello", browser: this.me, publicKey: this.publicKey, signature }),
+        );
+        break;
       case "here":
         this.retry = 0;
         for (const browser of message.browsers) this.arrived(browser);
