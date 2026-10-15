@@ -171,6 +171,7 @@ function apply(table: Table, { n, by, action }: Entry) {
         ...(action.label === undefined ? {} : { label: action.label }),
         result: rollDice(action, action.dice, action.sides),
         tampered: !opens(action),
+        alone: action.guestBy === null,
       });
       return;
     case "add deck": {
@@ -206,6 +207,7 @@ function apply(table: Table, { n, by, action }: Entry) {
         cards: drawn,
         to: action.to,
         tampered: deck.order === "shuffled" && !opens(action as Sealed),
+        alone: deck.order === "shuffled" && (action as Sealed).guestBy === null,
       });
       for (const id of drawn) {
         table.cards[id]!.place =
