@@ -117,16 +117,17 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
     case "roll": {
       const roll = table.rolls.find((r) => r.at === entry.n);
       const result = roll ? `: ${roll.result.join(", ")}` : "";
-      return `${who} rolled ${a.dice}d${a.sides}${a.label ? ` for ${a.label}` : ""}${result}${roll?.tampered ? " (tampered!)" : ""}`;
+      return `${who} rolled ${a.dice}d${a.sides}${a.label ? ` for ${a.label}` : ""}${result}${roll?.tampered ? " (tampered!)" : ""}${roll?.alone ? " (rolled alone)" : ""}`;
     }
     case "add deck":
       return `${who} added the deck ${a.name} (${plural(a.cards.length, "card")}, ${a.order})`;
     case "shuffle":
       return `${who} shuffled ${name(a.deck)}`;
     case "draw": {
-      const tampered = table.draws.find((d) => d.at === entry.n)?.tampered;
+      const drawn = table.draws.find((d) => d.at === entry.n);
+      const tampered = drawn?.tampered;
       const where = a.to === "hand" ? (entry.by === me ? "into your hand" : "into their hand") : "face up";
-      return `${who} drew ${plural(a.cards, "card")} from ${name(a.deck)} ${where}${tampered ? " (tampered!)" : ""}`;
+      return `${who} drew ${plural(a.cards, "card")} from ${name(a.deck)} ${where}${tampered ? " (tampered!)" : ""}${drawn?.alone ? " (drawn alone)" : ""}`;
     }
     case "move card": {
       const to = a.to;

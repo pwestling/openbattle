@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15. The minor choices made while building it (the keys, the Decks panel, the army list's format, where new things go, flipping cards, mesh units) are written in here under Porter's standing rule of 2026-10-15. The two marked as inserted were decided while Porter was away, under his instruction to go with the best guess, and wait on his review.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15. The minor choices made while building it (the keys, the Decks panel, the army list's format, where new things go, flipping cards, mesh units) are written in here under Porter's standing rule of 2026-10-15. The four marked as inserted (the camera, Undo, and the two "alone" marks of ADR-023) were decided while Porter was away, under his instruction to go with the best guess, and wait on his review.</dd>
   </dl>
   <p>The screen's outside is the person using it. Each section is a place or a gesture. Mouse and keyboard controls follow Tabletop Simulator's where it has one.</p>
 
@@ -57,7 +57,7 @@
     <h2>Dice tray</h2>
     <dl>
       <dt>Shows</dt><dd>How many dice, how many sides (six by default), an optional label, and Roll. Recent rolls stay in the tray.</dd>
-      <dt>Does</dt><dd>Dice are thrown onto the tray and land on the decided result, for everyone at once, then line up sorted. A tampered roll is shown in red with a warning.</dd>
+      <dt>Does</dt><dd>Dice are thrown onto the tray and land on the decided result, for everyone at once, then line up sorted. A tampered roll is shown in red with a warning. <ins>Proposed with ADR-023: a roll made alone, with no other player connected, is marked "rolled alone" in the tray and the log, in a colour of its own, since it is not tamper-evident. Being alone never makes it show as tampered; a roll that is both shows both marks, in tampered red.</ins></dd>
     </dl>
   </section>
 
@@ -65,7 +65,7 @@
     <h2>Decks and hands</h2>
     <dl>
       <dt>Shows</dt><dd>Decks sit on the table as face-down stacks with a count; a shuffled deck is marked as such. Your hand is a row of cards along the bottom of the screen; everyone else's hand shows as card backs with a count. Face-up cards lie on the table where they were played.</dd>
-      <dt>Does</dt><dd>Click a deck to draw into your hand, or Shift-click to draw face up. Drag a card from your hand, or on the table, to play it onto the table, onto a discard pile beside its deck, or back into a deck (onto the top, or holding Shift the bottom, of an ordered one). F flips the card under the pointer, as in Tabletop Simulator. Shuffle on an ordered deck makes it shuffled. A new deck is made in the Decks panel from a typed or pasted list of cards (<code>Name: text</code>, one per line), with optional pictures, and starts ordered as listed or shuffled; it sits just off your table edge. A tampered draw is shown in the log in red with a warning, as a tampered roll is.</dd>
+      <dt>Does</dt><dd>Click a deck to draw into your hand, or Shift-click to draw face up. Drag a card from your hand, or on the table, to play it onto the table, onto a discard pile beside its deck, or back into a deck (onto the top, or holding Shift the bottom, of an ordered one). F flips the card under the pointer, as in Tabletop Simulator. Shuffle on an ordered deck makes it shuffled. A new deck is made in the Decks panel from a typed or pasted list of cards (<code>Name: text</code>, one per line), with optional pictures, and starts ordered as listed or shuffled; it sits just off your table edge. A tampered draw is shown in the log in red with a warning, as a tampered roll is. <ins>Proposed with ADR-023: a shuffled draw made alone is marked "drawn alone" in the log, as a roll made alone is.</ins></dd>
       <dt>Fails</dt><dd>An empty deck says so and draws nothing.</dd>
     </dl>
   </section>
@@ -94,6 +94,7 @@
     <a rel="decision" href="../decisions/ADR-012.html">ADR-012</a>
     <a rel="decision" href="../decisions/ADR-017.html">ADR-017</a>
     <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+    <a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>
   </footer>
 </article>
 </body>

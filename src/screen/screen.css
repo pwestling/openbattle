@@ -6,6 +6,8 @@
   --muted: #9aa1ab;
   --accent: #e2b04a;
   --bad: #e5534b;
+  /* Rolls and draws taken alone (ADR-023): not tamper-evident, but not tampered either. */
+  --alone: #c9a0ff;
   color-scheme: dark;
   font: 14px/1.4 system-ui, sans-serif;
   color: var(--text);
@@ -83,6 +85,9 @@ label { display: grid; gap: 4px; }
 .rolls li { display: flex; gap: 8px; flex-wrap: wrap; }
 .rolls .who { color: var(--muted); }
 .rolls .result { font-weight: 600; letter-spacing: 0.05em; }
+.rolls .alone-mark { display: block; font-size: 11px; color: var(--alone); font-style: italic; }
+.log li.alone { color: var(--alone); }
+/* Last, so a roll or draw that is both alone and tampered shows as tampered. */
 .rolls li.tampered, .rolls li.tampered .result, .log li.tampered { color: var(--bad); }
 .left h3, .right h3 { margin: 0 0 6px; font-size: 14px; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }

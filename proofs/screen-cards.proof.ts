@@ -103,8 +103,8 @@ test("shuffling, and an empty deck", async ({ page }) => {
 // is flagged in the log.
 test("another player's hand shows as backs with a count", async ({ page }) => {
   await newGame(page);
-  await newDeck(page, "Missions", "A\nB\nC", "Shuffled");
-  await expect(labels(page, "Missions · 3 · shuffled")).toHaveCount(1);
+  await newDeck(page, "Missions", "A\nB\nC\nD", "Shuffled");
+  await expect(labels(page, "Missions · 4 · shuffled")).toHaveCount(1);
   await page.evaluate(() => {
     const fake = (window as any).openbattleFake;
     const ben = fake.join("Ben", "#2f6fd6");
@@ -121,9 +121,19 @@ test("another player's hand shows as backs with a count", async ({ page }) => {
   // That draw's seal doesn't match its host value, so it is flagged as tampered, as a roll is.
   await expect(log(page).last()).toHaveClass(/tampered/);
   await expect(log(page).last().getByRole("alert")).toContainText("This draw was tampered with");
-  // An honest draw is not flagged.
+  // The host's own draw, with nobody else connected, is marked as drawn alone rather than tampered (ADR-023).
   await page.getByRole("tab", { name: "Decks" }).click();
   await page.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true }).click();
   await expect(log(page).last()).toContainText("Ana drew 1 card from Missions into your hand");
   await expect(log(page).last()).not.toHaveClass(/tampered/);
+  await expect(log(page).last()).toContainText("(drawn alone)");
+  await expect(log(page).last()).toHaveClass(/alone/);
+  // A draw that is both alone and tampered shows both marks, in tampered red.
+  await page.evaluate(() => (window as any).openbattleFake.tamperNext());
+  const before = await log(page).count();
+  await page.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true }).click();
+  await expect(log(page)).toHaveCount(before + 1);
+  await expect(log(page).last()).toContainText("(drawn alone)");
+  await expect(log(page).last().getByRole("alert")).toContainText("This draw was tampered with");
+  await expect(log(page).last()).toHaveCSS("color", "rgb(229, 83, 75)");
 });

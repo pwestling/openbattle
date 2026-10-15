@@ -14,8 +14,10 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
   const end = useRef<HTMLLIElement>(null);
   useEffect(() => end.current?.scrollIntoView({ block: "nearest" }), [log.entries.length]);
   const at = lookingAt ?? log.entries.length;
-  // A shuffled draw whose seal doesn't match is shown as a tampered roll is.
-  const tampered = new Set(now.table.draws.filter((d) => d.tampered).map((d) => d.at));
+  // A roll or shuffled draw whose seal doesn't match is shown in red with a warning.
+  const tampered = new Set([...now.table.rolls, ...now.table.draws].filter((r) => r.tampered).map((r) => r.at));
+  // Rolls and draws the host made with nobody else connected are not tamper-evident (ADR-023).
+  const alone = new Set([...now.table.rolls, ...now.table.draws].filter((r) => r.alone).map((r) => r.at));
 
   return (
     <section className="log" aria-label="Log">
@@ -24,11 +26,18 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
         {log.entries.map((e) => (
           <li
             key={e.n}
-            className={[cancelled.has(e.n) ? "cancelled" : "", e.n > at ? "later" : "", tampered.has(e.n) ? "tampered" : ""].join(" ")}
+            className={[
+              cancelled.has(e.n) ? "cancelled" : "",
+              e.n > at ? "later" : "",
+              tampered.has(e.n) ? "tampered" : "",
+              alone.has(e.n) ? "alone" : "",
+            ].join(" ")}
             ref={e.n === log.entries.length ? end : undefined}
           >
             <span>{sentence(e, log, now.table, names, me)}</span>
-            {tampered.has(e.n) && <strong role="alert">This draw was tampered with: its seal doesn't match.</strong>}
+            {tampered.has(e.n) && (
+              <strong role="alert">This {e.action.kind === "roll" ? "roll" : "draw"} was tampered with: its seal doesn't match.</strong>
+            )}
             {e.n === latestOwn && lookingAt === null && now.connection === "playing" && (
               <button onClick={() => void act({ kind: "undo" })}>Undo</button>
             )}
