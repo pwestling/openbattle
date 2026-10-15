@@ -1,20 +1,23 @@
 // At the table: the 3D table with the panels around it.
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Action } from "../record/index.ts";
 import type { Session, Snapshot } from "../session/index.ts";
 import { ArmyPanel } from "./panels/army.tsx";
+import { DecksPanel } from "./panels/decks.tsx";
 import { DicePanel } from "./panels/dice.tsx";
+import { Hand } from "./panels/hand.tsx";
 import { LogPanel } from "./panels/log.tsx";
 import { PhaseBar } from "./panels/phase.tsx";
 import { TerrainPanel } from "./panels/terrain.tsx";
 import { PlayContext, usePlay, type Play } from "./play.tsx";
 import { tableAt, toFile } from "./stand-ins.ts";
-import { TableCanvas } from "./table/canvas.tsx";
+import { TableCanvas, type HandDrop } from "./table/canvas.tsx";
 
 export function Game({ session }: { session: Session }) {
   const [now, setNow] = useState<Snapshot | null>(null);
   const [lookingAt, lookAt] = useState<number | null>(null);
   const [notes, setNotes] = useState<{ id: number; text: string }[]>([]);
+  const handDrop = useRef<HandDrop | null>(null);
   useEffect(() => session.watch(setNow), [session]);
   useEffect(() => () => session.leave(), [session]);
 
@@ -53,7 +56,7 @@ export function Game({ session }: { session: Session }) {
   return (
     <PlayContext.Provider value={play}>
       <main className={`game${play.readOnly ? " read-only" : ""}`}>
-        <TableCanvas />
+        <TableCanvas handDrop={handDrop} />
         <header className="topbar">
           <PhaseBar />
           <Invite link={now.link} />
@@ -69,6 +72,7 @@ export function Game({ session }: { session: Session }) {
         <aside className="corner">
           <DicePanel />
         </aside>
+        <Hand handDrop={handDrop} />
         <div className="notes">
           {notes.map((n) => (
             <p key={n.id} role="alert">
@@ -82,17 +86,17 @@ export function Game({ session }: { session: Session }) {
 }
 
 function Tabs() {
-  const [tab, setTab] = useState<"Army" | "Terrain">("Army");
+  const [tab, setTab] = useState<"Army" | "Terrain" | "Decks">("Army");
   return (
     <>
       <nav className="tabs" role="tablist">
-        {(["Army", "Terrain"] as const).map((t) => (
+        {(["Army", "Terrain", "Decks"] as const).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
             {t}
           </button>
         ))}
       </nav>
-      {tab === "Army" ? <ArmyPanel /> : <TerrainPanel />}
+      {tab === "Army" ? <ArmyPanel /> : tab === "Terrain" ? <TerrainPanel /> : <DecksPanel />}
     </>
   );
 }

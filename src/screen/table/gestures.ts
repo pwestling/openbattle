@@ -6,17 +6,29 @@
 // Where it has none, the screen picks: hold Tab for the ruler; Space or right-click pins a
 // waypoint; Page Up and Page Down (or Shift with the wheel) step between floors while carrying;
 // Escape puts a carried selection back.
+// Cards: click a deck to draw into your hand, Shift-click to draw face up; drag a card on the
+// table onto a deck (Shift for its bottom), a discard pile, your hand or elsewhere; F flips the
+// card under the pointer, as in Tabletop Simulator.
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from "three";
 import type { Action, FloorRef, Point, Table } from "../../record/index.ts";
 import { distance, type Spot } from "../stand-ins.ts";
 import { Guides, type Guide } from "./guides.ts";
-import { floorHeight, Pieces, type Place } from "./pieces.ts";
+import type { Cards } from "./cards.ts";
+import { floorHeight, Pieces, type Place, type Thing } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 
 /** What the table needs from the game around it. */
 export interface Hooks {
   act(action: Action): Promise<boolean>;
+  draw(deck: string, to: "hand" | "table"): void;
 }
+
+/** Where a dragged card would go if let go here. */
+export type CardTarget =
+  | { into: "deck"; deck: string }
+  | { into: "discard"; deck: string }
+  | { into: "hand" }
+  | { into: "table"; at: Point };
 
 interface Carry {
   /** The models carried, or the one terrain piece. */
@@ -84,15 +96,20 @@ export class Gestures {
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
   private rulerKey = false;
-  private press: { x: number; y: number; model: string | null; terrain: string | null; detail: number; shift: boolean } | null = null;
+  private press: { x: number; y: number; thing: Thing | null; detail: number; shift: boolean } | null = null;
+  private cards: Cards;
+  private cardCarry: { id: string; offset: Point } | null = null;
+  private carriedCards = new Map<string, Point>();
+  private hover: { clientX: number; clientY: number } | null = null;
   private box: HTMLDivElement | null = null;
   private orbit: { button: number; x: number; y: number } | null = null;
   private pointer = new Vector2();
   private raycaster = new Raycaster();
   private off: (() => void)[] = [];
 
-  constructor(view: TableView, pieces: Pieces, hooks: Hooks) {
+  constructor(view: TableView, pieces: Pieces, cards: Cards, hooks: Hooks) {
     this.view = view;
+    this.cards = cards;
     this.pieces = pieces;
     this.hooks = hooks;
     this.guides = new Guides(view);
@@ -121,8 +138,9 @@ export class Gestures {
   }
 
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, readOnly: boolean, colour: string, lastMove: string[]) {
+  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[]) {
     this.table = table;
+    this.me = me;
     this.readOnly = readOnly;
     this.colour = colour;
     for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
@@ -140,6 +158,7 @@ export class Gestures {
   private redraw() {
     if (!this.table) return;
     this.pieces.sync(this.table, this.selected, this.carried);
+    this.cards.sync(this.table, this.carriedCards);
     const guides: Guide[] = [...this.lastMove];
     if (this.carry?.moved) guides.push(...this.carryGuides());
     if (this.ruler) guides.push(this.rulerGuide());
@@ -154,16 +173,33 @@ export class Gestures {
     this.raycaster.setFromCamera(this.pointer, this.view.camera.camera);
   }
 
-  /** The model under the pointer, or failing that the terrain piece. */
-  private pieceAt(e: PointerEvent): { model: string } | { terrain: string } | null {
+  /** What is under the pointer: a model first, then a card, deck or pile, then terrain. */
+  private thingAt(e: { clientX: number; clientY: number }, except?: string): Thing | null {
     this.aim(e);
-    const hits = this.raycaster.intersectObjects(this.pieces.objects(), true).map((h) => Pieces.pieceOf(h.object));
-    return hits.find((h) => h && "model" in h) ?? hits.find((h) => h) ?? null;
+    const hits = this.raycaster
+      .intersectObjects([...this.pieces.objects(), ...this.cards.objects()], true)
+      .map((h) => Pieces.pieceOf(h.object))
+      .filter((h): h is Thing => !!h && h.id !== except);
+    for (const kind of ["model", "card", "deck", "discard", "terrain"]) {
+      const hit = hits.find((h) => h.kind === kind);
+      if (hit) return hit;
+    }
+    return null;
   }
 
   private modelAt(e: PointerEvent): string | null {
-    const piece = this.pieceAt(e);
-    return piece && "model" in piece ? piece.model : null;
+    const thing = this.thingAt(e);
+    return thing?.kind === "model" ? thing.id : null;
+  }
+
+  /** Where a card let go at this spot on screen would go. */
+  targetAt(clientX: number, clientY: number, except?: string): CardTarget | null {
+    if (document.elementFromPoint(clientX, clientY)?.closest(".hand")) return { into: "hand" };
+    const thing = this.thingAt({ clientX, clientY }, except);
+    if (thing?.kind === "deck") return { into: "deck", deck: thing.id };
+    if (thing?.kind === "discard") return { into: "discard", deck: thing.id };
+    const at = this.pointAt({ clientX, clientY });
+    return at ? { into: "table", at } : null;
   }
 
   private pointAt(e: { clientX: number; clientY: number }, height = 0): Point | null {
@@ -182,8 +218,8 @@ export class Gestures {
       return;
     }
     if (e.button !== 0 || !this.table) return;
-    const piece = this.pieceAt(e);
-    const model = piece && "model" in piece ? piece.model : null;
+    const thing = this.thingAt(e);
+    const model = thing?.kind === "model" ? thing.id : null;
     if (this.rulerKey) {
       const point = this.pointAt(e);
       if (!point) return;
@@ -193,17 +229,11 @@ export class Gestures {
       this.redraw();
       return;
     }
-    this.press = {
-      x: e.clientX,
-      y: e.clientY,
-      model,
-      terrain: piece && "terrain" in piece ? piece.terrain : null,
-      detail: e.detail,
-      shift: e.shiftKey,
-    };
+    this.press = { x: e.clientX, y: e.clientY, thing, detail: e.detail, shift: e.shiftKey };
   }
 
   private move(e: PointerEvent) {
+    this.hover = { clientX: e.clientX, clientY: e.clientY };
     if (this.orbit) {
       const dx = e.clientX - this.orbit.x;
       const dy = e.clientY - this.orbit.y;
@@ -223,17 +253,23 @@ export class Gestures {
       return;
     }
     if (this.carry) return this.carryTo(e);
+    if (this.cardCarry) return this.carryCard(e);
     const press = this.press;
     if (!press || Math.hypot(e.clientX - press.x, e.clientY - press.y) < 5) return;
-    if (press.model && !this.readOnly) {
-      if (!this.selected.has(press.model)) this.selected = new Set([press.model]);
+    const thing = press.thing;
+    if (!thing) return this.drawBox(press, e);
+    if (this.readOnly) return;
+    if (thing.kind === "model" || thing.kind === "terrain") {
+      if (!this.selected.has(thing.id)) this.selected = new Set([thing.id]);
       this.lift(press);
       this.carryTo(e);
-    } else if (press.terrain && !this.readOnly) {
-      this.selected = new Set([press.terrain]);
-      this.lift(press);
-      this.carryTo(e);
-    } else if (!press.model && !press.terrain) this.drawBox(press, e);
+    } else if (thing.kind === "card") {
+      const card = this.table?.cards[thing.id];
+      const grab = this.pointAt({ clientX: press.x, clientY: press.y });
+      if (card?.place.in !== "table" || !grab) return;
+      this.cardCarry = { id: card.id, offset: { x: card.place.position.x - grab.x, y: card.place.position.y - grab.y } };
+      this.carryCard(e);
+    }
   }
 
   private up(e: PointerEvent) {
@@ -245,22 +281,29 @@ export class Gestures {
     const press = this.press;
     this.press = null;
     if (this.carry) return void this.setDown();
+    if (this.cardCarry) return void this.setCardDown(e);
     if (this.box && press) return this.finishBox(press, e);
     if (!press || !this.table) return;
+    const thing = press.thing;
+    if (thing?.kind === "deck") {
+      if (!this.readOnly) this.hooks.draw(thing.id, press.shift ? "table" : "hand");
+      return;
+    }
     // A click: select a model, or its whole unit on a second click or a double-click.
-    if (press.terrain && !press.model) this.selected = new Set([press.terrain]);
-    else if (!press.model) this.selected.clear();
+    const model = thing?.kind === "model" ? thing.id : null;
+    if (thing?.kind === "terrain") this.selected = new Set([thing.id]);
+    else if (!model) this.selected.clear();
     else if (press.shift) {
-      if (this.selected.has(press.model)) this.selected.delete(press.model);
-      else this.selected.add(press.model);
-    } else if (press.detail >= 2 || (this.selected.size === 1 && this.selected.has(press.model))) {
-      const unit = this.table.models[press.model]?.unit;
+      if (this.selected.has(model)) this.selected.delete(model);
+      else this.selected.add(model);
+    } else if (press.detail >= 2 || (this.selected.size === 1 && this.selected.has(model))) {
+      const unit = this.table.models[model]?.unit;
       this.selected = new Set(
         Object.values(this.table.models)
           .filter((m) => m.unit === unit && !m.aside)
           .map((m) => m.id),
       );
-    } else this.selected = new Set([press.model]);
+    } else this.selected = new Set([model]);
     this.redraw();
   }
 
@@ -430,6 +473,43 @@ export class Gestures {
     this.redraw();
   }
 
+  // Cards on the table.
+
+  private carryCard(e: { clientX: number; clientY: number }) {
+    const c = this.cardCarry!;
+    const at = this.pointAt(e);
+    if (at) this.carriedCards.set(c.id, { x: at.x + c.offset.x, y: at.y + c.offset.y });
+    this.redraw();
+  }
+
+  private async setCardDown(e: PointerEvent) {
+    const c = this.cardCarry!;
+    this.cardCarry = null;
+    const card = this.table?.cards[c.id];
+    const target = this.targetAt(e.clientX, e.clientY, c.id);
+    if (card?.place.in === "table" && target) {
+      const faceUp = card.place.faceUp;
+      await this.hooks.act(
+        target.into === "table"
+          ? { kind: "move card", card: c.id, to: { in: "table", position: this.carriedCards.get(c.id) ?? target.at, faceUp } }
+          : cardMove(c.id, target, e.shiftKey, this.me),
+      );
+    }
+    this.carriedCards.delete(c.id);
+    this.redraw();
+  }
+
+  private me: string | null = null;
+
+  /** Turns the card under the pointer over. */
+  private flip() {
+    if (!this.hover || this.readOnly) return;
+    const thing = this.thingAt(this.hover);
+    const card = thing?.kind === "card" ? this.table?.cards[thing.id] : undefined;
+    if (card?.place.in !== "table") return;
+    void this.hooks.act({ kind: "move card", card: card.id, to: { ...card.place, faceUp: !card.place.faceUp } });
+  }
+
   // The ruler.
 
   private rulerGuide(): Guide {
@@ -476,6 +556,7 @@ export class Gestures {
       if (key === "PageDown") return void (e.preventDefault(), this.stepFloor(1));
       if (key === "Escape") return this.cancelCarry();
     }
+    if (key === "f" || key === "F") return this.flip();
     if (key.startsWith("Arrow")) e.preventDefault();
     this.view.camera.keyDown(key);
   }
@@ -494,4 +575,13 @@ export class Gestures {
     this.guides.dispose();
     this.box?.remove();
   }
+}
+
+/** The move card action for letting a card go on a deck, a discard pile or your hand. */
+export function cardMove(card: string, target: Exclude<CardTarget, { into: "table" }>, bottom: boolean, me: string | null): Action {
+  if (target.into === "hand") return { kind: "move card", card, to: { in: "hand", player: me ?? "" } };
+  if (target.into === "discard") return { kind: "move card", card, to: { in: "discard", deck: target.deck } };
+  return bottom
+    ? { kind: "move card", card, to: { in: "deck", deck: target.deck }, at: "bottom" }
+    : { kind: "move card", card, to: { in: "deck", deck: target.deck }, at: 0 };
 }

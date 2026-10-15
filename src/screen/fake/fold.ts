@@ -155,7 +155,7 @@ function apply(t: Table, n: number, by: string, a: Action): void {
         card.place =
           a.to === "hand"
             ? { in: "hand", player: by }
-            : { in: "table", position: { x: deck.position.x + 3 + i * 2.7, y: deck.position.y }, faceUp: true };
+            : { in: "table", position: { x: deck.position.x + 7 + i * 3, y: deck.position.y }, faceUp: true };
       });
       return;
     }

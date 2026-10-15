@@ -60,6 +60,12 @@ export function solidGeometry(shape: Exclude<Shape, { kind: "mesh" }>): BufferGe
   return new ExtrudeGeometry(side, { depth: w, bevelEnabled: false }).rotateY(Math.PI / 2).translate(-w / 2, 0, 0);
 }
 
+/** Something on the table a click or drag can land on. */
+export interface Thing {
+  kind: "model" | "terrain" | "deck" | "discard" | "card";
+  id: string;
+}
+
 interface Drawn {
   object: Group;
   key: string;
@@ -93,10 +99,11 @@ export class Pieces {
   }
 
   /** What a three.js object hit by a ray belongs to, if anything. */
-  static pieceOf(object: Object3D | null): { model: string } | { terrain: string } | null {
+  static pieceOf(object: Object3D | null): Thing | null {
     for (let o = object; o; o = o.parent) {
-      if (o.userData.model) return { model: o.userData.model as string };
-      if (o.userData.terrain) return { terrain: o.userData.terrain as string };
+      for (const kind of ["model", "terrain", "deck", "discard", "card"] as const) {
+        if (o.userData[kind]) return { kind, id: o.userData[kind] as string };
+      }
     }
     return null;
   }

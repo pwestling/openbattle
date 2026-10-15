@@ -34,6 +34,10 @@ Object.assign(window, {
     refuseNext(reason: string) {
       knobs.refuse = reason;
     },
+    /** Takes an action as someone else, as if another browser had. */
+    actAs(player: PlayerId, action: Action) {
+      knobs.sessions.forEach((s) => s.append(action, player));
+    },
     tamperNext() {
       knobs.tamper = true;
     },

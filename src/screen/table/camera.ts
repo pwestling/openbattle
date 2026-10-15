@@ -28,10 +28,11 @@ export class Camera {
 
   /** Back to your table edge, looking across the table. */
   home() {
-    this.target.set(this.size.width / 2, 0, -this.size.depth / 2);
+    // A little toward your edge, so your decks and the strip in front of the table are in view.
+    this.target.set(this.size.width / 2, 0, -this.size.depth / 2 - this.edge * 0.12 * this.size.depth);
     this.yaw = this.edge < 0 ? 0 : this.edge > 0 ? Math.PI : Math.PI / 2;
     this.pitch = 0.9;
-    this.distance = Math.max(this.size.width, this.size.depth) * 1.05;
+    this.distance = Math.max(this.size.width, this.size.depth) * 1.15;
     this.apply();
   }
 
