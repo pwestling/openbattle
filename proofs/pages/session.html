@@ -11,8 +11,8 @@
   const page = {
     session: null,
     now: null,
-    async open(size, me) {
-      page.session = await session.open(size, me);
+    async open(size, me, from) {
+      page.session = await session.open(size, me, from);
       page.session.watch((now) => (page.now = now));
       return page.now.link;
     },

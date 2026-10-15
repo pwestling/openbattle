@@ -5,7 +5,8 @@
 // Everyone else asks the host to add their actions, checks what the host sends against the record,
 // and keeps their own copy, so they can save the game and see it while the host is away.
 // Rolls and shuffled draws use the sealed exchange (ADR-008), with the other player's value signed
-// (ADR-022); every browser checks those signatures as entries arrive.
+// (ADR-022); every browser checks those signatures as entries arrive. With no other player connected,
+// the host rolls or draws alone (ADR-023); a player's browser flags any it sees while connected.
 import * as archive from "../archive/index.ts";
 import { verify, type BrowserId, type Json, type Link } from "../link/index.ts";
 import {
@@ -46,6 +47,10 @@ export interface Snapshot {
   disagreement: boolean;
   /** Log numbers of rolls and draws whose other player's signature does not check: shown as tampered. */
   badSignatures: number[];
+  /** Log numbers of rolls and draws the host took alone while this browser was connected as a player (ADR-023). */
+  aloneWhileHere: number[];
+  /** Rolls and draws this browser signed a value for that the host never logged. */
+  unusedValues: Ask[];
   /** False when the browser refuses storage, so the game is not being kept here. */
   kept: boolean;
 }
@@ -54,6 +59,11 @@ type Waiting = { resolve: (n: number) => void; reject: (e: Error) => void };
 
 /** A sealed exchange the host has started and is waiting on the other player for. */
 type Pending = { ask: Ask; by: PlayerId; guest: BrowserId; hostValue: string; seal: string };
+
+/** A value this browser signed and sent the host, not yet seen in the log. */
+type Given = { id: string; ask: Ask; seal: string };
+
+const isSealed = (a: Action): a is RollAction | ShuffledDrawAction => a.kind === "roll" || (a.kind === "draw" && "seal" in a);
 
 const encoder = new TextEncoder();
 
@@ -94,6 +104,11 @@ export class Game {
   private disagreement = false;
   private kept = true;
   private checked = new Map<number, boolean>();
+  private aloneWhileHere: number[] = [];
+  private given: Given[] = [];
+  private unusedValues: Ask[] = [];
+  /** The host finishes exchanges in the order the values arrived, so a value's guest can tell when one was skipped. */
+  private finishing: Promise<void> = Promise.resolve();
   private stops: (() => void)[] = [];
   private nextId = 0;
 
@@ -136,6 +151,8 @@ export class Game {
       connection: this.hosting ? "playing" : !this.connected.includes(this.log.host) ? (this.caughtUp ? "host away" : "connecting") : this.caughtUp ? "playing" : "connecting",
       disagreement: this.disagreement,
       badSignatures: [...this.checked].filter(([, ok]) => !ok).map(([n]) => n).sort((a, b) => a - b),
+      aloneWhileHere: [...this.aloneWhileHere],
+      unusedValues: [...this.unusedValues],
       kept: this.kept,
     };
   }
@@ -250,7 +267,7 @@ export class Game {
     if (!this.hosting) return this.request((id) => ({ t: "ask", id, ask }));
     const table = tableAt(this.log);
     const guest = this.connected.find((b) => b !== this.log.host && table.players[b]);
-    if (!guest) throw new Error("Another player has to be here to share the roll.");
+    if (!guest) return this.alone(ask, by);
     const id = `${this.link.me}.${this.nextId++}`;
     return new Promise<number>((resolve, reject) => {
       this.waiting.set(id, { resolve, reject });
@@ -308,6 +325,14 @@ export class Game {
     return entry.n;
   }
 
+  /** With no other player connected, the host makes both values, and the record marks it as taken alone. */
+  private async alone(ask: Ask, by: PlayerId): Promise<number> {
+    const hostValue = randomValue();
+    const sealed = { link: this.log.link, seal: await sealOf(hostValue), hostValue, guestValue: randomValue(), guestBy: null };
+    const action: RollAction | ShuffledDrawAction = ask.kind === "roll" ? { ...ask, ...sealed } : { ...ask, ...sealed };
+    return this.hostAppend(action, by);
+  }
+
   private async startExchange(id: string, ask: Ask, by: PlayerId, guest: BrowserId) {
     const hostValue = randomValue();
     const seal = await sealOf(hostValue);
@@ -315,7 +340,12 @@ export class Game {
     this.send({ t: "seal", id, ask, link: this.log.link, seal }, guest);
   }
 
-  private async finishExchange(id: string, from: BrowserId, guestValue: string, guestSignature: string) {
+  private finishExchange(id: string, from: BrowserId, guestValue: string, guestSignature: string) {
+    this.finishing = this.finishing.then(() => this.finishOne(id, from, guestValue, guestSignature));
+    return this.finishing;
+  }
+
+  private async finishOne(id: string, from: BrowserId, guestValue: string, guestSignature: string) {
     const p = this.pending.get(id);
     if (!p || p.guest !== from) return;
     this.pending.delete(id);
@@ -323,12 +353,18 @@ export class Game {
     const action: RollAction | ShuffledDrawAction = p.ask.kind === "roll" ? { ...p.ask, ...sealed } : { ...p.ask, ...sealed };
     const key = tableAt(this.log).players[from]?.publicKey;
     const fine = typeof guestValue === "string" && key !== undefined && (await verify(key, guestStatement(action), guestSignature));
-    if (!fine) return this.answer(id, p.by, null, "The other player's value did not come with a good signature.");
+    if (!fine) return this.drop(id, p, "The other player's value did not come with a good signature.");
     try {
       this.answer(id, p.by, this.hostAppend(action, p.by));
     } catch (e) {
-      this.answer(id, p.by, null, (e as Error).message);
+      this.drop(id, p, (e as Error).message);
     }
+  }
+
+  /** An exchange the host can't log: whoever asked is told why, and so is the other player, whose value goes unused. */
+  private drop(id: string, p: Pending, problem: string) {
+    this.answer(id, p.by, null, problem);
+    if (p.guest !== p.by) this.send({ t: "refused", id, problem }, p.guest);
   }
 
   /** Tells whoever asked how their request went: locally if it was the host's own, otherwise over the link. */
@@ -427,6 +463,7 @@ export class Game {
           return this.changed();
         }
         this.log = append(this.log, entry.action, entry.by);
+        if (isSealed(entry.action)) this.sealedArrived(entry.n, entry.action);
         if (fingerprint(tableAt(this.log)) !== m.fingerprint) this.disagreement = true;
         this.becomeJoined();
         this.settle();
@@ -442,6 +479,7 @@ export class Game {
         return;
       }
       case "refused": {
+        this.unused((g) => g.id === m.id);
         const w = this.waiting.get(m.id);
         if (w) {
           this.waiting.delete(m.id);
@@ -462,8 +500,28 @@ export class Game {
     const guestValue = randomValue();
     const sealed = { link, seal, hostValue: "", guestValue, guestBy: this.me, guestSignature: "" };
     const action: RollAction | ShuffledDrawAction = ask.kind === "roll" ? { ...ask, ...sealed } : { ...ask, ...sealed };
-    const guestSignature = await this.link.sign(guestStatement(action));
+    const guestSignature = await this.link.sign(guestStatement({ ...action, guestBy: this.me }));
+    this.given.push({ id, ask, seal });
     this.toHost({ t: "guest", id, guestValue, guestSignature });
+  }
+
+  /**
+   * A roll or shuffled draw just logged. One taken alone while this player is connected is flagged. The host
+   * logs a player's values in the order they were sent, so once a later one is logged, any earlier one was skipped.
+   */
+  private sealedArrived(n: number, a: RollAction | ShuffledDrawAction) {
+    if (a.guestBy === null && this.me !== "watch" && tableAt(this.log).players[this.me]) this.aloneWhileHere.push(n);
+    const at = this.given.findIndex((g) => g.seal === a.seal);
+    if (at < 0) return;
+    const before = new Set(this.given.slice(0, at));
+    this.given.splice(at, 1);
+    this.unused((g) => before.has(g));
+  }
+
+  /** Moves the given values that match out of waiting and into those the host never used. */
+  private unused(match: (g: Given) => boolean) {
+    for (const g of this.given.filter(match)) this.unusedValues.push(g.ask);
+    this.given = this.given.filter((g) => !match(g));
   }
 
   private afterEntries: { n: number; run: () => void }[] = [];
@@ -495,7 +553,14 @@ export class Game {
     if (!this.hosting && !connected.includes(this.log.host)) {
       for (const w of this.waiting.values()) w.reject(new Error("The host went away before answering."));
       this.waiting.clear();
+      this.unused(() => true);
     }
+    if (this.hosting)
+      for (const [id, p] of this.pending)
+        if (!connected.includes(p.guest)) {
+          this.pending.delete(id);
+          this.answer(id, p.by, null, "The other player left before sending their value.");
+        }
     this.changed();
   }
 
@@ -507,7 +572,7 @@ export class Game {
     for (const e of log.entries) {
       if (this.checked.has(e.n)) continue;
       const a = e.action;
-      if (!(a.kind === "roll" || (a.kind === "draw" && "seal" in a)) || a.guestBy === null) continue;
+      if (!isSealed(a) || a.guestBy === null) continue;
       const key = tableAt(log, e.n - 1).players[a.guestBy]?.publicKey ?? table.players[a.guestBy]?.publicKey;
       const ok = key !== undefined && (await verify(key, guestStatement(a), a.guestSignature));
       this.checked.set(e.n, ok);

@@ -9,6 +9,7 @@ import { newLog, reopen, tableAt, type Action, type CardId, type DeckId, type Fi
 import { Game, randomValue, type Me, type Snapshot } from "./game.ts";
 
 export type { Me, Snapshot };
+export type { Ask } from "./wire.ts";
 
 export interface Session {
   act(action: Action): Promise<void>;

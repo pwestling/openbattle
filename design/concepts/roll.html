@@ -22,7 +22,7 @@
   <dl>
     <dt>Purpose</dt><dd>Dice everyone trusts equally.</dd>
     <dt>Meaning</dt><dd>A number of dice of one size, thrown at once with an optional label, and the numbers that came up.</dd>
-    <dt>Invariants</dt><dd><ul><li>A roll happens once, and its result never changes.</li><li>Everyone sees the same result.</li><li>Nobody, the host included, can choose the result without the others being able to tell.</li><li>Every roll is in the <a href="../concepts/log.html">log</a>.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>A roll happens once, and its result never changes.</li><li>Everyone sees the same result.</li><li>Nobody, the host included, can choose the result without the others being able to tell. <ins>The one exception is a roll the host makes with no other player connected (<a href="../decisions/ADR-023.html">ADR-023</a>, proposed), which everyone sees marked as rolled alone.</ins></li><li>Every roll is in the <a href="../concepts/log.html">log</a>.</li></ul></dd>
     <dt>Not</dt><dd>A rule such as "hits on 3+". The players read the dice.</dd>
   </dl>
   <footer class="decisions">

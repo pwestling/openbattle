@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Rogue host proof page</title>
+</head>
+<body>
+<p>A host's browser that breaks Session's rules, as a modified copy of the app could, for proofs/session.proof.ts. It speaks to other browsers only through Link, as any browser can.</p>
+<script type="module">
+  import { connect, thisBrowser } from "/src/link/index.ts";
+  import { append, fingerprint, newLog, tableAt } from "/src/record/index.ts";
+  const random = () => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/[+/=]/g, "a");
+  const sealOf = async (v) =>
+    [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const rogue = {
+    log: null,
+    link: null,
+    connected: [],
+    values: [],
+    add(action, by) {
+      rogue.log = append(rogue.log, action, by);
+      rogue.link.send({ t: "entry", entry: rogue.log.entries.at(-1), fingerprint: fingerprint(tableAt(rogue.log)) });
+    },
+    async start() {
+      const me = await thisBrowser();
+      const id = `${random().slice(0, 8)}-${me.id}`;
+      rogue.log = newLog({ width: 60, depth: 44 }, id, me.id);
+      rogue.link = await connect(id);
+      rogue.add({ kind: "join", name: "Rogue", colour: "#000000", publicKey: me.publicKey }, me.id);
+      rogue.link.onChange((c) => (rogue.connected = c));
+      rogue.link.onMessage((m, from) => {
+        if (m.t === "hello") {
+          rogue.link.send({ t: "log", log: rogue.log }, from);
+          if (typeof m.as === "object") rogue.add({ kind: "join", name: m.as.name, colour: m.as.colour, publicKey: m.publicKey }, from);
+        }
+        if (m.t === "guest") rogue.values.push({ ...m, from });
+      });
+      return `${location.origin}/?game=${id}`;
+    },
+    /** Rolls alone although another player is connected. */
+    async rollAlone() {
+      const hostValue = random();
+      rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+    },
+    /** Asks a player for their value for a roll, keeping the host's value. */
+    async askValue(to, n) {
+      const hostValue = random();
+      const seal = await sealOf(hostValue);
+      rogue.secrets = { ...rogue.secrets, [n]: { hostValue, seal } };
+      rogue.link.send({ t: "seal", id: `rogue.${n}`, ask: { kind: "roll", dice: 2, sides: 6 }, link: rogue.log.link, seal }, to);
+    },
+    /** Logs the roll for one value, as if the other values were never sent. */
+    use(n) {
+      const v = rogue.values.find((g) => g.id === `rogue.${n}`);
+      const { hostValue, seal } = rogue.secrets[n];
+      rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal, hostValue, guestValue: v.guestValue, guestBy: v.from, guestSignature: v.guestSignature }, rogue.log.host);
+    },
+  };
+  window.rogue = rogue;
+  document.body.dataset.ready = "yes";
+</script>
+</body>
+</html>

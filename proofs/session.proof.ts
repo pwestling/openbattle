@@ -128,3 +128,93 @@ test("the host leaves and comes back: the game pauses, then resumes from the hos
   await act(ben, { kind: "phase", phase: { round: 1, turn: null, name: "Deploy" } });
   await expect.poll(async () => (await now(ana)).log.entries.length).toBe((await now(ben)).log.entries.length);
 });
+
+type Alone = { rolls: { alone: boolean }[] };
+const rolls = async (page: Page) => ((await now(page)).table as unknown as Alone).rolls.map((r) => r.alone);
+const fairness = (page: Page) =>
+  page.evaluate(() => {
+    const n = (window as any).proof.now;
+    return { aloneWhileHere: n.aloneWhileHere as number[], unusedValues: n.unusedValues as unknown[] };
+  });
+
+test("with nobody else connected, the host rolls alone, and everyone sees it marked so", async ({ browser }) => {
+  const ana = await person(browser);
+  const link = await ana.evaluate(() => (window as any).proof.open({ width: 60, depth: 44 }, { name: "Ana", colour: "#d1453b" }));
+  const alone = await ana.evaluate(() => (window as any).proof.session.roll(4, 6) as Promise<number[]>);
+  expect(alone).toHaveLength(4);
+  expect(await rolls(ana)).toEqual([true]);
+
+  // Ben arrives later: he sees the roll marked as rolled alone, but it was not taken while he was here.
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(() => rolls(ben)).toEqual([true]);
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [], unusedValues: [] });
+  expect((await now(ben)).badSignatures).toEqual([]);
+
+  // With Ben connected, Ana's next roll uses the sealed exchange.
+  await ana.evaluate(() => (window as any).proof.session.roll(2, 6));
+  await expect.poll(() => rolls(ben)).toEqual([true, false]);
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [], unusedValues: [] });
+});
+
+async function rogueHost(browser: Browser): Promise<{ rogue: Page; link: string }> {
+  const rogue = await (await browser.newContext()).newPage();
+  await rogue.goto("/proofs/pages/rogue-host.html");
+  await rogue.waitForFunction(() => document.body.dataset.ready === "yes");
+  return { rogue, link: await rogue.evaluate(() => (window as any).rogue.start()) };
+}
+
+test("a player's browser flags a roll the host took alone while they were connected", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+
+  await rogue.evaluate(() => (window as any).rogue.rollAlone());
+  await expect.poll(() => rolls(ben)).toEqual([true]);
+  const n = (await now(ben)).log.entries.length;
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [n], unusedValues: [] });
+});
+
+test("a player is told when the host never logged the value they signed", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+  const benId = ((await now(ben)).who as { player: string }).player;
+
+  // The host asks Ben for two values, then logs only the second, as if fishing for a better roll.
+  await rogue.evaluate((to) => (window as any).rogue.askValue(to, 1), benId);
+  await rogue.evaluate((to) => (window as any).rogue.askValue(to, 2), benId);
+  await rogue.waitForFunction(() => (window as any).rogue.values.length === 2);
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [], unusedValues: [] });
+  await rogue.evaluate(() => (window as any).rogue.use(2));
+  await expect.poll(() => rolls(ben)).toEqual([false]);
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [], unusedValues: [{ kind: "roll", dice: 2, sides: 6 }] });
+  expect((await now(ben)).badSignatures).toEqual([]);
+});
+
+test("signatures in a saved file are checked when it opens as a new game, so an edited roll shows as tampered", async ({ browser }) => {
+  const ana = await person(browser);
+  const ben = await person(browser);
+  const link = await ana.evaluate(() => (window as any).proof.open({ width: 60, depth: 44 }, { name: "Ana", colour: "#d1453b" }));
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await ana.evaluate(() => (window as any).proof.session.roll(2, 6));
+  await ana.evaluate(() => (window as any).proof.session.leave());
+  const benId = ((await now(ben)).who as { player: string }).player;
+
+  // Ana edits her saved file: an honest roll gets a new value, and a roll made alone is passed off as Ben's.
+  const saved = (await now(ana)).log as any;
+  const edited = structuredClone(saved);
+  const roll = edited.entries.find((e: any) => e.action.kind === "roll").action;
+  roll.guestValue = roll.guestValue.slice(1) + "A";
+  const hostValue = "made-up";
+  const seal = await ana.evaluate(async (v) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)))].map((b) => b.toString(16).padStart(2, "0")).join(""), hostValue);
+  edited.entries.push({ n: edited.entries.length + 1, by: saved.host, action: { kind: "roll", dice: 2, sides: 6, link: saved.link, seal, hostValue, guestValue: "also-made-up", guestBy: benId, guestSignature: roll.guestSignature } });
+  const rollsAt = edited.entries.filter((e: any) => e.action.kind === "roll").map((e: any) => e.n);
+
+  const carl = await person(browser);
+  await carl.evaluate((log) => (window as any).proof.open({ width: 60, depth: 44 }, { name: "Carl", colour: "#3a9d4f" }, log), edited);
+  await expect.poll(async () => (await now(carl)).badSignatures).toEqual(rollsAt);
+  expect(await rolls(carl)).toEqual([false, false]);
+});

@@ -128,6 +128,8 @@ class FakeSession implements Session {
       connection: knobs.connection,
       disagreement: knobs.disagreement,
       badSignatures: [],
+      aloneWhileHere: [],
+      unusedValues: [],
       kept: this.kept,
     };
   }
