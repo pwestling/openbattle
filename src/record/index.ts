@@ -14,17 +14,21 @@ export function newLog(size: Size, link: string, host: PlayerId): Log {
 
 /**
  * A new game from a saved one: its entries, copied as they are, under a new link and host. The link
- * ends in ".N", N the number copied, so everyone who has the link knows where the copied entries
- * end, and every signature in the new game covers it; the host can't move it later.
+ * gets "-N" on the end, N the number copied, so everyone who has the link knows where the copied
+ * entries end, and every signature in the new game covers it; the host can't move it later.
  */
 export function reopen(saved: Log, link: string, host: PlayerId): Log {
   const copied = saved.entries.length;
-  return { size: saved.size, link: `${link}.${copied}`, host, copied, entries: saved.entries };
+  return { size: saved.size, link: `${link}-${copied}`, host, copied, entries: saved.entries };
 }
 
-/** How many copied entries a link says its game starts with: N for a link ending in ".N", else none. */
+/**
+ * How many copied entries a link says its game starts with. A link is 8 random characters, "-" and
+ * the 22-character host id, as Session makes it; a reopened game's link then has "-N". Read by
+ * position, since a host id may itself hold "-" and digits.
+ */
 function copiedIn(link: string): number {
-  const ending = /\.(0|[1-9][0-9]*)$/.exec(link);
+  const ending = /^-(0|[1-9][0-9]*)$/.exec(link.slice(31));
   return ending ? Number(ending[1]) : 0;
 }
 

@@ -12,12 +12,12 @@ type Log = ReturnType<RecordModule["newLog"]>;
 const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
 const cyKey = "Y3kncyBrZXk", cy = "tbo45df-YItJZP0k4aLgmg";
-const link = "Xy3kP9qA-ann-browser";`;
+const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];
 const [cyKey, cy] = ["Y3kncyBrZXk", "tbo45df-YItJZP0k4aLgmg"];
-// The game's link: eight random base64url characters, then the host's browser id, as Session makes it.
-const link = "Xy3kP9qA-ann-browser";
+// The game's link: eight random base64url characters, "-", then the host's id, as Session makes it.
+const link = `Xy3kP9qA-${ann}`;
 
 // A short game several proofs start from, hosted by Ann: two players join, Ann brings a unit of two models and moves them.
 const opening = (r: RecordModule): Log => {
@@ -506,11 +506,11 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   const scenario = (r: RecordModule, start: typeof opening, s: typeof sealed) => {
     // Ann hosted the first game and rolled in it; the saved entries go into a new game Bo hosts.
     const first = r.append(start(r), { kind: "roll", dice: 2, sides: 6, ...s }, ann);
-    const reopened = r.reopen(first, "Qm7tZ2wB-bo-browser", bo);
+    const reopened = r.reopen(first, "Qm7tZ2wB-O5bDnDqwoYALSkMu-2db0w", bo);
     const fresh = (seal: string) => ({ ...s, link: reopened.link, seal });
     const problem = (log: Log, action: Parameters<RecordModule["check"]>[1], by: string) => r.check(log, action, by)?.problem ?? null;
     return {
-      otherGame: problem(first, { kind: "roll", dice: 1, sides: 6, ...s, link: "Qm7tZ2wB-bo-browser", seal: "new" }, ann),
+      otherGame: problem(first, { kind: "roll", dice: 1, sides: 6, ...s, link: "Qm7tZ2wB-O5bDnDqwoYALSkMu-2db0w", seal: "new" }, ann),
       oldRollStands: r.tableAt(reopened).rolls.map((roll) => roll.result.length),
       oldLinkHere: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...s, seal: "new" }, bo),
       boHostsAnnSends: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, bo),
@@ -540,7 +540,7 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   expect(seen.annNowSendsOwn).toBeNull();
   expect(seen.oldSeal).toBe("This seal was already used, in action 5.");
   // The link says where the copied entries end, so every signature in the new game covers it.
-  expect([seen.longer.link, seen.longer.host, seen.longer.copied, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser.5", bo, 5, 6]);
+  expect([seen.longer.link, seen.longer.host, seen.longer.copied, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-O5bDnDqwoYALSkMu-2db0w-5", bo, 5, 6]);
   expect(seen.reopenedChecks).toBeNull();
   expect(seen.firstChecks).toBeNull();
   expect(seen.slipped).toEqual({ problem: "Action 6: A roll must be signed for this game's link." });
