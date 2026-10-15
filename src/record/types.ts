@@ -136,15 +136,15 @@ export interface Deck {
  * (ADR-022), so the host cannot change guestValue. link is the game the exchange was signed in, so a
  * signature from one game can't be replayed in another. The record keeps the signature but never checks it:
  * Session does, and shows a roll or draw whose signature is wrong as tampered. An empty one is refused.
+ * When nobody else is connected, the host may take it alone (ADR-023): guestBy is null, there is no
+ * signature, and the host made guestValue too, so the roll or draw is marked as taken alone.
  */
-export interface Sealed {
+export type Sealed = {
   link: string;
   seal: string;
   hostValue: string;
   guestValue: string;
-  guestBy: PlayerId;
-  guestSignature: string;
-}
+} & ({ guestBy: PlayerId; guestSignature: string } | { guestBy: null; guestSignature?: undefined });
 
 export interface Roll {
   /** The log number of the roll action. */
@@ -156,6 +156,8 @@ export interface Roll {
   result: number[];
   /** The seal did not match the host's value. */
   tampered: boolean;
+  /** The host rolled with nobody else taking part (ADR-023), so the result is not tamper-evident. */
+  alone: boolean;
 }
 
 export interface Draw {
@@ -167,6 +169,8 @@ export interface Draw {
   to: "hand" | "table";
   /** From a shuffled deck, the seal did not match the host's value. Never true for an ordered deck. */
   tampered: boolean;
+  /** From a shuffled deck, the host drew with nobody else taking part (ADR-023). Never true for an ordered deck. */
+  alone: boolean;
 }
 
 export interface NewModel {

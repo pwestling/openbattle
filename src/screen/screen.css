@@ -1,0 +1,169 @@
+:root {
+  --bg: #15171b;
+  --panel: rgba(28, 31, 37, 0.94);
+  --line: #343a44;
+  --text: #e8e6e1;
+  --muted: #9aa1ab;
+  --accent: #e2b04a;
+  --bad: #e5534b;
+  /* Rolls and draws taken alone (ADR-023): not tamper-evident, but not tampered either. */
+  --alone: #c9a0ff;
+  color-scheme: dark;
+  font: 14px/1.4 system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button {
+  background: #2b3039; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+input, select, textarea { background: #0f1114; border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; }
+label { display: grid; gap: 4px; }
+
+/* Start page and arriving from a link */
+.start { max-width: 420px; margin: 8vh auto; padding: 0 16px; display: grid; gap: 24px; }
+.start h1 { margin: 0; font-size: 32px; letter-spacing: 0.02em; }
+.start form, .start section { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.start h2 { margin: 0; font-size: 18px; }
+.start .size { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.start button[type="submit"] { background: var(--accent); color: #1a1a1a; border: 0; padding: 8px; font-weight: 600; }
+.colours { display: flex; gap: 6px; border: 0; padding: 0; margin: 0; }
+.colours legend { padding: 0; margin-bottom: 4px; }
+.colours button { width: 26px; height: 26px; border-radius: 50%; padding: 0; border: 2px solid transparent; }
+.colours button[aria-pressed="true"] { border-color: var(--text); outline: 2px solid var(--bg); outline-offset: -4px; }
+.problem { color: var(--bad); margin: 0; }
+
+/* At the table */
+.game { position: fixed; inset: 0; overflow: hidden; }
+.table { position: absolute; inset: 0; }
+.table-canvas { display: block; outline: none; }
+.table-labels { position: absolute; inset: 0; pointer-events: none; }
+.label {
+  font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); white-space: nowrap; pointer-events: none;
+}
+.label.selected { outline: 1px solid var(--accent); }
+.label.missing { font-style: italic; opacity: 0.8; }
+.label.missing::after { content: " · mesh missing"; }
+.label.distance { background: rgba(226, 176, 74, 0.9); color: #1a1a1a; font-weight: 600; }
+.banner {
+  position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 5;
+  background: #5a3d12; border: 1px solid var(--accent); padding: 6px 14px; border-radius: 8px;
+}
+.topbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 4; display: flex; gap: 16px; align-items: center;
+  padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.invite { display: flex; gap: 6px; align-items: center; }
+.invite span { color: var(--muted); }
+.invite input { width: 260px; }
+.topbar .phase { display: flex; gap: 6px; align-items: center; }
+.topbar .phase label { display: flex; gap: 6px; align-items: center; }
+.topbar .phase .value { min-width: 1.5em; text-align: center; font-weight: 600; }
+.topbar .phase input { width: 140px; }
+.topbar .invite { margin-left: auto; }
+.muted { color: var(--muted); }
+.left, .right {
+  position: absolute; top: 56px; bottom: 8px; width: 290px; z-index: 3; overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+}
+.left { left: 8px; }
+.right { right: 8px; display: flex; flex-direction: column; bottom: 262px; }
+.corner {
+  position: absolute; right: 8px; bottom: 8px; width: 290px; height: 246px; z-index: 3; overflow: auto;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px;
+}
+.dice { display: grid; gap: 6px; }
+.dice .tray { width: 100%; height: 96px; border-radius: 6px; display: block; }
+.dice form { display: grid; grid-template-columns: 52px 52px 1fr auto; gap: 4px; align-items: end; }
+.dice form label { font-size: 12px; gap: 2px; }
+.dice form input { width: 100%; }
+.rolls { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-size: 12px; }
+.rolls li { display: flex; gap: 8px; flex-wrap: wrap; }
+.rolls .who { color: var(--muted); }
+.rolls .result { font-weight: 600; letter-spacing: 0.05em; }
+.rolls .alone-mark { display: block; font-size: 11px; color: var(--alone); font-style: italic; }
+.log li.alone { color: var(--alone); }
+/* Last, so a roll or draw that is both alone and tampered shows as tampered. */
+.rolls li.tampered, .rolls li.tampered .result, .log li.tampered { color: var(--bad); }
+.left h3, .right h3 { margin: 0 0 6px; font-size: 14px; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.army { display: grid; gap: 12px; }
+.army .player { display: grid; gap: 6px; }
+.unit, .group { border-top: 1px solid var(--line); padding-top: 6px; display: grid; gap: 4px; }
+.unit header, .group header { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.add-army, .make-group { display: grid; gap: 6px; }
+.add-army summary, .make-group summary { cursor: pointer; color: var(--accent); }
+.add-army[open], .make-group[open] { display: grid; gap: 6px; }
+.listed { border-collapse: collapse; font-size: 12px; }
+.listed td, .listed th { text-align: left; padding: 2px 4px; border-bottom: 1px solid var(--line); }
+.tick { display: flex; gap: 6px; align-items: center; }
+.counters { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; }
+.counter { display: inline-flex; gap: 2px; align-items: center; background: #23272e; border-radius: 6px; padding: 1px 4px; }
+.counter button, .mark, .add-counter button { padding: 0 5px; font-size: 12px; }
+.counter .value { min-width: 1.4em; text-align: center; font-weight: 600; }
+.mark[aria-pressed="true"] { background: #4a3b16; border-color: var(--accent); }
+.add-counter summary { list-style: none; cursor: pointer; color: var(--muted); padding: 0 4px; }
+.add-counter[open] summary { display: none; }
+.add-counter form { display: flex; gap: 3px; }
+.add-counter input { width: 110px; font-size: 12px; padding: 1px 4px; }
+.quiet { background: transparent; border: 0; }
+.log ol { flex: 1; overflow: auto; margin: 0; padding-left: 22px; display: grid; gap: 3px; align-content: start; font-size: 13px; }
+.log li.cancelled span { text-decoration: line-through; color: var(--muted); }
+.log li.later { opacity: 0.4; }
+.log li button { margin-left: 6px; padding: 0 6px; font-size: 12px; }
+.log { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.look-back { margin-top: 8px; }
+.looking { margin: 6px 0 0; color: var(--accent); }
+.notes { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); z-index: 6; display: grid; gap: 6px; }
+.notes p { margin: 0; background: #4d1e1b; border: 1px solid var(--bad); padding: 6px 12px; border-radius: 8px; }
+.select-box { position: absolute; border: 1px dashed var(--accent); background: rgba(226, 176, 74, 0.12); pointer-events: none; }
+.tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); }
+.terrain { display: grid; gap: 10px; }
+.add-terrain { display: grid; gap: 6px; }
+.size-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.size-fields input { width: 100%; }
+.piece { border-top: 1px solid var(--line); padding-top: 6px; display: grid; gap: 4px; }
+.piece header { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+label.file input[type="file"] { font-size: 12px; }
+.listed label.file { display: inline-flex; gap: 2px; }
+.listed label.file input { width: 80px; }
+.decks { display: grid; gap: 10px; }
+.add-deck { display: grid; gap: 6px; }
+.add-deck[open] { display: grid; gap: 6px; }
+.add-deck summary { cursor: pointer; color: var(--accent); }
+.choice { border: 0; padding: 0; margin: 0; display: flex; gap: 12px; }
+.choice label { display: flex; gap: 4px; align-items: center; }
+.deck { border-top: 1px solid var(--line); padding-top: 6px; display: grid; gap: 4px; }
+.deck header { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+.row { display: flex; gap: 4px; flex-wrap: wrap; }
+.label.deck { background: rgba(43, 58, 107, 0.9); }
+.hand {
+  position: absolute; left: 310px; right: 310px; bottom: 8px; z-index: 3; display: grid; gap: 4px; justify-items: center;
+  pointer-events: none;
+}
+.hand > * { pointer-events: auto; }
+.hand .cards { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.card {
+  width: 92px; min-height: 120px; padding: 6px; border-radius: 6px; background: #f4efe3; color: #1c1c1c; font-size: 11px;
+  border: 2px solid #8c8170; cursor: grab; user-select: none; display: grid; align-content: start; gap: 3px;
+}
+.card strong { font-size: 12px; }
+.card img { width: 100%; border-radius: 3px; }
+.card p { margin: 0; }
+.card.ghost { position: fixed; transform: translate(-50%, -50%); pointer-events: none; opacity: 0.85; z-index: 20; min-height: 60px; }
+.other-hand { margin: 0; background: var(--panel); padding: 2px 8px; border-radius: 6px; display: flex; gap: 3px; align-items: center; font-size: 12px; }
+.other-hand .back { width: 10px; height: 14px; background: #2b3a6b; border: 1px solid #8c8170; border-radius: 2px; }
+.empty-hand { margin: 0; font-size: 12px; color: var(--muted); background: var(--panel); padding: 4px 10px; border-radius: 6px; border: 1px dashed var(--line); }
+.controls { position: relative; }
+.controls summary { cursor: pointer; color: var(--muted); }
+.controls dl {
+  position: absolute; right: 0; top: 30px; width: 360px; margin: 0; padding: 10px; display: grid; grid-template-columns: auto 1fr;
+  gap: 4px 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; z-index: 10;
+}
+.controls dt { font-weight: 600; white-space: nowrap; }
+.controls dd { margin: 0; }

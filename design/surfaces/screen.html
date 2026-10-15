@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Screen — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<meta name="pdd-derived" content="2026-10-15T08:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15. The minor choices made while building it (the keys, the Decks panel, the army list's format, where new things go, flipping cards, mesh units) are written in here under Porter's standing rule of 2026-10-15. The four marked as inserted (the camera, Undo, and the two "alone" marks of ADR-023) were decided while Porter was away, under his instruction to go with the best guess, and wait on his review.</dd>
   </dl>
   <p>The screen's outside is the person using it. Each section is a place or a gesture. Mouse and keyboard controls follow Tabletop Simulator's where it has one.</p>
 
@@ -43,11 +43,12 @@
   <section id="table">
     <h2>The table</h2>
     <dl>
-      <dt>Camera</dt><dd>Right-drag turns around the table, middle-drag or the arrow keys slide, the wheel zooms. One key snaps to straight down, another back to your table edge. The camera is yours alone.</dd>
-      <dt>Picking up</dt><dd>Click a model to select it; click again or double-click to select its whole unit; drag a box to select several. Dragging lifts the selection off the table and carries it, keeping its shape; Q and E turn it. Letting go sets it down: one move action.</dd>
-      <dt>While carrying</dt><dd>A line from where each model started shows the inches moved, live. Pressing the waypoint key (or a right-click) pins a corner, so a path around terrain is measured along its true length. The path stays visible to everyone after the move.</dd>
-      <dt>Ruler</dt><dd>Hold the ruler key and drag between two spots, or from a selected model, pinning waypoints the same way. Shows inches across along the whole path, and the height difference. Private; nothing is sent.</dd>
-      <dt>Models</dt><dd>The base at its true size with the model's mesh on it, or a simple stand-in body in the player's colour where there is no mesh, and a small label. When adding to an army, a mesh file can be chosen for each unit or model.</dd>
+      <dt>Camera</dt><dd>Right-drag turns around the table, middle-drag or the arrow keys slide, the wheel zooms. T snaps to straight down and H back to your table edge. The camera is yours alone. <ins>It has no bound on how far it slides or zooms out (ADR-020), since H always brings it home. Suggestion for Porter: if people get lost, bound it to a few table widths from the table.</ins></dd>
+      <dt>Controls</dt><dd>Where Tabletop Simulator has no control, the screen picks one (ADR-017), and lists every control on screen under Controls.</dd>
+      <dt>Picking up</dt><dd>Click a model to select it; click again or double-click to select its whole unit; Shift-click adds a model or takes it out; drag a box to select several. Dragging lifts the selection off the table and carries it, keeping its shape; Q and E turn it. It is carried at the floor under the pointer, so pointing at a roof carries it onto that roof. Letting go sets it down: one move action. Escape puts it back where it was.</dd>
+      <dt>While carrying</dt><dd>A line from where each model started shows the inches moved, live. Pressing Space (or a right-click) pins a corner, so a path around terrain is measured along its true length. The path stays visible to everyone after the move.</dd>
+      <dt>Ruler</dt><dd>Hold Tab, while the table has focus, and drag between two spots, or from a selected model, pinning waypoints the same way. Shows inches across along the whole path, and the height difference. Private; nothing is sent.</dd>
+      <dt>Models</dt><dd>The base at its true size with the model's mesh on it, or a simple stand-in body in the player's colour where there is no mesh, and a small label. A piece whose mesh file hasn't reached this browser yet shows its stand-in, labelled as missing its mesh, until the file arrives. When adding to an army, a mesh file can be chosen for each unit or model.</dd>
       <dt>Fails</dt><dd>If a move is refused (host away, or a problem), the models settle back where they were and a short note says why.</dd>
     </dl>
   </section>
@@ -56,7 +57,7 @@
     <h2>Dice tray</h2>
     <dl>
       <dt>Shows</dt><dd>How many dice, how many sides (six by default), an optional label, and Roll. Recent rolls stay in the tray.</dd>
-      <dt>Does</dt><dd>Dice are thrown onto the tray and land on the decided result, for everyone at once, then line up sorted. A tampered roll is shown in red with a warning.</dd>
+      <dt>Does</dt><dd>Dice are thrown onto the tray and land on the decided result, for everyone at once, then line up sorted. A tampered roll is shown in red with a warning. <ins>Proposed with ADR-023: a roll made alone, with no other player connected, is marked "rolled alone" in the tray and the log, in a colour of its own, since it is not tamper-evident. Being alone never makes it show as tampered; a roll that is both shows both marks, in tampered red.</ins></dd>
     </dl>
   </section>
 
@@ -64,7 +65,7 @@
     <h2>Decks and hands</h2>
     <dl>
       <dt>Shows</dt><dd>Decks sit on the table as face-down stacks with a count; a shuffled deck is marked as such. Your hand is a row of cards along the bottom of the screen; everyone else's hand shows as card backs with a count. Face-up cards lie on the table where they were played.</dd>
-      <dt>Does</dt><dd>Click a deck to draw into your hand, or Shift-click to draw face up. Drag a card from your hand to play it onto the table, onto a discard pile, or back into a deck (onto the top, or with a modifier key the bottom, of an ordered one). Shuffle on an ordered deck makes it shuffled. A new deck is made from a typed or pasted list of cards, with optional pictures, and starts ordered as listed or shuffled.</dd>
+      <dt>Does</dt><dd>Click a deck to draw into your hand, or Shift-click to draw face up. Drag a card from your hand, or on the table, to play it onto the table, onto a discard pile beside its deck, or back into a deck (onto the top, or holding Shift the bottom, of an ordered one). F flips the card under the pointer, as in Tabletop Simulator. Shuffle on an ordered deck makes it shuffled. A new deck is made in the Decks panel from a typed or pasted list of cards (<code>Name: text</code>, one per line), with optional pictures, and starts ordered as listed or shuffled; it sits just off your table edge. A tampered draw is shown in the log in red with a warning, as a tampered roll is. <ins>Proposed with ADR-023: a shuffled draw made alone is marked "drawn alone" in the log, as a roll made alone is.</ins></dd>
       <dt>Fails</dt><dd>An empty deck says so and draws nothing.</dd>
     </dl>
   </section>
@@ -73,9 +74,10 @@
     <h2>Panels</h2>
     <dl>
       <dt>Phase bar</dt><dd>Round, whose turn, phase name; each can be changed by a player.</dd>
-      <dt>Army</dt><dd>Each player's units and groups with their counters and marks. Change a counter with + and −, toggle a mark, set models aside or return them. Paste or type a list to add units or models to your army, at the start or at any point in the game.</dd>
-      <dt>Terrain</dt><dd>Add a box, cylinder or ramp, or load a 3D mesh file (.glb, .gltf, .obj or .stl), then size, move and turn it like a model. A model set down over terrain lands on the highest floor under it; while carrying, Page Up and Page Down (or Shift with the wheel) step between the floors there. Models pass through walls; nothing pushes them away.</dd>
-      <dt>Log</dt><dd>Every action as a sentence ("Ana moved Scouts 5.8″"). A slider looks back through the game; the table shows that moment, read-only, until you return to now. Undo appears beside your own latest action.</dd>
+      <dt>Army</dt><dd>Each player's units and groups with their counters and marks. Change a counter with + and −, toggle a mark, set models aside or return them. Paste or type a list to add units or models to your army, at the start or at any point in the game: one unit per line, such as <code>5x Scouts 25mm</code>, <code>Captain 40mm 1.5"</code> or <code>Tank 100x60mm rect 2.5"</code> (count, base, and the stand-in's height; by default 1, a 25 mm round base and 1.2″). A line naming one of your units adds models to it. New models stand in rows along your table edge.</dd>
+      <dt>Terrain</dt><dd>Add a box, cylinder or ramp, or load a 3D mesh file (.glb, .gltf, .obj or .stl), then size, move and turn it like a model. New pieces go in a row across the middle of the table. Each mesh format is read as its makers mean it: glTF in metres, STL in millimetres with +z up, and OBJ, which says neither, in inches with +y up. A model set down over terrain lands on the highest floor under it; while carrying, Page Up and Page Down (or Shift with the wheel) step between the floors there. Models pass through walls; nothing pushes them away.</dd>
+      <dt>Log</dt><dd>Every action as a sentence ("Ana moved Scouts 5.8″"). A slider looks back through the game; the table shows that moment, read-only, until you return to now. Undo appears beside your own latest action. <ins>Proposed, from Record's undo rule: it appears only while your action is the latest one in the game not yet undone, because undo cancels that one. Once anyone acts after you, your action can no longer be undone.</ins></dd>
+      <dt>Decks</dt><dd>Beside Army and Terrain: make a new deck, and Draw, Draw face up or Shuffle each deck.</dd>
       <dt>Save</dt><dd>Saves the game to a file. Available to players and spectators.</dd>
     </dl>
   </section>
@@ -83,7 +85,7 @@
   <section id="status">
     <h2>Connection banner</h2>
     <dl>
-      <dt>Shows</dt><dd>Nothing while all is well. "Connecting…", or "Waiting for the host. The game is paused" with the table read-only, or "Your table differs from the host's" with a button to reload the host's copy.</dd>
+      <dt>Shows</dt><dd>Nothing while all is well. "Connecting…", or "Waiting for the host. The game is paused" with the table read-only, or "Your table differs from the host's" with a button to reload the host's copy. It also says when this browser won't keep the game, so it can't be picked up again from here.</dd>
     </dl>
   </section>
   <footer class="decisions">
@@ -92,6 +94,7 @@
     <a rel="decision" href="../decisions/ADR-012.html">ADR-012</a>
     <a rel="decision" href="../decisions/ADR-017.html">ADR-017</a>
     <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+    <a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>
   </footer>
 </article>
 </body>
