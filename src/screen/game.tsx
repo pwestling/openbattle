@@ -61,6 +61,7 @@ export function Game({ session }: { session: Session }) {
           <PhaseBar />
           <Invite link={now.link} />
           <Save />
+          <Controls />
         </header>
         <Banner now={now} session={session} />
         <aside className="left">
@@ -142,6 +143,45 @@ function Invite({ link }: { link: string }) {
         {copied ? "Copied" : "Copy link"}
       </button>
     </div>
+  );
+}
+
+/** The mouse and keyboard controls, shown where the screen picked a key Tabletop Simulator lacks (ADR-017). */
+function Controls() {
+  return (
+    <details className="controls">
+      <summary>Controls</summary>
+      <dl>
+        <dt>Left-click</dt>
+        <dd>Select a model; again, or double-click, for its whole unit. Shift-click adds or removes one.</dd>
+        <dt>Left-drag</dt>
+        <dd>On a model or terrain: carry it. On the table: select with a box.</dd>
+        <dt>Q / E</dt>
+        <dd>Turn what you carry.</dd>
+        <dt>Space or right-click</dt>
+        <dd>Pin a waypoint while carrying or measuring.</dd>
+        <dt>Page Up / Page Down</dt>
+        <dd>Step between floors while carrying (or Shift with the wheel).</dd>
+        <dt>Hold Tab</dt>
+        <dd>Ruler: drag between two spots or from a model. Only you see it.</dd>
+        <dt>Right-drag</dt>
+        <dd>Turn the camera.</dd>
+        <dt>Middle-drag or arrows</dt>
+        <dd>Slide the camera.</dd>
+        <dt>Wheel</dt>
+        <dd>Zoom.</dd>
+        <dt>T / H</dt>
+        <dd>Look straight down / back to your edge.</dd>
+        <dt>Click a deck</dt>
+        <dd>Draw into your hand; Shift-click to draw face up.</dd>
+        <dt>Drag a card</dt>
+        <dd>Onto the table, a discard pile or a deck (Shift: its bottom).</dd>
+        <dt>F</dt>
+        <dd>Flip the card under the pointer.</dd>
+        <dt>Escape</dt>
+        <dd>Put back what you carry.</dd>
+      </dl>
+    </details>
   );
 }
 

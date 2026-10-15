@@ -54,3 +54,38 @@ test("the banner shows the connection's trouble and offers the host's copy", asy
   await page.getByRole("button", { name: "Reload the host's copy" }).click();
   await expect(page.getByRole("status")).toHaveCount(0);
 });
+
+// Start page, fails: if the server can't be reached, it says so and offers to retry.
+test("an unreachable server is reported, with a retry", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => (window as any).openbattleFake.setUnreachable(true));
+  await page.getByLabel("Your name").fill("Ana");
+  await page.getByRole("button", { name: "New game" }).click();
+  await expect(page.getByRole("alert")).toContainText("can't be reached");
+  await page.evaluate(() => (window as any).openbattleFake.setUnreachable(false));
+  await page.getByRole("button", { name: "Retry" }).click();
+  await expect(page.getByLabel("The table")).toBeVisible();
+});
+
+// Spectators watch read-only, and can still save the game to a file.
+test("a spectator watches read-only and can save", async ({ page, browser }) => {
+  await newGame(page);
+  const link = await page.getByLabel("Invite link").inputValue();
+  const watcher = await (await browser.newContext()).newPage();
+  await watcher.goto(link);
+  await watcher.getByRole("button", { name: "Watch" }).click();
+  await expect(watcher.getByLabel("The table")).toBeVisible();
+  await expect(watcher.getByLabel("Army list")).toHaveCount(0);
+  await expect(watcher.getByRole("button", { name: "Roll" })).toHaveCount(0);
+  await expect(watcher.getByRole("button", { name: "Next round" })).toBeDisabled();
+  const download = watcher.waitForEvent("download");
+  await watcher.getByRole("button", { name: "Save" }).click();
+  expect(await (await download).path()).toBeTruthy();
+});
+
+// The controls the screen picked where Tabletop Simulator has none are shown (ADR-017).
+test("the controls are shown", async ({ page }) => {
+  await newGame(page);
+  await page.getByText("Controls").click();
+  await expect(page.getByText("Hold Tab")).toBeVisible();
+});

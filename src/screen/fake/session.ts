@@ -19,6 +19,7 @@ const knobs = {
   disagreement: false,
   refuse: null as string | null,
   tamper: false,
+  unreachable: false,
   sessions: new Set<FakeSession>(),
 };
 Object.assign(window, {
@@ -37,6 +38,10 @@ Object.assign(window, {
     /** Takes an action as someone else, as if another browser had. */
     actAs(player: PlayerId, action: Action) {
       knobs.sessions.forEach((s) => s.append(action, player));
+    },
+    /** Makes new games fail as if the server could not be reached. */
+    setUnreachable(on: boolean) {
+      knobs.unreachable = on;
     },
     tamperNext() {
       knobs.tamper = true;
@@ -172,6 +177,7 @@ class FakeSession implements Session {
 }
 
 export async function fakeOpen(size: Size, me: Me): Promise<Session> {
+  if (knobs.unreachable) throw new Error("The relay cannot be reached.");
   const link = `${location.origin}/?game=${randomId()}`;
   const player = randomId();
   const session = new FakeSession(link, { size, entries: [] }, player);
