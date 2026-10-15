@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-019: Terrain can be a mesh loaded from a file — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T05:55Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-019">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-019: Terrain can be a mesh loaded from a file</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> From Porter's surface review on 2026-10-15.</dd>
+    <dt>Context</dt><dd>Real scenery has shapes no box or cylinder captures, and players already have scenery meshes, for example from Tabletop Simulator. The surfaces only allowed simple solids.</dd>
+    <dt>Decision</dt><dd>A terrain piece is either a simple solid or a mesh from a .glb, .gltf or .obj file of up to 25 MB. The log names a mesh by the fingerprint of its file's bytes. The file travels browser to browser through the session, is kept with the game in each browser, and is included in a saved game file. Models set down on a mesh rest on its surface.</dd>
+    <dt>Because</dt><dd>The fingerprint guarantees everyone draws the same scenery and keeps the log small. Sending files between browsers keeps the server out of the game, as <a href="ADR-006.html">ADR-006</a> requires.</dd>
+    <dt>Rejected</dt><dd>Links to meshes on the web: they break, change, or differ between browsers. Uploading meshes to the server: the server would store game content. Simple solids only: scenery wouldn't look or feel like the real thing.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/terrain.html">Terrain</a>, <a href="../boundaries/session.html">Session</a>, <a href="../boundaries/archive.html">Archive</a>, <a href="../surfaces/session.html">Session surface</a>, <a href="../surfaces/archive.html">Archive surface</a></dd>
+  </dl>
+</article>
+</body>
+</html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<meta name="pdd-derived" content="2026-10-15T05:55Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
   <dl>
     <dt>Status</dt><dd><mark>Proposed</mark> First draft, 2026-10-14.</dd>
   </dl>
-  <p>Two ways in, and five operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
+  <p>Two ways in, and six operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
   <section id="open">
     <h2><code>open(size: { width, depth }, me: { name, colour }): Session</code></h2>
@@ -78,6 +78,15 @@
     </dl>
   </section>
 
+  <section id="addFile">
+    <h2><code>session.addFile(file: Blob): Promise&lt;Fingerprint&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player. The file is a .glb, .gltf or .obj mesh of at most 25 MB.</dd>
+      <dt>Post</dt><dd>The file is kept with the game and sent to every browser in it, including any that join later. Resolves with its fingerprint, which a place terrain action can then name.</dd>
+      <dt>Fails</dt><dd>Rejects if the file is not a readable mesh or is too large; nothing is sent.</dd>
+    </dl>
+  </section>
+
   <section id="leave">
     <h2><code>session.leave(): void</code></h2>
     <dl>
@@ -91,6 +100,7 @@
     <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
     <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
     <a rel="decision" href="../decisions/ADR-016.html">ADR-016</a>
+    <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
   </footer>
 </article>
 </body>
