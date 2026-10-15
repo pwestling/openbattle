@@ -216,9 +216,8 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       text(action.name, "The name");
       text(action.colour, "The colour");
       text(action.publicKey, "The player's public key");
+      // So no two players share a key: the same key gives the same id, and an id joins once.
       if (playerIdOf(action.publicKey) !== by) refuse("A player's id must be worked out from their public key.");
-      for (const other of Object.values(table.players))
-        if (other.publicKey === action.publicKey) refuse(`Player "${other.id}" already joined with this key.`);
       return;
     case "rename":
       text(action.name, "The name");

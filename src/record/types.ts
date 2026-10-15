@@ -135,7 +135,7 @@ export interface Deck {
  * guestBy is the player who sent guestValue, and guestSignature their signature over guestStatement
  * (ADR-022), so the host cannot change guestValue. link is the game the exchange was signed in, so a
  * signature from one game can't be replayed in another. The record keeps the signature but never checks it:
- * Session does, and shows a roll or draw whose signature is wrong or empty as tampered.
+ * Session does, and shows a roll or draw whose signature is wrong as tampered. An empty one is refused.
  */
 export interface Sealed {
   link: string;

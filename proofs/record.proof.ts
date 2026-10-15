@@ -533,3 +533,21 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   expect([seen.longer.link, seen.longer.host, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser", bo, 6]);
   expect(scenario(nodeRecord, opening, sealed)).toEqual(seen);
 });
+
+test("the host stays the host when its join is undone, so it can never send the other value of its own roll", async ({ page }) => {
+  const sealed = await sealedWith("host value", "guest value");
+  const scenario = (r: RecordModule, s: typeof sealed) => {
+    let log = r.newLog({ width: 44, depth: 30 }, link, ann);
+    log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
+    log = r.append(log, { kind: "undo" }, ann);
+    log = r.append(log, { kind: "join", name: "Bo", colour: "#33c", publicKey: boKey }, bo);
+    log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
+    return [
+      r.check(log, { kind: "roll", dice: 1, sides: 6, ...s, guestBy: ann }, ann)?.problem ?? null,
+      r.check(log, { kind: "roll", dice: 1, sides: 6, ...s, guestBy: bo }, ann)?.problem ?? null,
+    ];
+  };
+  const seen = await page.evaluate(`(() => { ${players} return (${scenario.toString()})(window.record, ${JSON.stringify(sealed)}); })()`);
+  expect(seen).toEqual(["The host can't send the other value: it would choose both.", null]);
+  expect(scenario(nodeRecord, sealed)).toEqual(seen);
+});
