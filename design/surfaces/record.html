@@ -65,7 +65,7 @@
     <h2><ins><code>reopen(saved: Log, link: string, host: PlayerId): Log</code></ins></h2>
     <dl>
       <dt>Pre</dt><dd><ins><code>link</code> is the new game's link, as Session makes it.</ins></dd>
-      <dt>Post</dt><dd><ins>Opening a saved file starts a new game: a log with the new link and host, holding the saved entries as they were and saying how many were copied. The log's link is the given one ending in <code>.N</code>, N the number copied; that is the link the game is shared by, so everyone who has it knows where the copied entries end, and every signature in the new game covers it. They keep the links they were signed with and are not checked again; everything after them must be signed for the new link.</ins></dd>
+      <dt>Post</dt><dd><ins>Opening a saved file starts a new game: a log with the new link and host, holding the saved entries as they were and saying how many were copied. The log's link is the given one with <code>-N</code> on the end, N the number copied (a link is 8 random characters, "-" and the 22-character host id, so the count is whatever follows those 31 characters); that is the link the game is shared by, so everyone who has it knows where the copied entries end, and every signature in the new game covers it. They keep the links they were signed with and are not checked again; everything after them must be signed for the new link.</ins></dd>
       <dt>Fails</dt><dd><ins>Never.</ins></dd>
     </dl>
   </section>
@@ -92,7 +92,7 @@
     <h2><ins><code>checkLog(log: Log): Problem | null</code></ins></h2>
     <dl>
       <dt>Pre</dt><dd><ins>None. For a log that came from another browser or a file.</ins></dd>
-      <dt>Post</dt><dd><ins><code>null</code> if the log has its link and host, its copied entries are as many as its link says (none unless it ends in <code>.N</code>), and every entry after the copied ones, in order, passes <code>check</code> as it would have when appended, so a host can't slip an exchange from another game in after the copied entries. Otherwise a <code>Problem</code> naming the first action that fails, and why.</ins></dd>
+      <dt>Post</dt><dd><ins><code>null</code> if the log has its link and host, its copied entries are as many as its link says (none unless its 31 characters are followed by <code>-N</code>), and every entry after the copied ones, in order, passes <code>check</code> as it would have when appended, so a host can't slip an exchange from another game in after the copied entries. Otherwise a <code>Problem</code> naming the first action that fails, and why.</ins></dd>
       <dt>Fails</dt><dd><ins>Never.</ins></dd>
     </dl>
   </section>
