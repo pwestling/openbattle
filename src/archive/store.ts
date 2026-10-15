@@ -8,9 +8,16 @@ export const GAMES = "games";
 export const FILES = "files";
 
 let opening: Promise<IDBDatabase> | null = null;
+let askedToPersist = false;
 
 function open(): Promise<IDBDatabase> {
-  opening ??= new Promise<IDBDatabase>((resolve, reject) => {
+  if (opening) return opening;
+  if (!askedToPersist) {
+    // Ask once that the browser not evict kept games under storage pressure. Best effort.
+    askedToPersist = true;
+    navigator.storage?.persist?.().catch(() => {});
+  }
+  opening = new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(NAME, VERSION);
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -30,13 +37,11 @@ function open(): Promise<IDBDatabase> {
       resolve(db);
     };
     request.onerror = () => reject(request.error ?? new Error("this browser refused storage"));
-    request.onblocked = () => reject(new Error("storage is held by an older tab of this game"));
+    // onblocked needs nothing: an older tab closes its connection on versionchange, and then this open succeeds.
   }).catch((error: unknown) => {
     opening = null;
     throw error;
   });
-  // Ask once that the browser not evict kept games under storage pressure. Best effort.
-  navigator.storage?.persist?.().catch(() => {});
   return opening;
 }
 

@@ -61,10 +61,7 @@ async function fingerprintOf(file: Blob): Promise<Fingerprint> {
   return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/**
- * The surface says Blob; it is a promise because the kept mesh files are read from storage.
- * The Blob is a File, so it carries its name. A file this browser never kept is left out.
- */
+/** The Blob is a File, so it carries its name. A file this browser never kept is left out. */
 export async function toFile(link: string, log: Log): Promise<Blob> {
   const files: Packed[] = [];
   for (const fingerprint of filesUsed(log.entries)) {
