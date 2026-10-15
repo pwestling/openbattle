@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T08:46Z">
+<meta name="pdd-derived" content="2026-10-15T08:52Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,13 +13,19 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T08:46Z.</p>
+    <p>Generated 2026-10-15T08:52Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
 <section data-node="surfaces/relay">
   <h2><a href="surfaces/relay.html">Relay surface</a></h2>
   <ul>
     <li>The relay checks each browser's key as it joins (<code>server/relay.ts</code>, <code>proven</code>), where <a href="decisions/ADR-022.html">ADR-022</a> says the relay is unchanged. Built on Porter's card's recommended option while he was away; awaiting his answer.</li>
+  </ul>
+</section>
+<section data-node="surfaces/screen">
+  <h2><a href="surfaces/screen.html">Screen surface</a></h2>
+  <ul>
+    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted.</li>
   </ul>
 </section>
 <section data-node="surfaces/session">

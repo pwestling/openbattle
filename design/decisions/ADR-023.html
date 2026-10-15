@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-023: Rolling alone — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T08:45Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-023">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-023: Rolling alone</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Best guess made on 2026-10-15 while Porter slept, at his request; easy to reverse. Awaiting Porter.</dd>
+    <dt>Context</dt><dd>Under <a href="ADR-022.html">ADR-022</a>, a roll or a draw from a shuffled deck needs a value signed by a player who is not the host. A host playing alone, setting up before the other player arrives, or whose opponent has dropped out, could then never roll or draw from a shuffled deck.</dd>
+    <dt>Decision</dt><dd>When no other player is connected, the host can still roll or draw from a shuffled deck alone. The host's browser makes both values itself, and the action records that nobody else took part. Everyone, at the time and later in the log and in saved files, sees the roll or draw marked "rolled alone", which is not tamper-evident. With another player connected, the sealed exchange is always used.</dd>
+    <dt>Because</dt><dd>Playing solo, testing a list or setting up a table should not be blocked. Marking the roll keeps it honest: nobody can pass off a roll made alone as a fair one.</dd>
+    <dt>Rejected</dt><dd>Refusing to roll alone: blocks solo play and setup. Letting a spectator provide the other value: a spectator is not in the game, and could be a second browser of the host's own.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/roll.html">Roll</a>, <a href="../concepts/deck.html">Deck</a>, <a href="ADR-008.html">ADR-008</a>, <a href="ADR-022.html">ADR-022</a>, <a href="../surfaces/record.html">Record surface</a>, <a href="../surfaces/session.html">Session surface</a>, <a href="../surfaces/screen.html">Screen surface</a></dd>
+  </dl>
+</article>
+</body>
+</html>
