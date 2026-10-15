@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:20Z">
+<meta name="pdd-derived" content="2026-10-15T06:25Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -81,8 +81,8 @@
   <section id="addFile">
     <h2><code>session.addFile(source: Blob | URL): Promise&lt;Fingerprint&gt;</code></h2>
     <dl>
-      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf or .obj mesh: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
-      <dt>Post</dt><dd>A file is kept with the game and its bytes are sent to every browser in it, including any that join later. A link is downloaded here first, to take its fingerprint, then only the link is sent and each browser downloads it itself, checking the fingerprint. Resolves with the fingerprint, which a place terrain or add to army action can then name.</dd>
+      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf, .obj or .stl mesh: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
+      <dt>Post</dt><dd>A mesh with more than 100,000 triangles is first simplified in this browser to about that many, keeping its outline and height; STL files, which are usually in millimetres, are read as millimetres. A file is kept with the game and its bytes are sent to every browser in it, including any that join later. A link is downloaded here first, to take its fingerprint, then only the link is sent and each browser downloads it itself, checking the fingerprint. If the linked mesh had to be simplified, the simplified bytes are sent instead of the link, since the link would serve the original. Resolves with the fingerprint, which a place terrain or add to army action can then name.</dd>
       <dt>Fails</dt><dd>Rejects if the source is not a readable mesh, is over 512 MB, or the link cannot be downloaded; nothing is sent. If another browser later downloads a link and gets different bytes, it shows that piece as missing and asks the player who added it to send the file itself.</dd>
     </dl>
   </section>
