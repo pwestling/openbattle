@@ -127,7 +127,7 @@
     <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck. <ins>Only one the other player signed: one taken alone has nothing to sign.</ins></p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of the action's link, the kind of action, the dice and sides or the deck and count, the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action. The signature fields, the host's value and the roll's label are left out.</dd>
+      <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of the action's link, the kind of action, the dice and sides or the deck and count, <ins>the roll's label if it has one and where the drawn cards go,</ins> the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action<ins>, and the host can't change what a roll was for or where the cards went</ins>. The signature fields and the host's value are left out.</dd>
       <dt>Fails</dt><dd>Never.</dd>
     </dl>
   </section>
