@@ -6,6 +6,7 @@ import { sha256 } from "./sha256.ts";
 import type { Action, Log, PlayerId, Problem, Size, Table } from "./types.ts";
 
 export type * from "./types.ts";
+export { playerIdOf, signedBytes, type Exchange } from "./keys.ts";
 
 export function newLog(size: Size): Log {
   return { size: { width: size.width, depth: size.depth }, entries: [] };

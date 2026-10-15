@@ -1,6 +1,7 @@
 // Whether an action can be appended: everything it names exists, numbers are finite, no group
 // contains itself, and the player may take it. Game rules are never checked.
 import { latestStanding } from "./fold.ts";
+import { playerIdOf } from "./keys.ts";
 import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Sealed, Shape, Table, Terrain } from "./types.ts";
 
 /** Dice per roll: more would freeze every browser in the game (ADR-020). */
@@ -152,11 +153,29 @@ function deck(table: Table, id: unknown) {
   return table.decks[id as string]!;
 }
 
-function sealed(action: { seal?: unknown; hostValue?: unknown; guestValue?: unknown; guestSignature?: unknown }, what: string) {
+/** The host: the player of the first join not undone. */
+function hostOf(log: Log, table: Table): PlayerId | undefined {
+  const cancelled = new Set(table.cancelled);
+  return log.entries.find((e) => e.action.kind === "join" && !cancelled.has(e.n))?.by;
+}
+
+function sealed(log: Log, table: Table, by: PlayerId, action: Partial<Record<keyof Sealed, unknown>>, what: string) {
   if (!isText(action.seal) || !isText(action.hostValue) || !isText(action.guestValue))
     refuse(`${what} needs the seal and both random values.`);
-  // Whether the signature is right is for Session to check; the record only needs it to be there.
-  if (!isText(action.guestSignature)) refuse(`${what} needs the other player's signature over their value.`);
+  // Who sent the other value (ADR-022): the taker, unless the host takes it; then anyone but the host.
+  if (!isText(action.guestBy) || !table.players[action.guestBy]) refuse(`${what} must name the player who sent the other value.`);
+  const host = hostOf(log, table);
+  if (action.guestBy === host) refuse("The host can't send the other value: it would choose both.");
+  if (by !== host && action.guestBy !== by) refuse(`${what} by a player who is not the host takes their own value.`);
+  // Whether the signature checks is for Session, which shows a failure as tampered; here it must be there.
+  if (!isText(action.guestSignature) || action.guestSignature === "")
+    refuse(`${what} needs the other player's signature over their value.`);
+  // A seal opens once: logging an old exchange again would let the host pick one whose result suits it.
+  for (const entry of log.entries) {
+    const earlier = entry.action as Partial<Sealed>;
+    if ((entry.action.kind === "roll" || entry.action.kind === "draw") && earlier.seal === action.seal)
+      refuse(`This seal was already used, in action ${entry.n}.`);
+  }
 }
 
 function place(table: Table, to: CardPlace) {
@@ -201,6 +220,9 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       text(action.name, "The name");
       text(action.colour, "The colour");
       text(action.publicKey, "The player's public key");
+      if (playerIdOf(action.publicKey) !== by) refuse("A player's id must be worked out from their public key.");
+      for (const other of Object.values(table.players))
+        if (other.publicKey === action.publicKey) refuse(`Player "${other.id}" already joined with this key.`);
       return;
     case "rename":
       text(action.name, "The name");
@@ -306,7 +328,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (!isWhole(action.dice) || action.dice < 1 || action.dice > mostDice) refuse(`A roll is 1 to ${mostDice} dice.`);
       if (!Number.isSafeInteger(action.sides) || action.sides < 2) refuse("A die has a whole number of sides, at least two.");
       if (action.label !== undefined) text(action.label, "The roll's label");
-      sealed(action, "A roll");
+      sealed(log, table, by, action, "A roll");
       return;
     case "add deck": {
       fresh(table, action.deck, "deck");
@@ -335,10 +357,10 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (action.to !== "hand" && action.to !== "table") refuse("Cards are drawn to the hand or the table.");
       const values = action as Partial<Sealed>;
       if (from.order === "ordered") {
-        if (values.seal !== undefined || values.hostValue !== undefined || values.guestValue !== undefined || values.guestSignature !== undefined)
+        if (values.seal !== undefined || values.hostValue !== undefined || values.guestValue !== undefined || values.guestBy !== undefined || values.guestSignature !== undefined)
           refuse("An ordered deck gives its top cards; a draw from it has no random values.");
       } else {
-        sealed(values, "A draw from a shuffled deck");
+        sealed(log, table, by, values, "A draw from a shuffled deck");
       }
       return;
     }

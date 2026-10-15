@@ -13,9 +13,9 @@ const K = new Uint32Array([
 
 const rotr = (x: number, n: number) => (x >>> n) | (x << (32 - n));
 
-/** The SHA-256 of a text's UTF-8 bytes, as eight 32-bit words. */
-export function sha256Words(text: string): Uint32Array {
-  const bytes = new TextEncoder().encode(text);
+/** The SHA-256 of some bytes, or of a text's UTF-8 bytes, as eight 32-bit words. */
+export function sha256Words(input: string | Uint8Array): Uint32Array {
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const blocks = Math.ceil((bytes.length + 9) / 64);
   const padded = new Uint8Array(blocks * 64);
   padded.set(bytes);
@@ -61,7 +61,15 @@ export function sha256Words(text: string): Uint32Array {
   return h;
 }
 
-/** The SHA-256 of a text's UTF-8 bytes, as 64 lowercase hex digits. */
-export function sha256(text: string): string {
-  return Array.from(sha256Words(text), (word) => word.toString(16).padStart(8, "0")).join("");
+/** The SHA-256 of some bytes, or of a text's UTF-8 bytes, as 64 lowercase hex digits. */
+export function sha256(input: string | Uint8Array): string {
+  return Array.from(sha256Words(input), (word) => word.toString(16).padStart(8, "0")).join("");
+}
+
+/** The SHA-256 of some bytes, as 32 bytes. */
+export function sha256Bytes(input: Uint8Array): Uint8Array {
+  const out = new Uint8Array(32);
+  const view = new DataView(out.buffer);
+  sha256Words(input).forEach((word, i) => view.setUint32(i * 4, word));
+  return out;
 }

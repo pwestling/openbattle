@@ -84,7 +84,7 @@ function apply(table: Table, { n, by, action }: Entry) {
       table.players[by] = { id: by, name: action.name, colour: action.colour, publicKey: action.publicKey };
       return;
     case "rename":
-      table.players[by] = { ...table.players[by]!, name: action.name, colour: action.colour };
+      table.players[by] = { publicKey: "", ...table.players[by], id: by, name: action.name, colour: action.colour };
       return;
     case "place terrain":
       table.terrain[action.terrain.id] = copy(action.terrain);

@@ -132,13 +132,15 @@ export interface Deck {
  * Both random values of the sealed exchange (ADR-008). The host commits to hostValue by sending
  * seal = hex SHA-256 of hostValue; the other player then sends guestValue; the host opens the seal.
  * The outcome is derived from both values by the record, the same in every browser.
- * guestSignature is the other player's signature over the seal and guestValue (ADR-022), so the host
- * cannot change guestValue. The record keeps it but never checks it: Session does.
+ * guestBy is the player who sent guestValue, and guestSignature their signature over it with the seal
+ * (ADR-022), so the host cannot change guestValue. The record keeps the signature but never checks it:
+ * Session does, and shows a roll or draw whose signature is wrong or empty as tampered.
  */
 export interface Sealed {
   seal: string;
   hostValue: string;
   guestValue: string;
+  guestBy: PlayerId;
   guestSignature: string;
 }
 

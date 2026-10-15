@@ -148,7 +148,9 @@ test("the same question gets the same answer in the browser and out of it, and a
   expect(there).toEqual(ask(nodeMeasure, many));
 
   let log = nodeRecord.newLog({ width: 44, depth: 30 });
-  log = nodeRecord.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" }, "ann");
+  const annKey = "YW5uJ3Mga2V5";
+  const ann = nodeRecord.playerIdOf(annKey)!;
+  log = nodeRecord.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
   log = nodeRecord.append(
     log,
     {
@@ -160,7 +162,7 @@ test("the same question gets the same answer in the browser and out of it, and a
       ],
       groups: [],
     },
-    "ann",
+    ann,
   );
   const recorded: nodeMeasure.TableShape = nodeRecord.tableAt(log);
   expect(await inBrowser(page, (m, t) => m.distance(t, { model: "x" }, { model: "y" }), recorded)).toEqual({ across: 4.74, up: 0 });
