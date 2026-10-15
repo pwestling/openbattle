@@ -569,43 +569,69 @@ test("the host stays the host when its join is undone, so it can never send the 
 });
 
 test("with nobody else connected the host can roll or draw alone, and everyone sees it was taken alone", async ({ page }) => {
-  const sealed = await sealedWith("host value", "also made by the host");
   // Taken alone (ADR-023): no other player sent a value or signed, so guestBy is null and there is no signature.
-  const { guestSignature: _, ...unsigned } = sealed;
-  const alone = { ...unsigned, guestBy: null };
-  const scenario = (r: RecordModule, start: typeof opening, a: typeof alone, s: typeof sealed) => {
+  const alone = async (hostValue: string, guestValue: string) => {
+    const { guestSignature: _, ...unsigned } = await sealedWith(hostValue, guestValue);
+    return { ...unsigned, guestBy: null };
+  };
+  const values = { roll: await alone("host roll", "also the host's"), draw: await alone("host draw", "the host's too"), fair: await sealedWith("host fair", "Bo's") };
+  const scenario = (r: RecordModule, start: typeof opening, v: typeof values) => {
+    type Taken = Parameters<RecordModule["check"]>[1];
     let log = start(r);
     const cards = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, name: `Card ${i}` }));
     log = r.append(log, { kind: "add deck", deck: "d1", name: "Objectives", owner: null, order: "shuffled", cards, position: { x: 1, y: 1 } }, ann);
-    const problem = (action: Parameters<RecordModule["check"]>[1], by: string) => r.check(log, action, by)?.problem ?? null;
+    log = r.append(log, { kind: "add deck", deck: "d2", name: "Ordered", owner: null, order: "ordered", cards: [{ id: "o1", name: "O" }], position: { x: 2, y: 2 } }, ann);
+    const problem = (action: Taken, by: string) => r.check(log, action, by)?.problem ?? null;
     const refused = {
-      notHost: problem({ kind: "roll", dice: 2, sides: 6, ...a }, bo),
-      signed: problem({ kind: "roll", dice: 2, sides: 6, ...a, guestSignature: "sig" } as unknown as Parameters<RecordModule["check"]>[1], ann),
-      drawNotHost: problem({ kind: "draw", deck: "d1", cards: 1, to: "hand", ...a, seal: "other" }, bo),
+      notHost: problem({ kind: "roll", dice: 2, sides: 6, ...v.roll }, bo),
+      signed: problem({ kind: "roll", dice: 2, sides: 6, ...v.roll, guestSignature: "sig" } as unknown as Taken, ann),
+      emptySignature: problem({ kind: "roll", dice: 2, sides: 6, ...v.roll, guestSignature: "" } as unknown as Taken, ann),
+      nullSignature: problem({ kind: "roll", dice: 2, sides: 6, ...v.roll, guestSignature: null } as unknown as Taken, ann),
+      drawNotHost: problem({ kind: "draw", deck: "d1", cards: 1, to: "hand", ...v.draw }, bo),
+      ordered: problem({ kind: "draw", deck: "d2", cards: 1, to: "hand", guestBy: null } as unknown as Taken, ann),
     };
-    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...a }, ann);
-    log = r.append(log, { kind: "draw", deck: "d1", cards: 1, to: "hand", ...a, seal: "draw seal" }, ann);
-    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...s, seal: "fair seal" }, ann);
+    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...v.roll }, ann);
+    log = r.append(log, { kind: "draw", deck: "d1", cards: 1, to: "hand", ...v.draw }, ann);
+    const afterAlone = {
+      undoDraw: problem({ kind: "undo" }, ann),
+      // A seal opens once, whether it was used alone or with a signature.
+      signedReusesAloneSeal: problem({ kind: "roll", dice: 2, sides: 6, ...v.fair, seal: v.roll.seal }, ann),
+    };
+    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...v.fair }, ann);
+    const aloneReusesSignedSeal = problem({ kind: "roll", dice: 2, sides: 6, ...v.roll, seal: v.fair.seal }, ann);
     const table = r.tableAt(log);
     return {
       refused,
-      rolls: table.rolls.map((roll) => roll.alone),
-      draws: table.draws.map((draw) => draw.alone),
+      afterAlone,
+      aloneReusesSignedSeal,
+      rolls: table.rolls.map((roll) => [roll.alone, roll.tampered]),
+      draws: table.draws.map((draw) => [draw.alone, draw.tampered]),
       logChecks: r.checkLog(log),
     };
   };
   const seen = await page.evaluate(
-    `(() => { ${players} return (${scenario.toString()})(window.record, ${opening.toString()}, ${JSON.stringify(alone)}, ${JSON.stringify(sealed)}); })()`,
+    `(() => { ${players} return (${scenario.toString()})(window.record, ${opening.toString()}, ${JSON.stringify(values)}); })()`,
   );
+  const onlyHost = "Only the host can roll or draw alone, with nobody else taking part.";
+  const noSignature = "A roll taken alone has no signature: nobody else took part.";
   expect(seen).toEqual({
     refused: {
-      notHost: "Only the host can roll or draw alone, with nobody else taking part.",
-      signed: "A roll taken alone has no signature: nobody else took part.",
-      drawNotHost: "Only the host can roll or draw alone, with nobody else taking part.",
+      notHost: onlyHost,
+      signed: noSignature,
+      emptySignature: noSignature,
+      nullSignature: noSignature,
+      drawNotHost: onlyHost,
+      ordered: "An ordered deck gives its top cards; a draw from it has no random values.",
     },
-    rolls: [true, false],
-    draws: [true],
+    afterAlone: {
+      undoDraw: "A draw from a shuffled deck can't be undone, or it could be drawn again until it suited.",
+      signedReusesAloneSeal: "This seal was already used, in action 7.",
+    },
+    aloneReusesSignedSeal: "This seal was already used, in action 9.",
+    // Each is marked alone or not, and none is tampered: every seal opens.
+    rolls: [[true, false], [false, false]],
+    draws: [[true, false]],
     logChecks: null,
   });
-  expect(scenario(nodeRecord, opening, alone, sealed)).toEqual(seen);
+  expect(scenario(nodeRecord, opening, values)).toEqual(seen);
 });

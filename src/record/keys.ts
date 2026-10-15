@@ -49,7 +49,7 @@ export function playerIdOf(publicKey: string): PlayerId | null {
  * {"dice":2,"guestValue":"…","kind":"roll","link":"…","seal":"…","sides":6} for a roll, and
  * {"cards":1,"deck":"…","guestValue":"…","kind":"draw","link":"…","seal":"…"} for a draw.
  */
-export function guestStatement(action: RollAction | ShuffledDrawAction): string {
+export function guestStatement(action: (RollAction | ShuffledDrawAction) & { guestBy: PlayerId }): string {
   const link = action.link;
   const fields =
     action.kind === "roll"
