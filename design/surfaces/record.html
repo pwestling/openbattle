@@ -56,8 +56,17 @@
     <h2><code>newLog(size: { width, depth }<ins>, link: string, host: PlayerId</ins>): Log</code></h2>
     <dl>
       <dt>Pre</dt><dd>Width and depth are positive inches. <ins><code>link</code> is the game's link and <code>host</code> the id of the host's browser.</ins></dd>
-      <dt>Post</dt><dd>An empty <a href="../concepts/log.html">log</a> whose <a href="../concepts/table.html">table</a> is that size and bare<ins>, for that game and host. Opening a saved file starts a new game: its entries go into a log with a new link and this browser as host, keep the links they were signed with, and are not checked again.</ins></dd>
+      <dt>Post</dt><dd>An empty <a href="../concepts/log.html">log</a> whose <a href="../concepts/table.html">table</a> is that size and bare<ins>, for that game and host, with no entries copied from a saved file.</ins></dd>
       <dt>Fails</dt><dd>Never, for valid sizes.</dd>
+    </dl>
+  </section>
+
+  <section id="reopen">
+    <h2><ins><code>reopen(saved: Log, link: string, host: PlayerId): Log</code></ins></h2>
+    <dl>
+      <dt>Pre</dt><dd><ins>None.</ins></dd>
+      <dt>Post</dt><dd><ins>Opening a saved file starts a new game: a log with the new link and host, holding the saved entries as they were and saying how many were copied. They keep the links they were signed with and are not checked again; everything after them must be signed for the new link.</ins></dd>
+      <dt>Fails</dt><dd><ins>Never.</ins></dd>
     </dl>
   </section>
 
@@ -76,6 +85,15 @@
       <dt>Pre</dt><dd><code>check</code> returns <code>null</code>.</dd>
       <dt>Post</dt><dd>A new log, one longer, with the action numbered next. The old log is unchanged.</dd>
       <dt>Fails</dt><dd>Throws if <code>check</code> would have returned a problem.</dd>
+    </dl>
+  </section>
+
+  <section id="checkLog">
+    <h2><ins><code>checkLog(log: Log): Problem | null</code></ins></h2>
+    <dl>
+      <dt>Pre</dt><dd><ins>None. For a log that came from another browser or a file.</ins></dd>
+      <dt>Post</dt><dd><ins><code>null</code> if the log has its link and host and every entry after the copied ones, in order, passes <code>check</code> as it would have when appended, so a host can't slip an exchange from another game in after the copied entries. Otherwise a <code>Problem</code> naming the first action that fails, and why.</ins></dd>
+      <dt>Fails</dt><dd><ins>Never.</ins></dd>
     </dl>
   </section>
 
