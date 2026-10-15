@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Record — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<meta name="pdd-derived" content="2026-10-15T07:55Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws.</dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -42,10 +42,10 @@
         <tr><td>phase</td><td>Sets the round, whose turn it is, and the <a href="../concepts/phase.html">phase</a> name.</td></tr>
         <tr><td>counter</td><td>Sets a <a href="../concepts/counter.html">counter</a> on a target to a number, or clears it.</td></tr>
         <tr><td>mark</td><td>Turns a <a href="../concepts/mark.html">mark</a> on or off for a target.</td></tr>
-        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, both random values, and the result.</td></tr>
+        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice and both random values. The record works out the result from the two values, the same in every browser.</td></tr>
         <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
         <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
-        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, both random values and which cards they picked.</td></tr>
+        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, both random values, from which the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is.</td></tr>
         <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
         <tr><td>undo</td><td>Cancels the latest uncancelled action.</td></tr>
       </tbody>
@@ -65,7 +65,7 @@
     <h2><code>check(log: Log, action: Action, by: PlayerId): Problem | null</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves). Otherwise a <code>Problem</code> saying why, in plain words.</dd>
+      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves); a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
       <dt>Fails</dt><dd>Never; problems are returned. Game rules are never checked.</dd>
     </dl>
   </section>
