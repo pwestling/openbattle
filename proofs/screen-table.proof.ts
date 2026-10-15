@@ -113,9 +113,24 @@ test("carried models turn with Q and E, and Escape puts them back", async ({ pag
   await page.mouse.up();
   await expect.poll(async () => Math.abs((await centre(labels(page, "Captain"))).x - before.x)).toBeLessThan(3);
   // A move made after it is the next entry, so the cancelled carry sent nothing.
+  const was = (await lastAction(page)).moves[0].position.x;
   await drag(page, before, [{ dx: -100, dy: 0 }]);
-  await expect(log(page)).toHaveCount(5);
-  await expect(log(page).last()).toContainText("Ana moved Captain");
+  await expect.poll(async () => (await lastAction(page)).moves?.[0].position.x).toBeLessThan(was - 1);
+  expect(await log(page).count()).toBe(5);
+
+  // Letting go of the left button while the right is still held sets the model down there.
+  const from = await centre(labels(page, "Captain"));
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x, from.y + 100, { steps: 8 });
+  await page.mouse.down({ button: "right" });
+  await page.mouse.up();
+  await page.mouse.move(from.x + 150, from.y + 100, { steps: 8 });
+  await page.mouse.up({ button: "right" });
+  await expect(log(page)).toHaveCount(6);
+  await drawn(page);
+  const set = await centre(labels(page, "Captain"));
+  expect(Math.abs(set.x - from.x)).toBeLessThan(3);
 });
 
 // Picking up: Shift-click adds a model to the selection, or takes it out.
@@ -241,7 +256,9 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   // Selecting is private too. The next move is the next entry, so none of the above sent anything.
   await page.mouse.click(back.x, back.y);
   await expect(page.locator(".label.selected")).toHaveCount(1);
+  const was = (await lastAction(page)).moves[0].position.y;
   await drag(page, back, [{ dx: 0, dy: 60 }]);
-  await expect(log(page)).toHaveCount(4);
-  await expect(log(page).last()).toContainText("Ana moved Captain");
+  await expect.poll(async () => (await lastAction(page)).moves?.[0].position.y).not.toBe(was);
+  // Actions land in order, so anything sent before the move would already be in the log.
+  expect(await log(page).count()).toBe(4);
 });

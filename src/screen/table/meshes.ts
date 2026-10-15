@@ -117,6 +117,8 @@ export function whenMesh(fingerprint: Fingerprint, ready: (mesh: ReadMesh) => vo
 /** A copy of a mesh stretched to a size, centred across and standing on 0, as Measure stretches it. */
 export function fitted(mesh: ReadMesh, size: { width: number; depth: number; height: number }): Object3D {
   const copy = mesh.object.clone(true);
+  // The copy shares its geometry with the file's other pieces, so dropping one piece must not free it.
+  copy.traverse((o) => (o.userData.shared = true));
   const box = new Box3().setFromObject(copy);
   const s = box.getSize(new Vector3());
   const centre = box.getCenter(new Vector3());

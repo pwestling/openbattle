@@ -48,7 +48,7 @@ export function drop(parent: Object3D, object: Object3D) {
   object.traverse((o) => {
     (o.userData.stop as (() => void) | undefined)?.();
     if (o instanceof CSS2DObject) o.element.remove();
-    if (o instanceof Mesh || o instanceof Line) {
+    if ((o instanceof Mesh || o instanceof Line) && !o.userData.shared) {
       o.geometry.dispose();
       for (const m of [o.material].flat()) {
         (m as { map?: { dispose(): void } }).map?.dispose();

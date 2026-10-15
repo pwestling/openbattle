@@ -133,6 +133,34 @@ test("a model carried onto a roof lands where the pointer is, seen at a slant", 
   expect(Math.abs(move.position.y - 22)).toBeLessThan(3);
 });
 
+// Picking up: a unit carried with the pointer on the table beside a box puts the models over the
+// box on its roof, the highest floor under them.
+test("models of a unit carried beside terrain land on the floors under them", async ({ page }) => {
+  await newGame(page);
+  await page.getByRole("tab", { name: "Terrain" }).click();
+  await page.getByRole("button", { name: "Add terrain" }).click();
+  await page.getByRole("tab", { name: "Army" }).click();
+  await addArmy(page, "5x Scouts 25mm");
+  await lookDown(page);
+  const first = await centre(labels(page, "Scouts").nth(0));
+  const second = await centre(labels(page, "Scouts").nth(1));
+  // Scouts stand 25 mm plus 0.6 inches apart, in a row.
+  const perInch = Math.hypot(second.x - first.x, second.y - first.y) / (25 / 25.4 + 0.6);
+  await page.mouse.click(first.x, first.y);
+  await page.mouse.click(first.x, first.y);
+  await expect(page.locator(".label.selected")).toHaveCount(5);
+  // The 6-inch box is at the table's middle; the first scout goes 3.5 inches left of its centre.
+  const box = await centre(labels(page, "Box"));
+  await page.mouse.move(first.x, first.y);
+  await page.mouse.down();
+  await page.mouse.move(box.x - 3.5 * perInch, box.y, { steps: 10 });
+  await page.mouse.up();
+  await expect(log(page).last()).toContainText("Ana moved Scouts");
+  const moves = await page.evaluate(() => (window as any).openbattleFake.log().entries.at(-1).action.moves);
+  const onRoof = moves.filter((m: any) => m.floor !== null).length;
+  expect(onRoof).toBe(4);
+});
+
 // Terrain panel: load a 3D mesh file; its floors come from the mesh, and it can be resized.
 test("a mesh file becomes terrain with floors from its shape", async ({ page }) => {
   await newGame(page);

@@ -153,7 +153,9 @@ export class Gestures {
     this.readOnly = readOnly;
     this.colour = colour;
     for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
-    if (readOnly && this.carry) this.cancelCarry();
+    // Read-only now, or something carried was taken off the table by someone else: put it all back.
+    if (this.carry && (readOnly || this.carry.ids.some((id) => !(table.models[id] && !table.models[id].aside) && !table.terrain[id])))
+      this.cancelCarry();
     this.lastMove = lastMove.flatMap((id) => {
       const m = table.models[id];
       if (!m || m.aside || m.path.length < 2) return [];
@@ -290,6 +292,7 @@ export class Gestures {
       this.redraw();
       return;
     }
+    if (this.carry && !(e.buttons & 1)) return void this.setDown(); // Left let go while the right is held.
     if (this.carry) return this.carryTo(e);
     if (this.cardCarry) return this.carryCard(e);
     const press = this.press;
@@ -315,10 +318,14 @@ export class Gestures {
       this.orbit = null;
       return;
     }
+    // Letting go of the left button sets down what is carried, even if the right is let go last.
+    if (this.carry && !(e.buttons & 1)) {
+      this.press = null;
+      return void this.setDown();
+    }
     if (e.button !== 0) return;
     const press = this.press;
     this.press = null;
-    if (this.carry) return void this.setDown();
     if (this.cardCarry) return void this.setCardDown(e);
     if (this.box && press) return this.finishBox(press, e);
     if (!press || !this.table) return;
@@ -393,7 +400,9 @@ export class Gestures {
   private lift(press: { x: number; y: number }, thing: Thing) {
     const table = this.table!;
     const piece = thing.kind === "terrain" ? table.terrain[thing.id] : undefined;
-    const surface = this.surfaceAt({ clientX: press.x, clientY: press.y }, piece?.id);
+    const at = { clientX: press.x, clientY: press.y };
+    const ground = this.pointAt(at);
+    const surface = piece ? ground && { point: ground, floor: null, h: 0 } : this.surfaceAt(at);
     if (!surface) return;
     const grab = surface.point;
     const ids = piece ? [piece.id] : [...this.selected].filter((id) => table.models[id] && !table.models[id].aside);
@@ -422,7 +431,9 @@ export class Gestures {
   private carryTo(e: { clientX: number; clientY: number }) {
     const c = this.carry;
     if (!c) return;
-    const surface = this.surfaceAt(e, c.terrain ? c.ids[0] : undefined);
+    // Terrain is carried along the table itself; models onto the floor under the pointer.
+    const ground = c.terrain ? this.pointAt(e) : null;
+    const surface = c.terrain ? ground && { point: ground, floor: null, h: 0 } : this.surfaceAt(e);
     if (surface) {
       if (!sameFloor(surface.floor, c.aimFloor)) c.floorStep = 0;
       c.grab = surface.point;
@@ -436,12 +447,15 @@ export class Gestures {
     const c = this.carry!;
     if (c.terrain) return { under: [null], base: 0 };
     const under = floorsUnder(this.table!, position);
+    // On the floor the pointer is on if it is under this model; otherwise the highest one there.
     return {
       under,
-      base: Math.max(
-        0,
-        under.findIndex((f) => sameFloor(f, c.aimFloor)),
-      ),
+      base: c.aimFloor
+        ? Math.max(
+            0,
+            under.findIndex((f) => sameFloor(f, c.aimFloor)),
+          )
+        : 0,
     };
   }
 
@@ -514,6 +528,7 @@ export class Gestures {
   private async setDown() {
     const c = this.carry;
     this.carry = null;
+    this.press = null;
     if (!c?.moved) return this.cancelCarry();
     const piece = c.terrain ? this.table?.terrain[c.ids[0]!] : undefined;
     if (c.terrain && !piece) return this.cancelCarry(); // Removed while carried.
