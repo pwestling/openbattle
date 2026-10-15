@@ -330,9 +330,10 @@ class Connection implements Link {
    * Runs one step after the peer's earlier ones. A failed handshake step surfaces as a failed connection;
    * a peer that breaks the proof or message protocol is dropped.
    */
-  private step(peer: Peer, run: () => Promise<void> | void, drop = false) {
+  private step(peer: Peer, run: () => Promise<void> | void, dropFrom?: BrowserId) {
     peer.steps = peer.steps.then(run).catch(() => {
-      if (drop) peer.pc.close();
+      // Closing locally fires no close event, so let lost() forget the connection and retry.
+      if (dropFrom !== undefined) this.lost(dropFrom, peer);
     });
   }
 
@@ -347,7 +348,7 @@ class Connection implements Link {
     channel.onbufferedamountlow = () => this.pump(peer);
     channel.onmessage = (e) => {
       const chunk = new Uint8Array(e.data as ArrayBuffer);
-      this.step(peer, () => this.receive(browser, peer, chunk), true);
+      this.step(peer, () => this.receive(browser, peer, chunk), browser);
     };
   }
 
@@ -402,7 +403,9 @@ class Connection implements Link {
     this.trying.delete(browser);
     this.dials.delete(browser);
     const old = this.peers.get(browser);
-    if (old && old.tab === peer.tab && old.channel?.readyState === "open") return peer.pc.close();
+    // A blip can leave a dead connection still saying "open", so only a connected one is kept.
+    const working = old?.channel?.readyState === "open" && old.pc.connectionState === "connected";
+    if (old && old.tab === peer.tab && working) return peer.pc.close();
     this.peers.set(browser, peer);
     if (old) {
       old.pc.close();

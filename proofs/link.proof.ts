@@ -167,6 +167,53 @@ test("losing the relay for a moment loses no messages and drops no connection", 
   expect(await connected(alice)).toEqual([b]);
 });
 
+test("after a lost connection, the dialing browser keeps trying until it is back", async ({ browser }) => {
+  const g = game("redial");
+  const alice = await player(browser);
+  const a = await join(alice, g);
+  // Bob's page keeps every peer connection, so the proof can cut them, and can refuse new ones for a while.
+  const wrap = (page: Page) =>
+    page.addInitScript(() => {
+      const w = window as any;
+      w.pcs = [];
+      w.refuse = 0;
+      const Real = RTCPeerConnection;
+      w.RTCPeerConnection = class extends Real {
+        constructor(config?: RTCConfiguration) {
+          super(config);
+          w.pcs.push(this);
+          this.addEventListener("datachannel", () => {
+            if (w.refuse > 0) {
+              w.refuse--;
+              setTimeout(() => this.close(), 0);
+            }
+          });
+        }
+      };
+    });
+  // Bob's id sorts after alice's, so alice is the one who dials.
+  let bob: Page;
+  do bob = await player(browser, wrap);
+  while ((await thisBrowserOf(bob)) <= a);
+  const b = await join(bob, g);
+  await expect.poll(() => connected(alice)).toEqual([b]);
+
+  // Cut the connection, and refuse alice's next two attempts.
+  await bob.evaluate(() => {
+    const w = window as any;
+    w.refuse = 2;
+    for (const pc of w.pcs) pc.close();
+  });
+  await expect.poll(() => connected(alice)).toEqual([]);
+  await expect.poll(() => bob.evaluate(() => (window as any).refuse), { timeout: 10_000 }).toBe(0);
+
+  // The third try gets through.
+  await expect.poll(() => connected(alice), { timeout: 15_000 }).toEqual([b]);
+  await expect.poll(() => connected(bob)).toEqual([a]);
+  await send(alice, "back again");
+  await expect.poll(() => received(bob)).toEqual([{ from: a, message: "back again" }]);
+});
+
 test("closing a link disconnects it from everyone, and the relay forgets it", async ({ browser }) => {
   const g = game("close");
   const alice = await player(browser);
