@@ -82,12 +82,14 @@ export async function fromFile(file: Blob): Promise<{ link: string; log: Log }> 
 }
 
 /** Every mesh and card picture the log names, each once, in the order they first appear. */
+// Reads defensively: a log from a file is only checked down to its kinds, and toFile never fails.
 function filesUsed(entries: Entry[]): Fingerprint[] {
   const used = new Set<Fingerprint>();
+  const add = (f: unknown) => typeof f === "string" && used.add(f);
   for (const { action } of entries) {
-    if (action.kind === "place terrain" && action.terrain.shape.kind === "mesh") used.add(action.terrain.shape.mesh);
-    if (action.kind === "add to army") for (const m of action.models) if (m.mesh) used.add(m.mesh);
-    if (action.kind === "add deck") for (const c of action.cards) if (c.picture) used.add(c.picture);
+    if (action.kind === "place terrain" && action.terrain?.shape?.kind === "mesh") add(action.terrain.shape.mesh);
+    if (action.kind === "add to army" && Array.isArray(action.models)) for (const m of action.models) add(m?.mesh);
+    if (action.kind === "add deck" && Array.isArray(action.cards)) for (const c of action.cards) add(c?.picture);
   }
   return [...used];
 }

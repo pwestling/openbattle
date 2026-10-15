@@ -109,20 +109,30 @@ test("a kept file is found by the SHA-256 of its bytes after the tab closes", as
 
 test("the same bytes kept twice, even for two games, are stored once", async ({ page }) => {
   await openArchive(page);
+  // The browser's usage figure can lag a write, so read it only once it has settled.
   const grew = await page.evaluate(`(async () => {
     const pattern = ${pattern};
     const used = async () => (await navigator.storage.estimate()).usage ?? 0;
-    const start = await used();
+    const settled = async () => {
+      let last = await used();
+      for (let i = 0; i < 50; i++) {
+        await new Promise((r) => setTimeout(r, 200));
+        const now = await used();
+        if (now === last) return now;
+        last = now;
+      }
+      return last;
+    };
+    const start = await settled();
     const a = await window.archive.keepFile("game-e", new Blob([pattern(20000000, 3)]));
-    const once = await used();
     const b = await window.archive.keepFile("game-f", new Blob([pattern(20000000, 3)]));
-    const twice = await used();
-    return { same: a === b, first: once - start, second: twice - once };
+    return { same: a === b, growth: (await settled()) - start };
   })()`);
   expect(grew).toMatchObject({ same: true });
-  const { first, second } = grew as { first: number; second: number };
-  expect(first).toBeGreaterThan(20000000);
-  expect(second).toBeLessThan(1000000);
+  // Once is 20 MB and a bit; twice would be over 40 MB.
+  const { growth } = grew as { growth: number };
+  expect(growth).toBeGreaterThan(20000000);
+  expect(growth).toBeLessThan(30000000);
 });
 
 test("when the browser refuses storage, keeping a file rejects", async ({ page }) => {
@@ -267,6 +277,23 @@ test("opening a file that is not a saved game, is cut short, or came from a newe
   const spoiled = [...saved.bytes];
   spoiled[spoiled.length - 1] = (spoiled[spoiled.length - 1]! + 1) % 256;
   expect(await attempt(spoiled)).toMatch(/damaged/);
+});
+
+test("a saved file whose log holds entries that are not actions is refused", async ({ page }) => {
+  await openArchive(page);
+  const opened = await page.evaluate(async () => {
+    const header = new TextEncoder().encode(
+      JSON.stringify({ version: 1, link: "game-i", log: { size: { width: 6, depth: 4 }, entries: [{ n: 1 }] }, files: [] }),
+    );
+    const length = new Uint8Array(4);
+    new DataView(length.buffer).setUint32(0, header.length);
+    const file = new Blob([new TextEncoder().encode("OpenBattle game\n"), length, header]);
+    return window.archive.fromFile(file).then(
+      () => "opened",
+      (error: Error) => error.message,
+    );
+  });
+  expect(opened).toMatch(/damaged/);
 });
 
 declare global {
