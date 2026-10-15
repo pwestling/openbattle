@@ -65,6 +65,11 @@ Object.assign(window, {
 });
 
 const randomId = () => crypto.randomUUID().replaceAll("-", "").slice(0, 10);
+/** As Session makes them: 8 random base64url characters, "-", then the host's browser id. */
+const gameId = (host: string) => {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return `${btoa(String.fromCharCode(...bytes)).replaceAll("+", "-").replaceAll("/", "_")}-${host}`;
+};
 const randomValue = () => crypto.randomUUID().replaceAll("-", "");
 
 class FakeSession implements Session {
@@ -182,7 +187,7 @@ class FakeSession implements Session {
 /** A new game; from a saved log, it starts from that log with this browser in its first player's seat. */
 export async function fakeOpen(size: Size, me: Me, from?: Log): Promise<Session> {
   if (knobs.unreachable) throw new Error("The relay cannot be reached.");
-  const link = `${location.origin}/?game=${randomId()}`;
+  const link = `${location.origin}/?game=${gameId(randomId())}`;
   if (from) {
     const first = from.entries.find((e) => e.action.kind === "join")?.by;
     if (!first) throw new Error("That saved game has no players.");
