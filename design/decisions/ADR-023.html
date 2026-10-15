@@ -15,7 +15,7 @@
     <h1>ADR-023: Rolling alone</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Best guess made on 2026-10-15 while Porter slept, at his request; easy to reverse. Awaiting Porter.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Best guess made on 2026-10-15 while Porter slept, at his request. Accepted by Porter on 2026-10-15.</dd>
     <dt>Context</dt><dd>Under <a href="ADR-022.html">ADR-022</a>, a roll or a draw from a shuffled deck needs a value signed by a player who is not the host. A host playing alone, setting up before the other player arrives, or whose opponent has dropped out, could then never roll or draw from a shuffled deck.</dd>
     <dt>Decision</dt><dd>When no other player is connected, the host can still roll or draw from a shuffled deck alone. The host's browser makes both values itself, and the action records that nobody else took part. Everyone, at the time and later in the log and in saved files, sees the roll or draw marked "rolled alone", which is not tamper-evident. With another player connected, the sealed exchange is always used.</dd>
     <dt>Kept fair by Session</dt><dd>The log does not say who was connected, so the record cannot stop a host going alone while an opponent is there. Session keeps it fair in three ways: the host's browser goes alone only when no other player is connected; a player's browser flags any roll or draw taken alone that arrives while it is connected; and a player who signed a value that the host never logged is told so, since a host could otherwise ask for values until it liked one.</dd>
