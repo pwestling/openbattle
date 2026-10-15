@@ -48,6 +48,13 @@
       rogue.log = append(rogue.log, { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
       rogue.link.send({ t: "log", log: rogue.log });
     },
+    /** Rolls alone without sending the entry to anyone, then logs and sends a phase change. */
+    async rollAloneUnsent() {
+      const hostValue = random();
+      rogue.log = append(rogue.log, { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+      rogue.add({ kind: "phase", phase: { round: 1, turn: null, name: "Shoot" } }, rogue.log.host);
+      rogue.link.onMessage((m, from) => m.t === "resync" && rogue.link.send({ t: "log", log: rogue.log }, from));
+    },
     /** Answers a player's resync with a log whose entry n is rewritten as a roll made alone. */
     async rewriteOnResync(n) {
       const hostValue = random();

@@ -234,8 +234,23 @@ test("a host can't slip a roll past a player in a whole log, or rewrite one", as
 
   // Asked to resync, the host sends a log with an entry rewritten: Ben keeps his own and still disagrees.
   await rogue.evaluate((n) => (window as any).rogue.rewriteOnResync(n), before);
-  await ben.evaluate(() => { void (window as any).proof.session.resync(); });
-  await ben.waitForTimeout(500);
+  const resync = await ben.evaluate(() => (window as any).proof.session.resync().then(() => "agreed", (e: Error) => e.message));
+  expect(resync).toMatch(/changes entries/);
   expect((await now(ben)).disagreement).toBe(true);
   expect((await now(ben)).log.entries.length).toBe(before);
+});
+
+test("a roll the host took alone and held back is still flagged when the player resyncs", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+  const n = (await now(ben)).log.entries.length + 1;
+
+  await rogue.evaluate(() => (window as any).rogue.rollAloneUnsent());
+  await expect.poll(async () => (await now(ben)).disagreement).toBe(true);
+  await ben.evaluate(() => (window as any).proof.session.resync());
+  expect((await now(ben)).disagreement).toBe(false);
+  expect(await rolls(ben)).toEqual([true]);
+  expect(await fairness(ben)).toEqual({ aloneWhileHere: [n], unusedValues: [] });
 });

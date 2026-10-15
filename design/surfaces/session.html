@@ -83,8 +83,8 @@
     <h2><code>session.resync(): Promise&lt;void&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>The snapshot says this browser disagrees with the host.</dd>
-      <dt>Post</dt><dd>This browser's log is replaced by the host's, and the snapshot agrees again.</dd>
-      <dt>Fails</dt><dd>Rejects if the host is away; nothing changes.</dd>
+      <dt>Post</dt><dd>This browser's log is <del>replaced by</del> <ins>brought up to</ins> the host's, and the snapshot agrees again.</dd>
+      <dt>Fails</dt><dd>Rejects if the host is away<ins>, or if the host's log changes entries this browser already has, which stays shown as a disagreement</ins>; nothing changes.</dd>
     </dl>
   </section>
 

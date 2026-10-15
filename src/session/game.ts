@@ -280,16 +280,21 @@ export class Game {
   async resync(): Promise<void> {
     if (this.hosting) return;
     this.hostHere();
-    await new Promise<void>((resolve) => {
-      const stop = this.watch((now) => {
-        if (!now.disagreement) {
-          queueMicrotask(stop);
-          resolve();
-        }
-      });
+    await new Promise<void>((resolve, reject) => {
+      this.resyncing?.reject(new Error("Another resync took its place."));
+      this.resyncing = { resolve: () => resolve(), reject };
       this.expecting = "resync";
       this.toHost({ t: "resync" });
     });
+  }
+
+  private resyncing: Waiting | null = null;
+
+  private resynced(problem?: string) {
+    const r = this.resyncing;
+    this.resyncing = null;
+    if (problem) r?.reject(new Error(problem));
+    else r?.resolve(0);
   }
 
   async addFile(source: Blob | URL): Promise<Fingerprint> {
@@ -456,18 +461,26 @@ export class Game {
         // The host may add to the log this browser has, never change it.
         if (log?.link !== this.log.link || log.host !== this.log.host || checkLog(log) || !extendsLog(log, this.log)) {
           this.disagreement = true;
+          if (asked === "resync") this.resynced("The host's log changes entries this browser already has.");
           return this.changed();
         }
         const had = this.log.entries.length;
         this.log = log;
-        for (const e of log.entries.slice(had)) if (isSealed(e.action)) this.matchGiven(e.action);
+        for (const e of log.entries.slice(had)) {
+          if (!isSealed(e.action)) continue;
+          // Resyncing, this player was connected all along, so an alone roll among the new entries was taken while here.
+          if (asked === "resync") this.flagAlone(e.n, e.action);
+          this.matchGiven(e.action);
+        }
         // Caught up after reconnecting: a value given before, and still not in the log, was never used.
         if (asked === "hello") this.unused(() => true);
         this.caughtUp = true;
         this.disagreement = false;
         this.becomeJoined();
         void this.checkSignatures();
-        return this.changed();
+        this.changed();
+        if (asked === "resync") this.resynced();
+        return;
       }
       case "entry": {
         const { entry } = m;
@@ -478,7 +491,7 @@ export class Game {
         }
         this.log = append(this.log, entry.action, entry.by);
         if (isSealed(entry.action)) {
-          if (entry.action.guestBy === null && this.me !== "watch" && tableAt(this.log).players[this.me]) this.aloneWhileHere.push(entry.n);
+          this.flagAlone(entry.n, entry.action);
           this.matchGiven(entry.action);
         }
         if (fingerprint(tableAt(this.log)) !== m.fingerprint) this.disagreement = true;
@@ -520,6 +533,11 @@ export class Game {
     const guestSignature = await this.link.sign(guestStatement({ ...action, guestBy: this.me }));
     this.given.push({ id, ask, seal });
     this.toHost({ t: "guest", id, guestValue, guestSignature });
+  }
+
+  /** A roll or draw the host took alone, arriving while this player is connected (ADR-023). */
+  private flagAlone(n: number, a: RollAction | ShuffledDrawAction) {
+    if (a.guestBy === null && this.me !== "watch" && tableAt(this.log).players[this.me]) this.aloneWhileHere.push(n);
   }
 
   /**
@@ -570,6 +588,7 @@ export class Game {
     if (!this.hosting && !connected.includes(this.log.host)) {
       for (const w of this.waiting.values()) w.reject(new Error("The host went away before answering."));
       this.waiting.clear();
+      this.resynced("The host went away before answering.");
     }
     if (this.hosting)
       for (const [id, p] of this.pending)
