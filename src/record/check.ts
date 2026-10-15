@@ -157,7 +157,7 @@ function sealed(log: Log, table: Table, by: PlayerId, action: Partial<Record<key
   if (!isText(action.seal) || !isText(action.hostValue) || !isText(action.guestValue))
     refuse(`${what} needs the seal and both random values.`);
   // Signed for this game (ADR-022): otherwise an exchange from another game could be replayed here.
-  if (action.link !== log.link) refuse(`${what} must be signed for this game's link.`);
+  if (!isText(action.link) || action.link !== log.link) refuse(`${what} must be signed for this game's link.`);
   // Who sent the other value (ADR-022): the taker, unless the host takes it; then anyone but the host.
   if (!isText(action.guestBy) || !table.players[action.guestBy]) refuse(`${what} must name the player who sent the other value.`);
   const host = log.host;

@@ -506,7 +506,7 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   const scenario = (r: RecordModule, start: typeof opening, s: typeof sealed) => {
     // Ann hosted the first game and rolled in it; the saved entries go into a new game Bo hosts.
     const first = r.append(start(r), { kind: "roll", dice: 2, sides: 6, ...s }, ann);
-    const reopened = { size: first.size, link: "Qm7tZ2wB-bo-browser", host: bo, entries: first.entries };
+    const reopened = r.reopen(first, "Qm7tZ2wB-bo-browser", bo);
     const fresh = (seal: string) => ({ ...s, link: reopened.link, seal });
     const problem = (log: Log, action: Parameters<RecordModule["check"]>[1], by: string) => r.check(log, action, by)?.problem ?? null;
     return {
@@ -518,6 +518,13 @@ test("an exchange is signed for one game, and a saved game opened again is a new
       annNowSendsOwn: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, ann),
       oldSeal: problem(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh(s.seal), guestBy: ann }, bo),
       longer: r.append(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, bo),
+      // Anyone given the log later (a spectator, or this game's saved file) checks it again past the copied entries.
+      reopenedChecks: r.checkLog(r.append(reopened, { kind: "roll", dice: 1, sides: 6, ...fresh("new"), guestBy: ann }, bo)),
+      firstChecks: r.checkLog(first),
+      // The host slips in a roll it signed with Ann in the first game, after the copied entries.
+      slipped: r.checkLog({ ...reopened, entries: [...reopened.entries, { n: 6, by: bo, action: { kind: "roll", dice: 1, sides: 6, ...s, seal: "old", guestBy: ann } }] }),
+      outOfOrder: r.checkLog({ ...reopened, entries: [...reopened.entries, { ...first.entries[0]!, n: 9 }] }),
+      noHost: r.checkLog({ ...first, host: undefined } as unknown as Log),
     };
   };
   const seen = (await page.evaluate(
@@ -530,7 +537,12 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   expect(seen.boSendsOwn).toBe("The host can't send the other value: it would choose both.");
   expect(seen.annNowSendsOwn).toBeNull();
   expect(seen.oldSeal).toBe("This seal was already used, in action 5.");
-  expect([seen.longer.link, seen.longer.host, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser", bo, 6]);
+  expect([seen.longer.link, seen.longer.host, seen.longer.copied, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser", bo, 5, 6]);
+  expect(seen.reopenedChecks).toBeNull();
+  expect(seen.firstChecks).toBeNull();
+  expect(seen.slipped).toEqual({ problem: "Action 6: A roll must be signed for this game's link." });
+  expect(seen.outOfOrder).toEqual({ problem: "Action 9 is out of order." });
+  expect(seen.noHost).toEqual({ problem: "A log needs its game's link and host." });
   expect(scenario(nodeRecord, opening, sealed)).toEqual(seen);
 });
 

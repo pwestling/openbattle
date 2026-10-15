@@ -251,6 +251,11 @@ export interface Log {
   link: string;
   /** The host of this game. Opening a saved file starts a new game, with its own link and host. */
   host: PlayerId;
+  /**
+   * How many of the first entries were copied from a saved file. They keep the links they were signed
+   * with and are not checked again; every entry after them was checked in this game, against its link.
+   */
+  copied: number;
   entries: Entry[];
 }
 
