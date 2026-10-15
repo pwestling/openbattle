@@ -5,6 +5,7 @@ import type { Session, Snapshot } from "../session/index.ts";
 import { ArmyPanel } from "./panels/army.tsx";
 import { LogPanel } from "./panels/log.tsx";
 import { PhaseBar } from "./panels/phase.tsx";
+import { TerrainPanel } from "./panels/terrain.tsx";
 import { PlayContext, usePlay, type Play } from "./play.tsx";
 import { tableAt, toFile } from "./stand-ins.ts";
 import { TableCanvas } from "./table/canvas.tsx";
@@ -59,7 +60,7 @@ export function Game({ session }: { session: Session }) {
         </header>
         <Banner now={now} session={session} />
         <aside className="left">
-          <ArmyPanel />
+          <Tabs />
         </aside>
         <aside className="right">
           <LogPanel lookingAt={lookingAt} lookAt={lookAt} />
@@ -73,6 +74,22 @@ export function Game({ session }: { session: Session }) {
         </div>
       </main>
     </PlayContext.Provider>
+  );
+}
+
+function Tabs() {
+  const [tab, setTab] = useState<"Army" | "Terrain">("Army");
+  return (
+    <>
+      <nav className="tabs" role="tablist">
+        {(["Army", "Terrain"] as const).map((t) => (
+          <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
+            {t}
+          </button>
+        ))}
+      </nav>
+      {tab === "Army" ? <ArmyPanel /> : <TerrainPanel />}
+    </>
   );
 }
 

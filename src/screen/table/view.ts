@@ -1,5 +1,5 @@
-// The 3D table, drawn with three.js in inches (ADR-012). The record's x runs along three's x,
-// the record's y along three's z, and height is three's y.
+// The 3D table, drawn with three.js in inches (ADR-012). The record's x is three's x, its height
+// is three's y, and its y is three's -z, so the table is right-handed as three.js and meshes are.
 import {
   AmbientLight,
   CanvasTexture,
@@ -73,21 +73,21 @@ export class TableView {
     this.scene.background = new Color("#1c1f24");
     this.scene.add(new AmbientLight("#ffffff", 1.4));
     const sun = new DirectionalLight("#ffffff", 2.2);
-    sun.position.set(size.width * 0.3, 80, size.depth * 0.2);
+    sun.position.set(size.width * 0.3, 80, -size.depth * 0.2);
     this.scene.add(sun);
 
     const felt = feltTexture();
     felt.repeat.set(size.width / 6, size.depth / 6);
     this.top = new Mesh(new PlaneGeometry(size.width, size.depth), new MeshStandardMaterial({ map: felt, roughness: 1 }));
     this.top.rotation.x = -Math.PI / 2;
-    this.top.position.set(size.width / 2, 0, size.depth / 2);
+    this.top.position.set(size.width / 2, 0, -size.depth / 2);
     this.scene.add(this.top);
     const edge = new Mesh(
       new PlaneGeometry(size.width + 2, size.depth + 2),
       new MeshStandardMaterial({ color: "#4a3626", roughness: 0.9 }),
     );
     edge.rotation.x = -Math.PI / 2;
-    edge.position.set(size.width / 2, -0.02, size.depth / 2);
+    edge.position.set(size.width / 2, -0.02, -size.depth / 2);
     this.scene.add(edge);
     this.scene.add(this.root);
 

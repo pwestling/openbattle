@@ -63,8 +63,15 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
       return `${was} is now ${a.name}`;
     }
     case "place terrain": {
-      const before = log.entries.some((e) => e.n < entry.n && e.action.kind === "place terrain" && e.action.terrain.id === a.terrain.id);
-      return `${who} ${before ? "changed" : "placed"} ${a.terrain.name}`;
+      const earlier = log.entries.findLast(
+        (e) => e.n < entry.n && e.action.kind === "place terrain" && e.action.terrain.id === a.terrain.id,
+      );
+      if (earlier?.action.kind !== "place terrain") return `${who} placed ${a.terrain.name}`;
+      const was = earlier.action.terrain;
+      if (JSON.stringify(was.shape) !== JSON.stringify(a.terrain.shape)) return `${who} resized ${a.terrain.name}`;
+      if (was.facing !== a.terrain.facing && was.position.x === a.terrain.position.x && was.position.y === a.terrain.position.y)
+        return `${who} turned ${a.terrain.name}`;
+      return `${who} moved ${a.terrain.name}`;
     }
     case "remove terrain":
       return `${who} removed ${name(a.terrain)}`;

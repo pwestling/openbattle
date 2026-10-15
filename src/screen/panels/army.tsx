@@ -1,8 +1,9 @@
 // The army panel: each player's units and groups with their counters and marks, and adding to your army.
 import { useState } from "react";
-import type { Action, Group, Model, NewModel, PlayerId, Table, Unit } from "../../record/index.ts";
+import type { Action, Fingerprint, Group, Model, NewModel, PlayerId, Table, Unit } from "../../record/index.ts";
 import { readArmyList, type ListedUnit } from "../army-list.ts";
 import { edgeOf, usePlay } from "../play.tsx";
+import { readMesh } from "../table/meshes.ts";
 import { MM } from "../table/pieces.ts";
 import { Counters } from "./counters.tsx";
 
@@ -123,7 +124,8 @@ function Grouping({ owner }: { owner: PlayerId }) {
 }
 
 function AddToArmy() {
-  const { table, me, act, newId, note } = usePlay();
+  const { table, me, act, newId, note, session } = usePlay();
+  const [meshes, setMeshes] = useState<Record<number, Fingerprint>>({});
   const [text, setText] = useState("");
   const [listed, setListed] = useState<ListedUnit[] | null>(null);
   const [unread, setUnread] = useState<string[]>([]);
@@ -131,11 +133,12 @@ function AddToArmy() {
 
   const add = async () => {
     if (!listed || !me) return;
-    const action = armyAction(table, me, listed, newId);
+    const action = armyAction(table, me, listed, newId, meshes);
     if (await act(action)) {
       setText("");
       setListed(null);
       setUnread([]);
+      setMeshes({});
     } else note("The army was not added.");
   };
 
@@ -174,6 +177,7 @@ function AddToArmy() {
                 <th>Models</th>
                 <th>Base</th>
                 <th>Height</th>
+                <th>Mesh</th>
               </tr>
             </thead>
             <tbody>
@@ -185,6 +189,27 @@ function AddToArmy() {
                     {u.base.width === u.base.depth ? u.base.width : `${u.base.width}×${u.base.depth}`}mm {u.base.shape}
                   </td>
                   <td>{u.height}″</td>
+                  <td>
+                    <label className="file" title="A mesh file for this unit's models">
+                      {meshes[i] ? "✓" : "…"}
+                      <input
+                        type="file"
+                        aria-label={`Mesh for ${u.name}`}
+                        accept=".glb,.gltf,.obj,.stl"
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            await readMesh(file);
+                            const fingerprint = await session.addFile(file);
+                            setMeshes((m) => ({ ...m, [i]: fingerprint }));
+                          } catch (err) {
+                            note(err instanceof Error ? err.message : "That mesh could not be loaded.");
+                          }
+                        }}
+                      />
+                    </label>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -203,7 +228,7 @@ function AddToArmy() {
  * The add to army action for a read list. A line naming one of your units adds models to it.
  * New models stand in rows along your table edge, beside what you already have there.
  */
-function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () => string): Action {
+function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () => string, meshes: Record<number, Fingerprint>): Action {
   const edge = edgeOf(table, me);
   const { width, depth } = table.size;
   const mine = Object.values(table.models).filter((m: Model) => table.units[m.unit]?.owner === me);
@@ -211,7 +236,7 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
   let band = 0;
   const units: { id: string; name: string }[] = [];
   const models: (NewModel & { unit: string })[] = [];
-  for (const u of listed) {
+  for (const [n, u] of listed.entries()) {
     const existing = Object.values(table.units).find((t) => t.owner === me && t.name.toLowerCase() === u.name.toLowerCase());
     const unit = existing?.id ?? newId();
     if (!existing) units.push({ id: unit, name: u.name });
@@ -234,6 +259,7 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
         position: { x: across, y: edge > 0 ? depth - inward : edge < 0 ? inward : depth / 2 - inward },
         facing: edge > 0 ? 180 : 0,
         floor: null,
+        ...(meshes[n] ? { mesh: meshes[n] } : {}),
       });
     }
     x += cols * sx + 1.5;

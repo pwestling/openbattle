@@ -100,3 +100,14 @@ label { display: grid; gap: 4px; }
 .notes { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); z-index: 6; display: grid; gap: 6px; }
 .notes p { margin: 0; background: #4d1e1b; border: 1px solid var(--bad); padding: 6px 12px; border-radius: 8px; }
 .select-box { position: absolute; border: 1px dashed var(--accent); background: rgba(226, 176, 74, 0.12); pointer-events: none; }
+.tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); }
+.terrain { display: grid; gap: 10px; }
+.add-terrain { display: grid; gap: 6px; }
+.size-fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.size-fields input { width: 100%; }
+.piece { border-top: 1px solid var(--line); padding-top: 6px; display: grid; gap: 4px; }
+.piece header { display: flex; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+label.file input[type="file"] { font-size: 12px; }
+.listed label.file { display: inline-flex; gap: 2px; }
+.listed label.file input { width: 80px; }

@@ -29,7 +29,7 @@ export class Guides {
     for (const g of guides) {
       if (g.points.length < 2) continue;
       const line = new Line(
-        new BufferGeometry().setFromPoints(g.points.map((p) => new Vector3(p.x, p.h + 0.08, p.y))),
+        new BufferGeometry().setFromPoints(g.points.map((p) => new Vector3(p.x, p.h + 0.08, -p.y))),
         new LineBasicMaterial({ color: g.colour, depthTest: false, transparent: true }),
       );
       line.renderOrder = 10;
@@ -37,7 +37,7 @@ export class Guides {
       if (g.text) {
         const end = g.points.at(-1)!;
         const tag: CSS2DObject = label(g.text, "label distance");
-        tag.position.set(end.x, end.h + 0.6, end.y);
+        tag.position.set(end.x, end.h + 0.6, -end.y);
         tag.center.set(0.5, 1.6);
         this.group.add(tag);
       }

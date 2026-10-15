@@ -19,7 +19,9 @@ export interface Hooks {
 }
 
 interface Carry {
+  /** The models carried, or the one terrain piece. */
   ids: string[];
+  terrain: boolean;
   starts: Map<string, Place>;
   offsets: Map<string, Point>;
   waypoints: Map<string, Point[]>;
@@ -37,9 +39,10 @@ interface Ruler {
   toPoint: Point;
 }
 
+/** Turns a point clockwise (seen from above) about the origin, as facing turns. */
 const rotate = (p: Point, degrees: number): Point => {
   const r = (degrees * Math.PI) / 180;
-  return { x: p.x * Math.cos(r) - p.y * Math.sin(r), y: p.x * Math.sin(r) + p.y * Math.cos(r) };
+  return { x: p.x * Math.cos(r) + p.y * Math.sin(r), y: -p.x * Math.sin(r) + p.y * Math.cos(r) };
 };
 
 const inside = (p: Point, outline: Point[]) => {
@@ -81,7 +84,7 @@ export class Gestures {
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
   private rulerKey = false;
-  private press: { x: number; y: number; model: string | null; detail: number; shift: boolean } | null = null;
+  private press: { x: number; y: number; model: string | null; terrain: string | null; detail: number; shift: boolean } | null = null;
   private box: HTMLDivElement | null = null;
   private orbit: { button: number; x: number; y: number } | null = null;
   private pointer = new Vector2();
@@ -122,7 +125,7 @@ export class Gestures {
     this.table = table;
     this.readOnly = readOnly;
     this.colour = colour;
-    for (const id of this.selected) if (!table.models[id] || table.models[id].aside) this.selected.delete(id);
+    for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
     if (readOnly && this.carry) this.cancelCarry();
     this.lastMove = lastMove.flatMap((id) => {
       const m = table.models[id];
@@ -151,16 +154,22 @@ export class Gestures {
     this.raycaster.setFromCamera(this.pointer, this.view.camera.camera);
   }
 
-  private modelAt(e: PointerEvent): string | null {
+  /** The model under the pointer, or failing that the terrain piece. */
+  private pieceAt(e: PointerEvent): { model: string } | { terrain: string } | null {
     this.aim(e);
-    const hit = this.raycaster.intersectObjects(this.pieces.modelObjects(), true)[0];
-    return hit ? Pieces.modelOf(hit.object) : null;
+    const hits = this.raycaster.intersectObjects(this.pieces.objects(), true).map((h) => Pieces.pieceOf(h.object));
+    return hits.find((h) => h && "model" in h) ?? hits.find((h) => h) ?? null;
+  }
+
+  private modelAt(e: PointerEvent): string | null {
+    const piece = this.pieceAt(e);
+    return piece && "model" in piece ? piece.model : null;
   }
 
   private pointAt(e: { clientX: number; clientY: number }, height = 0): Point | null {
     this.aim(e);
     const hit = this.raycaster.ray.intersectPlane(new Plane(new Vector3(0, 1, 0), -height), new Vector3());
-    return hit ? { x: hit.x, y: hit.z } : null;
+    return hit ? { x: hit.x, y: -hit.z } : null;
   }
 
   // Pointer.
@@ -173,7 +182,8 @@ export class Gestures {
       return;
     }
     if (e.button !== 0 || !this.table) return;
-    const model = this.modelAt(e);
+    const piece = this.pieceAt(e);
+    const model = piece && "model" in piece ? piece.model : null;
     if (this.rulerKey) {
       const point = this.pointAt(e);
       if (!point) return;
@@ -183,7 +193,14 @@ export class Gestures {
       this.redraw();
       return;
     }
-    this.press = { x: e.clientX, y: e.clientY, model, detail: e.detail, shift: e.shiftKey };
+    this.press = {
+      x: e.clientX,
+      y: e.clientY,
+      model,
+      terrain: piece && "terrain" in piece ? piece.terrain : null,
+      detail: e.detail,
+      shift: e.shiftKey,
+    };
   }
 
   private move(e: PointerEvent) {
@@ -212,7 +229,11 @@ export class Gestures {
       if (!this.selected.has(press.model)) this.selected = new Set([press.model]);
       this.lift(press);
       this.carryTo(e);
-    } else if (!press.model) this.drawBox(press, e);
+    } else if (press.terrain && !this.readOnly) {
+      this.selected = new Set([press.terrain]);
+      this.lift(press);
+      this.carryTo(e);
+    } else if (!press.model && !press.terrain) this.drawBox(press, e);
   }
 
   private up(e: PointerEvent) {
@@ -227,7 +248,8 @@ export class Gestures {
     if (this.box && press) return this.finishBox(press, e);
     if (!press || !this.table) return;
     // A click: select a model, or its whole unit on a second click or a double-click.
-    if (!press.model) this.selected.clear();
+    if (press.terrain && !press.model) this.selected = new Set([press.terrain]);
+    else if (!press.model) this.selected.clear();
     else if (press.shift) {
       if (this.selected.has(press.model)) this.selected.delete(press.model);
       else this.selected.add(press.model);
@@ -275,7 +297,7 @@ export class Gestures {
     this.selected = new Set();
     for (const m of Object.values(this.table.models)) {
       if (m.aside) continue;
-      const v = new Vector3(m.position.x, floorHeight(this.table, m.floor), m.position.y).project(this.view.camera.camera);
+      const v = new Vector3(m.position.x, floorHeight(this.table, m.floor), -m.position.y).project(this.view.camera.camera);
       const sx = rect.left + ((v.x + 1) / 2) * rect.width;
       const sy = rect.top + ((1 - v.y) / 2) * rect.height;
       if (sx >= x0 && sx <= x1 && sy >= y0 && sy <= y1) this.selected.add(m.id);
@@ -289,15 +311,26 @@ export class Gestures {
     const table = this.table!;
     const grab = this.pointAt({ clientX: press.x, clientY: press.y });
     if (!grab) return;
-    const ids = [...this.selected].filter((id) => table.models[id] && !table.models[id].aside);
+    const piece = [...this.selected].map((id) => table.terrain[id]).find((t) => t);
+    const ids = piece ? [piece.id] : [...this.selected].filter((id) => table.models[id] && !table.models[id].aside);
     const starts = new Map<string, Place>();
     const offsets = new Map<string, Point>();
     for (const id of ids) {
-      const m = table.models[id]!;
+      const m = table.models[id] ?? { ...table.terrain[id]!, floor: null };
       starts.set(id, { position: m.position, facing: m.facing, floor: m.floor });
       offsets.set(id, { x: m.position.x - grab.x, y: m.position.y - grab.y });
     }
-    this.carry = { ids, starts, offsets, waypoints: new Map(ids.map((id) => [id, []])), turn: 0, floorStep: 0, grab, moved: false };
+    this.carry = {
+      ids,
+      terrain: !!piece,
+      starts,
+      offsets,
+      waypoints: new Map(ids.map((id) => [id, []])),
+      turn: 0,
+      floorStep: 0,
+      grab,
+      moved: false,
+    };
   }
 
   private carryTo(e: { clientX: number; clientY: number }) {
@@ -316,7 +349,7 @@ export class Gestures {
       const start = c.starts.get(id)!;
       const offset = rotate(c.offsets.get(id)!, c.turn);
       const position = { x: c.grab.x + offset.x, y: c.grab.y + offset.y };
-      const under = floorsUnder(table, position);
+      const under = c.terrain ? [null] : floorsUnder(table, position);
       const floor = under[Math.min(c.floorStep, under.length - 1)] ?? null;
       this.carried.set(id, { position, facing: (((start.facing + c.turn) % 360) + 360) % 360, floor, lift: 0.5 });
     }
@@ -325,6 +358,7 @@ export class Gestures {
 
   private carryGuides(): Guide[] {
     const c = this.carry!;
+    if (c.terrain) return [];
     const table = this.table!;
     return c.ids.map((id) => {
       const start = c.starts.get(id)!;
@@ -369,6 +403,15 @@ export class Gestures {
     const c = this.carry;
     this.carry = null;
     if (!c?.moved) return this.cancelCarry();
+    const piece = c.terrain ? this.table?.terrain[c.ids[0]!] : undefined;
+    if (piece) {
+      const at = this.carried.get(piece.id)!;
+      this.carried.set(piece.id, { ...at, lift: 0 });
+      this.redraw();
+      await this.hooks.act({ kind: "place terrain", terrain: { ...piece, position: at.position, facing: at.facing } });
+      this.carried.delete(piece.id);
+      return this.redraw();
+    }
     const moves = c.ids.map((id) => {
       const at = this.carried.get(id)!;
       this.carried.set(id, { ...at, lift: 0 });

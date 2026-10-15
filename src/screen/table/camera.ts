@@ -28,8 +28,8 @@ export class Camera {
 
   /** Back to your table edge, looking across the table. */
   home() {
-    this.target.set(this.size.width / 2, 0, this.size.depth / 2);
-    this.yaw = this.edge > 0 ? 0 : this.edge < 0 ? Math.PI : Math.PI / 2;
+    this.target.set(this.size.width / 2, 0, -this.size.depth / 2);
+    this.yaw = this.edge < 0 ? 0 : this.edge > 0 ? Math.PI : Math.PI / 2;
     this.pitch = 0.9;
     this.distance = Math.max(this.size.width, this.size.depth) * 1.05;
     this.apply();
@@ -54,7 +54,7 @@ export class Camera {
     const forward = new Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
     this.target.addScaledVector(right, -dx * k).addScaledVector(forward, dy * k);
     this.target.x = MathUtils.clamp(this.target.x, -20, this.size.width + 20);
-    this.target.z = MathUtils.clamp(this.target.z, -20, this.size.depth + 20);
+    this.target.z = MathUtils.clamp(this.target.z, -this.size.depth - 20, 20);
     this.apply();
   }
 
@@ -89,7 +89,7 @@ export class Camera {
 
   private apply() {
     const c = Math.cos(this.pitch);
-    // yaw 0 looks from the far edge (large z) toward the near one.
+    // yaw 0 looks from the near edge (y = 0) across the table.
     this.camera.position.set(
       this.target.x + this.distance * c * Math.sin(this.yaw),
       this.target.y + this.distance * Math.sin(this.pitch),

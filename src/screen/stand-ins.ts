@@ -86,14 +86,17 @@ export const fromFile = (file: Blob): Promise<{ link: string; log: Log }> =>
 export const floors = (mesh: measure.Mesh, size: { width: number; depth: number; height: number }): Floor[] =>
   orFakeNow(
     () => measure.floors(mesh, size),
-    // Stand-in: one floor across the top of a piece whose top is flat, which boxes and cylinders are.
+    // Stand-in: one floor across the whole top, if the top has a flat triangle (boxes and cylinders do).
     () => {
       const p = mesh.positions;
+      const at = (i: number) => (mesh.indices ? mesh.indices[i]! : i);
       let top = -Infinity;
       for (let i = 1; i < p.length; i += 3) top = Math.max(top, p[i]!);
-      let atTop = 0;
-      for (let i = 1; i < p.length; i += 3) if (Math.abs(p[i]! - top) < 1e-4) atTop++;
-      if (atTop < 3) return [];
+      let flat = false;
+      for (let t = 0; t + 2 < (mesh.indices?.length ?? p.length / 3); t += 3) {
+        if ([at(t), at(t + 1), at(t + 2)].every((c) => Math.abs(p[c * 3 + 1]! - top) < 1e-4)) flat = true;
+      }
+      if (!flat) return [];
       const w = size.width / 2;
       const d = size.depth / 2;
       return [
