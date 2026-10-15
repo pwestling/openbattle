@@ -77,7 +77,8 @@ export async function fromFile(file: Blob): Promise<{ link: string; log: Log }> 
   for (const { fingerprint, bytes } of files) {
     if ((await fingerprintOf(bytes)) !== fingerprint) throw new NotAGame("This saved game is damaged.");
   }
-  for (const { fingerprint, bytes } of files) await keep(link, bytes, fingerprint);
+  // Keeping is best effort: where the browser refuses storage the game still opens, and its pieces show as missing.
+  for (const { fingerprint, bytes } of files) await keep(link, bytes, fingerprint).catch(() => {});
   return { link, log };
 }
 

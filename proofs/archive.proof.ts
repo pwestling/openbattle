@@ -279,6 +279,28 @@ test("opening a file that is not a saved game, is cut short, or came from a newe
   expect(await attempt(spoiled)).toMatch(/damaged/);
 });
 
+test("a damaged saved game leaves nothing kept behind", async ({ page, browser }) => {
+  await openArchive(page);
+  const saved = await saveToFile(page);
+  const spoiled = [...saved.bytes];
+  spoiled[spoiled.length - 1] = (spoiled[spoiled.length - 1]! + 1) % 256;
+
+  const elsewhere = await browser.newContext();
+  const other = await elsewhere.newPage();
+  await openArchive(other);
+  const result = await other.evaluate(async ({ bytes, fingerprints }) => {
+    const opened = await window.archive.fromFile(new Blob([new Uint8Array(bytes)])).then(
+      () => "opened",
+      (error: Error) => error.message,
+    );
+    const kept = await Promise.all(fingerprints.map((f) => window.archive.getFile(f)));
+    return { opened, kept: kept.filter(Boolean).length };
+  }, { bytes: spoiled, fingerprints: Object.keys(saved.files) });
+  expect(result.opened).toMatch(/damaged/);
+  expect(result.kept).toBe(0);
+  await elsewhere.close();
+});
+
 test("a saved file whose log holds entries that are not actions is refused", async ({ page }) => {
   await openArchive(page);
   const opened = await page.evaluate(async () => {
@@ -294,6 +316,26 @@ test("a saved file whose log holds entries that are not actions is refused", asy
     );
   });
   expect(opened).toMatch(/damaged/);
+});
+
+test("in a browser that refuses storage, a saved file still opens", async ({ page, browser }) => {
+  await openArchive(page);
+  const saved = await saveToFile(page);
+
+  const elsewhere = await browser.newContext();
+  const other = await elsewhere.newPage();
+  await other.addInitScript(() => {
+    IDBFactory.prototype.open = () => {
+      throw new DOMException("The user denied permission to access the database.", "SecurityError");
+    };
+  });
+  await openArchive(other);
+  const opened = await other.evaluate(
+    (bytes) => window.archive.fromFile(new Blob([new Uint8Array(bytes)])),
+    saved.bytes,
+  );
+  expect(opened).toEqual({ link: "https://openbattle.example/#game-h", log: saved.log });
+  await elsewhere.close();
 });
 
 declare global {
