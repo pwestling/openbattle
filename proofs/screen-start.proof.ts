@@ -44,11 +44,16 @@ test("a broken link goes to the start page with a message", async ({ page }) => 
 test("the banner shows the connection's trouble and offers the host's copy", async ({ page }) => {
   await newGame(page);
   await expect(page.getByRole("status")).toHaveCount(0);
+  await page.getByLabel("Army list").fill("5x Scouts 25mm");
   await page.evaluate(() => (window as any).openbattleFake.setConnection("host away"));
   await expect(page.getByRole("status")).toHaveText("Waiting for the host. The game is paused.");
+  // While the host is away nothing can be changed, and a list being typed is kept for later.
+  await expect(page.getByRole("button", { name: "Next round" })).toBeDisabled();
+  await expect(page.getByLabel("Army list")).toBeHidden();
   await page.evaluate(() => (window as any).openbattleFake.setConnection("connecting"));
   await expect(page.getByRole("status")).toHaveText("Connecting…");
   await page.evaluate(() => (window as any).openbattleFake.setConnection("playing"));
+  await expect(page.getByLabel("Army list")).toHaveValue("5x Scouts 25mm");
   await page.evaluate(() => (window as any).openbattleFake.setDisagreement(true));
   await expect(page.getByRole("status")).toContainText("Your table differs from the host's");
   await page.getByRole("button", { name: "Reload the host's copy" }).click();

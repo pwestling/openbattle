@@ -11,7 +11,12 @@ export function ArmyPanel() {
   const { table, me, readOnly } = usePlay();
   return (
     <section className="army" aria-label="Armies">
-      {me && !readOnly && <AddToArmy />}
+      {/* Hidden rather than removed while read-only, so a list being typed survives a blip. */}
+      {me && (
+        <div hidden={readOnly}>
+          <AddToArmy />
+        </div>
+      )}
       {Object.values(table.players).map((p) => (
         <section key={p.id} className="player" aria-label={`${p.name}'s army`}>
           <h3>

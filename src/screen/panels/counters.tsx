@@ -1,23 +1,21 @@
 // The counters and marks on one target (a player, unit, group, model or the game).
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { Target } from "../../record/index.ts";
-import { usePlay } from "../play.tsx";
+import { useBuildOn, usePlay } from "../play.tsx";
 
 export function Counters({ target }: { target: Target }) {
   const { table, act, readOnly } = usePlay();
   const counters = Object.entries(table.counters[target] ?? {});
   const marks = table.marks[target] ?? [];
   const [adding, setAdding] = useState("");
-  // Clicks made before the last change has come back build on it, rather than on the value shown.
-  const latest = useRef(table.counters[target]);
-  useEffect(() => {
-    latest.current = table.counters[target];
-  }, [table.counters[target]]);
+  const latest = useBuildOn(table.counters[target] ?? {});
   const set = (name: string, value: number | null) => {
-    latest.current = { ...latest.current, ...(value === null ? {} : { [name]: value }) };
-    void act({ kind: "counter", target, name, value });
+    const next = { ...latest.get() };
+    if (value === null) delete next[name];
+    else next[name] = value;
+    latest.send(next, act({ kind: "counter", target, name, value }));
   };
-  const step = (name: string, by: number) => set(name, (latest.current?.[name] ?? 0) + by);
+  const step = (name: string, by: number) => set(name, (latest.get()[name] ?? 0) + by);
   const mark = (name: string, on: boolean) => void act({ kind: "mark", target, name, on });
 
   return (

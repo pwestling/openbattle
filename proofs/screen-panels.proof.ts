@@ -22,10 +22,19 @@ test("counters, marks, setting aside and groups", async ({ page }) => {
   await scouts.getByTitle("Add a counter or mark").click();
   await scouts.getByLabel("Counter or mark name").fill("Wounds");
   await scouts.getByRole("button", { name: "Add counter" }).click();
-  await scouts.getByRole("button", { name: "Raise Wounds" }).click();
-  await scouts.getByRole("button", { name: "Raise Wounds" }).click();
-  await expect(scouts.getByLabel("Wounds counter")).toContainText("2");
-  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana set Scouts’ Wounds to 2");
+  // Quick clicks build on each other, even over a slow connection while someone else's change
+  // arrives between them.
+  await page.evaluate(() => (window as any).openbattleFake.setDelay(400));
+  const raise = scouts.getByRole("button", { name: "Raise Wounds" });
+  await raise.click();
+  await raise.click();
+  await page.evaluate(() => (window as any).openbattleFake.actAs("bo", { kind: "join", name: "Bo", colour: "#2f6fd6" }));
+  await raise.click();
+  await raise.click();
+  await raise.click();
+  await scouts.getByRole("button", { name: "Lower Wounds" }).click();
+  await expect(scouts.getByLabel("Wounds counter")).toContainText("4");
+  await expect(page.getByRole("region", { name: "Log" }).locator("li").last()).toContainText("Ana set Scouts’ Wounds to 4");
 
   await scouts.getByTitle("Add a counter or mark").click();
   await scouts.getByLabel("Counter or mark name").fill("Activated");
@@ -53,12 +62,16 @@ test("counters, marks, setting aside and groups", async ({ page }) => {
 test("the phase bar changes round, turn and phase", async ({ page }) => {
   await newGame(page);
   const phase = page.getByRole("group", { name: "Phase" });
+  await page.evaluate(() => (window as any).openbattleFake.setDelay(400));
   await phase.getByRole("button", { name: "Next round" }).click();
-  await expect(phase.getByLabel("Round", { exact: true })).toHaveText("2");
+  await phase.getByRole("button", { name: "Next round" }).click();
+  await phase.getByRole("button", { name: "Next round" }).click();
+  await phase.getByRole("button", { name: "Previous round" }).click();
+  await expect(phase.getByLabel("Round", { exact: true })).toHaveText("3");
   await phase.getByRole("combobox").selectOption({ label: "Ana" });
   await phase.getByLabel("Phase name").fill("Shooting");
   await phase.getByLabel("Phase name").press("Enter");
-  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana set round 2, Ana’s turn, Shooting");
+  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana set round 3, Ana’s turn, Shooting");
 });
 
 // Log: undo beside your own latest action; the slider shows an earlier moment, read-only, until you return.

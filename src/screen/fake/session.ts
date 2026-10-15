@@ -13,6 +13,8 @@ const knobs = {
   refuse: null as string | null,
   tamper: false,
   unreachable: false,
+  /** How long the host takes to answer an action, in milliseconds. */
+  delay: 30,
   sessions: new Set<FakeSession>(),
 };
 Object.assign(window, {
@@ -24,6 +26,10 @@ Object.assign(window, {
     setDisagreement(on: boolean) {
       knobs.disagreement = on;
       knobs.sessions.forEach((s) => s.notify());
+    },
+    /** Makes the host slow to answer, as over a poor connection. */
+    setDelay(ms: number) {
+      knobs.delay = ms;
     },
     refuseNext(reason: string) {
       knobs.refuse = reason;
@@ -101,7 +107,7 @@ class FakeSession implements Session {
   }
 
   private async player(): Promise<PlayerId> {
-    await new Promise((r) => setTimeout(r, 30));
+    await new Promise((r) => setTimeout(r, knobs.delay));
     if (this.me === "watch") throw new Error("Spectators can't change the game.");
     if (knobs.connection === "host away") throw new Error("The host is away.");
     if (knobs.refuse) {
