@@ -23,13 +23,14 @@
   <dl>
     <dt>Purpose</dt><dd>Someone has to decide the order things happen in.</dd>
     <dt>Meaning</dt><dd>The <a href="../concepts/player.html">player</a> who opened the <a href="../concepts/game.html">game</a>. Their browser puts every <a href="../concepts/action.html">action</a> in order.</dd>
-    <dt>Invariants</dt><dd><ul><li>Every game has exactly one host, and it never changes.</li><li>While the host is away nobody can act, and everyone can see the game is paused.</li><li>When the host returns, the game continues from the host's copy of the log.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>Every game has exactly one host, and it never changes. Nobody else can pose as the host: the host's browser proves it with its key.</li><li>While the host is away nobody can act, and everyone can see the game is paused.</li><li>When the host returns, the game continues from the host's copy of the log.</li></ul></dd>
     <dt>Not</dt><dd>A server, and not a referee: the host cannot overrule anything or choose dice results.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
     <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+    <a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>
   </footer>
 </article>
 </body>

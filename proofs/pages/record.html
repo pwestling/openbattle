@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Record proof page</title>
+</head>
+<body>
+<h1>Record proof page</h1>
+<p>Loads the Record module's public face, and nothing else, for the proofs to drive.</p>
+<script type="module">
+  import * as record from "../../src/record/index.ts";
+  window.record = record;
+  document.body.dataset.ready = "yes";
+</script>
+</body>
+</html>
