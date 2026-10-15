@@ -28,3 +28,8 @@ export async function centre(locator: ReturnType<Page["locator"]>) {
   const box = (await locator.boundingBox())!;
   return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
 }
+
+/** Waits until the table has drawn the latest camera move, so labels are where the pieces are. */
+export async function drawn(page: Page) {
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+}

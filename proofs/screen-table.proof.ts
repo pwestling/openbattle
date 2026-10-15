@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { addArmy, centre, labels, newGame } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, labels, newGame } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 const inchesIn = (text: string) => Number(/([\d.]+)″/.exec(text)![1]);
@@ -134,6 +134,7 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   await page.mouse.wheel(0, 300);
   await page.keyboard.press("ArrowLeft");
   await page.keyboard.press("h");
+  await drawn(page);
   const captain = await centre(labels(page, "Captain"));
   await page.mouse.click(captain.x, captain.y);
   await expect(page.locator(".label.selected")).toHaveCount(1);

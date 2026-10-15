@@ -1,5 +1,5 @@
 // The counters and marks on one target (a player, unit, group, model or the game).
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Target } from "../../record/index.ts";
 import { usePlay } from "../play.tsx";
 
@@ -8,7 +8,16 @@ export function Counters({ target }: { target: Target }) {
   const counters = Object.entries(table.counters[target] ?? {});
   const marks = table.marks[target] ?? [];
   const [adding, setAdding] = useState("");
-  const set = (name: string, value: number | null) => void act({ kind: "counter", target, name, value });
+  // Clicks made before the last change has come back build on it, rather than on the value shown.
+  const latest = useRef(table.counters[target]);
+  useEffect(() => {
+    latest.current = table.counters[target];
+  }, [table.counters[target]]);
+  const set = (name: string, value: number | null) => {
+    latest.current = { ...latest.current, ...(value === null ? {} : { [name]: value }) };
+    void act({ kind: "counter", target, name, value });
+  };
+  const step = (name: string, by: number) => set(name, (latest.current?.[name] ?? 0) + by);
   const mark = (name: string, on: boolean) => void act({ kind: "mark", target, name, on });
 
   return (
@@ -16,11 +25,11 @@ export function Counters({ target }: { target: Target }) {
       {counters.map(([name, value]) => (
         <span key={name} className="counter" aria-label={`${name} counter`}>
           {name}
-          <button disabled={readOnly} aria-label={`Lower ${name}`} onClick={() => set(name, value - 1)}>
+          <button disabled={readOnly} aria-label={`Lower ${name}`} onClick={() => step(name, -1)}>
             −
           </button>
           <span className="value">{value}</span>
-          <button disabled={readOnly} aria-label={`Raise ${name}`} onClick={() => set(name, value + 1)}>
+          <button disabled={readOnly} aria-label={`Raise ${name}`} onClick={() => step(name, 1)}>
             +
           </button>
           <button disabled={readOnly} aria-label={`Clear ${name}`} className="quiet" onClick={() => set(name, null)}>
