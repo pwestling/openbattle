@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:15Z">
+<meta name="pdd-derived" content="2026-10-15T06:20Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -53,7 +53,7 @@
   <section id="roll">
     <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
     <dl>
-      <dt>Pre</dt><dd>This browser is a player; at least one die, of at least two sides.</dd>
+      <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
       <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log.</dd>
       <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered.</dd>
     </dl>
@@ -81,9 +81,9 @@
   <section id="addFile">
     <h2><code>session.addFile(source: Blob | URL): Promise&lt;Fingerprint&gt;</code></h2>
     <dl>
-      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf or .obj mesh: either the file itself, or an https link anyone can download it from (such as S3).</dd>
+      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf or .obj mesh: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
       <dt>Post</dt><dd>A file is kept with the game and its bytes are sent to every browser in it, including any that join later. A link is downloaded here first, to take its fingerprint, then only the link is sent and each browser downloads it itself, checking the fingerprint. Resolves with the fingerprint, which a place terrain or add to army action can then name.</dd>
-      <dt>Fails</dt><dd>Rejects if the source is not a readable mesh or the link cannot be downloaded; nothing is sent. If another browser later downloads a link and gets different bytes, it shows that piece as missing and asks the player who added it to send the file itself.</dd>
+      <dt>Fails</dt><dd>Rejects if the source is not a readable mesh, is over 512 MB, or the link cannot be downloaded; nothing is sent. If another browser later downloads a link and gets different bytes, it shows that piece as missing and asks the player who added it to send the file itself.</dd>
     </dl>
   </section>
 
