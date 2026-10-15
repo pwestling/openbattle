@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him. Rolling alone, from ADR-023, added the same night and Proposed with it.</ins></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him. Rolling alone, from ADR-023, added the same night and Proposed with it, and the signed text then also took who takes the action, a roll's label and where a draw goes.</ins></dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -123,11 +123,11 @@
     </dl>
   </section>
   <section id="guestStatement">
-    <h2><ins><code>guestStatement(action: (RollAction | ShuffledDrawAction) &amp; { guestBy: PlayerId }): string</code></ins></h2>
+    <h2><ins><code>guestStatement(action: (RollAction | ShuffledDrawAction) &amp; { guestBy: PlayerId }, by: PlayerId): string</code></ins></h2>
     <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck. <ins>Only one the other player signed: one taken alone has nothing to sign.</ins></p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of the action's link, the kind of action, the dice and sides or the deck and count, <ins>the roll's label if it has one and where the drawn cards go,</ins> the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action<ins>, and the host can't change what a roll was for or where the cards went</ins>. The signature fields and the host's value are left out.</dd>
+      <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of <ins>who takes the action (<code>by</code>),</ins> the action's link, the kind of action, the dice and sides or the deck and count, <ins>the roll's label if it has one and where the drawn cards go,</ins> the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action<ins>, and the host can't change who took it, what a roll was for or where the cards went</ins>. The signature fields and the host's value are left out.</dd>
       <dt>Fails</dt><dd>Never.</dd>
     </dl>
   </section>

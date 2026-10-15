@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T09:19Z">
+<meta name="pdd-derived" content="2026-10-15T09:26Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,9 +13,15 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T09:19Z.</p>
+    <p>Generated 2026-10-15T09:26Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
+<section data-node="surfaces/record">
+  <h2><a href="surfaces/record.html">Record surface</a></h2>
+  <ul>
+    <li>A shuffled draw picks cards by their place in the deck's current order, and that order isn't signed. A host that knows both values can first log a <code>move card</code> into the deck to choose which cards come up. <ins>Proposed fix, for Porter: the other player also signs a fingerprint of the deck's cards in their current order, and every browser checks it against the deck as it stood just before the draw.</ins> This needs Session to send the fingerprint with the seal, and the record to carry it in the draw.</li>
+  </ul>
+</section>
 <section data-node="surfaces/session">
   <h2><a href="surfaces/session.html">Session surface</a></h2>
   <ul>
