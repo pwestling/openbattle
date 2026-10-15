@@ -1,0 +1,15 @@
+<section data-node="surfaces/screen">
+  <h2><a href="surfaces/screen.html">Screen surface</a></h2>
+  <ul>
+    <li>Keys picked where Tabletop Simulator has none, as ADR-017 allows, and listed on screen under Controls: <ins>hold Tab</ins> for the ruler; <ins>Space or right-click</ins> pins a waypoint; <ins>T</ins> looks straight down and <ins>H</ins> goes back to your edge; <ins>Escape</ins> puts back what you carry (<code>src/screen/table/gestures.ts</code>).</li>
+    <li>Decks and hands: <ins>F flips the card under the pointer</ins> between face up and face down, as in Tabletop Simulator. The surface doesn't list flipping (<code>src/screen/table/gestures.ts</code>, <code>flip</code>).</li>
+    <li>Decks and hands: putting a card on the bottom of a deck uses <ins>Shift</ins> as the modifier key.</li>
+    <li>Picking up: <ins>Shift-click</ins> adds a model to the selection or takes it out.</li>
+    <li>Panels: new decks are made in a <ins>Decks</ins> panel beside Army and Terrain. It also has Draw, Draw face up and Shuffle buttons for each deck. The surface's list of panels doesn't name it (<code>src/screen/panels/decks.tsx</code>).</li>
+    <li>Army: the list format is <ins>one unit per line, such as <code>5x Scouts 25mm</code>, <code>Captain 40mm 1.5"</code> or <code>Tank 100x60mm rect 2.5"</code></ins>. The count defaults to 1, the base to 25 mm round, and the stand-in height to 1.2″ (<code>src/screen/army-list.ts</code>).</li>
+    <li>Where things go: new models stand in rows along your table edge, new terrain in a row across the middle of the table, and new decks just off your edge with their discard pile beside them.</li>
+    <li>Connection banner: it also says <ins>when this browser won't keep the game</ins>, from the snapshot's <code>kept</code> (<code>src/screen/game.tsx</code>, <code>Banner</code>).</li>
+    <li>Log: Undo shows beside your action only when it is the latest uncancelled action in the game, because the record's undo cancels the latest uncancelled action.</li>
+    <li>Start page: a saved file opens through Archive's <code>save</code> and then Session's <code>enter</code>, as the game's first player. No new operation is needed.</li>
+  </ul>
+</section>
