@@ -4,7 +4,7 @@
 import { BoxGeometry, CanvasTexture, Group, Mesh, MeshStandardMaterial, PlaneGeometry, SRGBColorSpace, type Object3D } from "three";
 import type { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import type { Card, Deck, Point, Table } from "../../record/index.ts";
-import { getFile } from "../stand-ins.ts";
+import { getFile } from "../../archive/index.ts";
 import { drop, label } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 

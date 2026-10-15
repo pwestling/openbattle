@@ -105,11 +105,9 @@ test("another player's hand shows as backs with a count", async ({ page }) => {
     const fake = (window as any).openbattleFake;
     fake.actAs("ben", { kind: "join", name: "Ben", colour: "#2f6fd6" });
   });
-  const deckId = await page.evaluate(() => {
-    const link = location.href;
-    const kept = JSON.parse(localStorage.getItem(`openbattle-fake:${link}`)!);
-    return kept.log.entries.find((e: any) => e.action.kind === "add deck").action.deck;
-  });
+  const deckId = await page.evaluate(
+    () => (window as any).openbattleFake.log().entries.find((e: any) => e.action.kind === "add deck").action.deck,
+  );
   await page.evaluate((deck) => {
     const fake = (window as any).openbattleFake;
     fake.actAs("ben", { kind: "draw", deck, cards: 2, to: "hand", seal: "", hostValue: "a", guestValue: "b" });

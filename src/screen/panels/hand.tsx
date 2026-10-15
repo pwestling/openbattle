@@ -3,7 +3,7 @@
 import { useEffect, useState, type RefObject } from "react";
 import type { Card, Fingerprint } from "../../record/index.ts";
 import { usePlay } from "../play.tsx";
-import { getFile } from "../stand-ins.ts";
+import { getFile } from "../../archive/index.ts";
 import type { HandDrop } from "../table/canvas.tsx";
 
 /** A card picture as a URL the page can show, once this browser has its file. */

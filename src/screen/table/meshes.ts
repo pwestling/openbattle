@@ -6,7 +6,7 @@ import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import type { Mesh as Mesh3 } from "../../measure/index.ts";
 import type { Fingerprint } from "../../record/index.ts";
-import { getFile } from "../stand-ins.ts";
+import { getFile } from "../../archive/index.ts";
 
 export interface ReadMesh {
   object: Object3D;

@@ -10,7 +10,8 @@ import { LogPanel } from "./panels/log.tsx";
 import { PhaseBar } from "./panels/phase.tsx";
 import { TerrainPanel } from "./panels/terrain.tsx";
 import { PlayContext, usePlay, type Play } from "./play.tsx";
-import { tableAt, toFile } from "./stand-ins.ts";
+import { toFile } from "../archive/index.ts";
+import { tableAt } from "./stand-ins.ts";
 import { TableCanvas, type HandDrop } from "./table/canvas.tsx";
 
 export function Game({ session }: { session: Session }) {

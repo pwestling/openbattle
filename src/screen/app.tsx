@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react";
 import type { Me, Session } from "../session/index.ts";
 import { Game } from "./game.tsx";
-import { enterGame, fromFile, keep, kept, openGame } from "./stand-ins.ts";
+import { fromFile, load, save } from "../archive/index.ts";
+import { enterGame, openGame } from "./stand-ins.ts";
 
 type Place = { at: "start"; message?: string } | { at: "arrive"; link: string } | { at: "table"; session: Session };
 
@@ -96,7 +97,7 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
       // The game in the file opens here as its host: the player who started it.
       const host = log.entries.find((e) => e.action.kind === "join")?.by;
       if (!host) throw new Error("That saved game has no players.");
-      await keep(link, { log, me: host });
+      await save(link, { log, me: host });
       history.replaceState(null, "", link);
       onOpen(await enterGame(link, me));
     } catch (e) {
@@ -172,7 +173,7 @@ function Arrive({ link, onEnter, onBroken }: { link: string; onEnter: (s: Sessio
 
   useEffect(() => {
     // Someone coming back on the same browser goes straight back to their seat.
-    void kept(link).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
+    void load(link).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
   }, [link]);
 
   if (!asking) return <main className="start" aria-busy="true" />;

@@ -1,15 +1,15 @@
-// Every call the screen makes into Session, Record, Measure and Archive goes through here.
+// Every call the screen makes into Session, Record and Measure goes through here (Archive has
+// landed, so the screen calls it directly).
 // While those modules are still stubs ("… is not built yet"), each call falls back to a small
 // stand-in so the screen can be built and proven. When a module lands its fallback stops being
-// used; delete the fallbacks (and src/screen/fake) once all four have landed.
-import * as archive from "../archive/index.ts";
+// used; delete the fallbacks (and src/screen/fake) once all three have landed.
 import * as measure from "../measure/index.ts";
 import * as record from "../record/index.ts";
 import * as session from "../session/index.ts";
 import type { Fingerprint, Floor, Log, PlayerId, Point, Size, Table } from "../record/index.ts";
 import type { Me, Session } from "../session/index.ts";
 import { fakeTableAt } from "./fake/fold.ts";
-import { fakeEnter, fakeFile, fakeKeep, fakeKept, fakeOpen } from "./fake/session.ts";
+import { fakeEnter, fakeOpen } from "./fake/session.ts";
 
 const notBuilt = (e: unknown) => e instanceof Error && e.message.endsWith("is not built yet");
 
@@ -47,40 +47,6 @@ export const tableAt = (log: Log, upTo?: number): Table =>
   orFakeNow(
     () => record.tableAt(log, upTo),
     () => fakeTableAt(log, upTo),
-  );
-
-export const kept = (link: string): Promise<archive.Saved | null> =>
-  orFake(
-    () => archive.load(link),
-    () => fakeKept(link),
-  );
-
-export const keep = (link: string, saved: { log: Log; me: PlayerId | "watch" }): Promise<void> =>
-  orFake(
-    () => archive.save(link, saved),
-    () => fakeKeep(link, saved),
-  );
-
-export const getFile = (fingerprint: Fingerprint): Promise<Blob | null> =>
-  orFake(
-    () => archive.getFile(fingerprint),
-    () => fakeFile(fingerprint),
-  );
-
-export const toFile = (link: string, log: Log): Promise<Blob> =>
-  orFake(
-    () => archive.toFile(link, log),
-    () => new Blob([JSON.stringify({ openbattle: 0, link, log })], { type: "application/json" }),
-  );
-
-export const fromFile = (file: Blob): Promise<{ link: string; log: Log }> =>
-  orFake(
-    () => archive.fromFile(file),
-    async () => {
-      const data = JSON.parse(await file.text()) as { openbattle?: number; log?: Log };
-      if (data.openbattle !== 0 || !data.log) throw new Error("That file is not a saved game.");
-      return { link: `${location.origin}/?game=${crypto.randomUUID().slice(0, 10)}`, log: data.log };
-    },
   );
 
 export const floors = (mesh: measure.Mesh, size: { width: number; depth: number; height: number }): Floor[] =>

@@ -1,17 +1,10 @@
 // A fake session, so the screen can be built and proven before Session is.
-// One browser only: it is always the host, and nothing is sent anywhere. Games are kept in
-// localStorage so that coming back to a link works. Delete this folder when Session lands.
+// One browser only: it is always the host, and nothing is sent anywhere. Games and files are kept
+// with Archive, as the real session keeps them. Delete this folder when Session lands.
 import type { Action, CardId, Fingerprint, Log, PlayerId, Size } from "../../record/index.ts";
+import * as archive from "../../archive/index.ts";
 import type { Me, Session, Snapshot } from "../../session/index.ts";
 import { fakeHash, fakeTableAt } from "./fold.ts";
-
-interface Kept {
-  log: Log;
-  me: PlayerId | "watch";
-}
-
-const keyOf = (link: string) => `openbattle-fake:${link}`;
-const files = new Map<Fingerprint, Blob>();
 
 /** What a proof can do to the fake from outside, to show the screen's reactions. */
 const knobs = {
@@ -35,6 +28,10 @@ Object.assign(window, {
     refuseNext(reason: string) {
       knobs.refuse = reason;
     },
+    /** The log as this browser has it. */
+    log() {
+      return [...knobs.sessions][0]?.snapshot().log;
+    },
     /** Takes an action as someone else, as if another browser had. */
     actAs(player: PlayerId, action: Action) {
       knobs.sessions.forEach((s) => s.append(action, player));
@@ -52,23 +49,6 @@ Object.assign(window, {
 const randomId = () => crypto.randomUUID().replaceAll("-", "").slice(0, 10);
 const randomValue = () => crypto.randomUUID().replaceAll("-", "");
 
-export function fakeKept(link: string): Kept | null {
-  try {
-    const text = localStorage.getItem(keyOf(link));
-    return text ? (JSON.parse(text) as Kept) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function fakeKeep(link: string, kept: Kept): void {
-  localStorage.setItem(keyOf(link), JSON.stringify(kept));
-}
-
-export function fakeFile(fingerprint: Fingerprint): Blob | null {
-  return files.get(fingerprint) ?? null;
-}
-
 class FakeSession implements Session {
   private listeners = new Set<(now: Snapshot) => void>();
   private link: string;
@@ -82,12 +62,14 @@ class FakeSession implements Session {
     this.keep();
   }
 
+  private kept = true;
+
   private keep() {
-    try {
-      localStorage.setItem(keyOf(this.link), JSON.stringify({ log: this.log, me: this.me } satisfies Kept));
-    } catch {
+    archive.save(this.link, { log: this.log, me: this.me }).catch(() => {
       // A browser refusing storage only means the game is not kept here.
-    }
+      this.kept = false;
+      this.notify();
+    });
   }
 
   snapshot(): Snapshot {
@@ -98,7 +80,7 @@ class FakeSession implements Session {
       table: fakeTableAt(this.log),
       connection: knobs.connection,
       disagreement: knobs.disagreement,
-      kept: true,
+      kept: this.kept,
     };
   }
 
@@ -164,10 +146,7 @@ class FakeSession implements Session {
   async addFile(source: Blob | URL): Promise<Fingerprint> {
     await this.player();
     const blob = source instanceof Blob ? source : await (await fetch(source)).blob();
-    const digest = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
-    const fingerprint = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-    files.set(fingerprint, blob);
-    return fingerprint;
+    return archive.keepFile(this.link, blob);
   }
 
   leave(): void {
@@ -193,7 +172,7 @@ export async function fakeEnter(link: string, as: Me | "watch"): Promise<Session
     throw new Error("That is not a game link.");
   }
   if (!url.searchParams.get("game")) throw new Error("That is not a game link.");
-  const kept = fakeKept(link);
+  const kept = await archive.load(link);
   if (kept) return new FakeSession(link, kept.log, kept.me);
   // A game this browser has never seen: the fake has no host to catch up with, so it starts bare.
   if (as === "watch") return new FakeSession(link, { size: { width: 60, depth: 44 }, entries: [] }, "watch");
