@@ -341,3 +341,27 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a draw th
   expect(seen.orderedWithValues!.problem).toBe("An ordered deck gives its top cards; a draw from it has no random values.");
   expect(seen.ordered).toEqual({ drawn: ["c0", "c1", "c2"], left: ["c3", "c4", "c5", "c6", "c7", "c8", "c9"], undo: undefined });
 });
+
+test("equal tables have equal fingerprints, in the browser and out of it, and any change shows", async ({ page }) => {
+  const seen = await inBrowser(page, (r, start) => {
+    const log = start(r);
+    const table = r.tableAt(log);
+    // The same table with its keys written in another order, as a table loaded from elsewhere might be.
+    const reordered = Object.fromEntries(Object.entries(table).reverse()) as typeof table;
+    reordered.models = Object.fromEntries(Object.entries(table.models).reverse());
+    const moved = r.tableAt(r.append(log, { kind: "move", moves: [{ model: "m2", position: { x: 7, y: 11.01 }, facing: 0, floor: null, path: [] }] }, "ann"));
+    return {
+      print: r.fingerprint(table),
+      again: r.fingerprint(r.tableAt(start(r))),
+      reordered: r.fingerprint(reordered),
+      moved: r.fingerprint(moved),
+      earlier: r.fingerprint(r.tableAt(log, 3)),
+    };
+  });
+  expect(seen.print).toMatch(/^[0-9a-f]{16}$/);
+  expect(seen.again).toBe(seen.print);
+  expect(seen.reordered).toBe(seen.print);
+  expect(nodeRecord.fingerprint(nodeRecord.tableAt(opening(nodeRecord)))).toBe(seen.print);
+  expect(seen.moved).not.toBe(seen.print);
+  expect(seen.earlier).not.toBe(seen.print);
+});
