@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T09:26Z">
+<meta name="pdd-derived" content="2026-10-15T23:45Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,9 +13,15 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T09:26Z.</p>
+    <p>Generated 2026-10-15T23:45Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
+<section data-node="surfaces/relay">
+  <h2><a href="surfaces/relay.html">Relay surface</a></h2>
+  <ul>
+    <li>The relay checks each browser's key as it joins (<code>server/relay.ts</code>, <code>proven</code>), where <a href="decisions/ADR-022.html">ADR-022</a> says the relay is unchanged. Built on Porter's card's recommended option while he was away; awaiting his answer.</li>
+  </ul>
+</section>
 <section data-node="surfaces/record">
   <h2><a href="surfaces/record.html">Record surface</a></h2>
   <ul>
@@ -27,12 +33,6 @@
   <ul>
     <li>Rolling alone (<a href="decisions/ADR-023.html">ADR-023</a>) is not on the surface yet. The record lets the host take a roll or draw alone at any time, because who is connected is not in the log. So Session must keep it fair: <ins>the host goes alone only with nobody else connected; a connected player's browser flags an alone roll or draw that arrives while it is there; a player whose signed value never reaches the log is told so.</ins> Proposed, for Porter. Session's roll line still says a missing signature is logged as tampered, but the record refuses it.</li>
     <li>A saved game opened again copies its entries without checking their signatures, so a hand-edited file could turn a roll taken alone into one that looks fair. <ins>Session checks the guest signature on copied entries too, or marks them as unchecked.</ins> Proposed, for Porter.</li>
-  </ul>
-</section>
-<section data-node="surfaces/link">
-  <h2><a href="surfaces/link.html">Link surface</a></h2>
-  <ul>
-    <li><code>connect(link): <del>Link</del><ins>Promise&lt;Link&gt;</ins></code> (<code>src/link/index.ts:16</code>). Agreed by Porter on 2026-10-15; the surface page is updated in the Link build.</li>
   </ul>
 </section>
 <section data-node="surfaces/screen">
