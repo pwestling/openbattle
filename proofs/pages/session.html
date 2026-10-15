@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Session proof page</title>
+</head>
+<body>
+<p>Drives only the public face of the Session, for proofs/session.proof.ts. There is no screen for it yet.</p>
+<script type="module">
+  import * as session from "/src/session/index.ts";
+  const page = {
+    session: null,
+    now: null,
+    async open(size, me) {
+      page.session = await session.open(size, me);
+      page.session.watch((now) => (page.now = now));
+      return page.now.link;
+    },
+    async enter(link, as) {
+      page.session = await session.enter(link, as);
+      page.session.watch((now) => (page.now = now));
+      return page.now.link;
+    },
+  };
+  window.proof = page;
+  document.body.dataset.ready = "yes";
+</script>
+</body>
+</html>
