@@ -53,7 +53,9 @@ export class TableView {
   private frame = 0;
   private last = performance.now();
   private resize: ResizeObserver;
-  private ticks = new Set<(seconds: number) => void>();
+  private ticks = new Set<(seconds: number) => boolean>();
+  /** Something changed since the last frame was drawn. Frames are only drawn when it has. */
+  private dirty = true;
 
   readonly host: HTMLElement;
   readonly size: Size;
@@ -100,16 +102,25 @@ export class TableView {
       const seconds = Math.min(0.1, (now - this.last) / 1000);
       this.last = now;
       this.camera.tick(seconds);
-      this.ticks.forEach((t) => t(seconds));
-      this.renderer.render(this.scene, this.camera.camera);
-      this.labels.render(this.scene, this.camera.camera);
+      let moving = this.camera.takeChanged();
+      this.ticks.forEach((t) => (moving = t(seconds) || moving));
+      if (moving || this.dirty) {
+        this.dirty = false;
+        this.renderer.render(this.scene, this.camera.camera);
+        this.labels.render(this.scene, this.camera.camera);
+      }
       this.frame = requestAnimationFrame(loop);
     };
     loop();
   }
 
-  /** Runs every frame until the returned function is called. */
-  onTick(tick: (seconds: number) => void): () => void {
+  /** Asks for the next frame to be drawn. */
+  invalidate() {
+    this.dirty = true;
+  }
+
+  /** Runs every frame until the returned function is called; returns true while something is moving. */
+  onTick(tick: (seconds: number) => boolean): () => void {
     this.ticks.add(tick);
     return () => this.ticks.delete(tick);
   }
@@ -119,6 +130,7 @@ export class TableView {
     this.renderer.setSize(w, h);
     this.labels.setSize(w, h);
     this.camera.aspect(w, h);
+    this.dirty = true;
   }
 
   dispose() {

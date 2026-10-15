@@ -68,6 +68,8 @@ export class DiceTray {
   private frame = 0;
   private last = performance.now();
   private done: (() => void) | null = null;
+  /** Frames are only drawn while dice move, or after a change. */
+  private dirty = true;
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -84,9 +86,10 @@ export class DiceTray {
     this.fit();
     const loop = () => {
       const now = performance.now();
-      this.tick(Math.min(0.05, (now - this.last) / 1000));
+      const moving = this.tick(Math.min(0.05, (now - this.last) / 1000));
       this.last = now;
-      this.renderer.render(this.scene, this.camera);
+      if (moving || this.dirty) this.renderer.render(this.scene, this.camera);
+      this.dirty = false;
       this.frame = requestAnimationFrame(loop);
     };
     loop();
@@ -103,6 +106,7 @@ export class DiceTray {
     this.camera.top = half;
     this.camera.bottom = -half;
     this.camera.updateProjectionMatrix();
+    this.dirty = true;
   }
 
   /** Throws dice that land showing these results; calls back once they have lined up. */
@@ -152,8 +156,9 @@ export class DiceTray {
     });
   }
 
-  private tick(seconds: number) {
-    if (!this.dice.length || this.clock > THROW + LINE_UP) return;
+  /** Moves the dice on; true while they are moving. */
+  private tick(seconds: number): boolean {
+    if (!this.dice.length || this.clock > THROW + LINE_UP) return false;
     this.clock += seconds;
     const t = Math.min(1, this.clock / THROW);
     const ease = 1 - (1 - t) ** 3;
@@ -174,6 +179,7 @@ export class DiceTray {
       this.done = null;
       done();
     }
+    return true;
   }
 
   dispose() {

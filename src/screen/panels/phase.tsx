@@ -1,5 +1,5 @@
 // The phase bar: round, whose turn and the phase name, each changeable by a player.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Phase } from "../../record/index.ts";
 import { usePlay } from "../play.tsx";
 
@@ -8,7 +8,15 @@ export function PhaseBar() {
   const phase = table.phase;
   const [name, setName] = useState(phase.name);
   useEffect(() => setName(phase.name), [phase.name]);
-  const set = (change: Partial<Phase>) => void act({ kind: "phase", phase: { ...phase, ...change } });
+  // Changes made before the last one has come back build on it, rather than on the phase shown.
+  const latest = useRef(phase);
+  useEffect(() => {
+    latest.current = phase;
+  }, [phase]);
+  const set = (change: Partial<Phase>) => {
+    latest.current = { ...latest.current, ...change };
+    void act({ kind: "phase", phase: latest.current });
+  };
 
   return (
     <div className="phase" role="group" aria-label="Phase">

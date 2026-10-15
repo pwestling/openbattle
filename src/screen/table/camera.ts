@@ -10,6 +10,7 @@ export class Camera {
   private pitch = 0.9;
   private distance = 60;
   private held = new Set<string>();
+  private changed = true;
   private size: { width: number; depth: number };
   /** Which table edge is yours: +1 is the far edge (y = depth), -1 the near edge (y = 0), 0 a side. */
   private edge: number;
@@ -86,9 +87,18 @@ export class Camera {
   aspect(width: number, height: number) {
     this.camera.aspect = width / Math.max(1, height);
     this.camera.updateProjectionMatrix();
+    this.changed = true;
+  }
+
+  /** Whether the camera moved since this was last asked. */
+  takeChanged(): boolean {
+    const was = this.changed;
+    this.changed = false;
+    return was;
   }
 
   private apply() {
+    this.changed = true;
     const c = Math.cos(this.pitch);
     // yaw 0 looks from the near edge (y = 0) across the table.
     this.camera.position.set(

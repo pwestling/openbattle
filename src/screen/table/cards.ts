@@ -47,7 +47,7 @@ function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
 }
 
 /** A card lying flat, face up or down. Pictures arrive later, once their file is here. */
-function cardMesh(card: Card, faceUp: boolean): Mesh {
+function cardMesh(card: Card, faceUp: boolean, loaded: () => void): Mesh {
   const geometry = new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2);
   if (!faceUp) return new Mesh(geometry, back);
   const material = new MeshStandardMaterial({ map: faceTexture(card), roughness: 0.8 });
@@ -59,6 +59,7 @@ function cardMesh(card: Card, faceUp: boolean): Mesh {
       img.onload = () => {
         material.map = faceTexture(card, img);
         material.needsUpdate = true;
+        loaded();
       };
       img.src = URL.createObjectURL(blob);
     });
@@ -85,6 +86,7 @@ export class Cards {
   }
 
   sync(table: Table, carried: ReadonlyMap<string, Point>) {
+    this.view.invalidate();
     const seen = new Set<string>();
     const put = (id: string, key: string, at: Point, height: number, draw: () => Drawn) => {
       seen.add(id);
@@ -123,7 +125,7 @@ export class Cards {
         const object = new Group();
         object.userData.discard = deck.id;
         const pile = top
-          ? cardMesh(top, true)
+          ? cardMesh(top, true, () => this.view.invalidate())
           : new Mesh(
               new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2),
               new MeshStandardMaterial({ color: "#555555", transparent: true, opacity: 0.25 }),
@@ -144,7 +146,7 @@ export class Cards {
       put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0.01, () => {
         const object = new Group();
         object.userData.card = card.id;
-        object.add(cardMesh(card, faceUp));
+        object.add(cardMesh(card, faceUp, () => this.view.invalidate()));
         const tag = label(faceUp ? card.name : "Card", "label card");
         tag.position.y = 0.2;
         object.add(tag);

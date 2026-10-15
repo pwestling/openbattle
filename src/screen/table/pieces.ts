@@ -86,15 +86,23 @@ export class Pieces {
     // Pieces glide to where the record puts them, so a refused move settles back rather than jumping.
     this.offTick = view.onTick((seconds) => {
       const k = 1 - Math.exp(-seconds * 18);
+      let moving = false;
       for (const d of this.drawn.values()) {
         const p = d.object.position;
+        let turn = d.target.facing - d.object.rotation.y;
+        turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+        if (Math.abs(d.target.x - p.x) + Math.abs(d.target.y - p.y) + Math.abs(d.target.z - p.z) + Math.abs(turn) < 1e-3) {
+          if (p.x !== d.target.x || p.y !== d.target.y || p.z !== d.target.z) moving = true;
+          p.set(d.target.x, d.target.y, d.target.z);
+          continue;
+        }
+        moving = true;
         p.x += (d.target.x - p.x) * k;
         p.y += (d.target.y - p.y) * k;
         p.z += (d.target.z - p.z) * k;
-        let turn = d.target.facing - d.object.rotation.y;
-        turn = Math.atan2(Math.sin(turn), Math.cos(turn));
         d.object.rotation.y += turn * k;
       }
+      return moving;
     });
   }
 
@@ -113,6 +121,7 @@ export class Pieces {
   }
 
   sync(table: Table, selected: ReadonlySet<string>, carried: ReadonlyMap<string, Place>) {
+    this.view.invalidate();
     const seen = new Set<string>();
     const target = (place: Place, height: number) => ({
       x: place.position.x,
@@ -183,6 +192,7 @@ export class Pieces {
         if (!mesh) return;
         object.remove(ghost);
         object.add(fitted(mesh, size));
+        this.view.invalidate();
       });
     } else object.add(new Mesh(solidGeometry(t.shape), new MeshStandardMaterial({ color: "#8a8478", roughness: 0.9 })));
     const ring = this.ring(Math.hypot(width, depth) + 0.4);
@@ -225,6 +235,7 @@ export class Pieces {
         const shaped = standing(mesh, model.height);
         shaped.position.y = 0.12;
         object.add(shaped);
+        this.view.invalidate();
       });
     }
     const ring = this.ring(Math.max(w, d) + 0.2);
