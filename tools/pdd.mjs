@@ -43,17 +43,17 @@ const nodes = walk(DESIGN).map((file) => {
 const byId = new Map(nodes.map((n) => [n.id, n]));
 for (const n of nodes) for (const p of n.parents) if (!byId.has(p)) throw new Error(`${n.id}: realizes missing node ${p}`);
 
-// Drift: compares the code with the design. There is no code yet, so there is nothing to compare.
+// Drift: compares the code with the design. Until the first upward pass, src/ holds only the scaffold.
 const hasCode = existsSync(join(ROOT, "src")) && walk(join(ROOT, "src")).length > 0;
 const driftSections = [];
-if (!existsSync(join(DESIGN, "DRIFT.html")) || !hasCode) {
+if (!existsSync(join(DESIGN, "DRIFT.html")) || !existsSync(join(DESIGN, "drift"))) {
   writeFileSync(join(DESIGN, "DRIFT.html"), doc("Drift report", 3, "DRIFT", `
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
     <p>Generated ${now}.</p>
   </header>
-  <p>${hasCode ? "No open drift." : "There is no code in <code>src/</code> yet, so there is nothing to compare with the design."}</p>`));
+  <p>${hasCode ? "<code>src/</code> holds the scaffold: every module's public types from its surface, with nothing built behind them. The first upward pass runs once the modules are built." : "There is no code in <code>src/</code> yet, so there is nothing to compare with the design."}</p>`));
 }
 const drift = readFileSync(join(DESIGN, "DRIFT.html"), "utf8");
 for (const m of drift.matchAll(/<section data-node="([^"]+)"/g)) driftSections.push(m[1]);
@@ -124,7 +124,7 @@ ${tree(intent, prefix)}
     <h2>Drift and instruments</h2>
     <ul>
       <li><a href="${prefix}DRIFT.html">Drift report</a> <small>${driftSections.length} open</small></li>
-      ${hasCode ? "" : "<li>Instruments appear once there is code in <code>src/</code>.</li>"}
+      <li>Instruments appear with the first upward pass, once the modules are built.</li>
     </ul>
   </section>`;
 }
