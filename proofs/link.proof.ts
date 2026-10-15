@@ -17,6 +17,7 @@ const join = (page: Page, game: string) => page.evaluate((game) => (window as an
 const send = (page: Page, message: unknown, to?: string) => page.evaluate(([m, to]) => (window as any).proof.link.send(m, to), [message, to] as const);
 const received = (page: Page) => page.evaluate(() => (window as any).proof.received as Received[]);
 const connected = (page: Page) => page.evaluate(() => (window as any).proof.connected() as string[]);
+const thisBrowserOf = (page: Page) => page.evaluate(async () => ((await (window as any).proof.thisBrowser()) as { id: string }).id);
 const game = (name: string) => `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 test("two browsers in one game connect and exchange messages both ways", async ({ browser }) => {
@@ -220,6 +221,56 @@ test("a browser claiming another's id is refused, and the real one stays connect
   await send(host, "still me");
   await expect.poll(() => received(bob)).toEqual([{ from: h, message: "still me" }]);
   await expect.poll(() => received(carol)).toEqual([{ from: h, message: "still me" }]);
+});
+
+test("even a relay that lies about who is who can't pass one browser off as another", async ({ browser }) => {
+  const g = game("liar");
+  const host = await player(browser);
+  const h = await join(host, g);
+  // Bob's relay is dishonest: it tells bob that mallory is the host, and carries what bob sends the "host" to mallory.
+  let answers = 0;
+  let m = "";
+  let malloryHere = false;
+  const bob = await player(browser, (page) =>
+    page.routeWebSocket(/\/signal/, (ws) => {
+      const server = ws.connectToServer();
+      server.onMessage((text) => {
+        const message = JSON.parse(String(text));
+        if (message.kind === "arrived" && message.browser === m) {
+          message.browser = h;
+          malloryHere = true;
+        }
+        if (message.kind === "signal" && message.from === m) {
+          message.from = h;
+          if (message.data?.description?.type === "answer" || message.data?.description?.type === "offer") answers++;
+        }
+        ws.send(JSON.stringify(message));
+      });
+      ws.onMessage((text) => {
+        const message = JSON.parse(String(text));
+        // Bob's handshake for the real host goes to mallory once she is there.
+        if (message.kind === "signal" && message.to === h && malloryHere) message.to = m;
+        server.send(JSON.stringify(message));
+      });
+    }),
+  );
+  const b = await join(bob, g);
+  await expect.poll(() => connected(bob)).toEqual([h]);
+
+  // Mallory is a browser whose id sorts before bob's, so she dials him and the lie is put to the test.
+  let mallory: Page;
+  do {
+    mallory = await player(browser);
+    m = await thisBrowserOf(mallory);
+  } while (m >= b);
+  await join(mallory, g);
+  // Wait until the lie has carried a handshake between bob and mallory, then for it to settle.
+  await expect.poll(() => answers, { timeout: 10_000 }).toBeGreaterThan(0);
+  await bob.waitForTimeout(2000);
+  expect(await connected(mallory)).not.toContain(b);
+  await send(mallory, "I am the host", b);
+  await send(host, "the real host");
+  await expect.poll(() => received(bob)).toEqual([{ from: h, message: "the real host" }]);
 });
 
 test("a browser signs for others, and anyone can check it against its public key and id", async ({ browser }) => {

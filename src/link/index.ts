@@ -208,7 +208,7 @@ class Connection implements Link {
 
   private attach(socket: WebSocket, failed?: (code: number) => void) {
     this.socket = socket;
-    socket.onmessage = (e) => this.fromRelay(JSON.parse(e.data as string) as FromRelay);
+    socket.onmessage = (e) => this.fromRelay(JSON.parse(e.data as string) as FromRelay, socket);
     socket.onclose = (e) => {
       failed?.(e.code);
       if (this.closed || this.socket !== socket) return;
@@ -242,13 +242,15 @@ class Connection implements Link {
     this.relay({ kind: "signal", to, data: JSON.parse(JSON.stringify(data)) as Json });
   }
 
-  private fromRelay(message: FromRelay) {
+  private fromRelay(message: FromRelay, socket: WebSocket) {
     switch (message.kind) {
       case "challenge":
         // Announce this browser, proving at the relay that it holds the key its id comes from.
-        void keys.sign(this.identity.keys, encoder.encode(helloText(message.nonce, this.link))).then((signature) =>
-          this.relay({ kind: "hello", browser: this.me, publicKey: this.publicKey, signature }),
-        );
+        // Sent on the socket that asked, never a newer one the nonce means nothing to.
+        void keys.sign(this.identity.keys, encoder.encode(helloText(message.nonce, this.link))).then((signature) => {
+          const hello: ToRelay = { kind: "hello", browser: this.me, publicKey: this.publicKey, signature };
+          if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(hello));
+        });
         break;
       case "here":
         this.retry = 0;
