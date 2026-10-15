@@ -210,7 +210,10 @@ export type Action =
       position: Point;
     }
   | { kind: "shuffle"; deck: DeckId }
-  | ({ kind: "draw"; deck: DeckId; cards: number; to: "hand" | "table" } & Partial<Sealed>)
+  /** From an ordered deck, the top cards, with no random values. */
+  | { kind: "draw"; deck: DeckId; cards: number; to: "hand" | "table" }
+  /** From a shuffled deck, with all three values of the sealed exchange. */
+  | ({ kind: "draw"; deck: DeckId; cards: number; to: "hand" | "table" } & Sealed)
   | {
       kind: "move card";
       card: CardId;

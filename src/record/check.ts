@@ -1,7 +1,7 @@
 // Whether an action can be appended: everything it names exists, numbers are finite, no group
 // contains itself, and the player may take it. Game rules are never checked.
 import { latestStanding } from "./fold.ts";
-import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Shape, Table, Terrain } from "./types.ts";
+import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Sealed, Shape, Table, Terrain } from "./types.ts";
 
 /** Dice per roll: more would freeze every browser in the game (ADR-020). */
 const mostDice = 1024;
@@ -327,11 +327,12 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (action.cards > from.cards.length)
         refuse(`Deck "${action.deck}" has ${from.cards.length} cards left, not ${action.cards}.`);
       if (action.to !== "hand" && action.to !== "table") refuse("Cards are drawn to the hand or the table.");
+      const values = action as Partial<Sealed>;
       if (from.order === "ordered") {
-        if (action.seal !== undefined || action.hostValue !== undefined || action.guestValue !== undefined)
+        if (values.seal !== undefined || values.hostValue !== undefined || values.guestValue !== undefined)
           refuse("An ordered deck gives its top cards; a draw from it has no random values.");
       } else {
-        sealed(action, "A draw from a shuffled deck");
+        sealed(values, "A draw from a shuffled deck");
       }
       return;
     }
@@ -353,7 +354,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (!latest) refuse("There is nothing to undo.");
       if (latest!.by !== by) refuse("Only the player who took the latest action can undo it.");
       if (latest!.action.kind === "roll") refuse("A roll can't be undone: it happens once and its result never changes.");
-      if (latest!.action.kind === "draw" && latest!.action.seal !== undefined)
+      if (latest!.action.kind === "draw" && "seal" in latest!.action)
         refuse("A draw from a shuffled deck can't be undone, or it could be drawn again until it suited.");
       return;
     }
