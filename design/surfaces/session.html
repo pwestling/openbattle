@@ -19,16 +19,16 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away.</dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
   <section id="open">
-    <h2><code>open(size: { width, depth }, me: { name, colour }): Promise&lt;Session&gt;</code></h2>
+    <h2><code>open(size: { width, depth }, me: { name, colour }, from?: Log): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved.</dd>
-      <dt>Fails</dt><dd>Rejects if the relay cannot be reached; nothing is saved.</dd>
+      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved. Given a starting log (from a saved file), the new game starts from that log instead, and this browser takes the seat of the log's first player; <code>me</code> is not used. Other players come in by the new link as new seats.</dd>
+      <dt>Fails</dt><dd>Rejects if the relay cannot be reached, or a starting log has no players; nothing is saved.</dd>
     </dl>
   </section>
 

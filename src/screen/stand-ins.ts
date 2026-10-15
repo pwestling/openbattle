@@ -32,13 +32,9 @@ export const enterGame = (link: string, as: Me | "watch"): Promise<Session> =>
     () => fakeEnter(link, as),
   );
 
-/**
- * Opens a saved game's log as a new game, with a fresh link, this browser as its host in the seat
- * of the game's first player. Session's surface has no way in for this yet (see the screen's drift),
- * so only the fake does it.
- */
+/** Opens a saved game's log as a new game, with a fresh link, this browser as its host in the seat of the game's first player. */
 export const openSaved = (log: Log, me: Me): Promise<Session> =>
   orFake(
-    () => Promise.reject(new Error("session.open from a saved log is not built yet")),
+    () => session.open(log.size, me, log),
     () => fakeOpen(log.size, me, log),
   );

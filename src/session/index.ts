@@ -31,8 +31,8 @@ export interface Session {
   leave(): void;
 }
 
-/** Rejects if the relay cannot be reached. */
-export async function open(size: Size, me: Me): Promise<Session> {
+/** Rejects if the relay cannot be reached. Given a saved log, the new game starts from it in its first player's seat. */
+export async function open(size: Size, me: Me, from?: Log): Promise<Session> {
   throw new Error("session.open is not built yet");
 }
 
