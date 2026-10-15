@@ -1,5 +1,7 @@
 // Archive: games and files kept in this browser, and saved game files. Realizes design/surfaces/archive.html.
 import type { Fingerprint, Log, PlayerId } from "../record/index.ts";
+import { isSaved } from "./shape.ts";
+import { GAMES, request, within } from "./store.ts";
 
 export interface Saved {
   log: Log;
@@ -11,11 +13,17 @@ const notYet = (op: string): never => {
 };
 
 export async function save(link: string, saved: Saved): Promise<void> {
-  return notYet("save");
+  const copy: Saved = { log: saved.log, me: saved.me };
+  await within([GAMES], "readwrite", (tx) => request(tx.objectStore(GAMES).put(copy, link)));
 }
 
 export async function load(link: string): Promise<Saved | null> {
-  return notYet("load");
+  try {
+    const stored: unknown = await within([GAMES], "readonly", (tx) => request(tx.objectStore(GAMES).get(link)));
+    return isSaved(stored) ? { log: stored.log, me: stored.me } : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function keepFile(link: string, file: Blob): Promise<Fingerprint> {
