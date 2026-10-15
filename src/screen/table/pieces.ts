@@ -14,7 +14,7 @@ import {
 } from "three";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import type { FloorRef, Model, Point, Shape, Table, Terrain } from "../../record/index.ts";
-import { fitted, meshOf, standing } from "./meshes.ts";
+import { fitted, standing, whenMesh, type ReadMesh } from "./meshes.ts";
 import type { TableView } from "./view.ts";
 
 export const MM = 1 / 25.4;
@@ -41,11 +41,39 @@ export function label(text: string, className = "label"): CSS2DObject {
   return new CSS2DObject(el);
 }
 
-/** Takes an object off the table, with any labels on it. */
+/** Takes an object off the table, with any labels on it, and frees what it held on the graphics card. */
 export function drop(parent: Object3D, object: Object3D) {
   parent.remove(object);
   object.traverse((o) => {
+    (o.userData.stop as (() => void) | undefined)?.();
     if (o instanceof CSS2DObject) o.element.remove();
+    if (o instanceof Mesh) {
+      o.geometry.dispose();
+      for (const m of [o.material].flat()) {
+        (m as { map?: { dispose(): void } }).map?.dispose();
+        m.dispose();
+      }
+    }
+  });
+}
+
+/** Shows a piece's stand-in, marked as missing, until its mesh file is here; then the mesh. */
+function meshOrMissing(
+  object: Group,
+  standIn: Object3D,
+  tag: CSS2DObject,
+  fingerprint: string,
+  view: TableView,
+  shaped: (m: ReadMesh) => Object3D,
+) {
+  tag.element.classList.add("missing");
+  tag.element.title = "This piece's mesh file hasn't arrived in this browser yet.";
+  object.userData.stop = whenMesh(fingerprint, (mesh) => {
+    drop(object, standIn);
+    object.add(shaped(mesh));
+    tag.element.classList.remove("missing");
+    tag.element.removeAttribute("title");
+    view.invalidate();
   });
 }
 
@@ -187,19 +215,14 @@ export class Pieces {
         new MeshStandardMaterial({ color: "#8a8478", transparent: true, opacity: 0.25 }),
       );
       object.add(ghost);
-      const size = t.shape;
-      void meshOf(t.shape.mesh).then((mesh) => {
-        if (!mesh) return;
-        object.remove(ghost);
-        object.add(fitted(mesh, size));
-        this.view.invalidate();
-      });
     } else object.add(new Mesh(solidGeometry(t.shape), new MeshStandardMaterial({ color: "#8a8478", roughness: 0.9 })));
     const ring = this.ring(Math.hypot(width, depth) + 0.4);
     object.add(ring);
     const tag = label(t.name);
     tag.position.y = height + 0.3;
     object.add(tag);
+    const shape = t.shape;
+    if (shape.kind === "mesh") meshOrMissing(object, object.children[0]!, tag, shape.mesh, this.view, (mesh) => fitted(mesh, shape));
     return { object, label: tag, ring };
   }
 
@@ -228,21 +251,17 @@ export class Pieces {
     const body = new Mesh(new CylinderGeometry(r * 0.75, r, model.height, 20), new MeshStandardMaterial({ color: colour, roughness: 0.6 }));
     body.position.y = 0.12 + model.height / 2;
     object.add(body);
-    if (model.mesh) {
-      void meshOf(model.mesh).then((mesh) => {
-        if (!mesh) return;
-        object.remove(body);
-        const shaped = standing(mesh, model.height);
-        shaped.position.y = 0.12;
-        object.add(shaped);
-        this.view.invalidate();
-      });
-    }
     const ring = this.ring(Math.max(w, d) + 0.2);
     object.add(ring);
     const tag = label(model.name);
     tag.position.y = 0.12 + model.height + 0.3;
     object.add(tag);
+    if (model.mesh)
+      meshOrMissing(object, body, tag, model.mesh, this.view, (mesh) => {
+        const shaped = standing(mesh, model.height);
+        shaped.position.y = 0.12;
+        return shaped;
+      });
     return { object, label: tag, ring };
   }
 

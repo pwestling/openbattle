@@ -44,6 +44,8 @@ label { display: grid; gap: 4px; }
   font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); white-space: nowrap; pointer-events: none;
 }
 .label.selected { outline: 1px solid var(--accent); }
+.label.missing { font-style: italic; opacity: 0.8; }
+.label.missing::after { content: " · mesh missing"; }
 .label.distance { background: rgba(226, 176, 74, 0.9); color: #1a1a1a; font-weight: 600; }
 .banner {
   position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 5;

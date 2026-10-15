@@ -36,6 +36,11 @@ Object.assign(window, {
     actAs(player: PlayerId, action: Action) {
       knobs.sessions.forEach((s) => s.append(action, player));
     },
+    /** A file arriving in this browser, as it would from another browser; resolves to its fingerprint. */
+    arrive(text: string) {
+      const session = [...knobs.sessions][0];
+      return archive.keepFile(session?.snapshot().link ?? "", new Blob([text]));
+    },
     /** Makes new games fail as if the server could not be reached. */
     setUnreachable(on: boolean) {
       knobs.unreachable = on;

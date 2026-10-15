@@ -1,5 +1,7 @@
 // Reading mesh files (.glb, .gltf, .obj, .stl) into three.js, and fitting them to a piece's size.
-// A mesh is read with +y up, x across and -z into the table, as Measure reads it.
+// A mesh is read with +y up, x across and -z into the table, as Measure reads it. Each format is
+// read as its makers mean it: glTF is metres with +y up, STL is millimetres with +z up (as 3D
+// printing files are), and OBJ, which says neither, is taken as inches with +y up.
 import { Box3, BufferGeometry, Group, Mesh, MeshStandardMaterial, Vector3, type Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
@@ -18,8 +20,12 @@ export interface ReadMesh {
 
 const stone = () => new MeshStandardMaterial({ color: "#8a8478", roughness: 0.9 });
 
+/** Session refuses files over 512 MB (ADR-020); one that big is not read at all, so it can't crash the tab. */
+const LARGEST = 512 * 1024 * 1024;
+
 /** Reads a mesh file, telling the format from its bytes. Rejects if it is not a readable mesh. */
 export async function readMesh(file: Blob): Promise<ReadMesh> {
+  if (file.size > LARGEST) throw new Error("That file is over 512 MB.");
   try {
     return await read(file);
   } catch {
@@ -35,12 +41,14 @@ async function read(file: Blob): Promise<ReadMesh> {
   if (head.startsWith("glTF") || head.trimStart().startsWith("{")) {
     const gltf = await new GLTFLoader().parseAsync(head.startsWith("glTF") ? bytes : new TextDecoder().decode(bytes), "");
     object = gltf.scene;
+    inches = 1 / 0.0254;
   } else if (/^\s*(v|vn|vt|o|g|f|mtllib|usemtl|#)\s/m.test(head) && !head.trimStart().startsWith("solid")) {
     object = new OBJLoader().parse(new TextDecoder().decode(bytes));
   } else {
     const geometry = new STLLoader().parse(bytes);
     if (!geometry.getAttribute("position")?.count) throw new Error("That file is not a readable mesh.");
     object = new Mesh(geometry, stone());
+    object.rotation.x = -Math.PI / 2; // +z up becomes +y up, and +y runs into the table.
     inches = 1 / 25.4;
   }
   object.updateMatrixWorld(true);
@@ -68,17 +76,42 @@ async function read(file: Blob): Promise<ReadMesh> {
 
 const cache = new Map<Fingerprint, Promise<ReadMesh | null>>();
 
-/** The mesh a fingerprint names, once this browser has its file; null if it hasn't. */
+/** The mesh a fingerprint names, once this browser has its file; null if it hasn't, or can't read it. */
 export function meshOf(fingerprint: Fingerprint): Promise<ReadMesh | null> {
   let found = cache.get(fingerprint);
   if (!found) {
     found = getFile(fingerprint)
-      .then((f) => (f ? readMesh(f) : null))
-      .catch(() => null);
-    void found.then((m) => !m && cache.delete(fingerprint));
+      .catch(() => null)
+      .then(async (f) => {
+        if (!f) {
+          cache.delete(fingerprint); // Not here yet: ask again next time.
+          return null;
+        }
+        return readMesh(f).catch(() => null);
+      });
     cache.set(fingerprint, found);
   }
   return found;
+}
+
+/**
+ * Calls back with a mesh once this browser has its file. A file often arrives after the action
+ * that uses it, so until then it asks again every two seconds. Returns a way to stop asking.
+ */
+export function whenMesh(fingerprint: Fingerprint, ready: (mesh: ReadMesh) => void): () => void {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const ask = () =>
+    void meshOf(fingerprint).then((mesh) => {
+      if (stopped) return;
+      if (mesh) ready(mesh);
+      else timer = setTimeout(ask, 2000);
+    });
+  ask();
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+  };
 }
 
 /** A copy of a mesh stretched to a size, centred across and standing on 0, as Measure stretches it. */
