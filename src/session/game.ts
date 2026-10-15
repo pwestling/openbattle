@@ -287,6 +287,8 @@ export class Game {
     await new Promise<void>((resolve, reject) => {
       this.resyncing?.reject(new Error("Another resync took its place."));
       this.resyncing = { resolve: () => resolve(), reject };
+      // A hello's log already on its way answers this resync too, and keeps a hello's meaning.
+      if (this.expecting === "hello") return;
       this.expecting = "resync";
       this.toHost({ t: "resync" });
     });
@@ -467,7 +469,7 @@ export class Game {
         // The host may add to the log this browser has, never change it.
         if (log?.link !== this.log.link || log.host !== this.log.host || checkLog(log) || !extendsLog(log, this.log)) {
           this.disagreement = true;
-          if (asked === "resync") this.resynced("The host's log changes entries this browser already has.");
+          this.resynced("The host's log changes entries this browser already has.");
           return this.changed();
         }
         const had = this.log.entries.length;
@@ -485,7 +487,7 @@ export class Game {
         this.becomeJoined();
         void this.checkSignatures();
         this.changed();
-        if (asked === "resync") this.resynced();
+        this.resynced();
         return;
       }
       case "entry": {
