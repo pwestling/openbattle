@@ -374,7 +374,7 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a bad sea
   expect(draw(nodeRecord, fair)).toEqual(seen.fair);
   expect(seen.fair!.undo).toBe("A draw from a shuffled deck can't be undone, or it could be drawn again until it suited.");
   // The draw keeps the cards in the order they were picked.
-  expect(seen.fair!.draws).toMatchObject([{ at: 6, by: bo, deck: "d1", to: "hand", tampered: false }]);
+  expect(seen.fair!.draws).toMatchObject([{ at: 6, by: bo, deck: "d1", to: "hand", tampered: false, alone: false }]);
   expect([...seen.fair!.draws![0]!.cards].sort()).toEqual(seen.fair!.drawn);
   // A host value that does not open the seal is still logged, and everyone sees the draw flagged as tampered.
   expect(seen.tampered!.drawn).toHaveLength(3);
@@ -385,7 +385,7 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a bad sea
   expect(seen.ordered).toEqual({
     drawn: ["c0", "c1", "c2"],
     left: ["c3", "c4", "c5", "c6", "c7", "c8", "c9"],
-    draws: [{ at: 6, by: bo, deck: "d1", cards: ["c0", "c1", "c2"], to: "hand", tampered: false }],
+    draws: [{ at: 6, by: bo, deck: "d1", cards: ["c0", "c1", "c2"], to: "hand", tampered: false, alone: false }],
     undo: undefined,
   });
 });
@@ -566,4 +566,46 @@ test("the host stays the host when its join is undone, so it can never send the 
   const seen = await page.evaluate(`(() => { ${players} return (${scenario.toString()})(window.record, ${JSON.stringify(sealed)}); })()`);
   expect(seen).toEqual(["The host can't send the other value: it would choose both.", null]);
   expect(scenario(nodeRecord, sealed)).toEqual(seen);
+});
+
+test("with nobody else connected the host can roll or draw alone, and everyone sees it was taken alone", async ({ page }) => {
+  const sealed = await sealedWith("host value", "also made by the host");
+  // Taken alone (ADR-023): no other player sent a value or signed, so guestBy is null and there is no signature.
+  const { guestSignature: _, ...unsigned } = sealed;
+  const alone = { ...unsigned, guestBy: null };
+  const scenario = (r: RecordModule, start: typeof opening, a: typeof alone, s: typeof sealed) => {
+    let log = start(r);
+    const cards = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, name: `Card ${i}` }));
+    log = r.append(log, { kind: "add deck", deck: "d1", name: "Objectives", owner: null, order: "shuffled", cards, position: { x: 1, y: 1 } }, ann);
+    const problem = (action: Parameters<RecordModule["check"]>[1], by: string) => r.check(log, action, by)?.problem ?? null;
+    const refused = {
+      notHost: problem({ kind: "roll", dice: 2, sides: 6, ...a }, bo),
+      signed: problem({ kind: "roll", dice: 2, sides: 6, ...a, guestSignature: "sig" } as unknown as Parameters<RecordModule["check"]>[1], ann),
+      drawNotHost: problem({ kind: "draw", deck: "d1", cards: 1, to: "hand", ...a, seal: "other" }, bo),
+    };
+    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...a }, ann);
+    log = r.append(log, { kind: "draw", deck: "d1", cards: 1, to: "hand", ...a, seal: "draw seal" }, ann);
+    log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...s, seal: "fair seal" }, ann);
+    const table = r.tableAt(log);
+    return {
+      refused,
+      rolls: table.rolls.map((roll) => roll.alone),
+      draws: table.draws.map((draw) => draw.alone),
+      logChecks: r.checkLog(log),
+    };
+  };
+  const seen = await page.evaluate(
+    `(() => { ${players} return (${scenario.toString()})(window.record, ${opening.toString()}, ${JSON.stringify(alone)}, ${JSON.stringify(sealed)}); })()`,
+  );
+  expect(seen).toEqual({
+    refused: {
+      notHost: "Only the host can roll or draw alone, with nobody else taking part.",
+      signed: "A roll taken alone has no signature: nobody else took part.",
+      drawNotHost: "Only the host can roll or draw alone, with nobody else taking part.",
+    },
+    rolls: [true, false],
+    draws: [true],
+    logChecks: null,
+  });
+  expect(scenario(nodeRecord, opening, alone, sealed)).toEqual(seen);
 });
