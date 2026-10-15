@@ -1,0 +1,12 @@
+<section data-node="surfaces/screen">
+  <h2><a href="surfaces/screen.html">Screen surface</a></h2>
+  <ul>
+    <li>Rolls and draws taken alone (<a href="decisions/ADR-023.html">ADR-023</a>): the record marks them <code>alone</code>, but the dice panel, the log panel and their words (<code>src/screen/panels/dice.tsx</code>, <code>src/screen/panels/log.tsx</code>, <code>src/screen/words.ts</code>) show only tampered, so a roll the host made alone reads as fair. They should show "rolled alone" and "drawn alone", with a proof.</li>
+  </ul>
+</section>
+<section data-node="surfaces/session">
+  <h2><a href="surfaces/session.html">Session surface</a></h2>
+  <ul>
+    <li>Rolling alone (<a href="decisions/ADR-023.html">ADR-023</a>) is not on the surface yet. The record lets the host take a roll or draw alone at any time, because who is connected is not in the log. So Session must keep it fair: <ins>the host goes alone only with nobody else connected; a connected player's browser flags an alone roll or draw that arrives while it is there; a player whose signed value never reaches the log is told so.</ins> Proposed, for Porter. Session's roll line still says a missing signature is logged as tampered, but the record refuses it.</li>
+  </ul>
+</section>
