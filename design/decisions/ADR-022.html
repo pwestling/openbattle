@@ -15,7 +15,7 @@
     <h1>ADR-022: Each browser proves who it is with a key</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> From the scaffold review on 2026-10-15. Accepted by Porter on 2026-10-15, "as long as it doesn't materially hurt player experience". Tightened on 2026-10-15 from the Record review: who signs, what a signature covers, and how ids are checked.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> From the scaffold review on 2026-10-15. Accepted by Porter on 2026-10-15, "as long as it doesn't materially hurt player experience". Tightened on 2026-10-15 from the Record review: who signs, what a signature covers, and how ids are checked. <ins>The tightening (the log naming its link and host, signatures bound to the game's link, refused reused seals and empty signatures) was decided while Porter slept, at his request, for his review.</ins></dd>
     <dt>Context</dt><dd>A browser named its own id when it reached the relay, and every browser learned the others' ids. So anyone in a game could reconnect claiming to be the <a href="../concepts/host.html">host</a> or another <a href="../concepts/player.html">player</a>. And because the host writes the other player's dice value into the log, a host could change that value and steer a <a href="../concepts/roll.html">roll</a> without the seal check noticing. Both defeat <a href="../intent.html#fair-dice">dice and draws nobody can fix</a>.</dd>
     <dt>Decision</dt><dd>
       <ul>

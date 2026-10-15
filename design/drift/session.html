@@ -1,0 +1,7 @@
+<section data-node="surfaces/session">
+  <h2><a href="surfaces/session.html">Session surface</a></h2>
+  <ul>
+    <li><code>addFile</code> keeps the file and sends its bytes to every browser, including later arrivals (<code>src/session/game.ts</code>), but <del>simplifies a mesh over 100,000 triangles</del>, <del>reads STL as millimetres</del> and <del>sends only a link, letting each browser download it</del> are not built yet: a linked file is downloaded and its bytes sent instead, and the 512 MB cap is not enforced.</li>
+    <li>Rolling alone (<a href="decisions/ADR-023.html">ADR-023</a>, proposed) is not built yet: with no other player connected, the host's roll is refused.</li>
+  </ul>
+</section>

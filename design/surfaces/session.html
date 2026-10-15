@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>).</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <ins>From the Session build, 2026-10-15, while Porter slept: the game's link names its host, the snapshot's link is the address to share, <code>enter</code> takes that address or the link, a missing signature is refused rather than flagged, and the browser that started a game but no longer has it can't take it back.</ins></dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
@@ -33,11 +33,12 @@
   </section>
 
   <section id="enter">
+    <p><ins>A game's link is 8 random characters, a dash and the host's browser id, so every browser knows who the host is before trusting anything it is sent (<a href="../decisions/ADR-022.html">ADR-022</a>); a game opened from a saved file adds a dash and the number of entries copied. The address to share is the page's address with <code>?game=</code> and the link, and <code>enter</code> takes either.</ins></p>
     <h2><code>enter(link: string, as: { name, colour } | "watch"): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host.</dd>
-      <dt>Fails</dt><dd>Rejects if the link is malformed. If the host is away, it still resolves, with the snapshot saying so.</dd>
+      <dt>Fails</dt><dd>Rejects if the link is malformed<ins>, or if this browser started the game but no longer has it</ins>. If the host is away, it still resolves, with the snapshot saying so.</dd>
     </dl>
   </section>
 
@@ -55,7 +56,7 @@
     <dl>
       <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
       <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice and the host's seal, and every browser checks the signature as the roll arrives and when a saved game is loaded (<a href="../decisions/ADR-022.html">ADR-022</a>).</dd>
-      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails, including a missing or wrong signature on the other player's value, is still logged, flagged as tampered.</dd>
+      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails, including a wrong signature on the other player's value, is still logged, flagged as tampered; a missing signature is refused.</dd>
     </dl>
   </section>
 
