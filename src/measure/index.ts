@@ -3,6 +3,7 @@
 // The record's Table has this shape, so the screen hands one straight in.
 
 import { measure } from "./distance.ts";
+import { floorsOf } from "./floors.ts";
 
 export interface Point {
   x: number;
@@ -32,15 +33,15 @@ export interface TableShape {
 /** A point in inches, a model, or a unit (its closest model). */
 export type Spot = Point | { model: string } | { unit: string };
 
-/** Triangles in the mesh's own units; size says how big the piece is on the table, in inches. */
+/**
+ * Triangles in the mesh's own units, as three.js reads them: +y is up, corners run anticlockwise seen
+ * from outside, mesh x is the piece's width and mesh -z its depth. size says how big the piece is on
+ * the table, in inches.
+ */
 export interface Mesh {
   positions: Float32Array;
   indices?: Uint32Array;
 }
-
-const notYet = (op: string): never => {
-  throw new Error(`measure.${op} is not built yet`);
-};
 
 /** up is how far the base at the to end stands above the base at the from end; negative when below. */
 export function distance(table: TableShape, from: Spot, to: Spot, via?: Point[]): { across: number; up: number } {
@@ -48,5 +49,5 @@ export function distance(table: TableShape, from: Spot, to: Spot, via?: Point[])
 }
 
 export function floors(mesh: Mesh, size: { width: number; depth: number; height: number }): Floor[] {
-  return notYet("floors");
+  return floorsOf(mesh, size);
 }

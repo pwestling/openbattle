@@ -165,3 +165,107 @@ test("the same question gets the same answer in the browser and out of it, and a
   const recorded: nodeMeasure.TableShape = nodeRecord.tableAt(log);
   expect(await inBrowser(page, (m, t) => m.distance(t, { model: "x" }, { model: "y" }), recorded)).toEqual({ across: 4.74, up: 0 });
 });
+
+// Meshes are built here as plain lists of corners, in millimetres, three corners per triangle.
+type Corners = number[];
+
+/** A box's twelve triangles, each facing outwards, with corners anticlockwise from outside. */
+const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number): Corners => {
+  const quad = (...q: [number, number, number][]) => [q[0]!, q[1]!, q[2]!, q[0]!, q[2]!, q[3]!].flat();
+  return [
+    ...quad([x0, y1, z0], [x0, y1, z1], [x1, y1, z1], [x1, y1, z0]), // top
+    ...quad([x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]), // bottom
+    ...quad([x0, y0, z0], [x0, y0, z1], [x0, y1, z1], [x0, y1, z0]),
+    ...quad([x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1]),
+    ...quad([x0, y0, z0], [x0, y1, z0], [x1, y1, z0], [x1, y0, z0]),
+    ...quad([x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]),
+  ];
+};
+
+/** A flat top made of separate, unjoined triangles in a grid, as STL files store them. */
+const tiles = (x0: number, x1: number, y: number, z0: number, z1: number, n: number): Corners => {
+  const out: Corners = [];
+  const [dx, dz] = [(x1 - x0) / n, (z1 - z0) / n];
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const [a, b, c, d] = [x0 + i * dx, x0 + (i + 1) * dx, z0 + j * dz, z0 + (j + 1) * dz];
+      out.push(a, y, c, a, y, d, b, y, d, a, y, c, b, y, d, b, y, c);
+    }
+  }
+  return out;
+};
+
+const meshes = {
+  // A 100 mm ruin: a 5 mm ground slab, two walls, and an upper storey 50 mm up over its left half.
+  ruin: [...box(0, 100, 0, 5, 0, 100), ...box(0, 5, 5, 50, 0, 100), ...box(95, 100, 5, 50, 0, 100), ...box(0, 50, 50, 55, 0, 100)],
+  // The same ground slab with its top as 800 separate triangles.
+  tiled: [...tiles(0, 100, 5, 0, 100, 20), ...box(0, 100, 0, 4.99, 0, 100)],
+  // Two platforms 1 mm apart at one height, and a small ledge too small to stand on.
+  split: [...box(0, 49.5, 0, 20, 0, 100), ...box(50.5, 100, 0, 20, 0, 100), ...box(0, 5, 40, 41, 0, 5)],
+  // A pyramid: no flat area faces up.
+  pyramid: [0, 0, 0, 50, 80, 50, 100, 0, 0, 100, 0, 0, 50, 80, 50, 100, 0, 100, 100, 0, 100, 50, 80, 50, 0, 0, 100, 0, 0, 100, 50, 80, 50, 0, 0, 0],
+};
+
+const piece = { width: 4, depth: 4, height: 2.2 };
+
+test("a mesh's floors are its upward-facing flat areas, nearby ones merged, worked out the same everywhere", async ({ page }) => {
+  const work = (m: MeasureModule, arg: { meshes: Record<string, Corners>; piece: typeof piece }) => {
+    const floors = (corners: Corners, size = arg.piece) => m.floors({ positions: new Float32Array(corners) }, size);
+    return {
+      ruin: floors(arg.meshes.ruin!),
+      tiled: floors(arg.meshes.tiled!, { width: 4, depth: 4, height: 0.2 }),
+      split: floors(arg.meshes.split!, { width: 4, depth: 4, height: 4.1 }),
+      pyramid: floors(arg.meshes.pyramid!),
+      bigger: floors(arg.meshes.ruin!, { width: 8, depth: 8, height: 4.4 }),
+      indexed: m.floors(
+        { positions: new Float32Array([0, 1, 0, 0, 1, 10, 10, 1, 10, 10, 1, 0]), indices: new Uint32Array([0, 1, 2, 0, 2, 3]) },
+        { width: 2, depth: 2, height: 1 },
+      ),
+    };
+  };
+  const seen = await inBrowser(page, work, { meshes, piece });
+  // The slab's top 0.2" up, covering the whole piece; the upper storey 2.2" up over its left half.
+  // The tops of both walls are floors too, narrow but long enough to stand on; the left one is under the storey.
+  expect(seen.ruin).toEqual([
+    { height: 0.2, outline: [{ x: -2, y: -2 }, { x: 2, y: -2 }, { x: 2, y: 2 }, { x: -2, y: 2 }] },
+    { height: 2, outline: [{ x: -2, y: -2 }, { x: -1.8, y: -2 }, { x: -1.8, y: 2 }, { x: -2, y: 2 }] },
+    { height: 2, outline: [{ x: 1.8, y: -2 }, { x: 2, y: -2 }, { x: 2, y: 2 }, { x: 1.8, y: 2 }] },
+    { height: 2.2, outline: [{ x: -2, y: -2 }, { x: 0, y: -2 }, { x: 0, y: 2 }, { x: -2, y: 2 }] },
+  ]);
+  expect(seen.tiled).toEqual([{ height: 0.2, outline: [{ x: -2, y: -2 }, { x: 2, y: -2 }, { x: 2, y: 2 }, { x: -2, y: 2 }] }]);
+  expect(seen.split).toEqual([{ height: 2, outline: [{ x: -2, y: -2 }, { x: 2, y: -2 }, { x: 2, y: 2 }, { x: -2, y: 2 }] }]);
+  expect(seen.pyramid).toEqual([]);
+  expect(seen.bigger.map((f) => f.height)).toEqual([0.4, 4, 4, 4.4]);
+  expect(seen.bigger[0]!.outline).toEqual([{ x: -4, y: -4 }, { x: 4, y: -4 }, { x: 4, y: 4 }, { x: -4, y: 4 }]);
+  expect(seen.indexed).toEqual([{ height: 0, outline: [{ x: -1, y: -1 }, { x: 1, y: -1 }, { x: 1, y: 1 }, { x: -1, y: 1 }] }]);
+  // Node works out exactly the same floors.
+  expect(work(nodeMeasure, { meshes, piece })).toEqual(seen);
+});
+
+test("a mesh of 100,000 triangles, the most a mesh is simplified to, gets its floors quickly", async ({ page }) => {
+  const seen = await inBrowser(
+    page,
+    (m, n: number) => {
+      // A rippled hill, n by n squares, with a flat top in the middle.
+      const positions: number[] = [];
+      const h = (i: number, j: number) => {
+        const r = Math.hypot(i - n / 2, j - n / 2);
+        return r < n / 6 ? 30 : 30 - (r - n / 6) * 0.5 + Math.sin(i * 0.7) * 0.4;
+      };
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const q = [[i, j], [i, j + 1], [i + 1, j + 1], [i + 1, j]].map(([a, b]) => [a!, h(a!, b!), b!]);
+          positions.push(...q[0]!, ...q[1]!, ...q[2]!, ...q[0]!, ...q[2]!, ...q[3]!);
+        }
+      }
+      const started = performance.now();
+      const floors = m.floors({ positions: new Float32Array(positions) }, { width: 12, depth: 12, height: 3 });
+      return { triangles: positions.length / 9, ms: performance.now() - started, heights: floors.map((f) => f.height) };
+    },
+    224,
+  );
+  expect(seen.triangles).toBeGreaterThan(100_000);
+  // The flat top, just under the ripples' crests, is a floor; the slopes are not.
+  expect(seen.heights).toEqual([2.985]);
+  expect(seen.ms).toBeLessThan(2000);
+});
