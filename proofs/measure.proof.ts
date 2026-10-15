@@ -148,7 +148,7 @@ test("the same question gets the same answer in the browser and out of it, and a
   expect(there).toEqual(ask(nodeMeasure, many));
 
   let log = nodeRecord.newLog({ width: 44, depth: 30 });
-  log = nodeRecord.append(log, { kind: "join", name: "Ann", colour: "#c33" }, "ann");
+  log = nodeRecord.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" }, "ann");
   log = nodeRecord.append(
     log,
     {

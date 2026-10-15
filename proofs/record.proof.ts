@@ -10,8 +10,8 @@ type Log = ReturnType<RecordModule["newLog"]>;
 // A short game several proofs start from: two players join, Ann brings a unit of two models and moves them.
 const opening = (r: RecordModule): Log => {
   let log = r.newLog({ width: 44, depth: 30 });
-  log = r.append(log, { kind: "join", name: "Ann", colour: "#c33" }, "ann");
-  log = r.append(log, { kind: "join", name: "Bo", colour: "#33c" }, "bo");
+  log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" }, "ann");
+  log = r.append(log, { kind: "join", name: "Bo", colour: "#33c", publicKey: "key-Bo" }, "bo");
   const base = { shape: "round" as const, width: 32, depth: 32 };
   log = r.append(
     log,
@@ -131,7 +131,8 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "shuffle", deck: "d1" }, "bo");
     return { table: r.tableAt(log), onRuin, afterRemove, aside, grouped, reordered };
   });
-  expect(t.table.players.ann).toEqual({ id: "ann", name: "Annie", colour: "#a00" });
+  // Renaming keeps the key the player joined with.
+  expect(t.table.players.ann).toEqual({ id: "ann", name: "Annie", colour: "#a00", publicKey: "key-Ann" });
   expect(t.onRuin).toEqual({ terrain: "t1", floor: 0 });
   // Removing terrain puts the models standing on it back on the table, where they were.
   expect(t.afterRemove.terrain.t1).toBeUndefined();
@@ -183,11 +184,13 @@ test("check says in plain words why an action can't be taken, and append refuses
       unevenRound: p({ kind: "add to army", units: [{ id: "u9", name: "Odd" }], models: [{ id: "x", unit: "u9", name: "Odd", base: { shape: "round", width: 25, depth: 30 }, height: 1, position: { x: 1, y: 1 }, facing: 0, floor: null }], groups: [] }),
       noFloor: p({ kind: "move", moves: [{ model: "m1", position: { x: 1, y: 1 }, facing: 0, floor: { terrain: "t9", floor: 0 }, path: [] }] }),
       stranger: p({ kind: "phase", phase: { round: 1, turn: null, name: "Setup" } }, "eve"),
-      twiceJoined: p({ kind: "join", name: "Ann again", colour: "#000" }),
+      twiceJoined: p({ kind: "join", name: "Ann again", colour: "#000", publicKey: "key-Ann again" }),
       unknownKind: p({ kind: "teleport" }),
       malformed: p({ kind: "move" }),
       tooManyDice: p({ kind: "roll", dice: 1025, sides: 6, seal: "", hostValue: "", guestValue: "" }),
       oneSided: p({ kind: "roll", dice: 1, sides: 1, seal: "", hostValue: "", guestValue: "" }),
+      unsigned: p({ kind: "roll", dice: 1, sides: 6, seal: "", hostValue: "", guestValue: "" }),
+      noKey: p({ kind: "join", name: "Cy", colour: "#0c0" }, "cy"),
       thrown,
     };
   });
@@ -208,6 +211,8 @@ test("check says in plain words why an action can't be taken, and append refuses
   expect(seen.malformed).toBe("The moves must be a list.");
   expect(seen.tooManyDice).toBe("A roll is 1 to 1024 dice.");
   expect(seen.oneSided).toBe("A die has a whole number of sides, at least two.");
+  expect(seen.unsigned).toBe("A roll needs the other player's signature over their value.");
+  expect(seen.noKey).toBe("The player's public key must be text.");
 });
 
 test("undo cancels the latest action, only for the player who took it, and looking back still shows it", async ({ page }) => {
@@ -252,7 +257,8 @@ test("undo cancels the latest action, only for the player who took it, and looki
 const sealedWith = async (hostValue: string, guestValue: string) => {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hostValue));
   const seal = Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
-  return { seal, hostValue, guestValue };
+  // Session signs and checks the other player's value (ADR-022); the record only needs a signature there.
+  return { seal, hostValue, guestValue, guestSignature: `signed ${guestValue}` };
 };
 
 test("a roll's result comes from both random values, the same in every browser, and a bad seal shows as tampered", async ({ page }) => {

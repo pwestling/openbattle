@@ -81,10 +81,10 @@ function apply(table: Table, { n, by, action }: Entry) {
     case "undo":
       return;
     case "join":
-      table.players[by] = { id: by, name: action.name, colour: action.colour };
+      table.players[by] = { id: by, name: action.name, colour: action.colour, publicKey: action.publicKey };
       return;
     case "rename":
-      table.players[by] = { id: by, name: action.name, colour: action.colour };
+      table.players[by] = { ...table.players[by]!, name: action.name, colour: action.colour };
       return;
     case "place terrain":
       table.terrain[action.terrain.id] = copy(action.terrain);

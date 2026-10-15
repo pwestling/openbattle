@@ -91,6 +91,8 @@ export interface Player {
   id: PlayerId;
   name: string;
   colour: string;
+  /** The public half of the player's browser key (ADR-022), from their join. */
+  publicKey: string;
 }
 
 export interface Phase {
@@ -130,11 +132,14 @@ export interface Deck {
  * Both random values of the sealed exchange (ADR-008). The host commits to hostValue by sending
  * seal = hex SHA-256 of hostValue; the other player then sends guestValue; the host opens the seal.
  * The outcome is derived from both values by the record, the same in every browser.
+ * guestSignature is the other player's signature over the seal and guestValue (ADR-022), so the host
+ * cannot change guestValue. The record keeps it but never checks it: Session does.
  */
 export interface Sealed {
   seal: string;
   hostValue: string;
   guestValue: string;
+  guestSignature: string;
 }
 
 export interface Roll {
@@ -180,7 +185,7 @@ export interface NewCard {
 
 /** The nineteen kinds of action (ADR-015). Adding a kind is an escalation. */
 export type Action =
-  | { kind: "join"; name: string; colour: string }
+  | { kind: "join"; name: string; colour: string; publicKey: string }
   | { kind: "rename"; name: string; colour: string }
   | { kind: "place terrain"; terrain: Terrain }
   | { kind: "remove terrain"; terrain: TerrainId }

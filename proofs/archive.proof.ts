@@ -16,8 +16,8 @@ async function openArchive(page: Page): Promise<void> {
 const log: Log = {
   size: { width: 72, depth: 48 },
   entries: [
-    { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33" } },
-    { n: 2, by: "bob", action: { kind: "join", name: "Bob", colour: "#33c" } },
+    { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" } },
+    { n: 2, by: "bob", action: { kind: "join", name: "Bob", colour: "#33c", publicKey: "key-Bob" } },
     { n: 3, by: "ann", action: { kind: "phase", phase: { round: 1, turn: "ann", name: "Deploy" } } },
   ],
 };
@@ -157,7 +157,7 @@ function gameUsing(terrainMesh: string, modelMesh: string, picture: string): Log
   return {
     size: { width: 72, depth: 48 },
     entries: [
-      { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33" } },
+      { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" } },
       {
         n: 2,
         by: "ann",

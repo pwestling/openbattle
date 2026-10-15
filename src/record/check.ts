@@ -152,9 +152,11 @@ function deck(table: Table, id: unknown) {
   return table.decks[id as string]!;
 }
 
-function sealed(action: { seal?: unknown; hostValue?: unknown; guestValue?: unknown }, what: string) {
+function sealed(action: { seal?: unknown; hostValue?: unknown; guestValue?: unknown; guestSignature?: unknown }, what: string) {
   if (!isText(action.seal) || !isText(action.hostValue) || !isText(action.guestValue))
     refuse(`${what} needs the seal and both random values.`);
+  // Whether the signature is right is for Session to check; the record only needs it to be there.
+  if (!isText(action.guestSignature)) refuse(`${what} needs the other player's signature over their value.`);
 }
 
 function place(table: Table, to: CardPlace) {
@@ -196,6 +198,10 @@ export function problemWith(log: Log, table: Table, action: Action, by: PlayerId
 function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
   switch (action.kind) {
     case "join":
+      text(action.name, "The name");
+      text(action.colour, "The colour");
+      text(action.publicKey, "The player's public key");
+      return;
     case "rename":
       text(action.name, "The name");
       text(action.colour, "The colour");
@@ -329,7 +335,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (action.to !== "hand" && action.to !== "table") refuse("Cards are drawn to the hand or the table.");
       const values = action as Partial<Sealed>;
       if (from.order === "ordered") {
-        if (values.seal !== undefined || values.hostValue !== undefined || values.guestValue !== undefined)
+        if (values.seal !== undefined || values.hostValue !== undefined || values.guestValue !== undefined || values.guestSignature !== undefined)
           refuse("An ordered deck gives its top cards; a draw from it has no random values.");
       } else {
         sealed(values, "A draw from a shuffled deck");
