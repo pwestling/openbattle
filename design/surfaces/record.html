@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15, with who signs, what is signed and how ids are checked as the design thread settled them; the log then took its game's link and host, so that a reopened saved file is a new game.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him.</ins></dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -29,7 +29,7 @@
     <table>
       <thead><tr><th>Kind</th><th>Changes</th></tr></thead>
       <tbody>
-        <tr><td>join</td><td>Adds a <a href="../concepts/player.html">player</a> with a name, a colour and the public key of their browser (<a href="../decisions/ADR-022.html">ADR-022</a>), as base64url of its raw bytes. The player's id must be the one <code>playerIdOf</code> works out from that key.</td></tr>
+        <tr><td>join</td><td>Adds a <a href="../concepts/player.html">player</a> with a name, a colour and the public key of their browser (<a href="../decisions/ADR-022.html">ADR-022</a>), as base64url of its raw bytes. <ins>The player's id must be the one <code>playerIdOf</code> works out from that key.</ins></td></tr>
         <tr><td>rename</td><td>Changes a player's own name or colour.</td></tr>
         <tr><td>place terrain</td><td>Adds a <a href="../concepts/terrain.html">terrain</a> piece, or replaces one with the same id. The piece is a simple solid, or a mesh named by its file's fingerprint, and carries its floors.</td></tr>
         <tr><td>remove terrain</td><td>Removes a terrain piece.</td></tr>
@@ -42,10 +42,10 @@
         <tr><td>phase</td><td>Sets the round, whose turn it is, and the <a href="../concepts/phase.html">phase</a> name.</td></tr>
         <tr><td>counter</td><td>Sets a <a href="../concepts/counter.html">counter</a> on a target to a number, or clears it.</td></tr>
         <tr><td>mark</td><td>Turns a <a href="../concepts/mark.html">mark</a> on or off for a target.</td></tr>
-        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, the link of the game it was signed in, both random values, and who sent the other value, and their signature over it. The record works out the result from the two values, the same in every browser.</td></tr>
+        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, <ins>the link of the game it was signed in,</ins> both random values, and who sent the other value, and their signature over it. The record works out the result from the two values, the same in every browser.</td></tr>
         <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
         <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
-        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, the link, both random values, who sent the other one, and their signature, as for a roll; from the values the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is.</td></tr>
+        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, <ins>the link,</ins> both random values, who sent the other one, and their signature, as for a roll; from the values the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is.</td></tr>
         <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
         <tr><td>undo</td><td>Cancels the latest uncancelled action.</td></tr>
       </tbody>
@@ -53,10 +53,10 @@
   </section>
 
   <section id="newLog">
-    <h2><code>newLog(size: { width, depth }, link: string, host: PlayerId): Log</code></h2>
+    <h2><code>newLog(size: { width, depth }<ins>, link: string, host: PlayerId</ins>): Log</code></h2>
     <dl>
-      <dt>Pre</dt><dd>Width and depth are positive inches. <code>link</code> is the game's link and <code>host</code> the id of the host's browser.</dd>
-      <dt>Post</dt><dd>An empty <a href="../concepts/log.html">log</a> whose <a href="../concepts/table.html">table</a> is that size and bare, for that game and host. Opening a saved file starts a new game: its entries go into a log with a new link and this browser as host, keep the links they were signed with, and are not checked again.</dd>
+      <dt>Pre</dt><dd>Width and depth are positive inches. <ins><code>link</code> is the game's link and <code>host</code> the id of the host's browser.</ins></dd>
+      <dt>Post</dt><dd>An empty <a href="../concepts/log.html">log</a> whose <a href="../concepts/table.html">table</a> is that size and bare<ins>, for that game and host. Opening a saved file starts a new game: its entries go into a log with a new link and this browser as host, keep the links they were signed with, and are not checked again.</ins></dd>
       <dt>Fails</dt><dd>Never, for valid sizes.</dd>
     </dl>
   </section>
@@ -65,7 +65,7 @@
     <h2><code>check(log: Log, action: Action, by: PlayerId): Problem | null</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves); a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once; a join's id is the one its public key gives, and no other player has that key; in a roll or shuffled draw, the link is the log's, the other value comes from the taker, or from a player other than the host when the host takes it (the host is the log's), its signature is there and not empty, and its seal was not used earlier in the log. The record never checks that a signature is right, so it stays synchronous: Session checks each one against <code>guestStatement</code> as the action arrives and when a saved game loads, and its snapshot lists the rolls and draws that fail. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
+      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves); a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once; <ins>a join's id is the one its public key gives, and no other player has that key; in a roll or shuffled draw, the link is the log's, the other value comes from the taker, or from a player other than the host when the host takes it (the host is the log's), its signature is there and not empty, and its seal was not used earlier in the log.</ins> The record never checks that a signature is right, so it stays synchronous: Session checks each one against <code>guestStatement</code> as the action arrives and when a saved game loads, and its snapshot lists the rolls and draws that fail. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
       <dt>Fails</dt><dd>Never; problems are returned. Game rules are never checked.</dd>
     </dl>
   </section>
@@ -97,7 +97,7 @@
     </dl>
   </section>
   <section id="playerIdOf">
-    <h2><code>playerIdOf(publicKey: string): PlayerId | null</code></h2>
+    <h2><ins><code>playerIdOf(publicKey: string): PlayerId | null</code></ins></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The id a browser's key gives: base64url of the first 16 bytes of the SHA-256 of the raw public key, which <code>publicKey</code> holds as base64url. <code>null</code> if it is not base64url.</dd>
@@ -105,7 +105,7 @@
     </dl>
   </section>
   <section id="guestStatement">
-    <h2><code>guestStatement(action: RollAction | ShuffledDrawAction): string</code></h2>
+    <h2><ins><code>guestStatement(action: RollAction | ShuffledDrawAction): string</code></ins></h2>
     <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck.</p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
