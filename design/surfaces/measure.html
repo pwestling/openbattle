@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Measure — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<meta name="pdd-derived" content="2026-10-15T05:50Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -24,11 +24,11 @@
   <p>One operation. A pure function of the <a href="../concepts/table.html">table</a>.</p>
 
   <section id="distance">
-    <h2><code>distance(table: Table, from: Spot, to: Spot): { across, up }</code></h2>
-    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, or a <a href="../concepts/unit.html">unit</a>.</p>
+    <h2><code>distance(table: Table, from: Spot, to: Spot, via?: Point[]): { across, up }</code></h2>
+    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, or a <a href="../concepts/unit.html">unit</a>. <code>via</code> is an optional list of waypoints, for a path around terrain.</p>
     <dl>
       <dt>Pre</dt><dd>Named models and units are on the table.</dd>
-      <dt>Post</dt><dd><code>across</code> is the shortest distance in inches across the table between the two, base edge to base edge; for a unit, its closest model. <code>up</code> is the height difference between their bases. Both are rounded to a hundredth of an inch, and the same in every browser.</dd>
+      <dt>Post</dt><dd><code>across</code> is the distance in inches across the table: with no waypoints, the shortest one, base edge to base edge, and for a unit its closest model; with waypoints, the length of the path from the first spot through each waypoint in order to the last, measured from base edges at the two ends. <code>up</code> is the height difference between their bases. Both are rounded to a hundredth of an inch, and the same in every browser.</dd>
       <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist.</dd>
     </dl>
   </section>
