@@ -158,14 +158,20 @@ function sealed(log: Log, table: Table, by: PlayerId, action: Partial<Record<key
     refuse(`${what} needs the seal and both random values.`);
   // Signed for this game (ADR-022): otherwise an exchange from another game could be replayed here.
   if (!isText(action.link) || action.link !== log.link) refuse(`${what} must be signed for this game's link.`);
-  // Who sent the other value (ADR-022): the taker, unless the host takes it; then anyone but the host.
-  if (!isText(action.guestBy) || !table.players[action.guestBy]) refuse(`${what} must name the player who sent the other value.`);
   const host = log.host;
-  if (action.guestBy === host) refuse("The host can't send the other value: it would choose both.");
-  if (by !== host && action.guestBy !== by) refuse(`${what} by a player who is not the host takes their own value.`);
-  // Whether the signature checks is for Session, which shows a failure as tampered; here it must be there.
-  if (!isText(action.guestSignature) || action.guestSignature === "")
-    refuse(`${what} needs the other player's signature over their value.`);
+  // Taken alone (ADR-023): only the host, who makes both values; nobody signs, and the table says so.
+  if (action.guestBy === null) {
+    if (by !== host) refuse("Only the host can roll or draw alone, with nobody else taking part.");
+    if (action.guestSignature !== undefined) refuse(`${what} taken alone has no signature: nobody else took part.`);
+  } else {
+    // Who sent the other value (ADR-022): the taker, unless the host takes it; then anyone but the host.
+    if (!isText(action.guestBy) || !table.players[action.guestBy]) refuse(`${what} must name the player who sent the other value.`);
+    if (action.guestBy === host) refuse("The host can't send the other value: it would choose both.");
+    if (by !== host && action.guestBy !== by) refuse(`${what} by a player who is not the host takes their own value.`);
+    // Whether the signature checks is for Session, which shows a failure as tampered; here it must be there.
+    if (!isText(action.guestSignature) || action.guestSignature === "")
+      refuse(`${what} needs the other player's signature over their value.`);
+  }
   // A seal opens once: logging an old exchange again would let the host pick one whose result suits it.
   for (const entry of log.entries) {
     const earlier = entry.action as Partial<Sealed>;

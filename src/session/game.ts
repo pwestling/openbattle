@@ -507,7 +507,7 @@ export class Game {
     for (const e of log.entries) {
       if (this.checked.has(e.n)) continue;
       const a = e.action;
-      if (!(a.kind === "roll" || (a.kind === "draw" && "seal" in a))) continue;
+      if (!(a.kind === "roll" || (a.kind === "draw" && "seal" in a)) || a.guestBy === null) continue;
       const key = tableAt(log, e.n - 1).players[a.guestBy]?.publicKey ?? table.players[a.guestBy]?.publicKey;
       const ok = key !== undefined && (await verify(key, guestStatement(a), a.guestSignature));
       this.checked.set(e.n, ok);

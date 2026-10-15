@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him.</ins></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him. Rolling alone, from ADR-023, added the same night and Proposed with it.</ins></dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -42,10 +42,10 @@
         <tr><td>phase</td><td>Sets the round, whose turn it is, and the <a href="../concepts/phase.html">phase</a> name.</td></tr>
         <tr><td>counter</td><td>Sets a <a href="../concepts/counter.html">counter</a> on a target to a number, or clears it.</td></tr>
         <tr><td>mark</td><td>Turns a <a href="../concepts/mark.html">mark</a> on or off for a target.</td></tr>
-        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, <ins>the link of the game it was signed in,</ins> both random values, and who sent the other value, and their signature over it. The record works out the result from the two values, the same in every browser.</td></tr>
+        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, <ins>the link of the game it was signed in,</ins> both random values, and who sent the other value, and their signature over it. The record works out the result from the two values, the same in every browser. <ins>When nobody else is connected, the host may roll alone (<a href="../decisions/ADR-023.html">ADR-023</a>): nobody sent the other value, the host made both, there is no signature, and the table's roll is marked as rolled alone.</ins></td></tr>
         <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
         <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
-        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, <ins>the link,</ins> both random values, who sent the other one, and their signature, as for a roll; from the values the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is.</td></tr>
+        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, <ins>the link,</ins> both random values, who sent the other one, and their signature, as for a roll; from the values the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is. <ins>The host may draw from a shuffled deck alone, as it may roll alone, and the draw is marked as drawn alone.</ins></td></tr>
         <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
         <tr><td>undo</td><td>Cancels the latest uncancelled action.</td></tr>
       </tbody>
@@ -74,7 +74,7 @@
     <h2><code>check(log: Log, action: Action, by: PlayerId): Problem | null</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves); a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once; <ins>a join's id is the one its public key gives, and no other player has that key; in a roll or shuffled draw, the link is the log's, the other value comes from the taker, or from a player other than the host when the host takes it (the host is the log's), its signature is there and not empty, and its seal was not used earlier in the log.</ins> The record never checks that a signature is right, so it stays synchronous: Session checks each one against <code>guestStatement</code> as the action arrives and when a saved game loads, and its snapshot lists the rolls and draws that fail. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
+      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves); a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once; <ins>a join's id is the one its public key gives, and no other player has that key; in a roll or shuffled draw, the link is the log's, the other value comes from the taker, or from a player other than the host when the host takes it (the host is the log's), its signature is there and not empty, and its seal was not used earlier in the log.</ins> <ins>A roll or shuffled draw taken alone is allowed only to the host, and carries no signature.</ins> The record never checks that a signature is right, so it stays synchronous: Session checks each one against <code>guestStatement</code> as the action arrives and when a saved game loads, and its snapshot lists the rolls and draws that fail. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
       <dt>Fails</dt><dd>Never; problems are returned. Game rules are never checked.</dd>
     </dl>
   </section>
@@ -123,8 +123,8 @@
     </dl>
   </section>
   <section id="guestStatement">
-    <h2><ins><code>guestStatement(action: RollAction | ShuffledDrawAction): string</code></ins></h2>
-    <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck.</p>
+    <h2><ins><code>guestStatement(action: (RollAction | ShuffledDrawAction) &amp; { guestBy: PlayerId }): string</code></ins></h2>
+    <p>A <code>RollAction</code> is a roll action; a <code>ShuffledDrawAction</code> is a draw action from a shuffled deck. <ins>Only one the other player signed: one taken alone has nothing to sign.</ins></p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The text the other player signs and every browser checks: a JSON object of the action's link, the kind of action, the dice and sides or the deck and count, the seal and the other player's value, its keys in alphabetical order, so the signature cannot be used for any other game or action. The signature fields, the host's value and the roll's label are left out.</dd>
@@ -137,6 +137,7 @@
     <a rel="decision" href="../decisions/ADR-009.html">ADR-009</a>
     <a rel="decision" href="../decisions/ADR-015.html">ADR-015</a>
     <a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>
+    <a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>
   </footer>
 </article>
 </body>
