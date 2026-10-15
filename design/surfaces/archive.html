@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Revised from the Archive build, accepted by Porter on 2026-10-15: <code>toFile</code> returns a promise, saved files carry card pictures, files never kept are left out, and opening a file keeps its files.</dd>
   </dl>
   <p>Keeps games in this browser, and turns them into files and back.</p>
 
@@ -51,11 +51,11 @@
   </section>
 
   <section id="toFile">
-    <h2><code>toFile(link: string, log: Log): Blob</code></h2>
+    <h2><code>toFile(link: string, log: Log): Promise&lt;Blob&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>A file holding the whole log and every mesh file the game uses, with a format version, named after the game and the date.</dd>
-      <dt>Fails</dt><dd>Never.</dd>
+      <dt>Post</dt><dd>A file holding the whole log and every mesh and card picture the game uses that this browser has kept, with a format version, named after the game and the date, such as <code>OpenBattle k3j9x 2026-10-15.openbattle</code>. A file this browser never kept is left out; opening the saved game then shows that piece or picture as missing.</dd>
+      <dt>Fails</dt><dd>Never; it is a promise only because kept files are read from storage.</dd>
     </dl>
   </section>
 
@@ -63,7 +63,7 @@
     <h2><code>fromFile(file: Blob): Promise&lt;{ link, log }&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>The game in the file, ready to open as a new game or to look back through.</dd>
+      <dt>Post</dt><dd>The game in the file, ready to open as a new game or to look back through. The meshes and pictures in the file are kept in this browser, as <code>keepFile</code> would.</dd>
       <dt>Fails</dt><dd>Rejects if the file is not a saved game, or was made by a newer version.</dd>
     </dl>
   </section>

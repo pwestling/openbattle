@@ -7,6 +7,15 @@ const children = [
 ];
 
 const stop = () => children.forEach((c) => c.kill());
-for (const c of children) c.on("exit", (code) => { stop(); process.exitCode = code ?? 0; });
+// The first child to stop decides the exit code; the others are then stopped.
+let stopping = false;
+for (const c of children) {
+  c.on("exit", (code, signal) => {
+    if (stopping) return;
+    stopping = true;
+    process.exitCode = code ?? (signal ? 1 : 0);
+    stop();
+  });
+}
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);

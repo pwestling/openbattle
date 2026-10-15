@@ -50,9 +50,11 @@ for (const file of files) {
   }
   const m = modules[owner];
   const source = readFileSync(join(root, file), "utf8");
-  const specifiers = [...source.matchAll(/(?:import|export)\s[^"';]*?from\s*["']([^"']+)["']|import\(\s*["']([^"']+)["']\s*\)/g)].map(
-    (match) => match[1] ?? match[2],
-  );
+  const specifiers = [
+    ...source.matchAll(
+      /(?:import|export)\s[^"';]*?from\s*["']([^"']+)["']|\bimport\s*["']([^"']+)["']|\b(?:import|require)\(\s*["']([^"']+)["']\s*\)/g,
+    ),
+  ].map((match) => match[1] ?? match[2] ?? match[3]);
   for (const spec of specifiers) {
     const line = source.slice(0, source.indexOf(spec)).split("\n").length;
     const where = `${file}:${line}`;
