@@ -45,6 +45,30 @@ test("a roll of 1024 dice lands, and the next one too", async ({ page }) => {
   expect(lost).toBe(false);
 });
 
+// Dice tray: a roll the host makes with nobody else connected is marked "rolled alone" (ADR-023),
+// in the tray and the log, and is not shown as tampered; with another player connected it isn't marked.
+test("a roll made alone is marked as such", async ({ page }) => {
+  await newGame(page);
+  const tray = page.getByRole("region", { name: "Dice tray" });
+  await tray.getByRole("button", { name: "Roll" }).click();
+  await expect(rolls(page).first()).toContainText("Rolled alone");
+  await expect(rolls(page).first()).toHaveClass(/alone/);
+  await expect(rolls(page).first()).not.toHaveClass(/tampered/);
+  const log = page.getByRole("region", { name: "Log" }).locator("li");
+  await expect(log.last()).toContainText("(rolled alone)");
+  await expect(log.last()).toHaveClass(/alone/);
+
+  await page.evaluate(() => {
+    const fake = (window as any).openbattleFake;
+    fake.join("Bo", "#2f6fd6");
+    fake.setCompany(true);
+  });
+  await tray.getByRole("button", { name: "Roll" }).click();
+  await expect(rolls(page)).toHaveCount(2);
+  await expect(rolls(page).first()).not.toContainText("Rolled alone");
+  await expect(log.last()).not.toContainText("alone");
+});
+
 // Dice tray: a tampered roll is shown in red with a warning.
 test("a tampered roll is shown with a warning", async ({ page }) => {
   await newGame(page);

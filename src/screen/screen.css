@@ -84,6 +84,8 @@ label { display: grid; gap: 4px; }
 .rolls .who { color: var(--muted); }
 .rolls .result { font-weight: 600; letter-spacing: 0.05em; }
 .rolls li.tampered, .rolls li.tampered .result, .log li.tampered { color: var(--bad); }
+.rolls .alone-mark { display: block; font-size: 11px; color: #9fb4d9; font-style: italic; }
+.log li.alone { color: #9fb4d9; }
 .left h3, .right h3 { margin: 0 0 6px; font-size: 14px; }
 .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
 .army { display: grid; gap: 12px; }

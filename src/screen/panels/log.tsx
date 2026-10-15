@@ -16,6 +16,8 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
   const at = lookingAt ?? log.entries.length;
   // A shuffled draw whose seal doesn't match is shown as a tampered roll is.
   const tampered = new Set(now.table.draws.filter((d) => d.tampered).map((d) => d.at));
+  // Rolls and draws the host made with nobody else connected are not tamper-evident (ADR-023).
+  const alone = new Set([...now.table.rolls, ...now.table.draws].filter((r) => r.alone).map((r) => r.at));
 
   return (
     <section className="log" aria-label="Log">
@@ -24,7 +26,12 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
         {log.entries.map((e) => (
           <li
             key={e.n}
-            className={[cancelled.has(e.n) ? "cancelled" : "", e.n > at ? "later" : "", tampered.has(e.n) ? "tampered" : ""].join(" ")}
+            className={[
+              cancelled.has(e.n) ? "cancelled" : "",
+              e.n > at ? "later" : "",
+              tampered.has(e.n) ? "tampered" : "",
+              alone.has(e.n) ? "alone" : "",
+            ].join(" ")}
             ref={e.n === log.entries.length ? end : undefined}
           >
             <span>{sentence(e, log, now.table, names, me)}</span>
