@@ -254,3 +254,15 @@ test("a roll the host took alone and held back is still flagged when the player 
   expect(await rolls(ben)).toEqual([true]);
   expect(await fairness(ben)).toEqual({ aloneWhileHere: [n], unusedValues: [] });
 });
+
+test("a player signs only the roll they asked for, not one the host relabels", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+
+  await rogue.evaluate(() => (window as any).rogue.relabelAsks());
+  const roll = await ben.evaluate(() => (window as any).proof.session.roll(2, 6, "to hit").then(() => "rolled", (e: Error) => e.message));
+  expect(roll).toMatch(/different roll/);
+  expect(await rogue.evaluate(() => (window as any).rogue.values.length)).toBe(0);
+});

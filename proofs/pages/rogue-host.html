@@ -55,6 +55,14 @@
       rogue.add({ kind: "phase", phase: { round: 1, turn: null, name: "Shoot" } }, rogue.log.host);
       rogue.link.onMessage((m, from) => m.t === "resync" && rogue.link.send({ t: "log", log: rogue.log }, from));
     },
+    /** Answers a player's roll request with a seal for a roll with a different label. */
+    relabelAsks() {
+      rogue.link.onMessage(async (m, from) => {
+        if (m.t !== "ask") return;
+        const seal = await sealOf(random());
+        rogue.link.send({ t: "seal", id: m.id, ask: { ...m.ask, label: "forged" }, link: rogue.log.link, seal }, from);
+      });
+    },
     /** Answers a player's resync with a log whose entry n is rewritten as a roll made alone. */
     async rewriteOnResync(n) {
       const hostValue = random();

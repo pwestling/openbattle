@@ -266,7 +266,11 @@ export class Game {
   private async exchange(ask: Ask): Promise<number> {
     const by = this.player();
     this.hostHere();
-    if (!this.hosting) return this.request((id) => ({ t: "ask", id, ask }));
+    if (!this.hosting)
+      return this.request((id) => {
+        this.myAsks.set(id, ask);
+        return { t: "ask", id, ask };
+      });
     const table = tableAt(this.log);
     const guest = this.connected.find((b) => b !== this.log.host && table.players[b]);
     if (!guest) return this.alone(ask, by);
@@ -289,6 +293,8 @@ export class Game {
   }
 
   private resyncing: Waiting | null = null;
+  /** What this player asked the host to roll or draw, by request id, so it signs only that. */
+  private myAsks = new Map<string, Ask>();
 
   private resynced(problem?: string) {
     const r = this.resyncing;
@@ -510,6 +516,7 @@ export class Game {
       }
       case "refused": {
         this.unused((g) => g.id === m.id);
+        this.myAsks.delete(m.id);
         const w = this.waiting.get(m.id);
         if (w) {
           this.waiting.delete(m.id);
@@ -527,6 +534,16 @@ export class Game {
   /** The other player's half of a sealed exchange: a fresh value, signed with what it is for. */
   private async giveValue(id: string, ask: Ask, link: string, seal: string) {
     if (link !== this.log.link || this.me === "watch") return;
+    // For this player's own request, the host must describe what was asked, not a relabelled or redirected one.
+    if (id.startsWith(`${this.link.me}.`)) {
+      const asked = this.myAsks.get(id);
+      this.myAsks.delete(id);
+      if (!asked || JSON.stringify(asked) !== JSON.stringify(ask)) {
+        const w = this.waiting.get(id);
+        this.waiting.delete(id);
+        return w?.reject(new Error("The host asked to sign a different roll or draw from the one asked for, so it was not signed."));
+      }
+    }
     const guestValue = randomValue();
     const sealed = { link, seal, hostValue: "", guestValue, guestBy: this.me, guestSignature: "" };
     const action: RollAction | ShuffledDrawAction = ask.kind === "roll" ? { ...ask, ...sealed } : { ...ask, ...sealed };
