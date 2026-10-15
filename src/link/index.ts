@@ -3,7 +3,8 @@
 // Browsers meet at the relay under the game's link and then talk over one ordered, reliable WebRTC
 // data channel per pair. Of each pair, the browser with the smaller id dials; the other answers.
 // Before a connection counts, each side proves its id by signing a fresh challenge from the other
-// with the key the id is worked out from (ADR-022). The relay's word on who is who is never trusted.
+// with the key the id is worked out from (ADR-022), bound to the connection's own DTLS fingerprints,
+// so whoever carries the signalling can neither pose as a browser nor sit in the middle.
 // Messages are cut into chunks so any size arrives whole, and queued so a fast sender never overruns
 // the channel's buffer.
 import type { BrowserId, FromRelay, Json, ToRelay, TurnCredentials } from "../../server/protocol.ts";
@@ -20,6 +21,8 @@ export interface Link {
   send(message: Json, to?: BrowserId): void;
   onMessage(listener: (message: Json, from: BrowserId) => void): () => void;
   onChange(listener: (connected: BrowserId[]) => void): () => void;
+  /** True once another tab of this browser took over the game; this link then has no connections. */
+  readonly replaced: boolean;
   /** Signs a string (as UTF-8) with this browser's key, for checking with verify. Base64url. */
   sign(data: string): Promise<string>;
   close(): void;
@@ -89,7 +92,7 @@ function openSignalling(link: string): Promise<WebSocket> {
 type Handshake = { attempt: string; description?: RTCSessionDescriptionInit; candidate?: RTCIceCandidateInit };
 
 /** Sent on a new channel before anything else, to prove ids. */
-type Proof = { challenge: string; publicKey: string } | { answer: string };
+type Proof = { challenge: string; publicKey: string; tab: string } | { answer: string };
 
 type Peer = {
   attempt: string;
@@ -101,6 +104,8 @@ type Peer = {
   asked: boolean;
   /** The public key the peer claims, once it has been checked against its id. */
   publicKey: string | null;
+  /** Which tab of the peer's browser this connection reaches. */
+  tab: string | null;
   /** The peer signed our challenge: it is who it says. */
   proven: boolean;
   /** Chunks waiting for room in the channel's buffer. */
@@ -130,8 +135,12 @@ class Connection implements Link {
   private connected: BrowserId[] = [];
   private closed = false;
   /** Another tab of this browser took over at the relay. */
-  private replaced = false;
+  replaced = false;
+  /** This tab, so peers can tell a reconnect of the same tab from a new tab of the same browser. */
+  private readonly tab = crypto.randomUUID();
   private retry = 0;
+  /** Failed dials in a row to each browser, for backing off. */
+  private readonly dials = new Map<BrowserId, number>();
   private ready!: () => void;
   private readonly link: string;
   private readonly identity: keys.Identity;
@@ -205,12 +214,9 @@ class Connection implements Link {
       if (this.closed || this.socket !== socket) return;
       this.announced.clear();
       if (e.code === closeCode.replaced) {
-        // Someone announced this browser's id elsewhere. If it is really this browser in another tab,
-        // it proves itself to the others and they move their connections there, so this tab is left
-        // with none. If it is someone posing as us, they fail to prove it and our connections stay.
-        // Either way, don't take the relay back: that would fight our own newer tab.
+        // Another tab of this browser joined; the relay checked it holds our key. It has the seat now.
         this.replaced = true;
-        return;
+        return this.close();
       }
       this.reconnect();
     };
@@ -275,7 +281,7 @@ class Connection implements Link {
     this.trying.get(browser)?.pc.close();
     const pc = new RTCPeerConnection({ iceServers: this.iceServers });
     const challenge = crypto.getRandomValues(new Uint8Array(32));
-    const peer: Peer = { attempt, pc, channel: null, challenge, asked: false, publicKey: null, proven: false, outbox: [], inbox: [], steps: Promise.resolve() };
+    const peer: Peer = { attempt, pc, channel: null, challenge, asked: false, publicKey: null, tab: null, proven: false, outbox: [], inbox: [], steps: Promise.resolve() };
     this.trying.set(browser, peer);
     pc.onicecandidate = (e) => {
       if (e.candidate) this.signal(browser, { attempt, candidate: e.candidate.toJSON() });
@@ -346,7 +352,7 @@ class Connection implements Link {
   private ask(peer: Peer) {
     if (peer.asked) return;
     peer.asked = true;
-    this.sendProof(peer.channel!, { challenge: keys.toBase64url(peer.challenge), publicKey: this.publicKey });
+    this.sendProof(peer.channel!, { challenge: keys.toBase64url(peer.challenge), publicKey: this.publicKey, tab: this.tab });
   }
 
   private sendProof(channel: RTCDataChannel, proof: Proof) {
@@ -357,9 +363,12 @@ class Connection implements Link {
     channel.send(chunk);
   }
 
-  /** What a browser signs to prove its id to a browser: the challenge, bound to the one asking. */
-  private proofBytes(challenge: Uint8Array, asker: BrowserId) {
-    return concat([forProof, challenge, encoder.encode(asker)]);
+  /**
+   * What a browser signs to prove its id: the asker's challenge and id, and both ends' DTLS fingerprints,
+   * the signer's first. A proof made on one connection is worthless on any other.
+   */
+  private proofBytes(challenge: Uint8Array, asker: BrowserId, signerSdp: string, askerSdp: string) {
+    return concat([forProof, challenge, encoder.encode(`\n${asker}\n${fingerprints(signerSdp)}\n${fingerprints(askerSdp)}`)]);
   }
 
   /** Answers the peer's challenge, and checks the peer's answer to ours. A peer that fails is dropped. */
@@ -367,45 +376,61 @@ class Connection implements Link {
     if ("challenge" in proof) {
       if (peer.publicKey !== null || (await idFor(proof.publicKey)) !== browser) throw new Error("not that browser's key");
       peer.publicKey = proof.publicKey;
-      const answer = await keys.sign(this.identity.keys, this.proofBytes(keys.fromBase64url(proof.challenge), browser));
+      peer.tab = String(proof.tab);
+      const { local, remote } = descriptions(peer.pc);
+      const answer = await keys.sign(this.identity.keys, this.proofBytes(keys.fromBase64url(proof.challenge), browser, local, remote));
       this.ask(peer);
       this.sendProof(peer.channel!, { answer });
       return;
     }
     if (peer.publicKey === null || peer.proven) throw new Error("answer out of turn");
-    if (!(await keys.verify(peer.publicKey, this.proofBytes(peer.challenge, this.me), proof.answer))) throw new Error("wrong answer");
+    const { local, remote } = descriptions(peer.pc);
+    if (!(await keys.verify(peer.publicKey, this.proofBytes(peer.challenge, this.me, remote, local), proof.answer))) throw new Error("wrong answer");
     peer.proven = true;
     this.promote(browser, peer);
   }
 
-  /** A connection proved itself: it becomes the browser's connection, replacing any older one. */
+  /**
+   * A connection proved itself. If we already reach that same tab, it is a reconnect at the relay:
+   * keep the working connection, so nothing in flight is lost. Otherwise it becomes the browser's
+   * connection, and listeners see the browser leave and arrive, so they know to catch it up.
+   */
   private promote(browser: BrowserId, peer: Peer) {
     if (this.closed || this.trying.get(browser) !== peer) return peer.pc.close();
     this.trying.delete(browser);
+    this.dials.delete(browser);
     const old = this.peers.get(browser);
+    if (old && old.tab === peer.tab && old.channel?.readyState === "open") return peer.pc.close();
     this.peers.set(browser, peer);
-    old?.pc.close();
+    if (old) {
+      old.pc.close();
+      this.peers.delete(browser);
+      this.changed();
+      this.peers.set(browser, peer);
+    }
     this.pump(peer);
     this.changed();
   }
 
-  /** A connection closed. If it was the browser's proven one, and the relay still has it and we dial, try again. */
+  /** A connection closed or failed. If we dial this browser and it is still at the relay, keep trying. */
   private lost(browser: BrowserId, peer: Peer) {
     if (this.trying.get(browser) === peer) {
       this.trying.delete(browser);
       peer.pc.close();
+    } else if (this.peers.get(browser) === peer) {
+      this.peers.delete(browser);
+      peer.pc.close();
+      this.changed();
+    } else {
       return;
     }
-    if (this.peers.get(browser) !== peer) return;
-    this.peers.delete(browser);
-    peer.pc.close();
-    this.changed();
-    if (this.me < browser) {
-      setTimeout(() => {
-        const idle = !this.peers.has(browser) && !this.trying.has(browser);
-        if (!this.closed && !this.replaced && idle && this.announced.has(browser)) this.dial(browser);
-      }, 1000);
-    }
+    if (this.me > browser || this.peers.has(browser)) return;
+    const failures = this.dials.get(browser) ?? 0;
+    this.dials.set(browser, failures + 1);
+    setTimeout(() => {
+      const idle = !this.peers.has(browser) && !this.trying.has(browser);
+      if (!this.closed && idle && this.announced.has(browser)) this.dial(browser);
+    }, Math.min(1000 * 2 ** failures, 10_000));
   }
 
   // Messages
@@ -458,4 +483,15 @@ function concat(parts: Uint8Array[]): Uint8Array {
     at += p.length;
   }
   return out;
+}
+
+function descriptions(pc: RTCPeerConnection) {
+  return { local: pc.localDescription?.sdp ?? "", remote: pc.remoteDescription?.sdp ?? "" };
+}
+
+/** The DTLS fingerprints an SDP commits to, in a fixed order. */
+function fingerprints(sdp: string): string {
+  const lines = sdp.split(/\r?\n/).filter((l) => l.startsWith("a=fingerprint:"));
+  if (lines.length === 0) throw new Error("no fingerprint");
+  return [...new Set(lines.map((l) => l.trim().toLowerCase()))].sort().join(",");
 }

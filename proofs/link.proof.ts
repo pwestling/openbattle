@@ -119,11 +119,51 @@ test("opening the game in a second tab moves this browser to the new tab", async
   expect(await join(aliceAgain, g)).toBe(a);
 
   await expect.poll(() => connected(alice)).toEqual([]);
+  expect(await alice.evaluate(() => (window as any).proof.link.replaced)).toBe(true);
+  expect(await aliceAgain.evaluate(() => (window as any).proof.link.replaced)).toBe(false);
   await expect.poll(() => connected(aliceAgain)).toEqual([b]);
+  // Bob saw alice leave and come back, so it knows to catch the new tab up.
+  await expect.poll(() => bob.evaluate(() => (window as any).proof.changes.slice(-2))).toEqual([[], [a]]);
   await expect.poll(() => connected(bob)).toEqual([a]);
   await send(bob, "which tab?");
   await expect.poll(() => received(aliceAgain)).toEqual([{ from: b, message: "which tab?" }]);
   expect(await received(alice)).toEqual([]);
+});
+
+test("losing the relay for a moment loses no messages and drops no connection", async ({ browser }) => {
+  const g = game("blip");
+  // Alice's relay socket runs through a route the proof can cut, as a network blip or relay restart would.
+  const cuts: (() => void)[] = [];
+  const alice = await player(browser, (page) =>
+    page.routeWebSocket(/\/signal/, (ws) => {
+      const server = ws.connectToServer();
+      cuts.push(() => (ws.close(), server.close()));
+    }),
+  );
+  const bob = await player(browser);
+  const a = await join(alice, g);
+  const b = await join(bob, g);
+  await expect.poll(() => connected(bob)).toEqual([a]);
+  const changesBefore = await bob.evaluate(() => (window as any).proof.changes.length);
+
+  // Alice streams numbered messages while her relay socket is cut and comes back.
+  const streaming = alice.evaluate(async () => {
+    for (let i = 0; i < 400; i++) {
+      (window as any).proof.link.send({ i, body: "x".repeat(i % 5 === 0 ? 300_000 : 10) });
+      await new Promise((r) => setTimeout(r, 10));
+    }
+  });
+  await alice.waitForTimeout(500);
+  cuts[0]!();
+  await expect.poll(() => cuts.length, { timeout: 15_000 }).toBe(2);
+  await streaming;
+
+  await expect.poll(() => bob.evaluate(() => (window as any).proof.received.length), { timeout: 30_000 }).toBe(400);
+  expect(await bob.evaluate(() => (window as any).proof.received.map((r: any) => r.message.i))).toEqual([...Array(400).keys()]);
+  // Give a late reconnect handshake time to finish, then check nobody saw alice leave.
+  await bob.waitForTimeout(2000);
+  expect(await bob.evaluate((n) => (window as any).proof.changes.slice(n), changesBefore)).toEqual([]);
+  expect(await connected(alice)).toEqual([b]);
 });
 
 test("closing a link disconnects it from everyone, and the relay forgets it", async ({ browser }) => {
