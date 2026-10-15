@@ -484,11 +484,14 @@ test("a player's id comes from their key, and only the right player can send the
       boRollsBoSigns: roll(bo, bo, "s4"),
       boRollsCySigns: roll(bo, cy, "s5"),
       boRollsHostSigns: roll(bo, ann, "s6"),
-      bytes: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
-      drawBytes: r.guestStatement({ kind: "draw", deck: "d1", cards: 1, to: "hand", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
-      unlabelled: r.guestStatement({ kind: "roll", dice: 2, sides: 6, link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
-      relabelled: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To wound", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
-      toTable: r.guestStatement({ kind: "draw", deck: "d1", cards: 1, to: "table", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }),
+      bytes: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      drawBytes: r.guestStatement({ kind: "draw", deck: "d1", cards: 1, to: "hand", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      unlabelled: r.guestStatement({ kind: "roll", dice: 2, sides: 6, link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      relabelled: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To wound", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      byOther: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, bo),
+      emptyLabel: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      unicode: r.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "Tir à toucher ⚔ \ud83c\udfb2", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
+      toTable: r.guestStatement({ kind: "draw", deck: "d1", cards: 1, to: "table", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann),
     };
   })()`) as { ids: string[]; bytes: string; drawBytes: string } & Record<string, string | null>;
   expect(seen.ids).toEqual([ann, ann]);
@@ -500,12 +503,17 @@ test("a player's id comes from their key, and only the right player can send the
   expect(seen.boRollsHostSigns).toBe("The host can't send the other value: it would choose both.");
   // The signature covers the game's link, the kind of action, what is rolled or drawn, the seal and the value.
   // It also covers the roll's label and where the drawn cards go, so the host can't change either afterwards.
-  expect(seen.bytes).toBe('{"dice":2,"guestValue":"cd","kind":"roll","label":"To hit","link":"openbattle:g1","seal":"ab","sides":6}');
-  expect(seen.drawBytes).toBe('{"cards":1,"deck":"d1","guestValue":"cd","kind":"draw","link":"openbattle:g1","seal":"ab","to":"hand"}');
-  expect(seen.unlabelled).toBe('{"dice":2,"guestValue":"cd","kind":"roll","link":"openbattle:g1","seal":"ab","sides":6}');
+  expect(seen.bytes).toBe('{"by":"SoweuLK7skk73J7j96M1ew","dice":2,"guestValue":"cd","kind":"roll","label":"To hit","link":"openbattle:g1","seal":"ab","sides":6}');
+  expect(seen.drawBytes).toBe('{"by":"SoweuLK7skk73J7j96M1ew","cards":1,"deck":"d1","guestValue":"cd","kind":"draw","link":"openbattle:g1","seal":"ab","to":"hand"}');
+  expect(seen.unlabelled).toBe('{"by":"SoweuLK7skk73J7j96M1ew","dice":2,"guestValue":"cd","kind":"roll","link":"openbattle:g1","seal":"ab","sides":6}');
   expect(seen.relabelled).not.toBe(seen.bytes);
   expect(seen.toTable).not.toBe(seen.drawBytes);
-  expect(nodeRecord.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" })).toBe(seen.bytes);
+  // Who takes it is signed too, so the host can't log another player's roll or draw as its own.
+  expect(seen.byOther).not.toBe(seen.bytes);
+  // An empty label is still a label, and is signed as one; only a roll with no label leaves it out.
+  expect(seen.emptyLabel).toBe('{"by":"SoweuLK7skk73J7j96M1ew","dice":2,"guestValue":"cd","kind":"roll","label":"","link":"openbattle:g1","seal":"ab","sides":6}');
+  expect(nodeRecord.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "Tir à toucher ⚔ \ud83c\udfb2", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann)).toBe(seen.unicode);
+  expect(nodeRecord.guestStatement({ kind: "roll", dice: 2, sides: 6, label: "To hit", link: "openbattle:g1", seal: "ab", hostValue: "h", guestValue: "cd", guestBy: bo, guestSignature: "sig" }, ann)).toBe(seen.bytes);
 });
 
 test("an exchange is signed for one game, and a saved game opened again is a new game with its own link and host", async ({ page }) => {
