@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-016: The screen reads one snapshot from the session — Decision</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<meta name="pdd-derived" content="2026-10-15T05:45Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-016: The screen reads one snapshot from the session</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Accepted by Porter on 2026-10-15.</dd>
     <dt>Context</dt><dd>The screen needs to know about new actions, connection changes, disagreements and who it is.</dd>
     <dt>Decision</dt><dd>The session offers a single <code>watch</code> that hands over a complete snapshot after every change, instead of a separate notification for each kind of event.</dd>
     <dt>Because</dt><dd>The screen can't miss or misorder an event, and it redraws from one consistent picture. A game's state is small, so handing over the whole snapshot costs little.</dd>
