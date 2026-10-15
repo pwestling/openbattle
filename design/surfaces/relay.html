@@ -20,6 +20,7 @@
   </header>
   <dl>
     <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. The newest-tab addition, from the Link and Relay build, accepted by Porter on 2026-10-15. The close on messages outside the protocol added under Porter's minor-change rule, 2026-10-15.</dd>
+    <dt>Proposed</dt><dd>The <ins>marked additions</ins>: the relay checks each browser's key as it joins, beyond <a href="../decisions/ADR-022.html">ADR-022</a>'s "relay unchanged". Built as the recommended option on Porter's card while he was away, 2026-10-15; easy to take out if he says no.</dd>
   </dl>
   <p>What the server offers browsers, over HTTPS at the site's address. This is a published protocol: changes only add, within a version.</p>
 
@@ -27,8 +28,8 @@
     <h2><code>WebSocket /signal?game={link}</code></h2>
     <dl>
       <dt>Pre</dt><dd>The game link is made of letters, digits, <code>-</code> and <code>_</code>.</dd>
-      <dt>Post</dt><dd>The server tells this browser who else is announced under that link, tells the others when browsers arrive and leave, and forwards <code>{ to, data }</code> handshake messages between them. It keeps nothing once everyone has gone. If the same browser announces itself again under the link, from another tab or visit, the newest one stays: the earlier socket is closed and the others see that browser leave and arrive again.</dd>
-      <dt>Fails</dt><dd>Closes the socket if a message is over 64 KB. Handshake messages are a few KB, so this only stops someone using the relay to push bulk data through our server. Also closes the socket if the first message is not the browser announcing itself, or a message is not in the protocol.</dd>
+      <dt>Post</dt><dd><ins>The server first sends a fresh challenge; the browser announces itself by signing it, with the game link, using the key its id is worked out from.</ins> The server tells this browser who else is announced under that link, tells the others when browsers arrive and leave, and forwards <code>{ to, data }</code> handshake messages between them. It keeps nothing once everyone has gone. If the same browser announces itself again under the link, from another tab or visit, the newest one stays: the earlier socket is closed and the others see that browser leave and arrive again.</dd>
+      <dt>Fails</dt><dd>Closes the socket if a message is over 64 KB. Handshake messages are a few KB, so this only stops someone using the relay to push bulk data through our server. Also closes the socket if the first message is not the browser announcing itself, or a message is not in the protocol. <ins>Closes it too if the announcement does not prove the id, so nobody can take another browser's place.</ins></dd>
     </dl>
   </section>
 
