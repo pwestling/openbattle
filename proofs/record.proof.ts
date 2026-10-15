@@ -525,6 +525,8 @@ test("an exchange is signed for one game, and a saved game opened again is a new
       slipped: r.checkLog({ ...reopened, entries: [...reopened.entries, { n: 6, by: bo, action: { kind: "roll", dice: 1, sides: 6, ...s, seal: "old", guestBy: ann } }] }),
       outOfOrder: r.checkLog({ ...reopened, entries: [...reopened.entries, { ...first.entries[0]!, n: 9 }] }),
       noHost: r.checkLog({ ...first, host: undefined } as unknown as Log),
+      // Claiming more copied entries, to hide the slipped roll among them, doesn't match the link.
+      inflated: r.checkLog({ ...reopened, copied: 6, entries: [...reopened.entries, { n: 6, by: bo, action: { kind: "roll", dice: 1, sides: 6, ...s, seal: "old", guestBy: ann } }] }),
     };
   };
   const seen = (await page.evaluate(
@@ -537,12 +539,14 @@ test("an exchange is signed for one game, and a saved game opened again is a new
   expect(seen.boSendsOwn).toBe("The host can't send the other value: it would choose both.");
   expect(seen.annNowSendsOwn).toBeNull();
   expect(seen.oldSeal).toBe("This seal was already used, in action 5.");
-  expect([seen.longer.link, seen.longer.host, seen.longer.copied, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser", bo, 5, 6]);
+  // The link says where the copied entries end, so every signature in the new game covers it.
+  expect([seen.longer.link, seen.longer.host, seen.longer.copied, seen.longer.entries.length]).toEqual(["Qm7tZ2wB-bo-browser.5", bo, 5, 6]);
   expect(seen.reopenedChecks).toBeNull();
   expect(seen.firstChecks).toBeNull();
   expect(seen.slipped).toEqual({ problem: "Action 6: A roll must be signed for this game's link." });
   expect(seen.outOfOrder).toEqual({ problem: "Action 9 is out of order." });
   expect(seen.noHost).toEqual({ problem: "A log needs its game's link and host." });
+  expect(seen.inflated).toEqual({ problem: "A log's copied entries must be as many as its link says." });
   expect(scenario(nodeRecord, opening, sealed)).toEqual(seen);
 });
 

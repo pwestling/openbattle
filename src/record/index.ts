@@ -12,9 +12,20 @@ export function newLog(size: Size, link: string, host: PlayerId): Log {
   return { size: { width: size.width, depth: size.depth }, link, host, copied: 0, entries: [] };
 }
 
-/** A new game from a saved one: its entries, copied as they are, under a new link and host. */
+/**
+ * A new game from a saved one: its entries, copied as they are, under a new link and host. The link
+ * ends in ".N", N the number copied, so everyone who has the link knows where the copied entries
+ * end, and every signature in the new game covers it; the host can't move it later.
+ */
 export function reopen(saved: Log, link: string, host: PlayerId): Log {
-  return { size: saved.size, link, host, copied: saved.entries.length, entries: saved.entries };
+  const copied = saved.entries.length;
+  return { size: saved.size, link: `${link}.${copied}`, host, copied, entries: saved.entries };
+}
+
+/** How many copied entries a link says its game starts with: N for a link ending in ".N", else none. */
+function copiedIn(link: string): number {
+  const ending = /\.(0|[1-9][0-9]*)$/.exec(link);
+  return ending ? Number(ending[1]) : 0;
 }
 
 export function check(log: Log, action: Action, by: PlayerId): Problem | null {
@@ -43,6 +54,7 @@ function badLog(log: Log): string | null {
   if (typeof log.link !== "string" || typeof log.host !== "string") return "A log needs its game's link and host.";
   if (!Number.isInteger(log.copied) || log.copied < 0 || log.copied > log.entries.length)
     return "A log's copied entries must be some of its first entries.";
+  if (log.copied !== copiedIn(log.link)) return "A log's copied entries must be as many as its link says.";
   return null;
 }
 
