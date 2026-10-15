@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Measure — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-15T06:15Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/measure">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Measure surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/measure.html">Measure</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+  </dl>
+  <p>Two operations, both pure functions.</p>
+
+  <section id="distance">
+    <h2><code>distance(table: Table, from: Spot, to: Spot, via?: Point[]): { across, up }</code></h2>
+    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, or a <a href="../concepts/unit.html">unit</a>. <code>via</code> is an optional list of waypoints, for a path around terrain.</p>
+    <dl>
+      <dt>Pre</dt><dd>Named models and units are on the table.</dd>
+      <dt>Post</dt><dd><code>across</code> is the distance in inches across the table: with no waypoints, the shortest one, base edge to base edge, and for a unit its closest model; with waypoints, the length of the path from the first spot through each waypoint in order to the last, measured from base edges at the two ends. <code>up</code> is the height difference between their bases, which for a model on a terrain floor is that floor's height. Both are rounded to a hundredth of an inch, and the same in every browser.</dd>
+      <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist.</dd>
+    </dl>
+  </section>
+  <section id="floors">
+    <h2><code>floors(mesh: Mesh, size: { width, depth, height }): Floor[]</code></h2>
+    <p>A <code>Floor</code> is a flat outline at one height, in the piece's own inches.</p>
+    <dl>
+      <dt>Pre</dt><dd>The mesh has been read from its file.</dd>
+      <dt>Post</dt><dd>The mesh's upward-facing flat areas, with nearby ones at almost the same height merged into one. The same mesh and size always give the same floors.</dd>
+      <dt>Fails</dt><dd>Never; a mesh with no flat areas has no floors, and models then stand on the table beneath it.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-010.html">ADR-010</a>
+    <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+    <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
+  </footer>
+</article>
+</body>
+</html>

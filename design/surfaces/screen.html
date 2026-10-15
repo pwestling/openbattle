@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Screen — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/screen">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Screen surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/screen.html">Screen</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+  </dl>
+  <p>The screen's outside is the person using it. Each section is a place or a gesture. Mouse and keyboard controls follow Tabletop Simulator's where it has one.</p>
+
+  <section id="start">
+    <h2>Start page</h2>
+    <dl>
+      <dt>Shows</dt><dd>New game (your name, colour, table size, 60 × 44 by default) and Open a saved file.</dd>
+      <dt>Does</dt><dd>New game opens the table as host, with the invite link ready to copy. A file opens as a new game starting from that log.</dd>
+      <dt>Fails</dt><dd>If the server can't be reached, says so and offers to retry.</dd>
+    </dl>
+  </section>
+
+  <section id="join">
+    <h2>Arriving from a link</h2>
+    <dl>
+      <dt>Shows</dt><dd>Your name and colour with Join, or Watch. Someone returning on the same browser skips this and goes straight back to their seat.</dd>
+      <dt>Fails</dt><dd>A broken link goes to the start page with a message.</dd>
+    </dl>
+  </section>
+
+  <section id="table">
+    <h2>The table</h2>
+    <dl>
+      <dt>Camera</dt><dd>Right-drag turns around the table, middle-drag or the arrow keys slide, the wheel zooms. One key snaps to straight down, another back to your table edge. The camera is yours alone.</dd>
+      <dt>Picking up</dt><dd>Click a model to select it; click again or double-click to select its whole unit; drag a box to select several. Dragging lifts the selection off the table and carries it, keeping its shape; Q and E turn it. Letting go sets it down: one move action.</dd>
+      <dt>While carrying</dt><dd>A line from where each model started shows the inches moved, live. Pressing the waypoint key (or a right-click) pins a corner, so a path around terrain is measured along its true length. The path stays visible to everyone after the move.</dd>
+      <dt>Ruler</dt><dd>Hold the ruler key and drag between two spots, or from a selected model, pinning waypoints the same way. Shows inches across along the whole path, and the height difference. Private; nothing is sent.</dd>
+      <dt>Models</dt><dd>The base at its true size with the model's mesh on it, or a simple stand-in body in the player's colour where there is no mesh, and a small label. When adding to an army, a mesh file can be chosen for each unit or model.</dd>
+      <dt>Fails</dt><dd>If a move is refused (host away, or a problem), the models settle back where they were and a short note says why.</dd>
+    </dl>
+  </section>
+
+  <section id="dice">
+    <h2>Dice tray</h2>
+    <dl>
+      <dt>Shows</dt><dd>How many dice, how many sides (six by default), an optional label, and Roll. Recent rolls stay in the tray.</dd>
+      <dt>Does</dt><dd>Dice are thrown onto the tray and land on the decided result, for everyone at once, then line up sorted. A tampered roll is shown in red with a warning.</dd>
+    </dl>
+  </section>
+
+  <section id="cards">
+    <h2>Decks and hands</h2>
+    <dl>
+      <dt>Shows</dt><dd>Decks sit on the table as face-down stacks with a count; a shuffled deck is marked as such. Your hand is a row of cards along the bottom of the screen; everyone else's hand shows as card backs with a count. Face-up cards lie on the table where they were played.</dd>
+      <dt>Does</dt><dd>Click a deck to draw into your hand, or Shift-click to draw face up. Drag a card from your hand to play it onto the table, onto a discard pile, or back into a deck (onto the top, or with a modifier key the bottom, of an ordered one). Shuffle on an ordered deck makes it shuffled. A new deck is made from a typed or pasted list of cards, with optional pictures, and starts ordered as listed or shuffled.</dd>
+      <dt>Fails</dt><dd>An empty deck says so and draws nothing.</dd>
+    </dl>
+  </section>
+
+  <section id="panels">
+    <h2>Panels</h2>
+    <dl>
+      <dt>Phase bar</dt><dd>Round, whose turn, phase name; each can be changed by a player.</dd>
+      <dt>Army</dt><dd>Each player's units and groups with their counters and marks. Change a counter with + and −, toggle a mark, set models aside or return them. Paste or type a list to add units or models to your army, at the start or at any point in the game.</dd>
+      <dt>Terrain</dt><dd>Add a box, cylinder or ramp, or load a 3D mesh file (.glb, .gltf, .obj or .stl), then size, move and turn it like a model. A model set down over terrain lands on the highest floor under it; while carrying, Page Up and Page Down (or Shift with the wheel) step between the floors there. Models pass through walls; nothing pushes them away.</dd>
+      <dt>Log</dt><dd>Every action as a sentence ("Ana moved Scouts 5.8″"). A slider looks back through the game; the table shows that moment, read-only, until you return to now. Undo appears beside your own latest action.</dd>
+      <dt>Save</dt><dd>Saves the game to a file. Available to players and spectators.</dd>
+    </dl>
+  </section>
+
+  <section id="status">
+    <h2>Connection banner</h2>
+    <dl>
+      <dt>Shows</dt><dd>Nothing while all is well. "Connecting…", or "Waiting for the host. The game is paused" with the table read-only, or "Your table differs from the host's" with a button to reload the host's copy.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
+    <a rel="decision" href="../decisions/ADR-012.html">ADR-012</a>
+    <a rel="decision" href="../decisions/ADR-017.html">ADR-017</a>
+    <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+  </footer>
+</article>
+</body>
+</html>

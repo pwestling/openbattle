@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-008: Dice are tamper-evident — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-008">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-008: Dice are tamper-evident</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Replaces "the host rolls the dice", per Porter's review on 2026-10-14. Accepted by Porter on 2026-10-14.</dd>
+    <dt>Context</dt><dd>Dice cheating happens on Tabletop Simulator. In a host-ordered game, a host that simply rolls could pick its results.</dd>
+    <dt>Decision</dt><dd>Every roll's result is computed from two random values: one the host committed to (sent in sealed form) before the roll was asked for, and a fresh one from the other player, sent after seeing the seal. The host then opens the seal, and every browser recomputes the result and checks it. A roll that fails the check is shown to everyone as tampered.</dd>
+    <dt>Because</dt><dd>Neither the host nor the other player can steer a result: each picks their value without knowing the other's. It costs one extra message per roll.</dd>
+    <dt>Rejected</dt><dd>The host alone rolls (the first proposal): trusts the host. A server rolls: the server would take part in games. Limits: the host could still stall instead of opening a seal, but that is visible to everyone; and this protects dice, not other actions.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/deck.html">Deck</a> (draws use the same scheme, per <a href="ADR-021.html">ADR-021</a>), <a href="../intent.html#fair-dice">Dice nobody can fix</a>, <a href="../concepts/roll.html">roll</a>, <a href="../concepts/host.html">host</a>, <a href="../boundaries/session.html">Session</a></dd>
+  </dl>
+</article>
+</body>
+</html>

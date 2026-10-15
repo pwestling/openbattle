@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-002: The table is 3D and should feel like a real one — Decision</title>
+<meta name="pdd-level" content="0">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="0" id="decisions/ADR-002">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 0 · Decision</nav>
+    <h1>ADR-002: The table is 3D and should feel like a real one</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Replaces the rejected top-down proposal, per Porter's review on 2026-10-14. Accepted by Porter on 2026-10-14.</dd>
+    <dt>Context</dt><dd>Porter: recreating the feel of playing in real life, as Tabletop Simulator does, is a core design element.</dd>
+    <dt>Decision</dt><dd>A 3D table with a free camera. Models are picked up, carried and set down; dice are thrown and seen to land. On top of that feel, the help Tabletop Simulator lacks: exact rulers, unit moves, the log and undo. There is no general physics simulation: positions are exact and recorded, and dice animate to the result already decided.</dd>
+    <dt>Because</dt><dd>The feel is the point of the product. Physics results differ between browsers, so they can't be the shared truth; they can only be decoration.</dd>
+    <dt>Rejected</dt><dd>A flat top-down table (the first proposal): loses the feel. Full physics as in Tabletop Simulator: models topple and drift, and two browsers would disagree.</dd>
+    <dt>Affects</dt><dd><a href="../intent.html#feel">Feels like the real table</a>, <a href="../concepts/table.html">table</a>, <a href="../concepts/model.html">model</a>, <a href="../concepts/terrain.html">terrain</a>, <a href="../boundaries/screen.html">Screen</a></dd>
+  </dl>
+</article>
+</body>
+</html>

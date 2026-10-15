@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/group">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Group</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#rules">Players apply the rules</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Units that are dealt with together, beyond a single unit.</dd>
+    <dt>Meaning</dt><dd>A named set of <a href="../concepts/unit.html">units</a> or other groups, such as a unit with an attached leader, a squadron, or a whole <a href="../concepts/army.html">army</a>.</dd>
+    <dt>Invariants</dt><dd><ul><li>A group belongs to one player.</li><li>A unit can be in several groups.</li><li>A group never contains itself, directly or through another group.</li></ul></dd>
+    <dt>Not</dt><dd>A <a href="../concepts/unit.html">unit</a>: a group holds units, a unit holds models.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
+  </footer>
+</article>
+</body>
+</html>

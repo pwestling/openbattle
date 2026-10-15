@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Table — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/table">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Table</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#shared-truth">One table</a>
+      <a rel="realizes" href="../intent.html#feel">Feels like the real table</a>
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>The shared surface everything sits on.</dd>
+    <dt>Meaning</dt><dd>A 3D tabletop measured in inches (60 × 44 unless the players choose otherwise) and everything on it at one moment: <a href="../concepts/terrain.html">terrain</a>, <a href="../concepts/model.html">models</a>, <a href="../concepts/counter.html">counters</a> and <a href="../concepts/mark.html">marks</a>.</dd>
+    <dt>Invariants</dt><dd><ul><li>The table at any moment is completely determined by the <a href="../concepts/log.html">log</a> up to that moment.</li><li>Everyone sees the same table at the same point in the log.</li><li>Positions and heights are in inches.</li></ul></dd>
+    <dt>Not</dt><dd>Anyone's view of it. Camera angle, zoom and selection belong to each person and are never shared.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
+    <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+  </footer>
+</article>
+</body>
+</html>

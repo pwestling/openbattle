@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-012: The screen uses three.js for the table and React for panels — Decision</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="decisions/ADR-012">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Decision</nav>
+    <h1>ADR-012: The screen uses three.js for the table and React for panels</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Revisited after the table became 3D. Accepted by Porter on 2026-10-14.</dd>
+    <dt>Context</dt><dd>The screen draws a 3D table and information panels around it.</dd>
+    <dt>Decision</dt><dd>The table is drawn with three.js (WebGL), in inches. Panels such as the log, the army list and counters are React.</dd>
+    <dt>Because</dt><dd>three.js is the most widely used 3D library for the web, small enough to stay in one module, and the first attempt's table used it. React is well known and only the screen knows about it.</dd>
+    <dt>Rejected</dt><dd>Babylon.js: capable, but heavier and with its own scene and UI system we don't need. A game engine exported to the web: large downloads and a second toolchain. SVG: flat only.</dd>
+    <dt>Affects</dt><dd><a href="../boundaries/screen.html">Screen</a></dd>
+  </dl>
+</article>
+</body>
+</html>

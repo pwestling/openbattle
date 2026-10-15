@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Record — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/record">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Record surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/record.html">Record</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+  </dl>
+  <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
+
+  <section id="actions">
+    <h2>The kinds of action</h2>
+    <p>Every <a href="../concepts/action.html">action</a> is one of these nineteen kinds. Adding a kind is an escalation.</p>
+    <table>
+      <thead><tr><th>Kind</th><th>Changes</th></tr></thead>
+      <tbody>
+        <tr><td>join</td><td>Adds a <a href="../concepts/player.html">player</a> with a name and colour.</td></tr>
+        <tr><td>rename</td><td>Changes a player's own name or colour.</td></tr>
+        <tr><td>place terrain</td><td>Adds a <a href="../concepts/terrain.html">terrain</a> piece, or replaces one with the same id. The piece is a simple solid, or a mesh named by its file's fingerprint, and carries its floors.</td></tr>
+        <tr><td>remove terrain</td><td>Removes a terrain piece.</td></tr>
+        <tr><td>add to army</td><td>Adds new <a href="../concepts/unit.html">units</a>, <a href="../concepts/model.html">models</a> with positions, and <a href="../concepts/group.html">groups</a> to a player's <a href="../concepts/army.html">army</a>, or more models to one of its units. Each model may name a mesh by its file's fingerprint. Allowed at any point in the game; the first one creates the army.</td></tr>
+        <tr><td>move</td><td>Sets the position, facing and floor of one or more models at once, keeping the waypoints each model passed through so everyone can see the path it took.</td></tr>
+        <tr><td>set aside</td><td>Takes models off the table, keeping them.</td></tr>
+        <tr><td>return</td><td>Puts set-aside models back at given positions.</td></tr>
+        <tr><td>group</td><td>Creates a group, or changes its name or members.</td></tr>
+        <tr><td>ungroup</td><td>Dissolves a group. Its units stay.</td></tr>
+        <tr><td>phase</td><td>Sets the round, whose turn it is, and the <a href="../concepts/phase.html">phase</a> name.</td></tr>
+        <tr><td>counter</td><td>Sets a <a href="../concepts/counter.html">counter</a> on a target to a number, or clears it.</td></tr>
+        <tr><td>mark</td><td>Turns a <a href="../concepts/mark.html">mark</a> on or off for a target.</td></tr>
+        <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, both random values, and the result.</td></tr>
+        <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
+        <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
+        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, both random values and which cards they picked.</td></tr>
+        <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
+        <tr><td>undo</td><td>Cancels the latest uncancelled action.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="newLog">
+    <h2><code>newLog(size: { width, depth }): Log</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>Width and depth are positive inches.</dd>
+      <dt>Post</dt><dd>An empty <a href="../concepts/log.html">log</a> whose <a href="../concepts/table.html">table</a> is that size and bare.</dd>
+      <dt>Fails</dt><dd>Never, for valid sizes.</dd>
+    </dl>
+  </section>
+
+  <section id="check">
+    <h2><code>check(log: Log, action: Action, by: PlayerId): Problem | null</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves). Otherwise a <code>Problem</code> saying why, in plain words.</dd>
+      <dt>Fails</dt><dd>Never; problems are returned. Game rules are never checked.</dd>
+    </dl>
+  </section>
+
+  <section id="append">
+    <h2><code>append(log: Log, action: Action, by: PlayerId): Log</code></h2>
+    <dl>
+      <dt>Pre</dt><dd><code>check</code> returns <code>null</code>.</dd>
+      <dt>Post</dt><dd>A new log, one longer, with the action numbered next. The old log is unchanged.</dd>
+      <dt>Fails</dt><dd>Throws if <code>check</code> would have returned a problem.</dd>
+    </dl>
+  </section>
+
+  <section id="tableAt">
+    <h2><code>tableAt(log: Log, upTo?: number): Table</code></h2>
+    <dl>
+      <dt>Pre</dt><dd><code>upTo</code>, if given, is between 0 and the log's length.</dd>
+      <dt>Post</dt><dd>The table after applying every uncancelled action up to <code>upTo</code> (the whole log by default). The same log always gives the same table.</dd>
+      <dt>Fails</dt><dd>Never, for a log built by <code>append</code>.</dd>
+    </dl>
+  </section>
+
+  <section id="fingerprint">
+    <h2><code>fingerprint(table: Table): string</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A short text that is equal for equal tables, so two browsers can tell whether they agree.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+    <a rel="decision" href="../decisions/ADR-009.html">ADR-009</a>
+    <a rel="decision" href="../decisions/ADR-015.html">ADR-015</a>
+  </footer>
+</article>
+</body>
+</html>

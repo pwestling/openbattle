@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Record — Boundary</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="boundaries/record">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Boundary</nav>
+    <h1>Record</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../concepts/log.html">Log</a>
+      <a rel="realizes" href="../concepts/action.html">Action</a>
+      <a rel="realizes" href="../concepts/table.html">Table</a>
+      <a rel="realizes" href="../concepts/model.html">Model</a>
+      <a rel="realizes" href="../concepts/unit.html">Unit</a>
+      <a rel="realizes" href="../concepts/group.html">Group</a>
+      <a rel="realizes" href="../concepts/army.html">Army</a>
+      <a rel="realizes" href="../concepts/terrain.html">Terrain</a>
+      <a rel="realizes" href="../concepts/phase.html">Phase</a>
+      <a rel="realizes" href="../concepts/counter.html">Counter</a>
+      <a rel="realizes" href="../concepts/mark.html">Mark</a>
+      <a rel="realizes" href="../concepts/card.html">Card</a>
+      <a rel="realizes" href="../concepts/deck.html">Deck</a>
+    </nav>
+  </header>
+  <section id="hides">
+    <h2>Hides</h2>
+    <p>How actions are written down, and how the table is worked out from the log.</p>
+  </section>
+  <section id="knows">
+    <h2>Knows about</h2>
+    <dl>
+      <dt>Concepts</dt><dd><a href="../concepts/log.html">log</a>, <a href="../concepts/action.html">action</a>, <a href="../concepts/table.html">table</a>, <a href="../concepts/model.html">model</a>, <a href="../concepts/unit.html">unit</a>, <a href="../concepts/group.html">group</a>, <a href="../concepts/army.html">army</a>, <a href="../concepts/terrain.html">terrain</a>, <a href="../concepts/phase.html">phase</a>, <a href="../concepts/counter.html">counter</a>, <a href="../concepts/mark.html">mark</a>, <a href="../concepts/card.html">card</a>, <a href="../concepts/deck.html">deck</a>, <a href="../concepts/roll.html">roll</a>, <a href="../concepts/player.html">player</a>, <a href="../concepts/game.html">game</a></dd>
+      <dt>Modules</dt><dd>None.</dd>
+    </dl>
+  </section>
+  <section id="owns">
+    <h2>Owns</h2>
+    <ul><li>The table is completely determined by the log.</li><li>The log only grows; undo cancels the latest action.</li><li>Every model is in exactly one unit, every unit in exactly one army, and no group contains itself.</li><li>Removed models are set aside, never deleted.</li></ul>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
+    <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+    <a rel="decision" href="../decisions/ADR-009.html">ADR-009</a>
+    <a rel="decision" href="../decisions/ADR-010.html">ADR-010</a>
+  </footer>
+</article>
+</body>
+</html>

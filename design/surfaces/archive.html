@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Archive — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-15T05:55Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/archive">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Archive surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/archive.html">Archive</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Revised from the Archive build, accepted by Porter on 2026-10-15: <code>toFile</code> returns a promise, saved files carry card pictures, files never kept are left out, and opening a file keeps its files.</dd>
+  </dl>
+  <p>Keeps games in this browser, and turns them into files and back.</p>
+
+  <section id="save">
+    <h2><code>save(link: string, saved: { log: Log, me: PlayerId | "watch" }): Promise&lt;void&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The game and who this browser is in it are stored, replacing what was stored for that link. Stored games outlive the tab.</dd>
+      <dt>Fails</dt><dd>Rejects if the browser refuses storage, for example in a private window; the session shows that the game is not being kept.</dd>
+    </dl>
+  </section>
+
+  <section id="load">
+    <h2><code>load(link: string): Promise&lt;{ log, me } | null&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>What was last saved for that link, or <code>null</code>.</dd>
+      <dt>Fails</dt><dd>Never; unreadable data counts as nothing saved.</dd>
+    </dl>
+  </section>
+
+  <section id="files">
+    <h2><code>keepFile(link: string, file: Blob): Promise&lt;Fingerprint&gt;</code> and <code>getFile(fingerprint): Promise&lt;Blob | null&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A kept file is stored under the fingerprint of its bytes and outlives the tab; the same bytes are only stored once.</dd>
+      <dt>Fails</dt><dd>As <code>save</code>.</dd>
+    </dl>
+  </section>
+
+  <section id="toFile">
+    <h2><code>toFile(link: string, log: Log): Promise&lt;Blob&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A file holding the whole log and every mesh and card picture the game uses that this browser has kept, with a format version, named after the game and the date, such as <code>OpenBattle k3j9x 2026-10-15.openbattle</code>. A file this browser never kept is left out; opening the saved game then shows that piece or picture as missing.</dd>
+      <dt>Fails</dt><dd>Never; it is a promise only because kept files are read from storage.</dd>
+    </dl>
+  </section>
+
+  <section id="fromFile">
+    <h2><code>fromFile(file: Blob): Promise&lt;{ link, log }&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The game in the file, ready to open as a new game or to look back through. The meshes and pictures in the file are kept in this browser, as <code>keepFile</code> would.</dd>
+      <dt>Fails</dt><dd>Rejects if the file is not a saved game, or was made by a newer version.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-006.html">ADR-006</a>
+    <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+  </footer>
+</article>
+</body>
+</html>

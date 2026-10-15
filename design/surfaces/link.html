@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/link">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Link surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/link.html">Link</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+  </dl>
+  <p>Carries messages between the browsers in one <a href="../concepts/game.html">game</a>. It never looks inside them.</p>
+
+  <section id="connect">
+    <h2><code>connect(link: string): Link</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>This browser is announced at the relay under the game's link and connects directly, or through TURN, to every other browser announced there. It has a <code>browserId</code> that stays the same for this browser.</dd>
+      <dt>Fails</dt><dd>Rejects if the relay cannot be reached.</dd>
+    </dl>
+  </section>
+
+  <section id="send">
+    <h2><code>link.send(message: Json, to?: browserId): void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The message is delivered whole, after earlier messages to the same browser, to one browser or to all of them.</dd>
+      <dt>Fails</dt><dd>Messages to a browser that is not connected are dropped; the caller learns of it through <code>onChange</code>.</dd>
+    </dl>
+  </section>
+
+  <section id="onMessage">
+    <h2><code>link.onMessage(listener: (message: Json, from: browserId) =&gt; void): () =&gt; void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The listener receives every message for this browser. <code>from</code> comes from the connection itself, never from the message.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+
+  <section id="onChange">
+    <h2><code>link.onChange(listener: (connected: browserId[]) =&gt; void): () =&gt; void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The listener is called with the browsers currently connected whenever one arrives or leaves.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+
+  <section id="close">
+    <h2><code>link.close(): void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>All connections close and the relay forgets this browser.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-005.html">ADR-005</a>
+    <a rel="decision" href="../decisions/ADR-011.html">ADR-011</a>
+  </footer>
+</article>
+</body>
+</html>

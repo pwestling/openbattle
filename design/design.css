@@ -1,0 +1,76 @@
+/* The one stylesheet for design/. Styles elements, not classes. */
+:root {
+  --paper: #f3f4f0;
+  --panel: #ffffff;
+  --ink: #1d2430;
+  --muted: #5a6474;
+  --rule: #d5d9d2;
+  --tape: #b07d00;
+  --tape-soft: #fff1c7;
+  --ins: #2f7a4a;
+  --ins-soft: #dcf0e2;
+  --del: #a23b3b;
+  --del-soft: #f6dddd;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --display: "Saira Condensed", "Arial Narrow", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #151a21; --panel: #1c232c; --ink: #e6e8e3; --muted: #9aa3b0; --rule: #2e3742;
+    --tape: #f2b929; --tape-soft: #3a2f10; --ins: #6cc28a; --ins-soft: #173525; --del: #ec8a8a; --del-soft: #3d1d1d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #151a21; --panel: #1c232c; --ink: #e6e8e3; --muted: #9aa3b0; --rule: #2e3742;
+  --tape: #f2b929; --tape-soft: #3a2f10; --ins: #6cc28a; --ins-soft: #173525; --del: #ec8a8a; --del-soft: #3d1d1d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 64px;
+}
+body > article, body > main { max-width: 760px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: .02em; line-height: 1.15; text-wrap: balance; }
+h1 { font-size: 34px; margin: 0 0 10px; }
+h2 { font-size: 22px; margin: 28px 0 8px; }
+h3 { font-size: 18px; margin: 18px 0 6px; }
+p, li, dd { max-width: 68ch; }
+a { color: inherit; text-decoration-color: var(--tape); text-underline-offset: 3px; }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--tape); outline-offset: 2px; }
+code { font: .88em var(--mono); background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 0 4px; }
+header { border-bottom: 2px solid var(--ink); padding-bottom: 12px; margin-bottom: 8px; }
+header > p { color: var(--muted); margin: 0; }
+nav { font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+nav a[rel="up"] { font-family: var(--mono); }
+section { margin-top: 18px; }
+section > h2:first-child { margin-top: 0; }
+dl { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 16px; margin: 14px 0; }
+dt { font: 600 11px/2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+dd { margin: 0; min-width: 0; }
+@media (max-width: 520px) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px; } dt { margin-top: 8px; } }
+ul, ol { padding-left: 20px; }
+li + li { margin-top: 4px; }
+footer { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+mark { background: var(--tape-soft); color: var(--ink); padding: 1px 5px; border-radius: 3px; font: 600 11px/1.6 var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+ins { background: var(--ins-soft); color: var(--ins); text-decoration: none; padding: 0 3px; }
+del { background: var(--del-soft); color: var(--del); padding: 0 3px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; display: block; overflow-x: auto; }
+th, td { text-align: left; vertical-align: top; padding: 8px 14px 8px 0; border-top: 1px solid var(--rule); }
+th { font: 600 11px/1.4 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 0; }
+blockquote { margin: 12px 0; padding: 10px 14px; background: var(--tape-soft); border-left: 4px solid var(--tape); }
+blockquote > :last-child { margin-bottom: 0; }
+blockquote > :first-child { margin-top: 0; }
+
+/* The index: a nested details tree. */
+details { margin: 2px 0 2px 0; }
+details details { margin-left: 18px; border-left: 1px solid var(--rule); padding-left: 10px; }
+summary { cursor: pointer; padding: 3px 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+summary small, li small { font: 12px var(--mono); color: var(--muted); }
+summary a { font-weight: 500; }
+summary > span:first-child { font: 600 11px var(--mono); color: var(--muted); min-width: 20px; }

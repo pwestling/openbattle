@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-004: One host for the whole game, with no hand-over — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-004">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-004: One host for the whole game, with no hand-over</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Accepted with Porter's additions: resume from the host after it drops, and spectators who can save.</dd>
+    <dt>Context</dt><dd>Someone must put actions in order. The first attempt elected a new host automatically when the host left, which was a large and subtle part of its networking.</dd>
+    <dt>Decision</dt><dd>The player who opens the game is its host for good. When the host drops, the game pauses for everyone and says so; when the host returns from the same link, the game continues from the host's stored log. <a href="../concepts/spectator.html">Spectators</a> can join, and any player or spectator can save the game to a file.</dd>
+    <dt>Because</dt><dd>Waiting for the host is acceptable among friends, and it removes the hardest part of the networking. Every browser keeps the whole log, so nobody loses the game.</dd>
+    <dt>Rejected</dt><dd>Automatic hand-over: complex and bug-prone. No host at all: browsers could disagree about order.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/host.html">host</a>, <a href="../concepts/spectator.html">spectator</a>, <a href="../boundaries/session.html">Session</a></dd>
+  </dl>
+</article>
+</body>
+</html>

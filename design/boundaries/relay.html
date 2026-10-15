@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relay — Boundary</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="boundaries/relay">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Boundary</nav>
+    <h1>Relay</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#peer-to-peer">Browser to browser</a>
+    </nav>
+  </header>
+  <section id="hides">
+    <h2>Hides</h2>
+    <p>The signalling server and the TURN server on Craftworld.</p>
+  </section>
+  <section id="knows">
+    <h2>Knows about</h2>
+    <dl>
+      <dt>Concepts</dt><dd>Only a <a href="../concepts/game.html">game</a>'s link, as the name of a meeting place.</dd>
+      <dt>Modules</dt><dd>None.</dd>
+    </dl>
+  </section>
+  <section id="owns">
+    <h2>Owns</h2>
+    <ul><li>The server never stores a game and never sees what players do.</li></ul>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-005.html">ADR-005</a>
+    <a rel="decision" href="../decisions/ADR-013.html">ADR-013</a>
+  </footer>
+</article>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Action — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/action">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Action</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#shared-truth">One table</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Every change, so it can be seen, undone and replayed.</dd>
+    <dt>Meaning</dt><dd>One thing a <a href="../concepts/player.html">player</a> did that changed the <a href="../concepts/table.html">table</a> or the <a href="../concepts/game.html">game</a>: moving models, placing terrain, rolling, drawing or moving a card, changing the phase, a counter or a mark, undoing.</dd>
+    <dt>Invariants</dt><dd><ul><li>Every change to the table is an action.</li><li>Everyone agrees on the order of all actions.</li></ul></dd>
+    <dt>Not</dt><dd>A <a href="../concepts/measurement.html">measurement</a>, or anything that only changes one person's view.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+  </footer>
+</article>
+</body>
+</html>

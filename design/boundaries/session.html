@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session — Boundary</title>
+<meta name="pdd-level" content="2">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="2" id="boundaries/session">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 2 · Boundary</nav>
+    <h1>Session</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../concepts/host.html">Host</a>
+      <a rel="realizes" href="../concepts/game.html">Game</a>
+      <a rel="realizes" href="../concepts/player.html">Player</a>
+      <a rel="realizes" href="../concepts/spectator.html">Spectator</a>
+      <a rel="realizes" href="../concepts/roll.html">Roll</a>
+      <a rel="realizes" href="../concepts/deck.html">Deck</a>
+      <a rel="realizes" href="../concepts/action.html">Action</a>
+    </nav>
+  </header>
+  <section id="hides">
+    <h2>Hides</h2>
+    <p>Which browser is the host, how actions get one agreed order, how a returning or lagging browser catches up, how dice results and card draws are made and checked, and how mesh files reach every browser.</p>
+  </section>
+  <section id="knows">
+    <h2>Knows about</h2>
+    <dl>
+      <dt>Concepts</dt><dd><a href="../concepts/game.html">game</a>, <a href="../concepts/player.html">player</a>, <a href="../concepts/spectator.html">spectator</a>, <a href="../concepts/host.html">host</a>, <a href="../concepts/action.html">action</a>, <a href="../concepts/roll.html">roll</a>, <a href="../concepts/log.html">log</a></dd>
+      <dt>Modules</dt><dd><a href="../boundaries/record.html">Record</a>, <a href="../boundaries/link.html">Link</a>, <a href="../boundaries/archive.html">Archive</a>.</dd>
+    </dl>
+  </section>
+  <section id="owns">
+    <h2>Owns</h2>
+    <ul><li>Everyone agrees on the order of all actions.</li><li>Every roll is made once and every browser checks it; a roll that fails the check is shown to everyone.</li><li>Nobody can act while the host is away, and everyone sees the pause.</li><li>A player stays the same player after a reload.</li><li>Spectators receive the game and never send actions.</li><li>Every browser in the game gets every mesh file the table uses.</li></ul>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+  </footer>
+</article>
+</body>
+</html>

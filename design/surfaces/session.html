@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Session — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/session">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Session surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/session.html">Session</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15.</dd>
+  </dl>
+  <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
+
+  <section id="open">
+    <h2><code>open(size: { width, depth }, me: { name, colour }): Promise&lt;Session&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved.</dd>
+      <dt>Fails</dt><dd>Rejects if the relay cannot be reached; nothing is saved.</dd>
+    </dl>
+  </section>
+
+  <section id="enter">
+    <h2><code>enter(link: string, as: { name, colour } | "watch"): Promise&lt;Session&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host.</dd>
+      <dt>Fails</dt><dd>Rejects if the link is malformed. If the host is away, it still resolves, with the snapshot saying so.</dd>
+    </dl>
+  </section>
+
+  <section id="act">
+    <h2><code>session.act(action: Action): Promise&lt;void&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player. The action is any kind but roll.</dd>
+      <dt>Post</dt><dd>Resolves once the host has put the action in the <a href="../concepts/log.html">log</a> and this browser has it.</dd>
+      <dt>Fails</dt><dd>Rejects, with nothing logged, if the host is away, this browser is a spectator, or the record finds a problem with the action.</dd>
+    </dl>
+  </section>
+
+  <section id="roll">
+    <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
+      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log.</dd>
+      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered.</dd>
+    </dl>
+  </section>
+
+  <section id="draw">
+    <h2><code>session.draw(deck: DeckId, cards: number, to: "hand" | "table"): Promise&lt;CardId[]&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player, and the deck holds at least that many cards.</dd>
+      <dt>Post</dt><dd>Resolves with the cards drawn, with the draw in the log. An ordered deck gives its top cards straight away; a shuffled deck picks them with the same sealed exchange as a roll. Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
+      <dt>Fails</dt><dd>As <code>act</code>, and for a shuffled deck as <code>roll</code>; also rejects if the deck has too few cards.</dd>
+    </dl>
+  </section>
+
+  <section id="watch">
+    <h2><code>session.watch(listener: (now: Snapshot) =&gt; void): () =&gt; void</code></h2>
+    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); and whether browsers disagree.</p>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The listener is called now and after every change. The returned function stops it.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+
+  <section id="resync">
+    <h2><code>session.resync(): Promise&lt;void&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>The snapshot says this browser disagrees with the host.</dd>
+      <dt>Post</dt><dd>This browser's log is replaced by the host's, and the snapshot agrees again.</dd>
+      <dt>Fails</dt><dd>Rejects if the host is away; nothing changes.</dd>
+    </dl>
+  </section>
+
+  <section id="addFile">
+    <h2><code>session.addFile(source: Blob | URL): Promise&lt;Fingerprint&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf, .obj or .stl mesh, or a .png, .jpg or .webp picture for a card: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
+      <dt>Post</dt><dd>A mesh with more than 100,000 triangles is first simplified in this browser to about that many, keeping its outline and height; STL files, which are usually in millimetres, are read as millimetres. A file is kept with the game and its bytes are sent to every browser in it, including any that join later. A link is downloaded here first, to take its fingerprint, then only the link is sent and each browser downloads it itself, checking the fingerprint. If the linked mesh had to be simplified, the simplified bytes are sent instead of the link, since the link would serve the original. Resolves with the fingerprint, which a place terrain or add to army action can then name.</dd>
+      <dt>Fails</dt><dd>Rejects if the source is not a readable mesh, is over 512 MB, or the link cannot be downloaded; nothing is sent. If another browser later downloads a link and gets different bytes, it shows that piece as missing and asks the player who added it to send the file itself.</dd>
+    </dl>
+  </section>
+
+  <section id="leave">
+    <h2><code>session.leave(): void</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>None.</dd>
+      <dt>Post</dt><dd>The connection closes. The saved game stays, so <code>enter</code> with the same link comes back.</dd>
+      <dt>Fails</dt><dd>Never.</dd>
+    </dl>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-004.html">ADR-004</a>
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+    <a rel="decision" href="../decisions/ADR-016.html">ADR-016</a>
+    <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+    <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+    <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
+  </footer>
+</article>
+</body>
+</html>
