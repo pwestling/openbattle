@@ -2,6 +2,8 @@
 // Measure knows no other module, so it names only the parts of a table it reads.
 // The record's Table has this shape, so the screen hands one straight in.
 
+import { measure } from "./distance.ts";
+
 export interface Point {
   x: number;
   y: number;
@@ -40,8 +42,9 @@ const notYet = (op: string): never => {
   throw new Error(`measure.${op} is not built yet`);
 };
 
+/** up is how far the base at the to end stands above the base at the from end; negative when below. */
 export function distance(table: TableShape, from: Spot, to: Spot, via?: Point[]): { across: number; up: number } {
-  return notYet("distance");
+  return measure(table, from, to, via);
 }
 
 export function floors(mesh: Mesh, size: { width: number; depth: number; height: number }): Floor[] {
