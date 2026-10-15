@@ -15,9 +15,12 @@ async function openArchive(page: Page): Promise<void> {
 // A small log: two players join and the first round starts.
 const log: Log = {
   size: { width: 72, depth: 48 },
+  link: "game-a",
+  host: "ann",
+  copied: 0,
   entries: [
-    { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33" } },
-    { n: 2, by: "bob", action: { kind: "join", name: "Bob", colour: "#33c" } },
+    { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" } },
+    { n: 2, by: "bob", action: { kind: "join", name: "Bob", colour: "#33c", publicKey: "key-Bob" } },
     { n: 3, by: "ann", action: { kind: "phase", phase: { round: 1, turn: "ann", name: "Deploy" } } },
   ],
 };
@@ -44,7 +47,7 @@ test("loading a game that was never saved, or whose stored data is unreadable, g
   expect(await page.evaluate(() => window.archive.load("never-saved"))).toBeNull();
 
   // Spoil what is stored for a link behind the archive's back, as a browser fault or old data might.
-  await page.evaluate(() => window.archive.save("game-b", { log: { size: { width: 6, depth: 4 }, entries: [] }, me: "ann" }));
+  await page.evaluate(() => window.archive.save("game-b", { log: { size: { width: 6, depth: 4 }, link: "game-b", host: "ann", copied: 0, entries: [] }, me: "ann" }));
   await page.evaluate(
     () =>
       new Promise<void>((resolve, reject) => {
@@ -71,7 +74,7 @@ test("when the browser refuses storage, saving rejects and loading gives nothing
   });
   await openArchive(page);
   const saving = await page.evaluate(() =>
-    window.archive.save("game-c", { log: { size: { width: 6, depth: 4 }, entries: [] }, me: "ann" }).then(
+    window.archive.save("game-c", { log: { size: { width: 6, depth: 4 }, link: "game-c", host: "ann", copied: 0, entries: [] }, me: "ann" }).then(
       () => "saved",
       (error: Error) => `rejected: ${error.message}`,
     ),
@@ -156,8 +159,11 @@ function gameUsing(terrainMesh: string, modelMesh: string, picture: string): Log
   const base = { shape: "round", width: 32, depth: 32 } as const;
   return {
     size: { width: 72, depth: 48 },
+    link: "game-a",
+    host: "ann",
+    copied: 0,
     entries: [
-      { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33" } },
+      { n: 1, by: "ann", action: { kind: "join", name: "Ann", colour: "#c33", publicKey: "key-Ann" } },
       {
         n: 2,
         by: "ann",
