@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:25Z">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
   <dl>
     <dt>Status</dt><dd><mark>Proposed</mark> First draft, 2026-10-14.</dd>
   </dl>
-  <p>Two ways in, and six operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
+  <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
   <section id="open">
     <h2><code>open(size: { width, depth }, me: { name, colour }): Session</code></h2>
@@ -59,6 +59,15 @@
     </dl>
   </section>
 
+  <section id="draw">
+    <h2><code>session.draw(deck: DeckId, cards: number, to: "hand" | "table"): Promise&lt;CardId[]&gt;</code></h2>
+    <dl>
+      <dt>Pre</dt><dd>This browser is a player, and the deck holds at least that many cards.</dd>
+      <dt>Post</dt><dd>Resolves with the cards drawn, after the same sealed exchange as a roll, with the draw in the log. Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
+      <dt>Fails</dt><dd>As <code>roll</code>; also rejects if the deck has too few cards.</dd>
+    </dl>
+  </section>
+
   <section id="watch">
     <h2><code>session.watch(listener: (now: Snapshot) =&gt; void): () =&gt; void</code></h2>
     <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); and whether browsers disagree.</p>
@@ -81,7 +90,7 @@
   <section id="addFile">
     <h2><code>session.addFile(source: Blob | URL): Promise&lt;Fingerprint&gt;</code></h2>
     <dl>
-      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf, .obj or .stl mesh: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
+      <dt>Pre</dt><dd>This browser is a player. The source is a .glb, .gltf, .obj or .stl mesh, or a .png, .jpg or .webp picture for a card: either the file itself, or an https link anyone can download it from (such as S3). Either way the mesh is at most 512 MB, so loading it cannot run a browser tab out of memory.</dd>
       <dt>Post</dt><dd>A mesh with more than 100,000 triangles is first simplified in this browser to about that many, keeping its outline and height; STL files, which are usually in millimetres, are read as millimetres. A file is kept with the game and its bytes are sent to every browser in it, including any that join later. A link is downloaded here first, to take its fingerprint, then only the link is sent and each browser downloads it itself, checking the fingerprint. If the linked mesh had to be simplified, the simplified bytes are sent instead of the link, since the link would serve the original. Resolves with the fingerprint, which a place terrain or add to army action can then name.</dd>
       <dt>Fails</dt><dd>Rejects if the source is not a readable mesh, is over 512 MB, or the link cannot be downloaded; nothing is sent. If another browser later downloads a link and gets different bytes, it shows that piece as missing and asks the player who added it to send the file itself.</dd>
     </dl>
@@ -101,6 +110,7 @@
     <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
     <a rel="decision" href="../decisions/ADR-016.html">ADR-016</a>
     <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+    <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
     <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
   </footer>
 </article>

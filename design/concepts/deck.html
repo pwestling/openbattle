@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deck — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/deck">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Deck</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#fair-dice">Dice and draws nobody can fix</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Draws nobody can rig.</dd>
+    <dt>Meaning</dt><dd>A named face-down pile of <a href="../concepts/card.html">cards</a>, belonging to a <a href="../concepts/player.html">player</a> or to the <a href="../concepts/game.html">game</a>, that cards are drawn from at random.</dd>
+    <dt>Invariants</dt><dd><ul><li>A deck has no order decided in advance: each draw picks at random from the cards left.</li><li>Nobody, the host included, can choose which card is drawn without the others being able to tell, the same way as a <a href="../concepts/roll.html">roll</a>.</li><li>Every draw is in the <a href="../concepts/log.html">log</a>.</li><li>Shuffling cards back in just returns them to the pile.</li></ul></dd>
+    <dt>Not</dt><dd>A hand, and not an ordered stack you can look through.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+    <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+  </footer>
+</article>
+</body>
+</html>

@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADR-015: Fifteen kinds of action, each a physical or shared-rules change — Decision</title>
+<title>ADR-015: Eighteen kinds of action, each a physical or shared-rules change — Decision</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T05:45Z">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
 <article data-level="3" id="decisions/ADR-015">
   <header>
     <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Decision</nav>
-    <h1>ADR-015: Fifteen kinds of action, each a physical or shared-rules change</h1>
+    <h1>ADR-015: Eighteen kinds of action, each a physical or shared-rules change</h1>
   </header>
   <dl>
     <dt>Status</dt><dd><mark>Accepted</mark> Accepted by Porter on 2026-10-15, with "bring army" changed to "add to army".</dd>
     <dt>Context</dt><dd>The record needs a fixed list of actions. The first attempt's list grew to over thirty kinds, plus scripts that produced more, and its format changed nine times in days.</dd>
-    <dt>Decision</dt><dd>Fifteen kinds, listed on the <a href="../surfaces/record.html">Record surface</a>. Adding to an army is one action, so a batch of units arrives whole or not at all, and it can happen at any point in the game (reinforcements, summoned units, models added to a unit). Models never move from one unit to another; attaching a leader is a <a href="../concepts/group.html">group</a>.</dd>
+    <dt>Decision</dt><dd>Eighteen kinds (fifteen, plus three for decks added by <a href="ADR-021.html">ADR-021</a>), listed on the <a href="../surfaces/record.html">Record surface</a>. Adding to an army is one action, so a batch of units arrives whole or not at all, and it can happen at any point in the game (reinforcements, summoned units, models added to a unit). Models never move from one unit to another; attaching a leader is a <a href="../concepts/group.html">group</a>.</dd>
     <dt>Because</dt><dd>Small enough to read in one table and to test completely. Each kind maps to something a player does with their hands at a real table, or to a phase, counter or mark.</dd>
     <dt>Rejected</dt><dd>Separate actions per unit or model: the log fills with setup noise and a half-arrived batch is possible. Bringing the whole army once at the start: no way to add models mid-game. Changeable unit membership: breaks "every model is in exactly one unit" for no need OnePageRules has.</dd>
     <dt>Affects</dt><dd><a href="../surfaces/record.html">Record surface</a></dd>

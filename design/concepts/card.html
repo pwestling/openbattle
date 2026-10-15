@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Card — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/card">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Card</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#fair-dice">Dice and draws nobody can fix</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Purpose</dt><dd>Game pieces that carry words or a picture, such as mission or objective cards.</dd>
+    <dt>Meaning</dt><dd>A named card with optional text and an optional picture. It is always in exactly one place: in a <a href="../concepts/deck.html">deck</a>, in a <a href="../concepts/player.html">player</a>'s hand, face up on the <a href="../concepts/table.html">table</a>, or in a discard pile.</dd>
+    <dt>Invariants</dt><dd><ul><li>A card is in exactly one place at a time.</li><li>Moving a card is an <a href="../concepts/action.html">action</a>.</li><li>A card in someone's hand is shown face down to everyone else. This is hiding on screen only: the card is in every browser's copy of the <a href="../concepts/log.html">log</a>.</li></ul></dd>
+    <dt>Not</dt><dd>A <a href="../concepts/counter.html">counter</a> or a <a href="../concepts/mark.html">mark</a>.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a>
+    <a rel="decision" href="../decisions/ADR-021.html">ADR-021</a>
+  </footer>
+</article>
+</body>
+</html>
