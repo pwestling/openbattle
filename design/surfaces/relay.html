@@ -33,6 +33,10 @@
     </dl>
   </section>
 
+  <dl>
+    <dt>Suggested</dt><dd>Two limits for the relay server's health, left off until Porter decides (<a href="../decisions/ADR-020.html">ADR-020</a>). TURN: anyone can ask <code>/turn</code> for credentials and relay traffic through our server for 24 hours; coturn's per-user and total bandwidth quotas would cap that. Sockets: nothing limits how many sockets one address opens, or how long one waits without announcing itself; a cap per address would stop one script using up the server.</dd>
+  </dl>
+
   <section id="turn">
     <h2><code>GET /turn</code></h2>
     <dl>
