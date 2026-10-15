@@ -19,12 +19,12 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15.</dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
   <section id="open">
-    <h2><code>open(size: { width, depth }, me: { name, colour }): Session</code></h2>
+    <h2><code>open(size: { width, depth }, me: { name, colour }): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved.</dd>
@@ -33,7 +33,7 @@
   </section>
 
   <section id="enter">
-    <h2><code>enter(link: string, as: { name, colour } | "watch"): Session</code></h2>
+    <h2><code>enter(link: string, as: { name, colour } | "watch"): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host.</dd>
