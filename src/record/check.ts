@@ -1,5 +1,6 @@
 // Whether an action can be appended: everything it names exists, numbers are finite, no group
 // contains itself, and the player may take it. Game rules are never checked.
+import { opens } from "./chance.ts";
 import { latestStanding } from "./fold.ts";
 import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Shape, Table, Terrain } from "./types.ts";
 
@@ -300,7 +301,8 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (!isWhole(action.dice) || action.dice < 1 || action.dice > mostDice) refuse(`A roll is 1 to ${mostDice} dice.`);
       if (!isWhole(action.sides) || action.sides < 2) refuse("A die has a whole number of sides, at least two.");
       if (action.label !== undefined) text(action.label, "The roll's label");
-      return refuse("Rolls are not built yet.");
+      sealed(action, "A roll");
+      return;
     case "add deck": {
       fresh(table, action.deck, "deck");
       text(action.name, "The deck's name");
@@ -330,7 +332,9 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
         if (action.seal !== undefined || action.hostValue !== undefined || action.guestValue !== undefined)
           refuse("An ordered deck gives its top cards; a draw from it has no random values.");
       } else {
-        refuse("Draws from a shuffled deck are not built yet.");
+        sealed(action, "A draw from a shuffled deck");
+        if (!opens({ seal: action.seal!, hostValue: action.hostValue!, guestValue: action.guestValue! }))
+          refuse("The host's value does not open the seal, so the draw could have been chosen.");
       }
       return;
     }

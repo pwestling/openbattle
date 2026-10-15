@@ -1,5 +1,6 @@
 // Working out the table from the log. Only ever called on actions check has accepted.
-import type { Card, Entry, FloorRef, Log, Size, Table } from "./types.ts";
+import { drawFrom, opens, rollDice } from "./chance.ts";
+import type { Card, Entry, FloorRef, Log, Sealed, Size, Table } from "./types.ts";
 
 export function bareTable(size: Size): Table {
   return {
@@ -155,6 +156,15 @@ function apply(table: Table, { n, by, action }: Entry) {
       return;
     }
     case "roll":
+      table.rolls.push({
+        at: n,
+        by,
+        dice: action.dice,
+        sides: action.sides,
+        ...(action.label === undefined ? {} : { label: action.label }),
+        result: rollDice(action, action.dice, action.sides),
+        tampered: !opens(action),
+      });
       return;
     case "add deck": {
       table.decks[action.deck] = {
@@ -179,7 +189,7 @@ function apply(table: Table, { n, by, action }: Entry) {
     case "draw": {
       const deck = table.decks[action.deck]!;
       const drawn =
-        deck.cards.slice(0, action.cards);
+        deck.order === "ordered" ? deck.cards.slice(0, action.cards) : drawFrom(action as Sealed, deck.cards, action.cards);
       deck.cards = deck.cards.filter((id) => !drawn.includes(id));
       for (const id of drawn) {
         table.cards[id]!.place =

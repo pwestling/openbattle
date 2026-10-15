@@ -4,11 +4,11 @@ import * as nodeRecord from "../src/record/index.ts";
 // The Record module, driven through its public face in real Chromium (ADR-018).
 // There is no screen yet, so a proof page loads the module and these proofs call it as Session will.
 
-type Record = typeof nodeRecord;
-type Log = ReturnType<Record["newLog"]>;
+type RecordModule = typeof nodeRecord;
+type Log = ReturnType<RecordModule["newLog"]>;
 
 // A short game several proofs start from: two players join, Ann brings a unit of two models and moves them.
-const opening = (r: Record): Log => {
+const opening = (r: RecordModule): Log => {
   let log = r.newLog({ width: 44, depth: 30 });
   log = r.append(log, { kind: "join", name: "Ann", colour: "#c33" }, "ann");
   log = r.append(log, { kind: "join", name: "Bo", colour: "#33c" }, "bo");
@@ -40,7 +40,7 @@ const opening = (r: Record): Log => {
   return log;
 };
 
-type Scenario<T> = (r: Record, start: typeof opening) => T;
+type Scenario<T> = (r: RecordModule, start: typeof opening) => T;
 
 /** Runs a scenario against the Record module as loaded in the browser page. */
 async function inBrowser<T>(page: Page, scenario: Scenario<T>): Promise<T> {
@@ -88,7 +88,7 @@ test("the table is worked out from the log, and appending never changes an earli
 test("every kind of action changes the table as the Record surface says", async ({ page }) => {
   const t = await inBrowser(page, (r, start) => {
     let log = start(r);
-    const take = (action: Parameters<Record["append"]>[1], by = "ann") => (log = r.append(log, action, by));
+    const take = (action: Parameters<RecordModule["append"]>[1], by = "ann") => (log = r.append(log, action, by));
     take({ kind: "rename", name: "Annie", colour: "#a00" });
     const floors = [{ height: 3, outline: [{ x: -1, y: -1 }, { x: 1, y: -1 }, { x: 1, y: 1 }, { x: -1, y: 1 }] }];
     const ruin = { id: "t1", name: "Ruin", shape: { kind: "box" as const, width: 6, depth: 6, height: 3 }, position: { x: 20, y: 15 }, facing: 0, floors };
@@ -161,7 +161,7 @@ test("every kind of action changes the table as the Record surface says", async 
 test("check says in plain words why an action can't be taken, and append refuses it", async ({ page }) => {
   const seen = await inBrowser(page, (r, start) => {
     const log = start(r);
-    const p = (action: unknown, by = "ann") => r.check(log, action as Parameters<Record["check"]>[1], by)?.problem ?? null;
+    const p = (action: unknown, by = "ann") => r.check(log, action as Parameters<RecordModule["check"]>[1], by)?.problem ?? null;
     let thrown = "";
     try {
       r.append(log, { kind: "set aside", models: ["nobody"] }, "ann");
@@ -246,4 +246,98 @@ test("undo cancels the latest action, only for the player who took it, and looki
   expect(seen.length).toBe(8);
   // Bo's join is now the latest standing action, so Ann cannot undo it.
   expect(seen.bothJoined).toBe("Only the player who took the latest action can undo it.");
+});
+
+// The sealed exchange (ADR-008): the host's value, its seal, and the other player's value.
+const sealedWith = async (hostValue: string, guestValue: string) => {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(hostValue));
+  const seal = Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
+  return { seal, hostValue, guestValue };
+};
+
+test("a roll's result comes from both random values, the same in every browser, and a bad seal shows as tampered", async ({ page }) => {
+  const host = "9f2c4e71d0a3b8e6c5f1a2d7e4b9c3a0";
+  const fair = await sealedWith(host, "17e0c9b2a4d6f8e1");
+  const otherGuest = await sealedWith(host, "a0b1c2d3e4f5a6b7");
+  const roll = (r: RecordModule, sealed: Awaited<ReturnType<typeof sealedWith>>, by = "ann") => {
+    const log = r.append(opening(r), { kind: "roll", dice: 10, sides: 6, label: "to hit", ...sealed }, by);
+    return { log, roll: r.tableAt(log).rolls[0]! };
+  };
+  const seen = await page.evaluate(
+    `(async () => {
+      const r = window.record, opening = ${opening.toString()}, sealedWith = ${sealedWith.toString()};
+      const roll = ${roll.toString()};
+      const fair = ${JSON.stringify(fair)}, otherGuest = ${JSON.stringify(otherGuest)};
+      const first = roll(r, fair);
+      const many = [];
+      for (let i = 0; i < 10; i++) {
+        const log = r.append(opening(r), { kind: "roll", dice: 1024, sides: 6, ...(await sealedWith("host " + i, "guest " + i)) }, "bo");
+        many.push(...r.tableAt(log).rolls[0].result);
+      }
+      return {
+        first: first.roll,
+        again: roll(r, fair).roll.result,
+        otherGuest: roll(r, otherGuest).roll.result,
+        tampered: roll(r, { ...fair, hostValue: "a different value" }).roll,
+        undo: r.check(first.log, { kind: "undo" }, "ann")?.problem,
+        counts: [1, 2, 3, 4, 5, 6].map((face) => many.filter((d) => d === face).length),
+      };
+    })()`,
+  ) as {
+    first: nodeRecord.Roll; again: number[]; otherGuest: number[]; tampered: nodeRecord.Roll; undo: string; counts: number[];
+  };
+  expect(seen.first).toMatchObject({ at: 5, by: "ann", dice: 10, sides: 6, label: "to hit", tampered: false });
+  expect(seen.first.result).toHaveLength(10);
+  expect(seen.first.result.every((d) => Number.isInteger(d) && d >= 1 && d <= 6)).toBe(true);
+  expect(seen.again).toEqual(seen.first.result);
+  // Node runs the same module outside the browser and gets the same dice.
+  expect(roll(nodeRecord, fair).roll.result).toEqual(seen.first.result);
+  // The other player's value changes the dice, so the host alone cannot pick them.
+  expect(seen.otherGuest).not.toEqual(seen.first.result);
+  // A host value that does not open the seal is still logged, flagged as tampered.
+  expect(seen.tampered.tampered).toBe(true);
+  expect(seen.tampered.result).toHaveLength(10);
+  expect(seen.undo).toBe("A roll can't be undone: it happens once and its result never changes.");
+  // 10,240 dice come up evenly: each face is within four standard deviations of a sixth.
+  for (const count of seen.counts) expect(Math.abs(count - 10240 / 6)).toBeLessThan(160);
+});
+
+test("a shuffled deck is drawn from with the same sealed exchange, and a draw the host could have chosen is refused", async ({ page }) => {
+  const fair = await sealedWith("host value for the draw", "guest value for the draw");
+  const draw = (r: RecordModule, sealed: Partial<Awaited<ReturnType<typeof sealedWith>>>, order: "ordered" | "shuffled" = "shuffled") => {
+    let log = opening(r);
+    const cards = Array.from({ length: 10 }, (_, i) => ({ id: `c${i}`, name: `Card ${i}` }));
+    log = r.append(log, { kind: "add deck", deck: "d1", name: "Objectives", owner: "bo", order, cards, position: { x: 1, y: 1 } }, "bo");
+    const action = { kind: "draw" as const, deck: "d1", cards: 3, to: "hand" as const, ...sealed };
+    const problem = r.check(log, action, "bo")?.problem;
+    if (problem) return { problem };
+    log = r.append(log, action, "bo");
+    const table = r.tableAt(log);
+    return {
+      drawn: Object.values(table.cards).filter((c) => c.place.in === "hand").map((c) => c.id),
+      left: table.decks.d1!.cards,
+      undo: r.check(log, { kind: "undo" }, "bo")?.problem,
+    };
+  };
+  const seen = await page.evaluate(
+    `(() => {
+      const r = window.record, opening = ${opening.toString()}, draw = ${draw.toString()};
+      const fair = ${JSON.stringify(fair)};
+      return {
+        fair: draw(r, fair),
+        tampered: draw(r, { ...fair, hostValue: "something else" }),
+        unsealed: draw(r, {}),
+        orderedWithValues: draw(r, fair, "ordered"),
+        ordered: draw(r, {}, "ordered"),
+      };
+    })()`,
+  ) as Record<string, { drawn?: string[]; left?: string[]; undo?: string; problem?: string }>;
+  expect(seen.fair!.drawn).toHaveLength(3);
+  expect(new Set([...seen.fair!.drawn!, ...seen.fair!.left!]).size).toBe(10);
+  expect(draw(nodeRecord, fair)).toEqual(seen.fair);
+  expect(seen.fair!.undo).toBe("A draw from a shuffled deck can't be undone, or it could be drawn again until it suited.");
+  expect(seen.tampered!.problem).toBe("The host's value does not open the seal, so the draw could have been chosen.");
+  expect(seen.unsealed!.problem).toBe("A draw from a shuffled deck needs the seal and both random values.");
+  expect(seen.orderedWithValues!.problem).toBe("An ordered deck gives its top cards; a draw from it has no random values.");
+  expect(seen.ordered).toEqual({ drawn: ["c0", "c1", "c2"], left: ["c3", "c4", "c5", "c6", "c7", "c8", "c9"], undo: undefined });
 });
