@@ -104,6 +104,7 @@ function Tabs() {
 }
 
 function Banner({ now, session }: { now: Snapshot; session: Session }) {
+  const { note } = usePlay();
   const [busy, setBusy] = useState(false);
   let content = null;
   if (now.connection === "connecting") content = <>Connecting…</>;
@@ -116,7 +117,10 @@ function Banner({ now, session }: { now: Snapshot; session: Session }) {
           disabled={busy}
           onClick={() => {
             setBusy(true);
-            void session.resync().finally(() => setBusy(false));
+            void session
+              .resync()
+              .catch(() => note("The host's copy could not be loaded. Try again in a moment."))
+              .finally(() => setBusy(false));
           }}
         >
           Reload the host's copy

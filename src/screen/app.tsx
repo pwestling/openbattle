@@ -71,9 +71,10 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
   const [width, setWidth] = useState(60);
   const [depth, setDepth] = useState(44);
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<{ text: string; retry?: () => void } | null>(message ? { text: message } : null);
+  const [problem, setProblem] = useState<{ text: string; retry?: boolean } | null>(message ? { text: message } : null);
 
   const newGame = async () => {
+    if (busy) return;
     setBusy(true);
     setProblem(null);
     remember(me);
@@ -83,7 +84,7 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
       stop();
       onOpen(session);
     } catch {
-      setProblem({ text: "The server can't be reached right now.", retry: newGame });
+      setProblem({ text: "The server can't be reached right now.", retry: true });
     } finally {
       setBusy(false);
     }
@@ -110,7 +111,12 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
       <h1>OpenBattle</h1>
       {problem && (
         <p role="alert" className="problem">
-          {problem.text} {problem.retry && <button onClick={problem.retry}>Retry</button>}
+          {problem.text}{" "}
+          {problem.retry && (
+            <button disabled={busy} onClick={() => void newGame()}>
+              Retry
+            </button>
+          )}
         </p>
       )}
       <form

@@ -139,12 +139,13 @@ function AddToArmy() {
   const add = async () => {
     if (!listed || !me) return;
     const action = armyAction(table, me, listed, newId, meshes);
+    // A refusal already shows its reason.
     if (await act(action)) {
       setText("");
       setListed(null);
       setUnread([]);
       setMeshes({});
-    } else note("The army was not added.");
+    }
   };
 
   return (
@@ -159,6 +160,7 @@ function AddToArmy() {
           onChange={(e) => {
             setText(e.target.value);
             setListed(null);
+            setMeshes({}); // Chosen by row, so they go with the list they were chosen for.
           }}
         />
       </label>
@@ -240,9 +242,13 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
   let x = mine.length ? Math.max(...mine.map((m) => m.position.x)) + 2.5 : width / 2 - 8;
   let band = 0;
   const units: { id: string; name: string }[] = [];
+  const named = (name: string) =>
+    Object.values(table.units).find((t) => t.owner === me && t.name.toLowerCase() === name) ??
+    units.find((t) => t.name.toLowerCase() === name);
   const models: (NewModel & { unit: string })[] = [];
   for (const [n, u] of listed.entries()) {
-    const existing = Object.values(table.units).find((t) => t.owner === me && t.name.toLowerCase() === u.name.toLowerCase());
+    // A line naming one of your units, or one earlier in this list, adds to it.
+    const existing = named(u.name.toLowerCase());
     const unit = existing?.id ?? newId();
     if (!existing) units.push({ id: unit, name: u.name });
     const sx = u.base.width * MM + 0.6;

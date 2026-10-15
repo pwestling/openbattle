@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { newGame } from "./screen-helpers.ts";
+import { addArmy, labels, newGame } from "./screen-helpers.ts";
 
 // Start page: a new game opens the table as host, with the invite link ready to copy.
 test("a new game opens the table with its invite link", async ({ page }) => {
@@ -13,10 +13,14 @@ test("a new game opens the table with its invite link", async ({ page }) => {
 // Arriving from a link: someone returning on the same browser goes straight back to their seat.
 test("coming back to the link returns to the same table", async ({ page }) => {
   await newGame(page);
+  await addArmy(page, "3x Scouts 25mm");
+  await expect(labels(page, "Scouts")).toHaveCount(3);
   const link = await page.getByLabel("Invite link").inputValue();
   await page.goto(link);
   await expect(page.getByLabel("The table")).toBeVisible();
   await expect(page.getByRole("button", { name: "Join" })).toHaveCount(0);
+  await expect(labels(page, "Scouts")).toHaveCount(3);
+  await expect(page.getByLabel("Invite link")).toHaveValue(link);
 });
 
 // Arriving from a link: a newcomer gives a name and colour and joins, or watches.

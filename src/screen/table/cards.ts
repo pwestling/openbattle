@@ -56,12 +56,16 @@ function cardMesh(card: Card, faceUp: boolean, loaded: () => void): Mesh {
     void getFile(card.picture).then((blob) => {
       if (!blob) return;
       const img = new Image();
+      const url = URL.createObjectURL(blob);
       img.onload = () => {
+        URL.revokeObjectURL(url);
+        material.map?.dispose();
         material.map = faceTexture(card, img);
         material.needsUpdate = true;
         loaded();
       };
-      img.src = URL.createObjectURL(blob);
+      img.onerror = () => URL.revokeObjectURL(url);
+      img.src = url;
     });
   }
   return mesh;

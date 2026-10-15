@@ -23,10 +23,7 @@ export class Guides {
 
   show(guides: Guide[]) {
     this.view.invalidate();
-    for (const child of [...this.group.children]) {
-      drop(this.group, child);
-      if (child instanceof Line) child.geometry.dispose();
-    }
+    for (const child of [...this.group.children]) drop(this.group, child);
     for (const g of guides) {
       if (g.points.length < 2) continue;
       const line = new Line(

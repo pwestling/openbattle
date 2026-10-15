@@ -111,8 +111,7 @@ export class DiceTray {
 
   /** Throws dice that land showing these results; calls back once they have lined up. */
   throw(results: number[], sides: number, colour: string, done: () => void) {
-    for (const d of this.dice) this.scene.remove(d.mesh);
-    this.dice = [];
+    this.clear();
     this.clock = 0;
     this.done = done;
     const n = results.length;
@@ -124,6 +123,14 @@ export class DiceTray {
     const slots = new Map<number, number[]>();
     sorted.forEach((v, i) => slots.set(v, [...(slots.get(v) ?? []), i]));
     const ink = new Color(colour).getHSL({ h: 0, s: 0, l: 0 }).l > 0.6 ? "#111111" : "#ffffff";
+    // One material per number, shared by every die in the throw: a thousand dice would otherwise
+    // make thousands of textures and could lose the graphics context.
+    const made = new Map<number, MeshStandardMaterial>();
+    const face = (v: number) => {
+      let m = made.get(v);
+      if (!m) made.set(v, (m = new MeshStandardMaterial({ map: faceTexture(v, colour, ink), roughness: 0.5 })));
+      return m;
+    };
     results.forEach((value, i) => {
       let faces: number[];
       let up: number;
@@ -137,7 +144,7 @@ export class DiceTray {
       }
       const mesh = new Mesh(
         new BoxGeometry(size, size, size),
-        faces.map((v) => new MeshStandardMaterial({ map: faceTexture(v, colour, ink), roughness: 0.5 })),
+        faces.map((v) => face(v)),
       );
       // The face showing the result turns to point up, with a random twist around the vertical.
       const rest = new Quaternion()
@@ -182,7 +189,21 @@ export class DiceTray {
     return true;
   }
 
+  /** Takes the last throw's dice away, freeing their textures: a big roll makes many. */
+  private clear() {
+    for (const d of this.dice) {
+      this.scene.remove(d.mesh);
+      d.mesh.geometry.dispose();
+      for (const m of d.mesh.material as MeshStandardMaterial[]) {
+        m.map?.dispose();
+        m.dispose();
+      }
+    }
+    this.dice = [];
+  }
+
   dispose() {
+    this.clear();
     cancelAnimationFrame(this.frame);
     this.renderer.dispose();
   }

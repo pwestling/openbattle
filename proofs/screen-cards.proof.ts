@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { centre, labels, newGame } from "./screen-helpers.ts";
+import { centre, drawn, labels, newGame } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 const hand = (page: Page) => page.getByRole("region", { name: "Your hand" });
@@ -20,7 +20,7 @@ async function lookDown(page: Page) {
   const box = (await page.getByLabel("The table").boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.wheel(0, 200);
-  await page.waitForTimeout(300);
+  await drawn(page);
 }
 
 async function dragTo(page: Page, from: { x: number; y: number }, to: { x: number; y: number }, shift = false) {
