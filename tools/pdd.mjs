@@ -5,8 +5,9 @@
 //   for publishing the design as one artifact.
 import { readFileSync, writeFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const DESIGN = join(ROOT, "design");
 const GENERATED = new Set(["index.html", "DRIFT.html"]);
 const now = new Date().toISOString().slice(0, 16) + "Z";
@@ -14,7 +15,7 @@ const now = new Date().toISOString().slice(0, 16) + "Z";
 function walk(dir) {
   return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
-    if (statSync(path).isDirectory()) return name === "instruments" ? [] : walk(path);
+    if (statSync(path).isDirectory()) return name === "instruments" || name === "drift" ? [] : walk(path);
     return name.endsWith(".html") && !(dir === DESIGN && GENERATED.has(name)) ? [path] : [];
   });
 }
@@ -42,21 +43,32 @@ const nodes = walk(DESIGN).map((file) => {
 });
 const byId = new Map(nodes.map((n) => [n.id, n]));
 for (const n of nodes) for (const p of n.parents) if (!byId.has(p)) throw new Error(`${n.id}: realizes missing node ${p}`);
+for (const n of nodes) {
+  if (n.id !== "intent" && !n.id.startsWith("decisions/") && n.parents.length === 0) throw new Error(`${n.id}: realizes nothing, so the index would not show it`);
+}
 
-// Drift: compares the code with the design. Until the first upward pass, src/ holds only the scaffold.
-const hasCode = existsSync(join(ROOT, "src")) && walk(join(ROOT, "src")).length > 0;
-const driftSections = [];
-if (!existsSync(join(DESIGN, "DRIFT.html")) || !existsSync(join(DESIGN, "drift"))) {
-  writeFileSync(join(DESIGN, "DRIFT.html"), doc("Drift report", 3, "DRIFT", `
+// Drift: the upward pass writes what it finds, one <section data-node="…"> per affected node, as
+// files in design/drift/. This collects them into DRIFT.html; it does not compare code itself.
+const hasCode = existsSync(join(ROOT, "src")) && readdirSync(join(ROOT, "src"), { recursive: true }).some((f) => /\.tsx?$/.test(f));
+const DRIFT_DIR = join(DESIGN, "drift");
+const found = existsSync(DRIFT_DIR)
+  ? readdirSync(DRIFT_DIR).filter((f) => f.endsWith(".html")).sort().map((f) => readFileSync(join(DRIFT_DIR, f), "utf8").trim())
+  : [];
+const driftSections = found.flatMap((html) => [...html.matchAll(/<section data-node="([^"]+)"/g)].map((m) => m[1]));
+for (const id of driftSections) if (!byId.has(id)) throw new Error(`drift: section against missing node ${id}`);
+const summary = !hasCode
+  ? "There is no code in <code>src/</code> yet, so there is nothing to compare with the design."
+  : found.length
+    ? "What the code does that the design does not say, found by the latest upward pass."
+    : "No upward pass has recorded drift yet.";
+writeFileSync(join(DESIGN, "DRIFT.html"), doc("Drift report", 3, "DRIFT", `
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
     <p>Generated ${now}.</p>
   </header>
-  <p>${hasCode ? "<code>src/</code> holds the scaffold: every module's public types from its surface, with nothing built behind them. The first upward pass runs once the modules are built." : "There is no code in <code>src/</code> yet, so there is nothing to compare with the design."}</p>`));
-}
-const drift = readFileSync(join(DESIGN, "DRIFT.html"), "utf8");
-for (const m of drift.matchAll(/<section data-node="([^"]+)"/g)) driftSections.push(m[1]);
+  <p>${summary}</p>
+${found.join("\n")}`));
 
 function doc(title, level, id, body, css = "design.css") {
   return `<!doctype html>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T07:09Z">
+<meta name="pdd-derived" content="2026-10-15T07:19Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,9 +13,33 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T07:09Z.</p>
+    <p>Generated 2026-10-15T07:19Z.</p>
   </header>
-  <p>There is no code in <code>src/</code> yet, so there is nothing to compare with the design.</p>
+  <p>What the code does that the design does not say, found by the latest upward pass.</p>
+<section data-node="surfaces/link">
+  <h2><a href="surfaces/link.html">Link surface</a></h2>
+  <ul>
+    <li><code>connect(link): <del>Link</del><ins>Promise&lt;Link&gt;</ins></code> (<code>src/link/index.ts:23</code>). Agreed by Porter on 2026-10-15; the surface page is updated in the Link build.</li>
+  </ul>
+</section>
+<section data-node="surfaces/session">
+  <h2><a href="surfaces/session.html">Session surface</a></h2>
+  <ul>
+    <li>The snapshot holds <ins><code>kept</code></ins>, false when the browser refuses storage (<code>src/session/index.ts:21</code>). The surface's list of what a snapshot holds leaves it out, though the archive surface says the session shows it.</li>
+  </ul>
+</section>
+<section data-node="surfaces/record">
+  <h2><a href="surfaces/record.html">Record surface</a></h2>
+  <ul>
+    <li>The roll and draw actions carry the dice or card count and both random values, but <del>the result</del>: the record works out the result from the two values, the same in every browser (<code>src/record/types.ts:190</code>).</li>
+  </ul>
+</section>
+<section data-node="boundaries/session">
+  <h2><a href="boundaries/session.html">Session</a></h2>
+  <ul>
+    <li>Knows about: <ins>table, deck, card</ins> (via <code>src/session/index.ts:2</code>), which its surface already needs for the snapshot and for draws. The boundary's list does not name them.</li>
+  </ul>
+</section>
 </main>
 </body>
 </html>
