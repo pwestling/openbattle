@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Record — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:40Z">
+<meta name="pdd-derived" content="2026-10-15T07:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <ins>Built 2026-10-15; the marked changes to <code>check</code> are proposed and wait on Porter.</ins></dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -65,7 +65,7 @@
     <h2><code>check(log: Log, action: Action, by: PlayerId): Problem | null</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves). Otherwise a <code>Problem</code> saying why, in plain words.</dd>
+      <dt>Post</dt><dd><code>null</code> if the action could be appended: everything it names exists, numbers are finite, no group would contain itself, and the player may take it (only the taker can undo; a player renames only themselves)<ins>; a roll is 1 to 1024 dice of at least two sides, as on the Session surface; a roll or a draw from a shuffled deck can never be undone, since it happens once; and a shuffled draw whose host value does not open its seal is refused</ins>. Otherwise a <code>Problem</code> saying why, in plain words.</dd>
       <dt>Fails</dt><dd>Never; problems are returned. Game rules are never checked.</dd>
     </dl>
   </section>
