@@ -7,7 +7,7 @@ test("a new game opens the table with its invite link", async ({ page }) => {
   const link = await page.getByLabel("Invite link").inputValue();
   expect(link).toMatch(/^http/);
   expect(page.url()).toBe(link);
-  await expect(page.getByRole("button", { name: "Copy" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copy link" })).toBeVisible();
 });
 
 // Arriving from a link: someone returning on the same browser goes straight back to their seat.

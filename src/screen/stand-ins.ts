@@ -31,20 +31,41 @@ function orFakeNow<T>(real: () => T, fake: () => T): T {
   }
 }
 
-export const openGame = (size: Size, me: Me): Promise<Session> => orFake(() => session.open(size, me), () => fakeOpen(size, me));
+export const openGame = (size: Size, me: Me): Promise<Session> =>
+  orFake(
+    () => session.open(size, me),
+    () => fakeOpen(size, me),
+  );
 
 export const enterGame = (link: string, as: Me | "watch"): Promise<Session> =>
-  orFake(() => session.enter(link, as), () => fakeEnter(link, as));
+  orFake(
+    () => session.enter(link, as),
+    () => fakeEnter(link, as),
+  );
 
-export const tableAt = (log: Log, upTo?: number): Table => orFakeNow(() => record.tableAt(log, upTo), () => fakeTableAt(log, upTo));
+export const tableAt = (log: Log, upTo?: number): Table =>
+  orFakeNow(
+    () => record.tableAt(log, upTo),
+    () => fakeTableAt(log, upTo),
+  );
 
-export const kept = (link: string): Promise<archive.Saved | null> => orFake(() => archive.load(link), () => fakeKept(link));
+export const kept = (link: string): Promise<archive.Saved | null> =>
+  orFake(
+    () => archive.load(link),
+    () => fakeKept(link),
+  );
 
 export const keep = (link: string, saved: { log: Log; me: PlayerId | "watch" }): Promise<void> =>
-  orFake(() => archive.save(link, saved), () => fakeKeep(link, saved));
+  orFake(
+    () => archive.save(link, saved),
+    () => fakeKeep(link, saved),
+  );
 
 export const getFile = (fingerprint: Fingerprint): Promise<Blob | null> =>
-  orFake(() => archive.getFile(fingerprint), () => fakeFile(fingerprint));
+  orFake(
+    () => archive.getFile(fingerprint),
+    () => fakeFile(fingerprint),
+  );
 
 export const toFile = (link: string, log: Log): Promise<Blob> =>
   orFake(
@@ -75,7 +96,17 @@ export const floors = (mesh: measure.Mesh, size: { width: number; depth: number;
       if (atTop < 3) return [];
       const w = size.width / 2;
       const d = size.depth / 2;
-      return [{ height: size.height, outline: [{ x: -w, y: -d }, { x: w, y: -d }, { x: w, y: d }, { x: -w, y: d }] }];
+      return [
+        {
+          height: size.height,
+          outline: [
+            { x: -w, y: -d },
+            { x: w, y: -d },
+            { x: w, y: d },
+            { x: -w, y: d },
+          ],
+        },
+      ];
     },
   );
 

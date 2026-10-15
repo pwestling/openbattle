@@ -70,9 +70,7 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
   const [width, setWidth] = useState(60);
   const [depth, setDepth] = useState(44);
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState<{ text: string; retry?: () => void } | null>(
-    message ? { text: message } : null,
-  );
+  const [problem, setProblem] = useState<{ text: string; retry?: () => void } | null>(message ? { text: message } : null);
 
   const newGame = async () => {
     setBusy(true);

@@ -3,14 +3,12 @@
 // Delete this file when Record lands.
 import type { Action, Card, Entry, Log, Roll, Table } from "../../record/index.ts";
 
-/** Which entries undo has cancelled: each undo cancels its taker's latest uncancelled action. */
+/** Which entries undo has cancelled: each undo cancels the latest uncancelled action. */
 function cancelledIn(entries: Entry[]): Set<number> {
   const cancelled = new Set<number>();
   for (const entry of entries) {
     if (entry.action.kind !== "undo") continue;
-    const target = [...entries]
-      .reverse()
-      .find((e) => e.n < entry.n && e.by === entry.by && e.action.kind !== "undo" && !cancelled.has(e.n));
+    const target = [...entries].reverse().find((e) => e.n < entry.n && e.action.kind !== "undo" && !cancelled.has(e.n));
     if (target) cancelled.add(target.n);
   }
   return cancelled;
@@ -27,7 +25,7 @@ export function fakeHash(text: string): string {
   }
   h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
   h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  return ((h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0"));
+  return (h2 >>> 0).toString(16).padStart(8, "0") + (h1 >>> 0).toString(16).padStart(8, "0");
 }
 
 /** Numbers from both values of a sealed exchange, the same in every browser. */
