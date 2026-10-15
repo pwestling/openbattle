@@ -1,6 +1,7 @@
 // The dice tray: how many dice, how many sides, an optional label, and Roll. Dice are thrown
 // onto the tray and land on the decided result, for everyone at once, then line up sorted.
-// Recent rolls stay listed; a tampered roll is shown in red with a warning.
+// Recent rolls stay listed; a tampered roll is shown in red with a warning, and a roll the host made
+// with nobody else connected is marked "rolled alone" (ADR-023).
 import { useEffect, useRef, useState } from "react";
 import type { Roll } from "../../record/index.ts";
 import { playerName, usePlay } from "../play.tsx";
@@ -87,13 +88,18 @@ export function DicePanel() {
       )}
       <ol className="rolls" aria-label="Recent rolls">
         {recent.map((r: Roll) => (
-          <li key={r.at} className={r.tampered ? "tampered" : ""}>
+          <li key={r.at} className={[r.tampered ? "tampered" : "", r.alone ? "alone" : ""].join(" ")}>
             <span className="who">
               {playerName(table, r.by)} · {r.dice}d{r.sides}
               {r.label ? ` · ${r.label}` : ""}
             </span>
             <span className="result">{[...r.result].sort((a, b) => a - b).join(" ")}</span>
             {r.tampered && <strong role="alert">This roll was tampered with: its seal doesn't match.</strong>}
+            {r.alone && (
+              <span className="alone-mark" title="Nobody else was connected to send the other value, so this roll is not tamper-evident.">
+                Rolled alone
+              </span>
+            )}
           </li>
         ))}
       </ol>

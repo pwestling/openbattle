@@ -20,6 +20,8 @@ const knobs = {
   refuse: null as string | null,
   tamper: false,
   unreachable: false,
+  /** Whether another player's browser is taken to be connected, to send the other value. */
+  company: false,
   /** How long the host takes to answer an action, in milliseconds. */
   delay: 30,
   sessions: new Set<FakeSession>(),
@@ -60,6 +62,10 @@ Object.assign(window, {
       const session = [...knobs.sessions][0];
       return archive.keepFile(session?.snapshot().link ?? "", new Blob([text]));
     },
+    /** Pretends another player is connected, so the host's rolls use their value rather than being made alone. */
+    setCompany(on: boolean) {
+      knobs.company = on;
+    },
     /** Makes new games fail as if the server could not be reached. */
     setUnreachable(on: boolean) {
       knobs.unreachable = on;
@@ -88,12 +94,6 @@ const mine = newKey();
 /** As Session makes them: 8 random base64url characters, "-", then the host's browser id. */
 const gameId = (host: PlayerId) => `${base64url(crypto.getRandomValues(new Uint8Array(6)))}-${host}`;
 
-/**
- * Record lets the host roll only with a value from another player, and the fake has no other
- * browser. So each fake game's host is a browser that never joins, and this browser plays as a
- * guest, sending its own value.
- */
-const absentHost = () => newKey().id;
 const randomValue = () => crypto.randomUUID().replaceAll("-", "");
 
 class FakeSession implements Session {
@@ -122,7 +122,7 @@ class FakeSession implements Session {
   snapshot(): Snapshot {
     return {
       link: this.link,
-      who: this.me === "watch" ? { watching: true } : { player: this.me, host: false },
+      who: this.me === "watch" ? { watching: true } : { player: this.me, host: this.me === this.log.host },
       log: this.log,
       table: record.tableAt(this.log),
       connection: knobs.connection,
@@ -175,7 +175,13 @@ class FakeSession implements Session {
     const hostValue = randomValue();
     const seal = await sha256(knobs.tamper ? "something else" : hostValue);
     knobs.tamper = false;
-    return { link: this.log.link, seal, hostValue, guestValue: randomValue(), guestBy: by, guestSignature: "not checked by the fake" };
+    const values = { link: this.log.link, seal, hostValue, guestValue: randomValue() };
+    // The other value comes from the taker, or for the host from another connected player (ADR-022);
+    // with nobody else connected, the host takes it alone (ADR-023).
+    const host = this.log.host;
+    const other = Object.keys(record.tableAt(this.log).players).find((p) => p !== host);
+    const guestBy = by !== host ? by : knobs.company ? other : undefined;
+    return guestBy ? { ...values, guestBy, guestSignature: "not checked by the fake" } : { ...values, guestBy: null };
   }
 
   async draw(deck: string, cards: number, to: "hand" | "table"): Promise<CardId[]> {
@@ -216,8 +222,7 @@ const urlOf = (id: string) => `${location.origin}/?game=${id}`;
 /** A new game. From a saved log, it starts from that log, and this browser joins it unless it is already a player there. */
 export async function fakeOpen(size: Size, me: Me, from?: Log): Promise<Session> {
   if (knobs.unreachable) throw new Error("The relay cannot be reached.");
-  const host = absentHost();
-  const log = from ? record.reopen(from, gameId(host), host) : record.newLog(size, gameId(host), host);
+  const log = from ? record.reopen(from, gameId(mine.id), mine.id) : record.newLog(size, gameId(mine.id), mine.id);
   const session = new FakeSession(urlOf(log.link), log, mine.id);
   if (!record.tableAt(log).players[mine.id])
     session.append({ kind: "join", name: me.name, colour: me.colour, publicKey: mine.publicKey }, mine.id);

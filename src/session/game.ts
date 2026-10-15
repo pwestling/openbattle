@@ -368,7 +368,7 @@ export class Game {
     const sealed = { link: this.log.link, seal: p.seal, hostValue: p.hostValue, guestValue, guestBy: from, guestSignature };
     const action: RollAction | ShuffledDrawAction = p.ask.kind === "roll" ? { ...p.ask, ...sealed } : { ...p.ask, ...sealed };
     const key = tableAt(this.log).players[from]?.publicKey;
-    const fine = typeof guestValue === "string" && key !== undefined && (await verify(key, guestStatement(action), guestSignature));
+    const fine = typeof guestValue === "string" && key !== undefined && (await verify(key, guestStatement(action, p.by), guestSignature));
     if (!fine) return this.drop(id, p, "The other player's value did not come with a good signature.");
     try {
       this.answer(id, p.by, this.hostAppend(action, p.by));
@@ -537,7 +537,8 @@ export class Game {
   private async giveValue(id: string, ask: Ask, link: string, seal: string) {
     if (link !== this.log.link || this.me === "watch") return;
     // For this player's own request, the host must describe what was asked, not a relabelled or redirected one.
-    if (id.startsWith(`${this.link.me}.`)) {
+    const mine = id.startsWith(`${this.link.me}.`);
+    if (mine) {
       const asked = this.myAsks.get(id);
       this.myAsks.delete(id);
       if (!asked || JSON.stringify(asked) !== JSON.stringify(ask)) {
@@ -549,7 +550,7 @@ export class Game {
     const guestValue = randomValue();
     const sealed = { link, seal, hostValue: "", guestValue, guestBy: this.me, guestSignature: "" };
     const action: RollAction | ShuffledDrawAction = ask.kind === "roll" ? { ...ask, ...sealed } : { ...ask, ...sealed };
-    const guestSignature = await this.link.sign(guestStatement({ ...action, guestBy: this.me }));
+    const guestSignature = await this.link.sign(guestStatement({ ...action, guestBy: this.me }, mine ? this.me : this.log.host));
     this.given.push({ id, ask, seal });
     this.toHost({ t: "guest", id, guestValue, guestSignature });
   }
@@ -628,7 +629,7 @@ export class Game {
       const a = e.action;
       if (!isSealed(a) || a.guestBy === null) continue;
       const key = tableAt(log, e.n - 1).players[a.guestBy]?.publicKey ?? table.players[a.guestBy]?.publicKey;
-      const ok = key !== undefined && (await verify(key, guestStatement(a), a.guestSignature));
+      const ok = key !== undefined && (await verify(key, guestStatement(a, e.by), a.guestSignature));
       this.checked.set(e.n, ok);
       found = true;
     }

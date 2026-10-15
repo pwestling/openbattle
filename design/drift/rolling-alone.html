@@ -1,6 +1,6 @@
 <section data-node="surfaces/screen">
   <h2><a href="surfaces/screen.html">Screen surface</a></h2>
   <ul>
-    <li>Rolls and draws taken alone (<a href="decisions/ADR-023.html">ADR-023</a>): the record marks them <code>alone</code>, but the dice panel, the log panel and their words (<code>src/screen/panels/dice.tsx</code>, <code>src/screen/panels/log.tsx</code>, <code>src/screen/words.ts</code>) show only tampered, so a roll the host made alone reads as fair. They should show "rolled alone" and "drawn alone", with a proof. Nor does the screen yet warn a player of what Session now flags: a roll or draw the host took alone while they were connected, or a value they signed that the host never logged (the snapshot's <code>aloneWhileHere</code> and <code>unusedValues</code>).</li>
+    <li>The screen doesn't yet warn a player of what Session flags (<a href="decisions/ADR-023.html">ADR-023</a>): a roll or draw the host took alone while they were connected, or a value they signed that the host never logged (the snapshot's <code>aloneWhileHere</code> and <code>unusedValues</code>).</li>
   </ul>
 </section>
