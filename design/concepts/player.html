@@ -22,9 +22,13 @@
   <dl>
     <dt>Purpose</dt><dd>Who is playing.</dd>
     <dt>Meaning</dt><dd>A person in a <a href="../concepts/game.html">game</a>, with a name and a colour, who brings an <a href="../concepts/army.html">army</a> and takes <a href="../concepts/action.html">actions</a>.</dd>
-    <dt>Invariants</dt><dd><ul><li>A player stays the same player after reloading or returning on the same browser.</li><li>Every action names the player who took it.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>A player stays the same player after reloading or returning on the same browser, and nobody else can pose as them: their browser proves it with a key that never leaves it.</li><li>Every action names the player who took it.</li></ul></dd>
     <dt>Not</dt><dd>A browser connection, a side or faction, or a <a href="../concepts/spectator.html">spectator</a>.</dd>
   </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>
+  </footer>
 </article>
 </body>
 </html>
