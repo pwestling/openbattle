@@ -3,22 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADR-021: Decks with draws nobody can rig, and hands hidden on screen — Decision</title>
+<title>ADR-021: Ordered and shuffled decks, fair draws, and hands hidden on screen — Decision</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
 <article data-level="1" id="decisions/ADR-021">
   <header>
     <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
-    <h1>ADR-021: Decks with draws nobody can rig, and hands hidden on screen</h1>
+    <h1>ADR-021: Ordered and shuffled decks, fair draws, and hands hidden on screen</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> From Porter's review on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Proposed</mark> From Porter's review on 2026-10-15, with ordered and shuffled decks at his suggestion.</dd>
     <dt>Context</dt><dd>Many games draw cards (missions, objectives, events). Porter asked whether draws can be as tamper-evident as dice, accepting that someone inspecting their browser's data could see hidden cards.</dd>
-    <dt>Decision</dt><dd>A <a href="../concepts/deck.html">deck</a> is a face-down pile with no order decided in advance. Each draw picks its cards at random from what's left, using the same sealed exchange as a roll (<a href="ADR-008.html">ADR-008</a>), and every browser checks it. Cards go into the drawer's hand or face up on the table. Other players' hand cards are shown face down, but they are in every browser's log.</dd>
-    <dt>Because</dt><dd>Drawing at the moment of the draw means there is no stored order anyone could peek at or arrange, and the sealed exchange stops the host or the drawer steering the pick. Hiding hands on screen only is enough among friends, and costs nothing extra.</dd>
+    <dt>Decision</dt><dd>A <a href="../concepts/deck.html">deck</a> is ordered or shuffled. An ordered deck is a known stack: draws take the top card, and cards go back on the top, the bottom or at a position. A shuffled deck has no order decided in advance: each draw picks its cards at random from what's left, using the same sealed exchange as a roll (<a href="ADR-008.html">ADR-008</a>), and every browser checks it. Shuffling turns an ordered deck into a shuffled one, never the reverse. Cards go into the drawer's hand or face up on the table. Other players' hand cards are shown face down, but they are in every browser's log.</dd>
+    <dt>Because</dt><dd>Some games need a known stack (a scenario deck in a set order), others a fair shuffle. For shuffled decks, drawing at the moment of the draw means there is no stored order anyone could peek at or arrange, and the sealed exchange stops the host or the drawer steering the pick. Hiding hands on screen only is enough among friends, and costs nothing extra.</dd>
     <dt>Rejected</dt><dd>Shuffling the whole deck up front: the order would sit in every browser's log, so the next card could be read ahead. Truly secret hands: needs a heavier cryptographic card protocol in which no browser ever holds other players' cards; possible later if wanted.</dd>
     <dt>Affects</dt><dd><a href="../concepts/card.html">Card</a>, <a href="../concepts/deck.html">Deck</a>, <a href="../surfaces/record.html">Record surface</a>, <a href="../surfaces/session.html">Session surface</a>, <a href="../surfaces/screen.html">Screen surface</a>, <a href="ADR-015.html">ADR-015</a></dd>
   </dl>

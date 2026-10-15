@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Record — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -25,7 +25,7 @@
 
   <section id="actions">
     <h2>The kinds of action</h2>
-    <p>Every <a href="../concepts/action.html">action</a> is one of these eighteen kinds. Adding a kind is an escalation.</p>
+    <p>Every <a href="../concepts/action.html">action</a> is one of these nineteen kinds. Adding a kind is an escalation.</p>
     <table>
       <thead><tr><th>Kind</th><th>Changes</th></tr></thead>
       <tbody>
@@ -43,9 +43,10 @@
         <tr><td>counter</td><td>Sets a <a href="../concepts/counter.html">counter</a> on a target to a number, or clears it.</td></tr>
         <tr><td>mark</td><td>Turns a <a href="../concepts/mark.html">mark</a> on or off for a target.</td></tr>
         <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, both random values, and the result.</td></tr>
-        <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game. Each card may name a picture by its file's fingerprint.</td></tr>
-        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table: both random values, and which cards they picked.</td></tr>
-        <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck.</td></tr>
+        <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
+        <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
+        <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, both random values and which cards they picked.</td></tr>
+        <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
         <tr><td>undo</td><td>Cancels the latest uncancelled action.</td></tr>
       </tbody>
     </table>

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Session — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:30Z">
+<meta name="pdd-derived" content="2026-10-15T06:40Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -63,8 +63,8 @@
     <h2><code>session.draw(deck: DeckId, cards: number, to: "hand" | "table"): Promise&lt;CardId[]&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>This browser is a player, and the deck holds at least that many cards.</dd>
-      <dt>Post</dt><dd>Resolves with the cards drawn, after the same sealed exchange as a roll, with the draw in the log. Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
-      <dt>Fails</dt><dd>As <code>roll</code>; also rejects if the deck has too few cards.</dd>
+      <dt>Post</dt><dd>Resolves with the cards drawn, with the draw in the log. An ordered deck gives its top cards straight away; a shuffled deck picks them with the same sealed exchange as a roll. Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
+      <dt>Fails</dt><dd>As <code>act</code>, and for a shuffled deck as <code>roll</code>; also rejects if the deck has too few cards.</dd>
     </dl>
   </section>
 
