@@ -1,6 +1,6 @@
 // Every action as a sentence for the log ("Ana moved Scouts 5.8″").
 import type { Action, Entry, Log, PlayerId, Table } from "../record/index.ts";
-import { distance } from "./stand-ins.ts";
+import { distance } from "../measure/index.ts";
 
 /** Names for everything the log ever named, so removed things still read well. */
 export interface Names {

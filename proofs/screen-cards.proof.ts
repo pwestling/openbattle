@@ -50,6 +50,9 @@ test("drawing, playing, discarding and returning cards", async ({ page }) => {
   await page.keyboard.up("Shift");
   await expect(labels(page, "Hold the line")).toHaveCount(1);
   await expect(labels(page, "Missions · 1")).toHaveCount(1);
+  // Record puts a card drawn face up on its deck; slide it off to see the deck again.
+  await dragTo(page, await centre(labels(page, "Hold the line")), { x: at.x, y: at.y - 120 });
+  await expect(log(page).last()).toContainText("Ana played Hold the line onto the table");
 
   // Play Ambush from the hand onto the table.
   const table = (await page.getByLabel("The table").boundingBox())!;

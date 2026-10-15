@@ -67,11 +67,12 @@ test("the phase bar changes round, turn and phase", async ({ page }) => {
   await phase.getByRole("button", { name: "Next round" }).click();
   await phase.getByRole("button", { name: "Next round" }).click();
   await phase.getByRole("button", { name: "Previous round" }).click();
-  await expect(phase.getByLabel("Round", { exact: true })).toHaveText("3");
+  // A game starts at round 0, before its first round.
+  await expect(phase.getByLabel("Round", { exact: true })).toHaveText("2");
   await phase.getByRole("combobox").selectOption({ label: "Ana" });
   await phase.getByLabel("Phase name").fill("Shooting");
   await phase.getByLabel("Phase name").press("Enter");
-  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana set round 3, Ana’s turn, Shooting");
+  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana set round 2, Ana’s turn, Shooting");
 });
 
 // Log: undo beside your own latest action; the slider shows an earlier moment, read-only, until you return.
@@ -95,14 +96,31 @@ test("undo and looking back through the log", async ({ page }) => {
 });
 
 // Save: the game saves to a file, which opens again from the start page as a new game.
-test("a saved file opens again from the start page", async ({ page }) => {
+test("a saved file opens again from the start page", async ({ page, browser }) => {
   await newGame(page);
   await addArmy(page, "4x Scouts");
+  const original = await page.getByLabel("Invite link").inputValue();
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "Save" }).click();
   const file = await (await download).path();
+
+  // In another browser, which has kept nothing, the file alone brings the game back.
+  const other = await browser.newPage();
+  await other.goto("/");
+  await other.getByLabel("Your name").fill("Ana");
+  await other.getByLabel("Choose a saved game file").setInputFiles(file);
+  await expect(other.getByLabel("The table")).toBeVisible();
+  await expect(labels(other, "Scouts")).toHaveCount(4);
+  await other.close();
+
+  // Here, after playing on, opening the file starts a new game and leaves the one played on alone.
+  await addArmy(page, "Captain 40mm");
+  await expect(labels(page, "Captain")).toHaveCount(1);
   await page.goto("/");
   await page.getByLabel("Choose a saved game file").setInputFiles(file);
-  await expect(page.getByLabel("The table")).toBeVisible();
   await expect(labels(page, "Scouts")).toHaveCount(4);
+  await expect(labels(page, "Captain")).toHaveCount(0);
+  await expect(page.getByLabel("Invite link")).not.toHaveValue(original);
+  await page.goto(original);
+  await expect(labels(page, "Captain")).toHaveCount(1);
 });

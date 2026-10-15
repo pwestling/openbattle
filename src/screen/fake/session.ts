@@ -1,10 +1,17 @@
 // A fake session, so the screen can be built and proven before Session is.
-// One browser only: it is always the host, and nothing is sent anywhere. Games and files are kept
-// with Archive, as the real session keeps them. Delete this folder when Session lands.
+// One browser only: it is always the host, and nothing is sent anywhere. Actions are checked and
+// folded by Record, and games and files are kept with Archive, as the real session does.
+// Delete this folder when Session lands.
 import type { Action, CardId, Fingerprint, Log, PlayerId, Size } from "../../record/index.ts";
 import * as archive from "../../archive/index.ts";
+import * as record from "../../record/index.ts";
 import type { Me, Session, Snapshot } from "../../session/index.ts";
-import { fakeHash, fakeTableAt } from "./fold.ts";
+
+/** The hex SHA-256 of some text, as the sealed exchange's seal is (ADR-008). */
+async function sha256(text: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)));
+  return Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 /** What a proof can do to the fake from outside, to show the screen's reactions. */
 const knobs = {
@@ -88,7 +95,7 @@ class FakeSession implements Session {
       link: this.link,
       who: this.me === "watch" ? { watching: true } : { player: this.me, host: true },
       log: this.log,
-      table: fakeTableAt(this.log),
+      table: record.tableAt(this.log),
       connection: knobs.connection,
       disagreement: knobs.disagreement,
       kept: this.kept,
@@ -100,8 +107,9 @@ class FakeSession implements Session {
     this.listeners.forEach((l) => l(now));
   }
 
+  /** Appends an action if Record allows it, as the host would; otherwise rejects with Record's reason. */
   append(action: Action, by: PlayerId) {
-    this.log = { ...this.log, entries: [...this.log.entries, { n: this.log.entries.length + 1, by, action }] };
+    this.log = record.append(this.log, action, by);
     this.keep();
     this.notify();
   }
@@ -124,23 +132,28 @@ class FakeSession implements Session {
 
   async roll(dice: number, sides: number, label?: string): Promise<number[]> {
     const by = await this.player();
-    const hostValue = randomValue();
-    const seal = knobs.tamper ? fakeHash("something else") : fakeHash(hostValue);
-    knobs.tamper = false;
-    const action: Action = { kind: "roll", dice, sides, seal, hostValue, guestValue: randomValue() };
+    const action: Action = { kind: "roll", dice, sides, ...(await this.sealed()) };
     if (label) action.label = label;
     this.append(action, by);
-    return fakeTableAt(this.log).rolls.at(-1)?.result ?? [];
+    return record.tableAt(this.log).rolls.at(-1)?.result ?? [];
+  }
+
+  /** Both values of the sealed exchange; with tamperNext, a seal the host's value doesn't open. */
+  private async sealed() {
+    const hostValue = randomValue();
+    const seal = await sha256(knobs.tamper ? "something else" : hostValue);
+    knobs.tamper = false;
+    return { seal, hostValue, guestValue: randomValue() };
   }
 
   async draw(deck: string, cards: number, to: "hand" | "table"): Promise<CardId[]> {
     const by = await this.player();
-    const before = fakeTableAt(this.log).decks[deck];
+    const before = record.tableAt(this.log).decks[deck];
     if (!before) throw new Error("There is no such deck.");
     if (before.cards.length < cards) throw new Error(`${before.name} is empty.`);
-    this.append({ kind: "draw", deck, cards, to, seal: "", hostValue: randomValue(), guestValue: randomValue() }, by);
-    const after = fakeTableAt(this.log).decks[deck]?.cards ?? [];
-    return before.cards.filter((c) => !after.includes(c));
+    const sealed = before.order === "shuffled" ? await this.sealed() : {};
+    this.append({ kind: "draw", deck, cards, to, ...sealed }, by);
+    return record.tableAt(this.log).draws.at(-1)?.cards ?? [];
   }
 
   watch(listener: (now: Snapshot) => void): () => void {
@@ -166,11 +179,17 @@ class FakeSession implements Session {
   }
 }
 
-export async function fakeOpen(size: Size, me: Me): Promise<Session> {
+/** A new game; from a saved log, it starts from that log with this browser in its first player's seat. */
+export async function fakeOpen(size: Size, me: Me, from?: Log): Promise<Session> {
   if (knobs.unreachable) throw new Error("The relay cannot be reached.");
   const link = `${location.origin}/?game=${randomId()}`;
+  if (from) {
+    const first = from.entries.find((e) => e.action.kind === "join")?.by;
+    if (!first) throw new Error("That saved game has no players.");
+    return new FakeSession(link, from, first);
+  }
   const player = randomId();
-  const session = new FakeSession(link, { size, entries: [] }, player);
+  const session = new FakeSession(link, record.newLog(size), player);
   session.append({ kind: "join", name: me.name, colour: me.colour }, player);
   return session;
 }
@@ -186,9 +205,9 @@ export async function fakeEnter(link: string, as: Me | "watch"): Promise<Session
   const kept = await archive.load(link);
   if (kept) return new FakeSession(link, kept.log, kept.me);
   // A game this browser has never seen: the fake has no host to catch up with, so it starts bare.
-  if (as === "watch") return new FakeSession(link, { size: { width: 60, depth: 44 }, entries: [] }, "watch");
+  if (as === "watch") return new FakeSession(link, record.newLog({ width: 60, depth: 44 }), "watch");
   const player = randomId();
-  const session = new FakeSession(link, { size: { width: 60, depth: 44 }, entries: [] }, player);
+  const session = new FakeSession(link, record.newLog({ width: 60, depth: 44 }), player);
   session.append({ kind: "join", name: as.name, colour: as.colour }, player);
   return session;
 }

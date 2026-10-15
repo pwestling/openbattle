@@ -18,9 +18,9 @@ export function PhaseBar() {
     <div className="phase" role="group" aria-label="Phase">
       <span>Round</span>
       <button
-        disabled={readOnly || phase.round <= 1}
+        disabled={readOnly || phase.round <= 0}
         aria-label="Previous round"
-        onClick={() => set({ round: Math.max(1, latest.get().round - 1) })}
+        onClick={() => set({ round: Math.max(0, latest.get().round - 1) })}
       >
         −
       </button>

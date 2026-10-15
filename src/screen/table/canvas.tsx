@@ -47,7 +47,7 @@ export function TableCanvas({ handDrop }: { handDrop: RefObject<HandDrop | null>
       void playRef.current.act(
         target.into === "table"
           ? { kind: "move card", card, to: { in: "table", position: target.at, faceUp: true } }
-          : cardMove(card, target, bottom, playRef.current.me),
+          : cardMove(card, target, bottom, playRef.current.me, playRef.current.table),
       );
     };
     return () => {

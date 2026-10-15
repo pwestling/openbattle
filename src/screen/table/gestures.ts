@@ -11,7 +11,7 @@
 // card under the pointer, as in Tabletop Simulator.
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from "three";
 import type { Action, FloorRef, Point, Table } from "../../record/index.ts";
-import { distance, type Spot } from "../stand-ins.ts";
+import { distance, type Spot } from "../../measure/index.ts";
 import { Guides, type Guide } from "./guides.ts";
 import type { Cards } from "./cards.ts";
 import { floorHeight, Pieces, type Place, type Thing } from "./pieces.ts";
@@ -562,7 +562,7 @@ export class Gestures {
       await this.hooks.act(
         target.into === "table"
           ? { kind: "move card", card: c.id, to: { in: "table", position: this.carriedCards.get(c.id) ?? target.at, faceUp } }
-          : cardMove(c.id, target, e.shiftKey, this.me),
+          : cardMove(c.id, target, e.shiftKey, this.me, this.table),
       );
     }
     this.carriedCards.delete(c.id);
@@ -654,10 +654,20 @@ export class Gestures {
   }
 }
 
-/** The move card action for letting a card go on a deck, a discard pile or your hand. */
-export function cardMove(card: string, target: Exclude<CardTarget, { into: "table" }>, bottom: boolean, me: string | null): Action {
+/**
+ * The move card action for letting a card go on a deck, a discard pile or your hand. Only an
+ * ordered deck has a top and a bottom; a card put into a shuffled deck is shuffled in.
+ */
+export function cardMove(
+  card: string,
+  target: Exclude<CardTarget, { into: "table" }>,
+  bottom: boolean,
+  me: string | null,
+  table: Table | null,
+): Action {
   if (target.into === "hand") return { kind: "move card", card, to: { in: "hand", player: me ?? "" } };
   if (target.into === "discard") return { kind: "move card", card, to: { in: "discard", deck: target.deck } };
+  if (table?.decks[target.deck]?.order !== "ordered") return { kind: "move card", card, to: { in: "deck", deck: target.deck } };
   return bottom
     ? { kind: "move card", card, to: { in: "deck", deck: target.deck }, at: "bottom" }
     : { kind: "move card", card, to: { in: "deck", deck: target.deck }, at: 0 };

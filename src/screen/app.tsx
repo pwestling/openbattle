@@ -2,8 +2,8 @@
 import { useEffect, useState } from "react";
 import type { Me, Session } from "../session/index.ts";
 import { Game } from "./game.tsx";
-import { fromFile, load, save } from "../archive/index.ts";
-import { enterGame, openGame } from "./stand-ins.ts";
+import { fromFile, load } from "../archive/index.ts";
+import { enterGame, openGame, openSaved } from "./stand-ins.ts";
 
 type Place = { at: "start"; message?: string } | { at: "arrive"; link: string } | { at: "table"; session: Session };
 
@@ -93,13 +93,11 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
     setBusy(true);
     setProblem(null);
     try {
-      const { link, log } = await fromFile(file);
-      // The game in the file opens here as its host: the player who started it.
-      const host = log.entries.find((e) => e.action.kind === "join")?.by;
-      if (!host) throw new Error("That saved game has no players.");
-      await save(link, { log, me: host });
-      history.replaceState(null, "", link);
-      onOpen(await enterGame(link, me));
+      // A new game starting from the file's log, so the game it was saved from is left alone.
+      const { log } = await fromFile(file);
+      const session = await openSaved(log, me);
+      session.watch((now) => history.replaceState(null, "", now.link))();
+      onOpen(session);
     } catch (e) {
       setProblem({ text: e instanceof Error ? e.message : "That file could not be opened." });
     } finally {

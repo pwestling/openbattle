@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Floor, Shape, Terrain } from "../../record/index.ts";
 import { usePlay } from "../play.tsx";
-import { floors } from "../stand-ins.ts";
+import { floors } from "../../measure/index.ts";
 import { meshOf, readMesh, trianglesOf } from "../table/meshes.ts";
 import { solidGeometry } from "../table/pieces.ts";
 
