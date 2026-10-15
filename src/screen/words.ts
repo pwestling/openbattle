@@ -123,8 +123,11 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
       return `${who} added the deck ${a.name} (${plural(a.cards.length, "card")}, ${a.order})`;
     case "shuffle":
       return `${who} shuffled ${name(a.deck)}`;
-    case "draw":
-      return `${who} drew ${plural(a.cards, "card")} from ${name(a.deck)} ${a.to === "hand" ? (entry.by === me ? "into your hand" : "into their hand") : "face up"}`;
+    case "draw": {
+      const tampered = table.draws.find((d) => d.at === entry.n)?.tampered;
+      const where = a.to === "hand" ? (entry.by === me ? "into your hand" : "into their hand") : "face up";
+      return `${who} drew ${plural(a.cards, "card")} from ${name(a.deck)} ${where}${tampered ? " (tampered!)" : ""}`;
+    }
     case "move card": {
       const to = a.to;
       if (to.in === "hand")

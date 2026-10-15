@@ -14,6 +14,8 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
   const end = useRef<HTMLLIElement>(null);
   useEffect(() => end.current?.scrollIntoView({ block: "nearest" }), [log.entries.length]);
   const at = lookingAt ?? log.entries.length;
+  // A shuffled draw whose seal doesn't match is shown as a tampered roll is.
+  const tampered = new Set(now.table.draws.filter((d) => d.tampered).map((d) => d.at));
 
   return (
     <section className="log" aria-label="Log">
@@ -22,10 +24,11 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
         {log.entries.map((e) => (
           <li
             key={e.n}
-            className={[cancelled.has(e.n) ? "cancelled" : "", e.n > at ? "later" : ""].join(" ")}
+            className={[cancelled.has(e.n) ? "cancelled" : "", e.n > at ? "later" : "", tampered.has(e.n) ? "tampered" : ""].join(" ")}
             ref={e.n === log.entries.length ? end : undefined}
           >
             <span>{sentence(e, log, now.table, names, me)}</span>
+            {tampered.has(e.n) && <strong role="alert">This draw was tampered with: its seal doesn't match.</strong>}
             {e.n === latestOwn && lookingAt === null && now.connection === "playing" && (
               <button onClick={() => void act({ kind: "undo" })}>Undo</button>
             )}

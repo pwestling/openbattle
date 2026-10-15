@@ -99,7 +99,8 @@ test("shuffling, and an empty deck", async ({ page }) => {
   await expect(log(page)).toHaveCount(5);
 });
 
-// Hands: everyone else's hand shows as card backs with a count.
+// Hands: everyone else's hand shows as card backs with a count. A draw whose seal doesn't match
+// is flagged in the log.
 test("another player's hand shows as backs with a count", async ({ page }) => {
   await newGame(page);
   await newDeck(page, "Missions", "A\nB\nC", "Shuffled");
@@ -118,4 +119,13 @@ test("another player's hand shows as backs with a count", async ({ page }) => {
   await expect(page.getByLabel("Ben's hand")).toContainText("2");
   await expect(page.getByLabel("Ben's hand").locator(".back")).toHaveCount(2);
   await expect(log(page).last()).toContainText("Ben drew 2 cards from Missions into their hand");
+
+  // That draw's seal doesn't match its host value, so it is flagged as tampered, as a roll is.
+  await expect(log(page).last()).toHaveClass(/tampered/);
+  await expect(log(page).last().getByRole("alert")).toContainText("This draw was tampered with");
+  // An honest draw is not flagged.
+  await page.getByRole("tab", { name: "Decks" }).click();
+  await page.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true }).click();
+  await expect(log(page).last()).toContainText("Ana drew 1 card from Missions into your hand");
+  await expect(log(page).last()).not.toHaveClass(/tampered/);
 });
