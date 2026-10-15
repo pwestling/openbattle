@@ -10,6 +10,8 @@ export interface Play {
   table: Table;
   /** This browser's player, or null for a spectator. */
   me: PlayerId | null;
+  /** The log number being looked back at, or null for now. */
+  lookingAt: number | null;
   /** True for spectators, while the host is away, and while looking back. */
   readOnly: boolean;
   /** Sends an action; on refusal shows a short note saying why and resolves false. */

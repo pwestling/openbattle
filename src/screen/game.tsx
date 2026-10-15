@@ -30,6 +30,7 @@ export function Game({ session }: { session: Session }) {
       session,
       now,
       table,
+      lookingAt,
       me,
       readOnly: !me || now.connection !== "playing" || lookingAt !== null,
       act: async (action: Action) => {

@@ -1,13 +1,5 @@
-import { test, expect, type Page } from "@playwright/test";
-import { newGame } from "./screen-helpers.ts";
-
-const labels = (page: Page, text: string) => page.locator(".table-labels .label", { hasText: new RegExp(`^${text}$`) });
-
-async function addArmy(page: Page, list: string) {
-  await page.getByLabel("Army list").fill(list);
-  await page.getByRole("button", { name: "Read list" }).click();
-  await page.getByRole("button", { name: "Add to army" }).click();
-}
+import { test, expect } from "@playwright/test";
+import { addArmy, labels, newGame } from "./screen-helpers.ts";
 
 // Army panel: paste a list to add units; the models stand on the table and the log says so.
 test("a pasted army list puts its models on the table", async ({ page }) => {

@@ -99,3 +99,4 @@ label { display: grid; gap: 4px; }
 .looking { margin: 6px 0 0; color: var(--accent); }
 .notes { position: absolute; bottom: 150px; left: 50%; transform: translateX(-50%); z-index: 6; display: grid; gap: 6px; }
 .notes p { margin: 0; background: #4d1e1b; border: 1px solid var(--bad); padding: 6px 12px; border-radius: 8px; }
+.select-box { position: absolute; border: 1px dashed var(--accent); background: rgba(226, 176, 74, 0.12); pointer-events: none; }

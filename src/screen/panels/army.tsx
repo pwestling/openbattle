@@ -207,7 +207,7 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
   const edge = edgeOf(table, me);
   const { width, depth } = table.size;
   const mine = Object.values(table.models).filter((m: Model) => table.units[m.unit]?.owner === me);
-  let x = mine.length ? Math.max(...mine.map((m) => m.position.x)) + 2.5 : 3;
+  let x = mine.length ? Math.max(...mine.map((m) => m.position.x)) + 2.5 : width / 2 - 8;
   let band = 0;
   const units: { id: string; name: string }[] = [];
   const models: (NewModel & { unit: string })[] = [];
@@ -219,7 +219,7 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
     const sy = u.base.depth * MM + 0.6;
     const cols = Math.min(u.count, 5);
     if (x + cols * sx > width - 1) {
-      x = 3;
+      x = 1;
       band += 7;
     }
     for (let i = 0; i < u.count; i++) {
