@@ -19,8 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15.</dd>
-    <dt>Proposed</dt><dd>The <ins>marked addition</ins>, from the Link and Relay build, 2026-10-15. Awaiting Porter.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. The newest-tab addition, from the Link and Relay build, accepted by Porter on 2026-10-15.</dd>
   </dl>
   <p>Carries messages between the browsers in one <a href="../concepts/game.html">game</a>. It never looks inside them.</p>
 
@@ -28,7 +27,7 @@
     <h2><code>connect(link: string): Link</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>This browser is announced at the relay under the game's link and connects directly, or through TURN, to every other browser announced there. It has a <code>browserId</code> that stays the same for this browser. <ins>Opening the game in another tab of the same browser moves this browser there: the earlier tab's link loses every connection, as if closed.</ins></dd>
+      <dt>Post</dt><dd>This browser is announced at the relay under the game's link and connects directly, or through TURN, to every other browser announced there. It has a <code>browserId</code> that stays the same for this browser. Opening the game in another tab of the same browser moves this browser there: the earlier tab's link loses every connection, as if closed.</dd>
       <dt>Fails</dt><dd>Rejects if the relay cannot be reached.</dd>
     </dl>
   </section>
