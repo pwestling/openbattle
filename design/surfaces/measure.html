@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Measure — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T06:05Z">
+<meta name="pdd-derived" content="2026-10-15T06:15Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -37,7 +37,7 @@
     <p>A <code>Floor</code> is a flat outline at one height, in the piece's own inches.</p>
     <dl>
       <dt>Pre</dt><dd>The mesh has been read from its file.</dd>
-      <dt>Post</dt><dd>The mesh's upward-facing flat areas, with nearby ones at almost the same height merged, and any too small to hold a 25 mm base left out. At most 12 per piece, the largest kept. The same mesh and size always give the same floors.</dd>
+      <dt>Post</dt><dd>The mesh's upward-facing flat areas, with nearby ones at almost the same height merged into one. The same mesh and size always give the same floors.</dd>
       <dt>Fails</dt><dd>Never; a mesh with no flat areas has no floors, and models then stand on the table beneath it.</dd>
     </dl>
   </section>
@@ -45,6 +45,7 @@
     Decisions:
     <a rel="decision" href="../decisions/ADR-010.html">ADR-010</a>
     <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+    <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
   </footer>
 </article>
 </body>

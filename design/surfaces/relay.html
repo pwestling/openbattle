@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Relay — Surface</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-14T07:33Z">
+<meta name="pdd-derived" content="2026-10-15T06:15Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -26,9 +26,9 @@
   <section id="signal">
     <h2><code>WebSocket /signal?game={link}</code></h2>
     <dl>
-      <dt>Pre</dt><dd>The game link is 8 to 64 safe characters.</dd>
+      <dt>Pre</dt><dd>The game link is made of letters, digits, <code>-</code> and <code>_</code>.</dd>
       <dt>Post</dt><dd>The server tells this browser who else is announced under that link, tells the others when browsers arrive and leave, and forwards <code>{ to, data }</code> handshake messages between them. It keeps nothing once everyone has gone.</dd>
-      <dt>Fails</dt><dd>Closes the socket if more than 16 browsers are announced under one link, or if a message is over 64 KB.</dd>
+      <dt>Fails</dt><dd>Closes the socket if a message is over 64 KB. Handshake messages are a few KB, so this only stops someone using the relay to push bulk data through our server.</dd>
     </dl>
   </section>
 
@@ -53,6 +53,7 @@
     Decisions:
     <a rel="decision" href="../decisions/ADR-005.html">ADR-005</a>
     <a rel="decision" href="../decisions/ADR-013.html">ADR-013</a>
+    <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
   </footer>
 </article>
 </body>

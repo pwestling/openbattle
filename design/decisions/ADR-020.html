@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-020: Limits only where they protect the server or the game — Decision</title>
+<meta name="pdd-level" content="0">
+<meta name="pdd-derived" content="2026-10-15T06:15Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="0" id="decisions/ADR-020">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 0 · Decision</nav>
+    <h1>ADR-020: Limits only where they protect the server or the game</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter's call on 2026-10-15; a project principle.</dd>
+    <dt>Context</dt><dd>The surfaces had picked caps everywhere: file sizes, dice counts, floors per terrain piece, browsers per game. Most protected nothing.</dd>
+    <dt>Decision</dt><dd>A limit exists only to protect the relay server's health or to stop something that would crash a game. Anything else is left unlimited. Where a limit might help, the design leaves it off and the reason goes to Porter as a suggestion.</dd>
+    <dt>Because</dt><dd>Pre-emptive caps get in players' way and each one is a rule to explain, test and keep. The first attempt's limits table grew to a dozen entries.</dd>
+    <dt>Rejected</dt><dd>Caps chosen for tidiness: the earlier mesh, dice, floor and browser caps, all removed.</dd>
+    <dt>Affects</dt><dd><a href="../surfaces/session.html">Session surface</a>, <a href="../surfaces/relay.html">Relay surface</a>, <a href="../surfaces/measure.html">Measure surface</a>, <a href="ADR-019.html">ADR-019</a></dd>
+  </dl>
+</article>
+</body>
+</html>
