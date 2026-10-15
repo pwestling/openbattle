@@ -2,6 +2,6 @@
   <h2><a href="surfaces/session.html">Session surface</a></h2>
   <ul>
     <li>Rolling alone (<a href="decisions/ADR-023.html">ADR-023</a>) is not on the surface yet. The record lets the host take a roll or draw alone at any time, because who is connected is not in the log. So Session must keep it fair: <ins>the host goes alone only with nobody else connected; a connected player's browser flags an alone roll or draw that arrives while it is there; a player whose signed value never reaches the log is told so.</ins> Proposed, for Porter. Session's roll line still says a missing signature is logged as tampered, but the record refuses it.</li>
-    <li>A saved game opened again copies its entries without checking their signatures, so a hand-edited file could turn a roll taken alone into one that looks fair. <ins>Session checks the guest signature on copied entries too, or marks them as unchecked.</ins> Proposed, for Porter.</li>
+    <li>A saved game opened again copies its entries without checking their signatures, so a hand-edited file could turn a roll taken alone into one that looks fair. Porter, 2026-10-15: not to be solved now; one possible fix is for Session to check the guest signature on copied entries too, or mark them as unchecked.</li>
   </ul>
 </section>
