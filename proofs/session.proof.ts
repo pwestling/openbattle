@@ -218,3 +218,24 @@ test("signatures in a saved file are checked when it opens as a new game, so an 
   await expect.poll(async () => (await now(carl)).badSignatures).toEqual(rollsAt);
   expect(await rolls(carl)).toEqual([false, false]);
 });
+
+test("a host can't slip a roll past a player in a whole log, or rewrite one", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+  const before = (await now(ben)).log.entries.length;
+
+  // A whole log Ben did not ask for is ignored; the host's next entry then doesn't follow on from his.
+  await rogue.evaluate(() => (window as any).rogue.rollAloneInALog());
+  await rogue.evaluate(() => (window as any).rogue.rollAlone());
+  await expect.poll(async () => (await now(ben)).disagreement).toBe(true);
+  expect((await now(ben)).log.entries.length).toBe(before);
+
+  // Asked to resync, the host sends a log with an entry rewritten: Ben keeps his own and still disagrees.
+  await rogue.evaluate((n) => (window as any).rogue.rewriteOnResync(n), before);
+  await ben.evaluate(() => { void (window as any).proof.session.resync(); });
+  await ben.waitForTimeout(500);
+  expect((await now(ben)).disagreement).toBe(true);
+  expect((await now(ben)).log.entries.length).toBe(before);
+});

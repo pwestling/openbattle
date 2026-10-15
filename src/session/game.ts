@@ -109,6 +109,8 @@ export class Game {
   private unusedValues: Ask[] = [];
   /** The host finishes exchanges in the order the values arrived, so a value's guest can tell when one was skipped. */
   private finishing: Promise<void> = Promise.resolve();
+  /** Which whole log this browser asked the host for; any other is ignored, since a log may only extend this one. */
+  private expecting: "hello" | "resync" | null = null;
   private stops: (() => void)[] = [];
   private nextId = 0;
 
@@ -285,6 +287,7 @@ export class Game {
           resolve();
         }
       });
+      this.expecting = "resync";
       this.toHost({ t: "resync" });
     });
   }
@@ -398,6 +401,7 @@ export class Game {
         this.send({ t: "log", log: this.log }, from);
         return;
       case "act":
+        if (!ownId(m.id, from)) return;
         if (m.action?.kind === "roll" || (m.action?.kind === "draw" && "seal" in m.action) || m.action?.kind === "join")
           return this.answer(m.id, from, null, "Rolls, shuffled draws and joins have their own requests.");
         try {
@@ -407,6 +411,7 @@ export class Game {
         }
         return;
       case "ask":
+        if (!ownId(m.id, from) || this.pending.has(m.id)) return;
         if (!table.players[from]) return this.answer(m.id, from, null, "Spectators can't roll or draw.");
         return this.startExchange(m.id, m.ask, from, from);
       case "guest":
@@ -422,6 +427,8 @@ export class Game {
   }
 
   private async receiveFile(fingerprint: Fingerprint, bytes: string, type: string, from: BrowserId) {
+    // Only players add files; a spectator's is ignored, and the host's always comes through.
+    if (from !== this.log.host && !tableAt(this.log).players[from]) return;
     const blob = fromBase64(bytes, type);
     const kept = await archive.keepFile(this.id, blob);
     if (kept !== fingerprint) return;
@@ -443,12 +450,19 @@ export class Game {
     switch (m.t) {
       case "log": {
         const log = m.log;
-        if (log?.link !== this.log.link || log.host !== this.log.host || checkLog(log)) {
+        const asked = this.expecting;
+        if (!asked) return;
+        this.expecting = null;
+        // The host may add to the log this browser has, never change it.
+        if (log?.link !== this.log.link || log.host !== this.log.host || checkLog(log) || !extendsLog(log, this.log)) {
           this.disagreement = true;
           return this.changed();
         }
+        const had = this.log.entries.length;
         this.log = log;
-        this.checked.clear();
+        for (const e of log.entries.slice(had)) if (isSealed(e.action)) this.matchGiven(e.action);
+        // Caught up after reconnecting: a value given before, and still not in the log, was never used.
+        if (asked === "hello") this.unused(() => true);
         this.caughtUp = true;
         this.disagreement = false;
         this.becomeJoined();
@@ -463,7 +477,10 @@ export class Game {
           return this.changed();
         }
         this.log = append(this.log, entry.action, entry.by);
-        if (isSealed(entry.action)) this.sealedArrived(entry.n, entry.action);
+        if (isSealed(entry.action)) {
+          if (entry.action.guestBy === null && this.me !== "watch" && tableAt(this.log).players[this.me]) this.aloneWhileHere.push(entry.n);
+          this.matchGiven(entry.action);
+        }
         if (fingerprint(tableAt(this.log)) !== m.fingerprint) this.disagreement = true;
         this.becomeJoined();
         this.settle();
@@ -506,11 +523,10 @@ export class Game {
   }
 
   /**
-   * A roll or shuffled draw just logged. One taken alone while this player is connected is flagged. The host
-   * logs a player's values in the order they were sent, so once a later one is logged, any earlier one was skipped.
+   * A roll or shuffled draw just logged, against the values this browser gave. The host logs a player's
+   * values in the order they were sent, so once a later one is logged, any earlier one was skipped.
    */
-  private sealedArrived(n: number, a: RollAction | ShuffledDrawAction) {
-    if (a.guestBy === null && this.me !== "watch" && tableAt(this.log).players[this.me]) this.aloneWhileHere.push(n);
+  private matchGiven(a: RollAction | ShuffledDrawAction) {
     const at = this.given.findIndex((g) => g.seal === a.seal);
     if (at < 0) return;
     const before = new Set(this.given.slice(0, at));
@@ -548,12 +564,12 @@ export class Game {
     if (hostArrived && !this.hosting) {
       this.caughtUp = false;
       const as = this.me !== "watch" ? "back" : this.joining;
+      this.expecting = "hello";
       this.toHost({ t: "hello", as, publicKey: this.link.publicKey });
     }
     if (!this.hosting && !connected.includes(this.log.host)) {
       for (const w of this.waiting.values()) w.reject(new Error("The host went away before answering."));
       this.waiting.clear();
-      this.unused(() => true);
     }
     if (this.hosting)
       for (const [id, p] of this.pending)
@@ -580,6 +596,19 @@ export class Game {
     }
     if (found) this.changed();
   }
+}
+
+/** A request's id is its sender's: one browser can't answer for, or take over, another's request. */
+const ownId = (id: unknown, from: BrowserId) => typeof id === "string" && id.startsWith(`${from}.`);
+
+/** Whether a log holds every entry of another, unchanged, and maybe more. */
+function extendsLog(longer: Log, shorter: Log): boolean {
+  return (
+    Array.isArray(longer.entries) &&
+    (shorter.entries.length === 0 || longer.copied === shorter.copied) &&
+    longer.entries.length >= shorter.entries.length &&
+    shorter.entries.every((e, i) => JSON.stringify(e) === JSON.stringify(longer.entries[i]))
+  );
 }
 
 async function download(url: URL): Promise<Blob> {

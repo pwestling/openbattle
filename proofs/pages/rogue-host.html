@@ -42,6 +42,19 @@
       const hostValue = random();
       rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
     },
+    /** Rolls alone without sending the entry, then sends the whole log unasked, as if to slip it past a player. */
+    async rollAloneInALog() {
+      const hostValue = random();
+      rogue.log = append(rogue.log, { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+      rogue.link.send({ t: "log", log: rogue.log });
+    },
+    /** Answers a player's resync with a log whose entry n is rewritten as a roll made alone. */
+    async rewriteOnResync(n) {
+      const hostValue = random();
+      const last = rogue.log.entries[n - 1];
+      const rewritten = { ...rogue.log, entries: [...rogue.log.entries.slice(0, n - 1), { ...last, action: { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null } }] };
+      rogue.link.onMessage((m, from) => m.t === "resync" && rogue.link.send({ t: "log", log: rewritten }, from));
+    },
     /** Asks a player for their value for a roll, keeping the host's value. */
     async askValue(to, n) {
       const hostValue = random();

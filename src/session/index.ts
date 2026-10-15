@@ -42,6 +42,7 @@ function gameOf(link: string): string | null {
  * reopen), and this browser joins it unless already a player there.
  */
 export async function open(size: Size, me: Me, from?: Log): Promise<Session> {
+  if (from && Object.keys(tableAt(from).players).length === 0) throw new Error("That saved game has no players.");
   const browser = await thisBrowser();
   const fresh = `${randomValue().slice(0, 8)}-${browser.id}`;
   const log = from ? reopen(from, fresh, browser.id) : newLog(size, fresh, browser.id);

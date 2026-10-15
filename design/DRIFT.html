@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T09:00Z">
+<meta name="pdd-derived" content="2026-10-15T09:15Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T09:00Z.</p>
+    <p>Generated 2026-10-15T09:15Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
 <section data-node="surfaces/relay">
@@ -31,13 +31,15 @@
 <section data-node="surfaces/screen">
   <h2><a href="surfaces/screen.html">Screen surface</a></h2>
   <ul>
-    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted. Session has now landed on its branch, but 16 of the screen's 31 proofs depend on the stand-in, so the screen still uses it (<code>src/screen/stand-ins.ts</code>, <code>wired = false</code>) until those proofs are moved to real browsers.</li>
+    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted. Session has now landed on its branch, but 16 of the screen's 31 proofs depend on the stand-in, so the screen still uses it (<code>src/screen/stand-ins.ts</code>, <code>wired = false</code>) until those proofs are moved to real browsers. Until then, proof 1 (two browsers, one model moved, both see it) is proven at the Session's face from a proof page, not through the screen as a person would play.</li>
   </ul>
 </section>
 <section data-node="surfaces/session">
   <h2><a href="surfaces/session.html">Session surface</a></h2>
   <ul>
     <li><code>addFile</code> keeps the file and sends its bytes to every browser, including later arrivals (<code>src/session/game.ts</code>), but <del>simplifies a mesh over 100,000 triangles</del>, <del>reads STL as millimetres</del> and <del>sends only a link, letting each browser download it</del> are not built yet: a linked file is downloaded and its bytes sent instead, and the 512 MB cap is not enforced.</li>
+    <li>The snapshot doesn't say when another tab of this browser has taken the game over, so an old tab can't show itself as read-only (<a href="decisions/ADR-022.html">ADR-022</a>); its actions are refused.</li>
+    <li>A player is told about a value the host never logged only once a later value of theirs is logged, the host refuses it, or they catch up after reconnecting. A host that asks for a value and never uses it, with no later exchange with that player, goes unreported. Raised with Porter.</li>
   </ul>
 </section>
 </main>
