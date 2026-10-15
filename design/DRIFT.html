@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-15T07:29Z">
+<meta name="pdd-derived" content="2026-10-15T07:55Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-15T07:29Z.</p>
+    <p>Generated 2026-10-15T07:55Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
 <section data-node="surfaces/link">
@@ -26,12 +26,6 @@
   <h2><a href="surfaces/session.html">Session surface</a></h2>
   <ul>
     <li>The snapshot holds <ins><code>kept</code></ins>, false when the browser refuses storage (<code>src/session/index.ts:21</code>). The surface's list of what a snapshot holds leaves it out, though the archive surface says the session shows it.</li>
-  </ul>
-</section>
-<section data-node="surfaces/record">
-  <h2><a href="surfaces/record.html">Record surface</a></h2>
-  <ul>
-    <li>The roll and draw actions carry the dice or card count and both random values, but <del>the result</del>: the record works out the result from the two values, the same in every browser (<code>src/record/types.ts:190</code>).</li>
   </ul>
 </section>
 <section data-node="boundaries/session">

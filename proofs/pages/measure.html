@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Measure proof page</title>
+</head>
+<body>
+<h1>Measure proof page</h1>
+<p>Loads the Measure module's public face, and nothing else, for the proofs to drive.</p>
+<script type="module">
+  import * as measure from "../../src/measure/index.ts";
+  window.measure = measure;
+  document.body.dataset.ready = "yes";
+</script>
+</body>
+</html>

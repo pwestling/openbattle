@@ -49,6 +49,7 @@ export function fakeTableAt(log: Log, upTo = log.entries.length): Table {
     counters: {},
     marks: {},
     rolls: [],
+    draws: [],
     decks: {},
     cards: {},
     cancelled: [...cancelled],
@@ -144,7 +145,7 @@ function apply(t: Table, n: number, by: string, a: Action): void {
       const picked: string[] = [];
       for (let i = 0; i < a.cards && deck.cards.length; i++) {
         const at =
-          deck.order === "ordered" || !a.hostValue || !a.guestValue
+          deck.order === "ordered" || !("hostValue" in a)
             ? 0
             : (fakeNumbers(a.hostValue, a.guestValue, i + 1, deck.cards.length)[i] ?? 0);
         picked.push(...deck.cards.splice(at, 1));
