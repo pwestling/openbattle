@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-022: Each browser proves who it is with a key — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-15T08:05Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-022">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-022: Each browser proves who it is with a key</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> From the scaffold review on 2026-10-15. Accepted by Porter on 2026-10-15, "as long as it doesn't materially hurt player experience".</dd>
+    <dt>Context</dt><dd>A browser named its own id when it reached the relay, and every browser learned the others' ids. So anyone in a game could reconnect claiming to be the <a href="../concepts/host.html">host</a> or another <a href="../concepts/player.html">player</a>. And because the host writes the other player's dice value into the log, a host could change that value and steer a <a href="../concepts/roll.html">roll</a> without the seal check noticing. Both defeat <a href="../intent.html#fair-dice">dice and draws nobody can fix</a>.</dd>
+    <dt>Decision</dt><dd>
+      <ul>
+        <li>On first use, each browser makes a key pair with the browser's own cryptography. The private half can never be read out of the browser. The browser's id is worked out from the public half.</li>
+        <li>A player's join puts their public key in the <a href="../concepts/log.html">log</a>, so every browser, spectators and saved files included, knows each player's key.</li>
+        <li>When two browsers connect, each signs a fresh random challenge from the other. A browser that cannot sign for the id it claims is refused. The relay is unchanged; it still only introduces browsers.</li>
+        <li>In a roll or a shuffled draw, the other player signs their random value together with the host's seal, and the host must log that signature. Every browser checks it as the action arrives, and when loading a saved game. A roll or draw with a missing or wrong signature is shown to everyone as tampered.</li>
+        <li>Opening the game in a second tab of the same browser moves the seat to that tab; the older tab shows the game read-only.</li>
+      </ul>
+    </dd>
+    <dt>Because</dt><dd>Nobody can pose as the host or as another player, and no browser, the host included, can change another player's dice value without everyone seeing it. It costs the player nothing they would notice: keys are made and used without asking anything, and checking a signature takes well under a millisecond.</dd>
+    <dt>Rejected</dt><dd>Trusting the connection among friends: stops mix-ups but not a player who wants to pose as the host. Sending the other player's value to every browser instead of signing it: browsers that join later, and saved files, could not check it. Accounts or a server that vouches for people: the server would take part in games.</dd>
+    <dt>Limits</dt><dd>Clearing the browser's data loses the key, and with it the seat in games already joined; that player can rejoin as a new player. Moving a key to another browser could come later. The host still orders every action and could refuse to log one; that is visible, as in <a href="ADR-008.html">ADR-008</a>.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/player.html">Player</a>, <a href="../concepts/host.html">Host</a>, <a href="ADR-008.html">ADR-008</a>, <a href="ADR-021.html">ADR-021</a>, <a href="../surfaces/link.html">Link surface</a>, <a href="../surfaces/record.html">Record surface</a>, <a href="../surfaces/session.html">Session surface</a></dd>
+  </dl>
+</article>
+</body>
+</html>
