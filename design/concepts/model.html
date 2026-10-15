@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<meta name="pdd-derived" content="2026-10-15T06:00Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -21,13 +21,14 @@
   </header>
   <dl>
     <dt>Purpose</dt><dd>One miniature on the table.</dd>
-    <dt>Meaning</dt><dd>A miniature represented by its base (round, oval or rectangular, sized in millimetres) and its height, at a position on the <a href="../concepts/table.html">table</a> in inches, facing a direction.</dd>
-    <dt>Invariants</dt><dd><ul><li>A model is either on the table or set aside as removed; it is never deleted.</li><li>A model's base size does not change during a game.</li></ul></dd>
-    <dt>Not</dt><dd>The miniature's sculpt or its rules profile.</dd>
+    <dt>Meaning</dt><dd>A miniature on its base (round, oval or rectangular, sized in millimetres), at a position on the <a href="../concepts/table.html">table</a> in inches, facing a direction. Its body is a 3D mesh loaded from a file, or, without one, a simple stand-in of a given height.</dd>
+    <dt>Invariants</dt><dd><ul><li>A model is either on the table or set aside as removed; it is never deleted.</li><li>A model's base size does not change during a game.</li><li>The body is the model's true shape, not decoration: its height, and later what it can see and be seen by, come from it.</li><li>A mesh body is the same in every browser: everyone has the same file, checked by its fingerprint.</li></ul></dd>
+    <dt>Not</dt><dd>Its rules profile.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
+    <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
   </footer>
 </article>
 </body>
