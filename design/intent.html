@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle — Intent</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-14T07:30Z">
+<meta name="pdd-derived" content="2026-10-15T05:35Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -45,6 +45,10 @@
       <li>Read every action in a shared log, look back through it, and undo the latest action.</li>
       <li>Close the tab, come back later from the same link, and carry on. Save the game to a file.</li>
     </ol>
+  </section>
+  <section id="proof">
+    <h2>Proof from the outside</h2>
+    <p>Every behaviour above is proven by a check that drives the running app the way a person would, in real browsers, and shows the intended result. We don't write unit tests. Something counts as done when its proof passes.</p>
   </section>
   <section id="rules">
     <h2>Players apply the rules; packages can help later</h2>
@@ -89,6 +93,7 @@
     <a rel="decision" href="decisions/ADR-002.html">ADR-002</a>
     <a rel="decision" href="decisions/ADR-006.html">ADR-006</a>
     <a rel="decision" href="decisions/ADR-014.html">ADR-014</a>
+    <a rel="decision" href="decisions/ADR-018.html">ADR-018</a>
   </footer>
 </article>
 </body>
