@@ -54,6 +54,7 @@ export function drop(parent: Object3D, object: Object3D) {
     if ((o instanceof Mesh || o instanceof Line) && !o.userData.shared) {
       o.geometry.dispose();
       for (const m of [o.material].flat()) {
+        if (m.userData.shared) continue;
         (m as { map?: { dispose(): void } }).map?.dispose();
         m.dispose();
       }

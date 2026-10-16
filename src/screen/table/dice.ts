@@ -138,9 +138,14 @@ export class DiceTray {
       const top = shape.faces[up]!;
       const toUp = new Quaternion().setFromUnitVectors(top.normal, new Vector3(0, 1, 0));
       const radius = size * shape.fit;
-      const half = shape.inradius * radius;
+      const geometry = geometryOf(shape, radius);
+      // How far the die reaches below its centre with the result up: a face for most, a point for a d4.
+      const corners = geometry.getAttribute("position");
+      let half = 0;
+      for (let k = 0; k < corners.count; k++)
+        half = Math.max(half, -(corners.getX(k) * top.normal.x + corners.getY(k) * top.normal.y + corners.getZ(k) * top.normal.z));
       const mesh = new Mesh(
-        geometryOf(shape, radius),
+        geometry,
         labels.map((v) => face(v)),
       );
       // The face showing the result turns to point up, with a random twist around the vertical.

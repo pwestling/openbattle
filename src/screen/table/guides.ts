@@ -1,4 +1,4 @@
-// Lines drawn over the table: paths while carrying, the ruler, and the paths of the latest move.
+// Lines drawn over the table: paths while carrying, and the ruler.
 import { Group } from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";

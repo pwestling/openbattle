@@ -28,12 +28,14 @@ function turnOrigins(play: Play): Map<string, Origin> {
     ({ round, turn } = e.action.phase);
   }
   const origins = new Map<string, Origin>();
+  // A model's floor when the turn began; it hasn't moved since, so one fold serves every model.
+  let atStart: ReturnType<typeof tableAt> | undefined;
   for (const e of entries) {
     if (e.n <= began || e.action.kind !== "move") continue;
     for (const m of e.action.moves) {
       const was = origins.get(m.model);
       const first = m.path[0];
-      if (!was && first) origins.set(m.model, { position: first, floor: tableAt(play.now.log, e.n - 1).models[m.model]?.floor ?? null, via: [] });
+      if (!was && first) origins.set(m.model, { position: first, floor: (atStart ??= tableAt(play.now.log, began)).models[m.model]?.floor ?? null, via: [] });
       const origin = origins.get(m.model);
       if (!origin || !first) continue;
       // A move recorded from the turn's start carries its pinned waypoints on; an older one starts afresh.

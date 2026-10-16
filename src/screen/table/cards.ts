@@ -45,6 +45,8 @@ function backTexture(): CanvasTexture {
 const backFace = new MeshStandardMaterial({ map: backTexture(), roughness: 0.8 });
 const backEdge = new MeshStandardMaterial({ color: "#1d2748", roughness: 0.8 });
 const faceEdge = new MeshStandardMaterial({ color: "#e8e2d2", roughness: 0.9 });
+// Shared by every card, so never disposed with one.
+for (const m of [backFace, backEdge, faceEdge]) m.userData.shared = true;
 
 /** A slab's faces in three's order (+x, -x, up, down, +z, -z): the given top, the back underneath. */
 const slab = (top: MeshStandardMaterial, edge: MeshStandardMaterial) => [edge, edge, top, backFace, edge, edge];

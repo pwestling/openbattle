@@ -79,7 +79,14 @@ export function Game({ session }: { session: Session }) {
               Add army
             </button>
           )}
-          <button aria-pressed={logOpen} onClick={() => setLogOpen((o) => !o)}>
+          <button
+            aria-pressed={logOpen}
+            onClick={() => {
+              // Looking back lives in the log, so closing it comes back to now.
+              if (logOpen) lookAt(null);
+              setLogOpen(!logOpen);
+            }}
+          >
             Log
           </button>
           <Controls />
@@ -129,8 +136,15 @@ function UndoKey() {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== "z") return;
       const t = e.target;
-      if (t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || (t instanceof HTMLElement && t.isContentEditable)) return;
+      // A field being typed in keeps its own undo; a tick box, choice or slider has none.
+      const typing =
+        (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button", "submit", "file", "color"].includes(t.type)) ||
+        t instanceof HTMLTextAreaElement ||
+        (t instanceof HTMLElement && t.isContentEditable);
+      if (typing) return;
       e.preventDefault();
+      // Held down, the key repeats; one press is one undo.
+      if (e.repeat) return;
       ready.current?.();
     };
     window.addEventListener("keydown", onKey);

@@ -14,7 +14,7 @@ export function DicePanel() {
   const [sidesText, setSides] = useState("6");
   const dice = Number(diceText);
   const sides = Number(sidesText);
-  const valid = Number.isInteger(dice) && dice >= 1 && dice <= 1024 && Number.isInteger(sides) && sides >= 2;
+  const valid = Number.isSafeInteger(dice) && dice >= 1 && dice <= 1024 && Number.isSafeInteger(sides) && sides >= 2;
   const [label, setLabel] = useState("");
   const [rolling, setRolling] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);

@@ -100,6 +100,13 @@ test("undo and looking back through the log", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Add to army" })).toHaveCount(0);
   await log.getByRole("button", { name: "Back to now" }).click();
   await expect(labels(page, "Riders")).toHaveCount(2);
+  // Closing the log while looking back returns to now too, since looking back lives in the log.
+  await log.getByLabel("Look back").fill("1");
+  await expect(labels(page, "Riders")).toHaveCount(0);
+  await page.getByRole("button", { name: "Log", exact: true }).click();
+  await expect(log).toHaveCount(0);
+  await expect(labels(page, "Riders")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Add army", exact: true })).toBeEnabled();
 });
 
 // Save: the game saves to a file, which opens again from the start page as a new game.

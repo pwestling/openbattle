@@ -171,7 +171,7 @@ export class Gestures {
     this.redraw();
   }
 
-  /** A new moment to show. The latest move's paths stay drawn for everyone. */
+  /** A new moment to show, and where models moved this turn began it. */
   setTable(table: Table, me: string | null, readOnly: boolean, origins: ReadonlyMap<string, Origin>) {
     this.origins = origins;
     this.table = table;

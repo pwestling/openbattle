@@ -46,7 +46,7 @@ label { display: grid; gap: 4px; }
   font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); white-space: nowrap; pointer-events: none;
 }
 .label.selected { outline: 1px solid var(--accent); }
-/* A piece's label shows while pointed at or selected, so a crowded table stays readable. */
+/* A label shows once the pointer has rested on its piece, deck or card, and never over a measurement. */
 .label.piece, .label.deck, .label.table-card { visibility: hidden; }
 .label.pointed { visibility: visible; }
 .measuring .label.pointed { visibility: hidden; }
