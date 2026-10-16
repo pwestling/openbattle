@@ -108,6 +108,7 @@ const radians = (degrees: number) => (-degrees * Math.PI) / 180;
 export class Pieces {
   private view: TableView;
   private drawn = new Map<string, Drawn>();
+  private hovered: string | null = null;
   private offTick: () => void;
 
   constructor(view: TableView) {
@@ -143,6 +144,14 @@ export class Pieces {
       }
     }
     return null;
+  }
+
+  /** The piece the pointer is over, whose label shows. */
+  hover(id: string | null) {
+    if (id === this.hovered) return;
+    this.drawn.get(this.hovered ?? "")?.label.element.classList.remove("pointed");
+    this.hovered = id;
+    this.drawn.get(id ?? "")?.label.element.classList.add("pointed");
   }
 
   objects(): Object3D[] {
@@ -191,6 +200,7 @@ export class Pieces {
       d.object.rotation.y = target.facing;
       this.view.root.add(d.object);
       this.drawn.set(id, d);
+      d.label.element.classList.toggle("pointed", id === this.hovered);
     }
     d.target = target;
     d.ring.visible = selected;
@@ -219,7 +229,7 @@ export class Pieces {
     } else object.add(new Mesh(solidGeometry(t.shape), new MeshStandardMaterial({ color: "#8a8478", roughness: 0.9 })));
     const ring = this.ring(Math.hypot(width, depth) + 0.4);
     object.add(ring);
-    const tag = label(t.name);
+    const tag = label(t.name, "label piece");
     tag.position.y = height + 0.3;
     object.add(tag);
     const shape = t.shape;
@@ -254,7 +264,7 @@ export class Pieces {
     object.add(body);
     const ring = this.ring(Math.max(w, d) + 0.2);
     object.add(ring);
-    const tag = label(model.name);
+    const tag = label(model.name, "label piece");
     tag.position.y = 0.12 + model.height + 0.3;
     object.add(tag);
     if (model.mesh)
