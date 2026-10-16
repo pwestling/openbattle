@@ -5,21 +5,30 @@
 <title>Rogue host proof page</title>
 </head>
 <body>
-<p>A host's browser that breaks Session's rules, as a modified copy of the app could, for proofs/session.proof.ts. It speaks to other browsers only through Link, as any browser can.</p>
+<p>A host's browser that can break Session's rules, as a modified copy of the app could, for the proofs. It speaks to other browsers only through Link, as any browser can. Left alone it hosts honestly enough: it sends the log, adds joins and other players' actions, and answers a resync.</p>
 <script type="module">
   import { connect, thisBrowser } from "/src/link/index.ts";
-  import { append, fingerprint, newLog, tableAt } from "/src/record/index.ts";
+  import { append, check, fingerprint, newLog, tableAt } from "/src/record/index.ts";
   const random = () => btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replace(/[+/=]/g, "a");
   const sealOf = async (v) =>
     [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(v)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const b64 = (text) => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
   const rogue = {
     log: null,
     link: null,
     connected: [],
     values: [],
+    refuse: null,
+    /** How long the host takes to answer an action, in milliseconds, as over a slow connection. */
+    delay: 0,
+    wrongFingerprint: false,
+    onResync: (from) => rogue.link.send({ t: "log", log: rogue.log }, from),
     add(action, by) {
       rogue.log = append(rogue.log, action, by);
-      rogue.link.send({ t: "entry", entry: rogue.log.entries.at(-1), fingerprint: fingerprint(tableAt(rogue.log)) });
+      const print = rogue.wrongFingerprint ? "not the table" : fingerprint(tableAt(rogue.log));
+      rogue.wrongFingerprint = false;
+      rogue.link.send({ t: "entry", entry: rogue.log.entries.at(-1), fingerprint: print });
+      return rogue.log.entries.length;
     },
     async start() {
       const me = await thisBrowser();
@@ -33,14 +42,43 @@
           rogue.link.send({ t: "log", log: rogue.log }, from);
           if (typeof m.as === "object") rogue.add({ kind: "join", name: m.as.name, colour: m.as.colour, publicKey: m.publicKey }, from);
         }
+        if (m.t === "resync") rogue.onResync(from);
+        if (m.t === "act") setTimeout(() => answer(m, from), rogue.delay);
         if (m.t === "guest") rogue.values.push({ ...m, from });
       });
+      const answer = (m, from) => {
+        const problem = rogue.refuse ?? check(rogue.log, m.action, from)?.problem;
+        rogue.refuse = null;
+        if (problem) return rogue.link.send({ t: "refused", id: m.id, problem }, from);
+        rogue.link.send({ t: "done", id: m.id, n: rogue.add(m.action, from) }, from);
+      };
       return `${location.origin}/?game=${id}`;
     },
-    /** Rolls alone although another player is connected. */
-    async rollAlone() {
+    /** Refuses the next action another player asks for, with this reason. */
+    refuseNext(reason) {
+      rogue.refuse = reason;
+    },
+    /** Sends the next entry with a fingerprint that is not the table's. */
+    disagreeNext() {
+      rogue.wrongFingerprint = true;
+    },
+    /** Rolls alone although another player is connected; tampered, with a seal its value doesn't open. */
+    async rollAlone(tampered = false) {
       const hostValue = random();
-      rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+      rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(tampered ? random() : hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+    },
+    /** Takes any action as the host. */
+    act(action) {
+      rogue.add(action, rogue.log.host);
+    },
+    /** Draws from a shuffled deck alone, with a seal its value doesn't open. */
+    async drawTampered(deck, cards, to) {
+      const hostValue = random();
+      rogue.add({ kind: "draw", deck, cards, to, link: rogue.log.link, seal: await sealOf(random()), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
+    },
+    /** Sends a file to everyone, as a host passes one on. */
+    sendFile(fingerprint, text) {
+      rogue.link.send({ t: "file", fingerprint, bytes: b64(text), type: "" });
     },
     /** Rolls alone without sending the entry, then sends the whole log unasked, as if to slip it past a player. */
     async rollAloneInALog() {
@@ -53,7 +91,6 @@
       const hostValue = random();
       rogue.log = append(rogue.log, { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null }, rogue.log.host);
       rogue.add({ kind: "phase", phase: { round: 1, turn: null, name: "Shoot" } }, rogue.log.host);
-      rogue.link.onMessage((m, from) => m.t === "resync" && rogue.link.send({ t: "log", log: rogue.log }, from));
     },
     /** Answers a player's roll request with a seal for a roll with a different label. */
     relabelAsks() {
@@ -66,22 +103,22 @@
     /** Answers a player's resync with a log whose entry n is rewritten as a roll made alone. */
     async rewriteOnResync(n) {
       const hostValue = random();
-      const last = rogue.log.entries[n - 1];
-      const rewritten = { ...rogue.log, entries: [...rogue.log.entries.slice(0, n - 1), { ...last, action: { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null } }] };
-      rogue.link.onMessage((m, from) => m.t === "resync" && rogue.link.send({ t: "log", log: rewritten }, from));
+      const was = rogue.log.entries[n - 1];
+      const rewritten = { ...rogue.log, entries: [...rogue.log.entries.slice(0, n - 1), { ...was, action: { kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal: await sealOf(hostValue), hostValue, guestValue: random(), guestBy: null } }] };
+      rogue.onResync = (from) => rogue.link.send({ t: "log", log: rewritten }, from);
     },
-    /** Asks a player for their value for a roll, keeping the host's value. */
-    async askValue(to, n) {
+    /** Asks a player for their value for a roll (or another ask), keeping the host's value; tampered, with a seal it doesn't open. */
+    async askValue(to, n, ask = { kind: "roll", dice: 2, sides: 6 }, tampered = false) {
       const hostValue = random();
-      const seal = await sealOf(hostValue);
-      rogue.secrets = { ...rogue.secrets, [n]: { hostValue, seal } };
-      rogue.link.send({ t: "seal", id: `rogue.${n}`, ask: { kind: "roll", dice: 2, sides: 6 }, link: rogue.log.link, seal }, to);
+      const seal = await sealOf(tampered ? random() : hostValue);
+      rogue.secrets = { ...rogue.secrets, [n]: { hostValue, seal, ask } };
+      rogue.link.send({ t: "seal", id: `rogue.${n}`, ask, link: rogue.log.link, seal }, to);
     },
-    /** Logs the roll for one value, as if the other values were never sent. */
+    /** Logs the roll or draw for one value, as if the other values were never sent. */
     use(n) {
       const v = rogue.values.find((g) => g.id === `rogue.${n}`);
-      const { hostValue, seal } = rogue.secrets[n];
-      rogue.add({ kind: "roll", dice: 2, sides: 6, link: rogue.log.link, seal, hostValue, guestValue: v.guestValue, guestBy: v.from, guestSignature: v.guestSignature }, rogue.log.host);
+      const { hostValue, seal, ask } = rogue.secrets[n];
+      rogue.add({ ...ask, link: rogue.log.link, seal, hostValue, guestValue: v.guestValue, guestBy: v.from, guestSignature: v.guestSignature }, rogue.log.host);
     },
   };
   window.rogue = rogue;

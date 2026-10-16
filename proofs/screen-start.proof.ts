@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { addArmy, labels, newGame } from "./screen-helpers.ts";
+import { addArmy, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 // Start page: a new game opens the table as host, with the invite link ready to copy.
 test("a new game opens the table with its invite link", async ({ page }) => {
@@ -45,20 +45,40 @@ test("a broken link goes to the start page with a message", async ({ page }) => 
 });
 
 // Connection banner: nothing while all is well; says when the host is away or the tables differ.
-test("the banner shows the connection's trouble and offers the host's copy", async ({ page }) => {
-  await newGame(page);
+test("the banner shows the connection's trouble and offers the host's copy", async ({ page: ana, browser }) => {
+  const anaContext = ana.context();
+  await newGame(ana);
+  const link = await ana.getByLabel("Invite link").inputValue();
+  const page = await joinGame(browser, link, "Ben");
   await expect(page.getByRole("status")).toHaveCount(0);
   await page.getByLabel("Army list").fill("5x Scouts 25mm");
-  await page.evaluate(() => (window as any).openbattleFake.setConnection("host away"));
-  await expect(page.getByRole("status")).toHaveText("Waiting for the host. The game is paused.");
+  await ana.close();
+  await expect(page.getByRole("status")).toHaveText("Waiting for the host. The game is paused.", { timeout: 20_000 });
   // While the host is away nothing can be changed, and a list being typed is kept for later.
   await expect(page.getByRole("button", { name: "Next round" })).toBeDisabled();
   await expect(page.getByLabel("Army list")).toBeHidden();
-  await page.evaluate(() => (window as any).openbattleFake.setConnection("connecting"));
-  await expect(page.getByRole("status")).toHaveText("Connecting…");
-  await page.evaluate(() => (window as any).openbattleFake.setConnection("playing"));
+  // Someone arriving while the host is away waits to connect.
+  const cy = await (await browser.newContext()).newPage();
+  await cy.goto(link);
+  await cy.getByRole("button", { name: "Watch" }).click();
+  await expect(cy.getByRole("status")).toHaveText("Connecting…", { timeout: 15_000 });
+  // The host comes back on the same browser.
+  const back = await anaContext.newPage();
+  await back.goto(link);
+  await expect(back.getByLabel("The table")).toBeVisible();
+  await expect(page.getByRole("status")).toHaveCount(0, { timeout: 20_000 });
   await expect(page.getByLabel("Army list")).toHaveValue("5x Scouts 25mm");
-  await page.evaluate(() => (window as any).openbattleFake.setDisagreement(true));
+});
+
+// Connection banner: when this browser's table differs from the host's, it says so and offers
+// the host's copy. Only a host that breaks the rules sends a table that differs.
+test("the banner offers the host's copy when the tables differ", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const page = await joinGame(browser, link, "Ben");
+  await rogue.evaluate(() => {
+    (window as any).rogue.disagreeNext();
+    (window as any).rogue.act({ kind: "phase", phase: { round: 1, turn: null, name: "Deploy" } });
+  });
   await expect(page.getByRole("status")).toContainText("Your table differs from the host's");
   await page.getByRole("button", { name: "Reload the host's copy" }).click();
   await expect(page.getByRole("status")).toHaveCount(0);
@@ -67,11 +87,12 @@ test("the banner shows the connection's trouble and offers the host's copy", asy
 // Start page, fails: if the server can't be reached, it says so and offers to retry.
 test("an unreachable server is reported, with a retry", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => (window as any).openbattleFake.setUnreachable(true));
+  // The network drops, so the relay can't be reached.
+  await page.context().setOffline(true);
   await page.getByLabel("Your name").fill("Ana");
   await page.getByRole("button", { name: "New game" }).click();
   await expect(page.getByRole("alert")).toContainText("can't be reached");
-  await page.evaluate(() => (window as any).openbattleFake.setUnreachable(false));
+  await page.context().setOffline(false);
   await page.getByRole("button", { name: "Retry" }).click();
   await expect(page.getByLabel("The table")).toBeVisible();
 });
