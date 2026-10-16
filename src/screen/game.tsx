@@ -169,19 +169,23 @@ function Controls() {
         <dd>Step between floors while carrying (or Shift with the wheel).</dd>
         <dt>Hold Tab</dt>
         <dd>Ruler: drag between two spots or from a model. Only you see it.</dd>
-        <dt>Right-drag</dt>
+        <dt>Right-drag or arrows</dt>
         <dd>Turn the camera.</dd>
-        <dt>Middle-drag or arrows</dt>
+        <dt>Middle-drag or W A S D</dt>
         <dd>Slide the camera.</dd>
         <dt>Wheel</dt>
         <dd>Zoom.</dd>
-        <dt>T / H</dt>
-        <dd>Look straight down / back to your edge.</dd>
+        <dt>Z or middle-click</dt>
+        <dd>Zoom to the pointer, and back.</dd>
+        <dt>P</dt>
+        <dd>Look straight down, and back. T only looks down.</dd>
+        <dt>Space (or H)</dt>
+        <dd>Back to your edge.</dd>
         <dt>Click a deck</dt>
         <dd>Draw into your hand; Shift-click to draw face up.</dd>
         <dt>Drag a card</dt>
         <dd>Onto the table, a discard pile or a deck (Shift: its bottom).</dd>
-        <dt>F</dt>
+        <dt>F or middle-click</dt>
         <dd>Flip the card under the pointer.</dd>
         <dt>Escape</dt>
         <dd>Put back what you carry.</dd>

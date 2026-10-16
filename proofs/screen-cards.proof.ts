@@ -73,7 +73,7 @@ test("drawing, playing, discarding and returning cards", async ({ page }) => {
   await page.mouse.click(at.x, at.y);
   await expect(hand(page).getByRole("listitem", { name: "Scout ahead" })).toHaveCount(1);
 
-  // A card in the hand goes back to the table by dragging; F turns it face down and up.
+  // A card in the hand goes back to the table by dragging; F turns it face down, a middle-click face up.
   await dragTo(page, await centre(hand(page).getByRole("listitem", { name: "Scout ahead" })), spot);
   await expect(labels(page, "Scout ahead")).toHaveCount(1);
   await page.mouse.move(spot.x, spot.y);
@@ -81,6 +81,11 @@ test("drawing, playing, discarding and returning cards", async ({ page }) => {
   await expect(labels(page, "Scout ahead")).toHaveCount(0);
   await expect(labels(page, "Card")).toHaveCount(1);
   await expect(log(page).last()).toContainText("Ana played a card face down onto the table");
+  // A middle-click flips it too, as in Tabletop Simulator.
+  await page.mouse.down({ button: "middle" });
+  await page.mouse.up({ button: "middle" });
+  await expect(labels(page, "Scout ahead")).toHaveCount(1);
+  await expect(log(page).last()).toContainText("Scout ahead");
 });
 
 // Decks: shuffle makes an ordered deck shuffled; an empty deck says so and draws nothing.

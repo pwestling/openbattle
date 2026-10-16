@@ -248,11 +248,44 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   await changed();
   await page.mouse.wheel(0, 300);
   await changed();
-  await page.keyboard.down("ArrowLeft");
-  await drawn(page);
-  await drawn(page);
-  await page.keyboard.up("ArrowLeft");
+  // Tabletop Simulator's keys: WASD slide, the arrows turn.
+  for (const key of ["d", "w", "ArrowLeft", "ArrowDown"]) {
+    await page.keyboard.down(key);
+    await drawn(page);
+    await drawn(page);
+    await page.keyboard.up(key);
+    await changed();
+  }
+  await page.keyboard.press("t");
   await changed();
+  // Space goes back to your edge, as H does.
+  await page.keyboard.press(" ");
+  await drawn(page);
+  const spaced = await centre(labels(page, "Captain"));
+  expect(Math.hypot(spaced.x - home.x, spaced.y - home.y)).toBeLessThan(2);
+  seen.push(spaced);
+  // P looks straight down and back again; Z zooms to the pointer and back, as does a middle-click.
+  const there = async () => {
+    await drawn(page);
+    const now = await centre(labels(page, "Captain"));
+    expect(Math.hypot(now.x - home.x, now.y - home.y)).toBeLessThan(2);
+    seen.push(now);
+  };
+  await page.keyboard.press("p");
+  await changed();
+  await page.keyboard.press("p");
+  await there();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 60);
+  await page.keyboard.press("z");
+  await changed();
+  await page.keyboard.press("z");
+  await there();
+  await page.mouse.down({ button: "middle" });
+  await page.mouse.up({ button: "middle" });
+  await changed();
+  await page.mouse.down({ button: "middle" });
+  await page.mouse.up({ button: "middle" });
+  await there();
   await page.keyboard.press("t");
   await changed();
   await page.keyboard.press("h");

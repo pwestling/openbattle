@@ -2,13 +2,15 @@
 // Controls follow Tabletop Simulator's where it has one (ADR-017):
 //   left-click selects; click again or double-click selects the whole unit; left-drag on the
 //   table draws a box; left-drag on a model lifts and carries the selection; Q and E turn it;
-//   right-drag turns the camera; middle-drag or arrows slide it; the wheel zooms.
+//   right-drag or the arrow keys turn the camera; middle-drag or WASD slide it; the wheel zooms;
+//   Z or a middle-click zooms to the pointer and back; P looks straight down and back; Space goes
+//   back to your edge; F or a middle-click on a card flips it.
 // Where it has none, the screen picks: hold Tab for the ruler; Space or right-click pins a
 // waypoint; Page Up and Page Down (or Shift with the wheel) step between floors while carrying;
 // Escape puts a carried selection back.
 // Cards: click a deck to draw into your hand, Shift-click to draw face up; drag a card on the
 // table onto a deck (Shift for its bottom), a discard pile, your hand or elsewhere; F flips the
-// card under the pointer, as in Tabletop Simulator.
+// card under the pointer, as in Tabletop Simulator. T and H are kept as other keys for P and Space.
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from "three";
 import type { Action, FloorRef, Point, Table } from "../../record/index.ts";
 import { distance, type Spot } from "../../measure/index.ts";
@@ -110,7 +112,7 @@ export class Gestures {
   private carriedCards = new Map<string, Point>();
   private hover: { clientX: number; clientY: number } | null = null;
   private box: HTMLDivElement | null = null;
-  private orbit: { button: number; x: number; y: number } | null = null;
+  private orbit: { button: number; x: number; y: number; moved: number } | null = null;
   private pointer = new Vector2();
   private raycaster = new Raycaster();
   private off: (() => void)[] = [];
@@ -247,7 +249,7 @@ export class Gestures {
     if (this.carry && e.button !== 0) return;
     if (e.button === 2 && (this.carry || this.ruler)) return this.pin();
     if (e.button === 2 || e.button === 1) {
-      this.orbit = { button: e.button, x: e.clientX, y: e.clientY };
+      this.orbit = { button: e.button, x: e.clientX, y: e.clientY, moved: 0 };
       return;
     }
     if (e.button !== 0 || !this.table) return;
@@ -281,6 +283,7 @@ export class Gestures {
       const dy = e.clientY - this.orbit.y;
       this.orbit.x = e.clientX;
       this.orbit.y = e.clientY;
+      this.orbit.moved += Math.hypot(dx, dy);
       if (this.orbit.button === 2) this.view.camera.turn(dx, dy);
       else this.view.camera.slide(dx, dy);
       return;
@@ -316,6 +319,8 @@ export class Gestures {
 
   private up(e: PointerEvent) {
     if (this.orbit?.button === e.button) {
+      // A middle-click that did not drag flips the card under it, or zooms to the pointer and back.
+      if (this.orbit.button === 1 && this.orbit.moved < 5 && !this.flip()) this.zoomToPointer();
       this.orbit = null;
       return;
     }
@@ -595,14 +600,22 @@ export class Gestures {
   }
 
   /** Turns the card under the pointer over. */
-  private flip() {
-    if (!this.hover || this.readOnly) return;
+  /** Flips the card under the pointer; false if there is none to flip. */
+  private flip(): boolean {
+    if (!this.hover || this.readOnly) return false;
     const over = document.elementFromPoint(this.hover.clientX, this.hover.clientY);
-    if (over && !this.view.host.contains(over)) return; // Over a panel.
+    if (over && !this.view.host.contains(over)) return false; // Over a panel.
     const thing = this.thingAt(this.hover);
     const card = thing?.kind === "card" ? this.table?.cards[thing.id] : undefined;
-    if (card?.place.in !== "table") return;
+    if (card?.place.in !== "table") return false;
     void this.hooks.act({ kind: "move card", card: card.id, to: { ...card.place, faceUp: !card.place.faceUp } });
+    return true;
+  }
+
+  /** Closes in on the surface under the pointer, or back out if already in. */
+  private zoomToPointer() {
+    const s = this.hover && this.table ? this.surfaceAt(this.hover) : null;
+    this.view.camera.toggleZoomTo(s ? new Vector3(s.point.x, s.h, -s.point.y) : null);
   }
 
   // The ruler.
@@ -656,7 +669,16 @@ export class Gestures {
       if (key === "PageDown") return void (e.preventDefault(), this.stepFloor(1));
       if (key === "Escape") return this.cancelCarry();
     }
-    if (key === "f" || key === "F") return this.flip();
+    if (key === "f" || key === "F") return void this.flip();
+    // Ctrl, Alt and Cmd with a letter are the browser's.
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (key === "z" || key === "Z") return this.zoomToPointer();
+    if (key === " ") {
+      // Space on a focused button presses it; it is the camera's only while the table has focus.
+      const focus = document.activeElement;
+      if (focus && focus !== document.body && focus !== this.view.renderer.domElement) return;
+      e.preventDefault();
+    }
     if (key.startsWith("Arrow")) e.preventDefault();
     this.view.camera.keyDown(key);
   }
