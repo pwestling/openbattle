@@ -30,7 +30,7 @@ function remember(me: Me) {
 
 /**
  * A fault in the screen shows what broke and offers a reload, rather than leaving a blank page.
- * The game is kept in this browser, so reloading comes back to the same table.
+ * If this browser keeps the game, reloading comes back to the same table.
  */
 export class Fault extends Component<{ children: ReactNode }, { error: Error | null }> {
   state: { error: Error | null } = { error: null };
@@ -43,7 +43,7 @@ export class Fault extends Component<{ children: ReactNode }, { error: Error | n
       <main className="start">
         <h1>OpenBattle</h1>
         <div role="alert" className="problem">
-          <p>Something went wrong on this screen. Your game is kept, so reloading brings you back to the table.</p>
+          <p>Something went wrong on this screen. If this browser keeps the game, reloading brings you back to the table.</p>
           <p>
             <code>{this.state.error.message}</code>
           </p>

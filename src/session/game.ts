@@ -336,7 +336,7 @@ export class Game {
 
   /** The host's own join, when it opens a game it is not yet a player in. */
   joinAsHost(me: Me, publicKey: string) {
-    this.hostAppend({ kind: "join", name: me.name, colour: me.colour, publicKey }, this.link.me);
+    this.hostAppend({ kind: "join", name: me.name, colour: freeColour(tableAt(this.log), me.colour), publicKey }, this.link.me);
   }
 
   /** Checks and appends an action, sends the entry to everyone, and returns its number. Throws the record's problem. */

@@ -92,10 +92,21 @@ test("a joiner whose colour is taken gets a colour of their own", async ({ page,
   const dot = (p: Page, name: string) => p.getByRole("region", { name: `${name}'s army` }).locator(".dot");
   await expect(dot(page, "Ben")).toHaveCSS("background-color", "rgb(47, 111, 214)");
   await expect(dot(page, "Ana")).toHaveCSS("background-color", "rgb(209, 69, 59)");
+
+  // Cy, opening a saved copy as a new game, joins it; that red is taken, so he gets the first free colour.
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Save" }).click();
+  const file = await (await download).path();
+  const later = await (await browser.newContext()).newPage();
+  await later.goto("/");
+  await later.getByLabel("Your name").fill("Cy");
+  await later.getByLabel("Choose a saved game file").setInputFiles(file);
+  await expect(later.getByLabel("The table")).toBeVisible();
+  await expect(dot(later, "Cy")).toHaveCSS("background-color", "rgb(46, 158, 85)");
 });
 
-// Undo is only offered where it would be taken: never beside a join or a roll.
-test("Undo is not offered for a join or a roll", async ({ page }) => {
+// Undo is only offered where it would be taken: never beside a join, a roll or a shuffled draw.
+test("Undo is not offered for a join, a roll or a shuffled draw", async ({ page }) => {
   await newGame(page, "Ana");
   await expect(log(page).last()).toContainText("Ana joined");
   await expect(page.getByRole("region", { name: "Log" }).getByRole("button", { name: "Undo" })).toHaveCount(0);
@@ -104,6 +115,22 @@ test("Undo is not offered for a join or a roll", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Log" }).getByRole("button", { name: "Undo" })).toHaveCount(0);
   await addList(page, "Captain 40mm");
   await expect(log(page).last().getByRole("button", { name: "Undo" })).toBeVisible();
+
+  // A shuffle can be undone; a draw from the shuffled deck can't.
+  await page.getByRole("tab", { name: "Decks" }).click();
+  if (!(await page.getByLabel("Deck name").isVisible())) await page.getByText("New deck").click();
+  await page.getByLabel("Deck name").fill("Events");
+  await page.getByLabel("Cards, one per line").fill("Storm\nFog");
+  await page.getByLabel("Ordered as listed").check();
+  await page.getByRole("button", { name: "Add deck" }).click();
+  const row = page.getByRole("article", { name: "Events" });
+  await row.getByRole("button", { name: "Shuffle" }).click();
+  await expect(row).toContainText("2 cards, shuffled");
+  await expect(log(page).last().getByRole("button", { name: "Undo" })).toBeVisible();
+  await row.getByRole("button", { name: "Draw", exact: true }).click();
+  await expect(row).toContainText("1 card");
+  await expect(log(page).last()).toContainText("drew");
+  await expect(page.getByRole("region", { name: "Log" }).getByRole("button", { name: "Undo" })).toHaveCount(0);
 });
 
 // A fault in the screen says what broke and offers a reload, instead of a black page.
