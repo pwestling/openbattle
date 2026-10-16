@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { addArmy, centre, drawn, labels, newGame } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, joinGame, keptLog, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 const inchesIn = (text: string) => Number(/([\d.]+)″/.exec(text)![1]);
@@ -12,7 +12,11 @@ async function lookDown(page: Page) {
 }
 
 /** The last action in the log as this browser has it. */
-const lastAction = (page: Page) => page.evaluate(() => (window as any).openbattleFake.log().entries.at(-1).action);
+const lastAction = async (page: Page) => {
+  // Kept once every action the log panel shows has been saved.
+  await expect.poll(async () => (await keptLog(page))?.entries.length).toBe(await log(page).count());
+  return (await keptLog(page)).entries.at(-1).action;
+};
 
 /** Drags from a point by an offset, pressing keys partway, and returns the distance shown while carrying. */
 async function drag(page: Page, from: { x: number; y: number }, legs: { dx: number; dy: number }[], between?: string) {
@@ -181,16 +185,19 @@ test("a whole unit is selected and carried together", async ({ page }) => {
 });
 
 // Picking up, fails: a refused move settles back where it was, with a short note saying why.
-test("a refused move settles back with a note", async ({ page }) => {
-  await newGame(page);
+test("a refused move settles back with a note", async ({ browser }) => {
+  // The host refuses Ben's move, as it would a move the record finds a problem with.
+  const { rogue, link } = await rogueHost(browser);
+  const page = await joinGame(browser, link, "Ben");
   await addArmy(page, "Captain 40mm");
+  await expect(log(page)).toHaveCount(3);
   await lookDown(page);
   const before = await centre(labels(page, "Captain"));
-  await page.evaluate(() => (window as any).openbattleFake.refuseNext("The host is away."));
+  await rogue.evaluate(() => (window as any).rogue.refuseNext("That model has been set aside."));
   await drag(page, before, [{ dx: 150, dy: 0 }]);
-  await expect(page.getByRole("alert")).toHaveText("The host is away.");
+  await expect(page.getByRole("alert")).toHaveText("That model has been set aside.");
   await expect.poll(async () => Math.abs((await centre(labels(page, "Captain"))).x - before.x)).toBeLessThan(3);
-  await expect(log(page)).toHaveCount(2);
+  await expect(log(page)).toHaveCount(3);
 });
 
 // Ruler and camera: measuring shows inches across and sends nothing; the camera and selection
@@ -261,4 +268,26 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   await expect.poll(async () => (await lastAction(page)).moves?.[0].position.y).not.toBe(was);
   // Actions land in order, so anything sent before the move would already be in the log.
   expect(await log(page).count()).toBe(4);
+});
+
+// Proof 1, played as people would: two browsers, one model moved, both see it.
+test("proof 1: two people at one table, one moves a model, both see it", async ({ page, browser }) => {
+  await newGame(page);
+  await addArmy(page, "Captain 40mm");
+  const ben = await joinGame(browser, await page.getByLabel("Invite link").inputValue(), "Ben");
+  await expect(labels(ben, "Captain")).toHaveCount(1);
+  await lookDown(ben);
+  const benSawBefore = await centre(labels(ben, "Captain"));
+  await lookDown(page);
+  await drag(page, await centre(labels(page, "Captain")), [{ dx: 150, dy: 0 }]);
+  await expect(log(page).last()).toContainText("Ana moved Captain");
+  await expect(log(ben).last()).toContainText("Ana moved Captain");
+  const moved = (await lastAction(page)).moves[0].position;
+  await expect.poll(async () => (await lastAction(ben)).moves?.[0].position).toEqual(moved);
+  // On Ben's screen the model has moved too, though he sees the table from his own seat.
+  await drawn(ben);
+  await expect.poll(async () => {
+    const now = await centre(labels(ben, "Captain"));
+    return Math.hypot(now.x - benSawBefore.x, now.y - benSawBefore.y);
+  }).toBeGreaterThan(100);
 });

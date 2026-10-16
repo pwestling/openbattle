@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { centre, drawn, labels, newGame } from "./screen-helpers.ts";
+import { centre, drawn, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 const hand = (page: Page) => page.getByRole("region", { name: "Your hand" });
@@ -99,41 +99,49 @@ test("shuffling, and an empty deck", async ({ page }) => {
   await expect(log(page)).toHaveCount(5);
 });
 
-// Hands: everyone else's hand shows as card backs with a count. A draw whose seal doesn't match
-// is flagged in the log.
-test("another player's hand shows as backs with a count", async ({ page }) => {
+// Hands: everyone else's hand shows as card backs with a count. The host's own draw, with nobody
+// else connected, is marked as drawn alone rather than tampered (ADR-023).
+test("another player's hand shows as backs with a count", async ({ page, browser }) => {
   await newGame(page);
   await newDeck(page, "Missions", "A\nB\nC\nD", "Shuffled");
   await expect(labels(page, "Missions · 4 · shuffled")).toHaveCount(1);
-  await page.evaluate(() => {
-    const fake = (window as any).openbattleFake;
-    const ben = fake.join("Ben", "#2f6fd6");
-    const log = fake.log();
-    const deck = log.entries.find((e: any) => e.action.kind === "add deck").action.deck;
-    // A seal that its host value doesn't open.
-    const sealed = { link: log.link, seal: "rigged", hostValue: "a", guestValue: "b", guestBy: ben, guestSignature: "s" };
-    fake.actAs(ben, { kind: "draw", deck, cards: 2, to: "hand", ...sealed });
-  });
-  await expect(page.getByLabel("Ben's hand")).toContainText("2");
-  await expect(page.getByLabel("Ben's hand").locator(".back")).toHaveCount(2);
-  await expect(log(page).last()).toContainText("Ben drew 2 cards from Missions into their hand");
-
-  // That draw's seal doesn't match its host value, so it is flagged as tampered, as a roll is.
-  await expect(log(page).last()).toHaveClass(/tampered/);
-  await expect(log(page).last().getByRole("alert")).toContainText("This draw was tampered with");
-  // The host's own draw, with nobody else connected, is marked as drawn alone rather than tampered (ADR-023).
-  await page.getByRole("tab", { name: "Decks" }).click();
   await page.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true }).click();
   await expect(log(page).last()).toContainText("Ana drew 1 card from Missions into your hand");
   await expect(log(page).last()).not.toHaveClass(/tampered/);
   await expect(log(page).last()).toContainText("(drawn alone)");
   await expect(log(page).last()).toHaveClass(/alone/);
-  // A draw that is both alone and tampered shows both marks, in tampered red.
-  await page.evaluate(() => (window as any).openbattleFake.tamperNext());
-  const before = await log(page).count();
-  await page.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true }).click();
-  await expect(log(page)).toHaveCount(before + 1);
-  await expect(log(page).last()).toContainText("(drawn alone)");
-  await expect(log(page).last().getByRole("alert")).toContainText("This draw was tampered with");
-  await expect(log(page).last()).toHaveCSS("color", "rgb(229, 83, 75)");
+
+  // Ben joins from his own browser and draws two; with him connected, the draw is shared, not alone.
+  const ben = await joinGame(browser, await page.getByLabel("Invite link").inputValue(), "Ben");
+  await ben.getByRole("tab", { name: "Decks" }).click();
+  const draw = ben.getByRole("article", { name: "Missions" }).getByRole("button", { name: "Draw", exact: true });
+  await draw.click();
+  await expect(hand(ben).getByRole("listitem")).toHaveCount(1);
+  await draw.click();
+  await expect(hand(ben).getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByLabel("Ben's hand")).toContainText("2");
+  await expect(page.getByLabel("Ben's hand").locator(".back")).toHaveCount(2);
+  await expect(log(page).last()).toContainText("Ben drew 1 card from Missions into their hand");
+  await expect(log(page).last()).not.toHaveClass(/tampered|alone/);
+});
+
+// A draw whose seal doesn't match is flagged in the log, as a roll is. One that is both alone and
+// tampered shows both marks, in tampered red. Only a host that breaks the rules can make one.
+test("a tampered draw is flagged in the log", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await joinGame(browser, link, "Ben");
+  await newDeck(ben, "Missions", "A\nB\nC\nD", "Shuffled");
+  await expect(labels(ben, "Missions · 4 · shuffled")).toHaveCount(1);
+  const before = await log(ben).count();
+  await rogue.evaluate(() => {
+    const r = (window as any).rogue;
+    const deck = r.log.entries.find((e: any) => e.action.kind === "add deck").action.deck;
+    return r.drawTampered(deck, 2, "hand");
+  });
+  await expect(log(ben)).toHaveCount(before + 1);
+  await expect(log(ben).last()).toContainText("Rogue drew 2 cards from Missions into their hand");
+  await expect(log(ben).last()).toHaveClass(/tampered/);
+  await expect(log(ben).last()).toContainText("(drawn alone)");
+  await expect(log(ben).last().getByRole("alert")).toContainText("This draw was tampered with");
+  await expect(log(ben).last()).toHaveCSS("color", "rgb(229, 83, 75)");
 });

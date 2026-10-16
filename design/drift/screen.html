@@ -1,6 +1,0 @@
-<section data-node="surfaces/screen">
-  <h2><a href="surfaces/screen.html">Screen surface</a></h2>
-  <ul>
-    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted. Session has now landed on its branch, but 16 of the screen's 31 proofs depend on the stand-in, so the screen still uses it (<code>src/screen/stand-ins.ts</code>, <code>wired = false</code>) until those proofs are moved to real browsers. Until then, proof 1 (two browsers, one model moved, both see it) is proven at the Session's face from a proof page, not through the screen as a person would play.</li>
-  </ul>
-</section>

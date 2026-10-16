@@ -1,9 +1,9 @@
 // The three places a person can be: the start page, arriving from a link, and at the table.
 import { useEffect, useState } from "react";
+import * as sessions from "../session/index.ts";
 import type { Me, Session } from "../session/index.ts";
 import { Game } from "./game.tsx";
 import { fromFile, load } from "../archive/index.ts";
-import { enterGame, openGame, openSaved } from "./stand-ins.ts";
 
 type Place = { at: "start"; message?: string } | { at: "arrive"; link: string } | { at: "table"; session: Session };
 
@@ -79,7 +79,7 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
     setProblem(null);
     remember(me);
     try {
-      const session = await openGame({ width, depth }, me);
+      const session = await sessions.open({ width, depth }, me);
       const stop = session.watch((now) => history.replaceState(null, "", now.link));
       stop();
       onOpen(session);
@@ -96,7 +96,7 @@ function Start({ message, onOpen }: { message?: string | undefined; onOpen: (s: 
     try {
       // A new game starting from the file's log, so the game it was saved from is left alone.
       const { log } = await fromFile(file);
-      const session = await openSaved(log, me);
+      const session = await sessions.open(log.size, me, log);
       session.watch((now) => history.replaceState(null, "", now.link))();
       onOpen(session);
     } catch (e) {
@@ -167,7 +167,7 @@ function Arrive({ link, onEnter, onBroken }: { link: string; onEnter: (s: Sessio
   const enter = async (as: Me | "watch") => {
     setBusy(true);
     try {
-      onEnter(await enterGame(link, as));
+      onEnter(await sessions.enter(link, as));
     } catch {
       onBroken("That link doesn't lead to a game. Check it with whoever sent it, or start a new one.");
     } finally {
@@ -177,7 +177,14 @@ function Arrive({ link, onEnter, onBroken }: { link: string; onEnter: (s: Sessio
 
   useEffect(() => {
     // Someone coming back on the same browser goes straight back to their seat.
-    void load(link).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
+    // Session keeps a game under its id, the address's ?game= (see the Session surface).
+    let id = link;
+    try {
+      id = new URL(link).searchParams.get("game") ?? link;
+    } catch {
+      // Not an address: the link itself.
+    }
+    void load(id).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
   }, [link]);
 
   if (!asking) return <main className="start" aria-busy="true" />;

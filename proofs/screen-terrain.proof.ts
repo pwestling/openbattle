@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { addArmy, centre, drawn, labels, newGame } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, joinGame, labels, lastKept, newGame, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 
@@ -126,7 +126,7 @@ test("a model carried onto a roof lands where the pointer is, seen at a slant", 
   await expect(page.locator(".label.distance")).toContainText("↑8″");
   await page.mouse.up();
   await expect(log(page).last()).toContainText("Ana moved Captain");
-  const move = await page.evaluate(() => (window as any).openbattleFake.log().entries.at(-1).action.moves[0]);
+  const move = (await lastKept(page, "move")).moves[0];
   expect(move.floor).not.toBeNull();
   // The box stands at the middle of the 60 by 44 table and is 6 inches across.
   expect(Math.abs(move.position.x - 30)).toBeLessThan(3);
@@ -156,7 +156,7 @@ test("models of a unit carried beside terrain land on the floors under them", as
   await page.mouse.move(box.x - 3.5 * perInch, box.y, { steps: 10 });
   await page.mouse.up();
   await expect(log(page).last()).toContainText("Ana moved Scouts");
-  const moves = await page.evaluate(() => (window as any).openbattleFake.log().entries.at(-1).action.moves);
+  const moves = (await lastKept(page, "move")).moves;
   const onRoof = moves.filter((m: any) => m.floor !== null).length;
   expect(onRoof).toBe(4);
 });
@@ -219,18 +219,19 @@ test("a unit can be given a mesh file", async ({ page }) => {
 
 // Session: a mesh file often arrives after the action that uses it. Until it does the piece shows
 // as missing, and once it is here the piece is drawn with it.
-test("a piece whose mesh file arrives late shows as missing until it does", async ({ page }) => {
-  await newGame(page);
+test("a piece whose mesh file arrives late shows as missing until it does", async ({ browser }) => {
+  // The host places a piece and holds its file back, then sends it.
+  const { rogue, link } = await rogueHost(browser);
+  const page = await joinGame(browser, link, "Ben");
   const stl = cuboidStl(76.2, 50.8, 25.4);
-  await page.evaluate(async (stl) => {
+  const mesh = await rogue.evaluate(async (stl) => {
     const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(stl)));
     const mesh = Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("");
     const shape = { kind: "mesh", mesh, width: 3, depth: 2, height: 1 };
-    const terrain = { id: "bo-ruin", name: "Ruin", shape, position: { x: 30, y: 22 }, facing: 0, floors: [] };
-    const bo = (window as any).openbattleFake.join("Bo", "#2f6fd6");
-    (window as any).openbattleFake.actAs(bo, { kind: "place terrain", terrain });
+    (window as any).rogue.act({ kind: "place terrain", terrain: { id: "ruin", name: "Ruin", shape, position: { x: 30, y: 22 }, facing: 0, floors: [] } });
+    return mesh;
   }, stl);
   await expect(labels(page, "Ruin")).toHaveClass(/missing/);
-  await page.evaluate((stl) => (window as any).openbattleFake.arrive(stl), stl);
+  await rogue.evaluate(([mesh, stl]) => (window as any).rogue.sendFile(mesh, stl), [mesh, stl]);
   await expect(labels(page, "Ruin")).not.toHaveClass(/missing/, { timeout: 5000 });
 });

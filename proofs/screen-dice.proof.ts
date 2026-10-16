@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { newGame } from "./screen-helpers.ts";
+import { joinGame, newGame, rogueHost } from "./screen-helpers.ts";
 
 const rolls = (page: Page) => page.getByRole("list", { name: "Recent rolls" }).locator("li");
 
@@ -47,7 +47,7 @@ test("a roll of 1024 dice lands, and the next one too", async ({ page }) => {
 
 // Dice tray: a roll the host makes with nobody else connected is marked "rolled alone" (ADR-023),
 // in the tray and the log, and is not shown as tampered; with another player connected it isn't marked.
-test("a roll made alone is marked as such", async ({ page }) => {
+test("a roll made alone is marked as such", async ({ page, browser }) => {
   await newGame(page);
   const tray = page.getByRole("region", { name: "Dice tray" });
   await tray.getByRole("button", { name: "Roll" }).click();
@@ -70,11 +70,8 @@ test("a roll made alone is marked as such", async ({ page }) => {
   await expect(log.first()).toBeVisible();
   await expect(log.filter({ hasText: "(rolled alone)" })).toHaveCount(1);
 
-  await page.evaluate(() => {
-    const fake = (window as any).openbattleFake;
-    fake.join("Bo", "#2f6fd6");
-    fake.setCompany(true);
-  });
+  // Bo joins from his own browser; with him connected, Ana's roll is shared, not alone.
+  await joinGame(browser, await page.getByLabel("Invite link").inputValue(), "Bo");
   await tray.getByRole("button", { name: "Roll" }).click();
   await expect(rolls(page)).toHaveCount(2);
   await expect(rolls(page).first()).not.toContainText("Rolled alone");
@@ -83,10 +80,11 @@ test("a roll made alone is marked as such", async ({ page }) => {
 
 // Dice tray: a tampered roll is shown in red with a warning, in the tray and the log. Taken alone too,
 // it shows both marks, in tampered red.
-test("a tampered roll is shown with a warning", async ({ page }) => {
-  await newGame(page);
-  await page.evaluate(() => (window as any).openbattleFake.tamperNext());
-  await page.getByRole("region", { name: "Dice tray" }).getByRole("button", { name: "Roll" }).click();
+test("a tampered roll is shown with a warning", async ({ browser }) => {
+  // Only a host that breaks the rules can make one: here it rolls alone with a seal its value doesn't open.
+  const { rogue, link } = await rogueHost(browser);
+  const page = await joinGame(browser, link, "Ben");
+  await rogue.evaluate(() => (window as any).rogue.rollAlone(true));
   await expect(rolls(page).first()).toHaveClass(/tampered/);
   await expect(rolls(page).first().getByRole("alert")).toContainText("tampered");
   await expect(rolls(page).first()).toContainText("Rolled alone");
