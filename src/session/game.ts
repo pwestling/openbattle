@@ -34,6 +34,16 @@ export interface Me {
   colour: string;
 }
 
+/** The colours a player can pick. A joiner whose colour is taken gets the first of these that is free. */
+export const colours = ["#d1453b", "#2f6fd6", "#2e9e55", "#d69a1f", "#8a4fd1", "#1aa3a3", "#e0e0e0", "#333333"];
+
+/** The colour a joiner gets: theirs, unless another player has it already. */
+function freeColour(table: Table, wanted: string): string {
+  const taken = new Set(Object.values(table.players).map((p) => p.colour.toLowerCase()));
+  if (!taken.has(wanted.toLowerCase())) return wanted;
+  return colours.find((c) => !taken.has(c)) ?? wanted;
+}
+
 /** Everything the screen reads, handed over whole after every change (ADR-016). */
 export interface Snapshot {
   /** The game's link, as an address to share. */
@@ -326,7 +336,7 @@ export class Game {
 
   /** The host's own join, when it opens a game it is not yet a player in. */
   joinAsHost(me: Me, publicKey: string) {
-    this.hostAppend({ kind: "join", name: me.name, colour: me.colour, publicKey }, this.link.me);
+    this.hostAppend({ kind: "join", name: me.name, colour: freeColour(tableAt(this.log), me.colour), publicKey }, this.link.me);
   }
 
   /** Checks and appends an action, sends the entry to everyone, and returns its number. Throws the record's problem. */
@@ -403,7 +413,7 @@ export class Game {
         for (const f of filesOf(table)) void this.sendFile(f, from);
         if (typeof m.as === "object" && !table.players[from]) {
           try {
-            this.hostAppend({ kind: "join", name: m.as.name, colour: m.as.colour, publicKey: m.publicKey }, from);
+            this.hostAppend({ kind: "join", name: m.as.name, colour: freeColour(table, m.as.colour), publicKey: m.publicKey }, from);
           } catch {
             // A join the record refuses (a key that is not this browser's) leaves the browser watching.
           }

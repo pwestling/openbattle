@@ -8,6 +8,7 @@ import { connect, thisBrowser } from "../link/index.ts";
 import { newLog, reopen, tableAt, type Action, type CardId, type DeckId, type Fingerprint, type Log, type Size } from "../record/index.ts";
 import { Game, randomValue, type Me, type Snapshot } from "./game.ts";
 
+export { colours } from "./game.ts";
 export type { Me, Snapshot };
 export type { Ask } from "./wire.ts";
 

@@ -6,7 +6,12 @@
 // A count ("5x", "5 x" or "5 ×") is optional and defaults to one model. A base is "25mm" (round),
 // "60x35mm" (oval) or either followed by round, oval or rect; it defaults to 25mm round. A height in
 // inches ('1.5"' or "1.5in") is the stand-in body's height; it defaults to 1.2". Blank lines and
-// lines starting with # are skipped.
+// lines starting with # are skipped. A count without the x ("10 Scouts") reads too.
+//
+// A list exported as text from OnePageRules' Army Forge reads as well: a unit line such as
+//   Battle Brothers [5] Q3+ D3+ | 175pts | Fearless
+// is that many models on the default base, and the equipment lines under it, up to the next blank
+// line, are skipped, as is the "++ army ++" heading. Its weapons' ranges are not heights.
 import type { Base } from "../record/index.ts";
 
 export interface ListedUnit {
@@ -19,11 +24,27 @@ export interface ListedUnit {
 export function readArmyList(text: string): { units: ListedUnit[]; unread: string[] } {
   const units: ListedUnit[] = [];
   const unread: string[] = [];
+  // True while reading the equipment under an Army Forge unit line.
+  let equipment = false;
   for (const raw of text.split("\n")) {
     let line = raw.trim();
-    if (!line || line.startsWith("#")) continue;
+    if (!line) {
+      equipment = false;
+      continue;
+    }
+    if (line.startsWith("#") || /^\+\+.*\+\+$/.test(line)) continue;
+    // "2x Name [5]" is two such units, read as one of ten.
+    const forge = /^(?:(\d+)\s*[x×]\s*)?(.+?)\s*\[(\d+)\]\s*Q\d\+\s*D\d\+/i.exec(line);
+    if (forge) {
+      const count = Number(forge[1] ?? 1) * Number(forge[3]);
+      if (count < 1) unread.push(line);
+      else units.push({ name: forge[2]!.trim(), count, base: { shape: "round", width: 25, depth: 25 }, height: 1.2 });
+      equipment = true;
+      continue;
+    }
+    if (equipment) continue;
     let count = 1;
-    line = line.replace(/^(\d+)\s*[x×]\s*/i, (_, n: string) => {
+    line = line.replace(/^(\d+)\s*(?:[x×]\s*|\s(?=\D))/i, (_, n: string) => {
       count = Number(n);
       return "";
     });
@@ -44,7 +65,8 @@ export function readArmyList(text: string): { units: ListedUnit[]; unread: strin
       return " ";
     });
     const name = line.replace(/[,;:\s]+/g, " ").trim();
-    if (!name || count < 1) unread.push(raw.trim());
+    // A name needs a letter, so a stray number is reported rather than becoming a unit called "5".
+    if (!/\p{L}/u.test(name) || count < 1) unread.push(raw.trim());
     else units.push({ name, count, base, height });
   }
   return { units, unread };

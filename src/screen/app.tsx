@@ -1,5 +1,5 @@
 // The three places a person can be: the start page, arriving from a link, and at the table.
-import { useEffect, useState } from "react";
+import { Component, useEffect, useState, type ReactNode } from "react";
 import * as sessions from "../session/index.ts";
 import type { Me, Session } from "../session/index.ts";
 import { Game } from "./game.tsx";
@@ -7,7 +7,7 @@ import { fromFile, load } from "../archive/index.ts";
 
 type Place = { at: "start"; message?: string } | { at: "arrive"; link: string } | { at: "table"; session: Session };
 
-const colours = ["#d1453b", "#2f6fd6", "#2e9e55", "#d69a1f", "#8a4fd1", "#1aa3a3", "#e0e0e0", "#333333"];
+const { colours } = sessions;
 
 /** The name and colour this browser last used, so the forms start filled in. */
 function rememberedMe(): Me {
@@ -25,6 +25,32 @@ function remember(me: Me) {
     localStorage.setItem("openbattle-me", JSON.stringify(me));
   } catch {
     // Remembering is a convenience only.
+  }
+}
+
+/**
+ * A fault in the screen shows what broke and offers a reload, rather than leaving a blank page.
+ * If this browser keeps the game, reloading comes back to the same table.
+ */
+export class Fault extends Component<{ children: ReactNode }, { error: Error | null }> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: unknown) {
+    return { error: error instanceof Error ? error : new Error(String(error)) };
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <main className="start">
+        <h1>OpenBattle</h1>
+        <div role="alert" className="problem">
+          <p>Something went wrong on this screen. If this browser keeps the game, reloading brings you back to the table.</p>
+          <p>
+            <code>{this.state.error.message}</code>
+          </p>
+          <button onClick={() => location.reload()}>Reload</button>
+        </div>
+      </main>
+    );
   }
 }
 

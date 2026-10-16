@@ -10,9 +10,18 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
   const cancelled = new Set(now.table.cancelled);
   // Undo cancels the latest uncancelled action, and only its taker may undo it.
   const latest = log.entries.findLast((e) => e.action.kind !== "undo" && !cancelled.has(e.n));
-  const latestOwn = latest?.by === me ? latest.n : undefined;
+  // The record never undoes a roll or a shuffled draw; a join it would, but leaving is not an undo.
+  const undoable =
+    latest &&
+    latest.action.kind !== "join" &&
+    latest.action.kind !== "roll" &&
+    !(latest.action.kind === "draw" && "seal" in latest.action);
+  const latestOwn = undoable && latest.by === me ? latest.n : undefined;
   const end = useRef<HTMLLIElement>(null);
-  useEffect(() => end.current?.scrollIntoView({ block: "nearest" }), [log.entries.length]);
+  // Braced: scrollIntoView returns a promise in newer browsers, and an effect may only return a clean-up.
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "nearest" });
+  }, [log.entries.length]);
   const at = lookingAt ?? log.entries.length;
   // A roll or shuffled draw whose seal doesn't match is shown in red with a warning.
   const tampered = new Set([...now.table.rolls, ...now.table.draws].filter((r) => r.tampered).map((r) => r.at));
