@@ -13,7 +13,41 @@ export const CARD = { width: 2.5, depth: 3.5 };
 /** Where a deck's discard pile lies. */
 export const discardAt = (deck: Deck): Point => ({ x: deck.position.x + CARD.width + 1, y: deck.position.y });
 
-const back = new MeshStandardMaterial({ color: "#2b3a6b", roughness: 0.8 });
+/** A card is a thin slab, as in a real game, so it has an edge and stacks have height. */
+const THICK = 0.02;
+
+/** The back of a card: a deep blue with a lighter border and a diamond lattice. */
+function backTexture(): CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 250;
+  canvas.height = 350;
+  const g = canvas.getContext("2d")!;
+  g.fillStyle = "#2b3a6b";
+  g.fillRect(0, 0, 250, 350);
+  g.strokeStyle = "rgba(255,255,255,0.18)";
+  g.lineWidth = 2;
+  for (let i = -350; i < 350; i += 28) {
+    g.beginPath();
+    g.moveTo(0, i);
+    g.lineTo(250, i + 250);
+    g.moveTo(250, i);
+    g.lineTo(0, i + 250);
+    g.stroke();
+  }
+  g.strokeStyle = "#d8d2c0";
+  g.lineWidth = 8;
+  g.strokeRect(10, 10, 230, 330);
+  const t = new CanvasTexture(canvas);
+  t.colorSpace = SRGBColorSpace;
+  return t;
+}
+
+const backFace = new MeshStandardMaterial({ map: backTexture(), roughness: 0.8 });
+const backEdge = new MeshStandardMaterial({ color: "#1d2748", roughness: 0.8 });
+const faceEdge = new MeshStandardMaterial({ color: "#e8e2d2", roughness: 0.9 });
+
+/** A slab's faces in three's order (+x, -x, up, down, +z, -z): the given top, the back underneath. */
+const slab = (top: MeshStandardMaterial, edge: MeshStandardMaterial) => [edge, edge, top, backFace, edge, edge];
 
 function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -48,10 +82,10 @@ function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
 
 /** A card lying flat, face up or down. Pictures arrive later, once their file is here. */
 function cardMesh(card: Card, faceUp: boolean, loaded: () => void): Mesh {
-  const geometry = new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2);
-  if (!faceUp) return new Mesh(geometry, back);
+  const geometry = new BoxGeometry(CARD.width, THICK, CARD.depth).translate(0, THICK / 2, 0);
+  if (!faceUp) return new Mesh(geometry, slab(backFace, backEdge));
   const material = new MeshStandardMaterial({ map: faceTexture(card), roughness: 0.8 });
-  const mesh = new Mesh(geometry, material);
+  const mesh = new Mesh(geometry, slab(material, faceEdge));
   if (card.picture) {
     void getFile(card.picture).then((blob) => {
       if (!blob) return;
@@ -113,9 +147,9 @@ export class Cards {
       put(`deck:${deck.id}`, text, deck.position, 0, () => {
         const object = new Group();
         object.userData.deck = deck.id;
-        const h = Math.max(0.03, count * 0.02);
+        const h = Math.max(THICK, count * THICK);
         const faint = new MeshStandardMaterial({ color: "#2b3a6b", transparent: true, opacity: 0.3 });
-        const stack = new Mesh(new BoxGeometry(CARD.width, h, CARD.depth).translate(0, h / 2, 0), count === 0 ? faint : back);
+        const stack = new Mesh(new BoxGeometry(CARD.width, h, CARD.depth).translate(0, h / 2, 0), count === 0 ? faint : slab(backFace, backEdge));
         object.add(stack);
         const tag = label(text, "label deck");
         tag.position.y = h + 0.3;
@@ -134,7 +168,7 @@ export class Cards {
               new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2),
               new MeshStandardMaterial({ color: "#555555", transparent: true, opacity: 0.25 }),
             );
-        pile.position.y = 0.01 + discarded.length * 0.005;
+        pile.position.y = Math.max(0, discarded.length - 1) * THICK;
         object.add(pile);
         const tag = label(pileText, "label deck");
         tag.position.y = 0.3;
@@ -147,12 +181,12 @@ export class Cards {
       const faceUp = card.place.faceUp;
       const key = `${card.id}|${faceUp}`;
       const at = carried.get(card.id) ?? card.place.position;
-      put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0.01, () => {
+      put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0, () => {
         const object = new Group();
         object.userData.card = card.id;
         object.add(cardMesh(card, faceUp, () => this.view.invalidate()));
         const tag = label(faceUp ? card.name : "Card", "label card");
-        tag.position.y = 0.2;
+        tag.position.y = THICK + 0.2;
         object.add(tag);
         return { object, key, tag };
       });
