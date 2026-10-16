@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away. <ins>From the Session build, 2026-10-15, while Porter slept: the game's link names its host, the snapshot's link is the address to share, <code>enter</code> takes that address or the link, a missing signature is refused rather than flagged (unless the roll is taken alone), the host refuses a badly signed value, a whole log from the host is taken only when asked for and only if it extends this browser's, and the browser that started a game but no longer has it can't take it back.</ins></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away. From the Session build, 2026-10-15, while Porter slept: the game's link names its host, the snapshot's link is the address to share, <code>enter</code> takes that address or the link, a missing signature is refused rather than flagged (unless the roll is taken alone), the host refuses a badly signed value, a whole log from the host is taken only when asked for and only if it extends this browser's, and the browser that started a game but no longer has it can't take it back. Accepted by Porter on 2026-10-16, with the rest of the Session build\'s lines.</dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
@@ -33,12 +33,12 @@
   </section>
 
   <section id="enter">
-    <p><ins>A game's link is 8 random characters, a dash and the host's browser id, so every browser knows who the host is before trusting anything it is sent (<a href="../decisions/ADR-022.html">ADR-022</a>); a game opened from a saved file adds a dash and the number of entries copied. The address to share is the page's address with <code>?game=</code> and the link, and <code>enter</code> takes either.</ins></p>
+    <p>A game's link is 8 random characters, a dash and the host's browser id, so every browser knows who the host is before trusting anything it is sent (<a href="../decisions/ADR-022.html">ADR-022</a>); a game opened from a saved file adds a dash and the number of entries copied. The address to share is the page's address with <code>?game=</code> and the link, and <code>enter</code> takes either.</p>
     <h2><code>enter(link: string, as: { name, colour } | "watch"): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host.</dd>
-      <dt>Fails</dt><dd>Rejects if the link is malformed<ins>, or if this browser started the game but no longer has it</ins>. If the host is away, it still resolves, with the snapshot saying so.</dd>
+      <dt>Fails</dt><dd>Rejects if the link is malformed, or if this browser started the game but no longer has it. If the host is away, it still resolves, with the snapshot saying so.</dd>
     </dl>
   </section>
 
@@ -55,8 +55,8 @@
     <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
-      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice and the host's seal, <ins>and for their own roll only after checking the host describes the roll they asked for,</ins> and every browser checks the signature as the roll arrives and when a saved game is loaded (<a href="../decisions/ADR-022.html">ADR-022</a>). <ins>When no other player is connected, the host rolls alone (<a href="../decisions/ADR-023.html">ADR-023</a>, proposed): its browser makes both values, nobody signs, and the roll is marked as rolled alone for everyone. With another player connected, the host always uses the sealed exchange.</ins></dd>
-      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered, <ins>as is one whose signature does not check in a browser that receives it; the host itself refuses a value whose signature does not check, with nothing logged</ins>. <ins>The record refuses a roll with no signature unless it is marked as rolled alone.</ins></dd>
+      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice and the host's seal, and for their own roll only after checking the host describes the roll they asked for, and every browser checks the signature as the roll arrives and when a saved game is loaded (<a href="../decisions/ADR-022.html">ADR-022</a>). When no other player is connected, the host rolls alone (<a href="../decisions/ADR-023.html">ADR-023</a>): its browser makes both values, nobody signs, and the roll is marked as rolled alone for everyone. With another player connected, the host always uses the sealed exchange.</dd>
+      <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered, as is one whose signature does not check in a browser that receives it; the host itself refuses a value whose signature does not check, with nothing logged. The record refuses a roll with no signature unless it is marked as rolled alone.</dd>
     </dl>
   </section>
 
@@ -64,14 +64,14 @@
     <h2><code>session.draw(deck: DeckId, cards: number, to: "hand" | "table"): Promise&lt;CardId[]&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>This browser is a player, and the deck holds at least that many cards.</dd>
-      <dt>Post</dt><dd>Resolves with the cards drawn, with the draw in the log. An ordered deck gives its top cards straight away; a shuffled deck picks them with the same sealed exchange as a roll. <ins>The host draws from a shuffled deck alone, as it rolls alone, when no other player is connected.</ins> Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
+      <dt>Post</dt><dd>Resolves with the cards drawn, with the draw in the log. An ordered deck gives its top cards straight away; a shuffled deck picks them with the same sealed exchange as a roll. The host draws from a shuffled deck alone, as it rolls alone, when no other player is connected. Cards drawn to the hand go to this player's hand; cards drawn to the table land face up.</dd>
       <dt>Fails</dt><dd>As <code>act</code>, and for a shuffled deck as <code>roll</code>; also rejects if the deck has too few cards.</dd>
     </dl>
   </section>
 
   <section id="watch">
     <h2><code>session.watch(listener: (now: Snapshot) =&gt; void): () =&gt; void</code></h2>
-    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); whether browsers disagree; which rolls and draws failed their signature check; <ins>which rolls and draws the host took alone while this browser was connected as a player, which the host should not do (<a href="../decisions/ADR-023.html">ADR-023</a>); the rolls and draws this browser signed a value for that the host never logged;</ins> and whether the game is being kept in this browser, which it is not when the browser refuses storage.</p>
+    <p>A <code>Snapshot</code> holds: the game's link; who this browser is; the log and the current table; the connection (<code>connecting</code>, <code>playing</code>, <code>host away</code>); whether browsers disagree; which rolls and draws failed their signature check; which rolls and draws the host took alone while this browser was connected as a player, which the host should not do (<a href="../decisions/ADR-023.html">ADR-023</a>); the rolls and draws this browser signed a value for that the host never logged; and whether the game is being kept in this browser, which it is not when the browser refuses storage.</p>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>The listener is called now and after every change. The returned function stops it.</dd>
@@ -83,8 +83,8 @@
     <h2><code>session.resync(): Promise&lt;void&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>The snapshot says this browser disagrees with the host.</dd>
-      <dt>Post</dt><dd>This browser's log is <del>replaced by</del> <ins>brought up to</ins> the host's, and the snapshot agrees again.</dd>
-      <dt>Fails</dt><dd>Rejects if the host is away<ins>, or if the host's log changes entries this browser already has, which stays shown as a disagreement</ins>; nothing changes.</dd>
+      <dt>Post</dt><dd>This browser's log is brought up to the host's, and the snapshot agrees again.</dd>
+      <dt>Fails</dt><dd>Rejects if the host is away, or if the host's log changes entries this browser already has, which stays shown as a disagreement; nothing changes.</dd>
     </dl>
   </section>
 
