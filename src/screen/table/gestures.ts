@@ -30,6 +30,13 @@ export type CardTarget =
   | { into: "hand" }
   | { into: "table"; at: Point };
 
+/** Where a model began the turn, and the waypoints its latest move was pinned through. */
+export interface Origin {
+  position: Point;
+  floor: FloorRef | null;
+  via: Point[];
+}
+
 interface Carry {
   /** The models carried, or the one terrain piece. */
   ids: string[];
@@ -37,6 +44,8 @@ interface Carry {
   starts: Map<string, Place>;
   offsets: Map<string, Point>;
   waypoints: Map<string, Point[]>;
+  /** Where each carried model began the turn, if it has moved already. */
+  origins: Map<string, Origin>;
   turn: number;
   /** Steps from the floor the pointer is on: positive is down, negative is up. */
   floorStep: number;
@@ -101,8 +110,8 @@ export class Gestures {
   private lastMove: Guide[] = [];
   private selected = new Set<string>();
   private locked: ReadonlySet<string> = new Set();
-  /** Inches each model has already moved this turn. */
-  private moved: ReadonlyMap<string, number> = new Map();
+  /** Where models that have moved this turn began it. */
+  private origins: ReadonlyMap<string, Origin> = new Map();
   private carried = new Map<string, Place>();
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
@@ -163,8 +172,8 @@ export class Gestures {
   }
 
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[], moved: ReadonlyMap<string, number>) {
-    this.moved = moved;
+  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[], origins: ReadonlyMap<string, Origin>) {
+    this.origins = origins;
     this.table = table;
     this.me = me;
     this.readOnly = readOnly;
@@ -438,7 +447,9 @@ export class Gestures {
       terrain: !!piece,
       starts,
       offsets,
-      waypoints: new Map(ids.map((id) => [id, []])),
+      // A model already moved this turn is measured from where it began, through what was pinned.
+      origins: new Map(ids.flatMap((id) => (this.origins.get(id) && !piece ? [[id, this.origins.get(id)!] as const] : []))),
+      waypoints: new Map(ids.map((id) => [id, [...(piece ? [] : (this.origins.get(id)?.via ?? []))]])),
       turn: 0,
       floorStep: 0,
       aimFloor: surface.floor,
@@ -501,19 +512,21 @@ export class Gestures {
     if (c.terrain) return [];
     const table = this.table!;
     return c.ids.map((id) => {
-      const start = c.starts.get(id)!;
+      const start = c.origins.get(id) ?? c.starts.get(id)!;
       const now = this.carried.get(id)!;
       const via = c.waypoints.get(id)!;
       const { across } = distance(table, start.position, now.position, via);
+      // With waypoints, the first line is the leg being moved and the second the whole way.
+      const last = via.at(-1);
+      const leg = last ? Math.hypot(now.position.x - last.x, now.position.y - last.y) : across;
       const up = floorHeight(table, now.floor) - floorHeight(table, start.floor);
       const h0 = floorHeight(table, start.floor);
       const owner = table.players[table.units[table.models[id]!.unit]?.owner ?? ""];
-      const before = this.moved.get(id) ?? 0;
       return {
         points: [{ ...start.position, h: h0 }, ...via.map((p) => ({ ...p, h: h0 })), { ...now.position, h: floorHeight(table, now.floor) }],
         colour: owner?.colour ?? this.colour,
-        ...(before > 0 ? { total: `${inches(before + across)} total` } : {}),
-        text: `${inches(across)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
+        ...(last ? { total: `${inches(across)} total` } : {}),
+        text: `${inches(leg)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
       };
     });
   }
@@ -570,7 +583,7 @@ export class Gestures {
         position: at.position,
         facing: at.facing,
         floor: at.floor,
-        path: [c.starts.get(id)!.position, ...c.waypoints.get(id)!, at.position],
+        path: [(c.origins.get(id) ?? c.starts.get(id)!).position, ...c.waypoints.get(id)!, at.position],
       };
     });
     this.redraw();

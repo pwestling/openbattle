@@ -1,8 +1,9 @@
 // Puts the 3D table on the page and keeps it in step with the table shown.
 import { useEffect, useRef, type RefObject } from "react";
+import { tableAt } from "../../record/index.ts";
 import { edgeOf, usePlay, type Play } from "../play.tsx";
 import { Cards } from "./cards.ts";
-import { cardMove, Gestures } from "./gestures.ts";
+import { cardMove, Gestures, type Origin } from "./gestures.ts";
 import { Pieces } from "./pieces.ts";
 import { TableView } from "./view.ts";
 
@@ -17,11 +18,11 @@ function lastMove(play: Play): string[] {
   return entry?.action.kind === "move" ? entry.action.moves.map((m) => m.model) : [];
 }
 
-/** Lets the panels select things on the table. */
-export type Select = (ids: string[]) => void;
-
-/** How far each model has been moved since the turn began, along the paths of its moves that still stand. */
-function movedThisTurn(play: Play): Map<string, number> {
+/**
+ * Where each model that has moved this turn began the turn, and the waypoints its latest move was
+ * pinned through. Dragging it again only adjusts that move; a leg is added by pinning a waypoint.
+ */
+function turnOrigins(play: Play): Map<string, Origin> {
   const upTo = play.lookingAt ?? play.now.log.entries.length;
   const cancelled = new Set(play.table.cancelled);
   const entries = play.now.log.entries.filter((e) => e.n <= upTo && !cancelled.has(e.n));
@@ -34,17 +35,24 @@ function movedThisTurn(play: Play): Map<string, number> {
     if (e.action.phase.round !== round || e.action.phase.turn !== turn) began = e.n;
     ({ round, turn } = e.action.phase);
   }
-  const moved = new Map<string, number>();
+  const origins = new Map<string, Origin>();
   for (const e of entries) {
     if (e.n <= began || e.action.kind !== "move") continue;
     for (const m of e.action.moves) {
-      let length = 0;
-      for (let i = 1; i < m.path.length; i++) length += Math.hypot(m.path[i]!.x - m.path[i - 1]!.x, m.path[i]!.y - m.path[i - 1]!.y);
-      moved.set(m.model, (moved.get(m.model) ?? 0) + length);
+      const was = origins.get(m.model);
+      const first = m.path[0];
+      if (!was && first) origins.set(m.model, { position: first, floor: tableAt(play.now.log, e.n - 1).models[m.model]?.floor ?? null, via: [] });
+      const origin = origins.get(m.model);
+      if (!origin || !first) continue;
+      // A move recorded from the turn's start carries its pinned waypoints on; an older one starts afresh.
+      origin.via = first.x === origin.position.x && first.y === origin.position.y ? m.path.slice(1, -1) : [];
     }
   }
-  return moved;
+  return origins;
 }
+
+/** Lets the panels select things on the table. */
+export type Select = (ids: string[]) => void;
 
 export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandDrop | null>; selectRef: RefObject<Select | null> }) {
   const play = usePlay();
@@ -95,7 +103,7 @@ export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandD
     const p = parts.current;
     if (!p) return;
     p.view.camera.setEdge(edgeOf(table, me));
-    p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", lastMove(play), movedThisTurn(play));
+    p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", lastMove(play), turnOrigins(play));
   }, [play, width, depth]);
 
   useEffect(() => {
