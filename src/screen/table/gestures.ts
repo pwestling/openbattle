@@ -188,6 +188,8 @@ export class Gestures {
     if (this.carry?.moved) guides.push(...this.carryGuides());
     if (this.ruler) guides.push(this.rulerGuide());
     this.guides.show(guides);
+    // Piece labels stay out of the way of the measurements.
+    this.view.host.classList.toggle("measuring", guides.length > this.lastMove.length);
   }
 
   // Where the pointer is.
