@@ -19,8 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. The newest-tab addition and <code>connect</code> returning a promise, from the Link and Relay build, accepted by Porter on 2026-10-15. Proving ids, and signing for others, added from <a href="../decisions/ADR-022.html">ADR-022</a> (accepted by Porter) under his minor-change rule, 2026-10-15. From the PR #5 review, under the same rule: <code>link.replaced</code>, a tab move reported as leave and arrive, and proofs bound to each connection.</dd>
-    <dt>Proposed</dt><dd>The <ins>marked addition</ins>, from the relay checking keys; see the relay surface. Awaiting Porter.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. The newest-tab addition and <code>connect</code> returning a promise, from the Link and Relay build, accepted by Porter on 2026-10-15. Proving ids, and signing for others, added from <a href="../decisions/ADR-022.html">ADR-022</a> (accepted by Porter) under his minor-change rule, 2026-10-15. From the PR #5 review, under the same rule: <code>link.replaced</code>, a tab move reported as leave and arrive, and proofs bound to each connection. The relay's key check on joining, built while Porter was away on 2026-10-15, accepted by Porter on 2026-10-16.</dd>
   </dl>
   <p>Carries messages between the browsers in one <a href="../concepts/game.html">game</a>. It never looks inside them.</p>
 
@@ -29,7 +28,7 @@
     <dl>
       <dt>Pre</dt><dd>None.</dd>
       <dt>Post</dt><dd>This browser is announced at the relay under the game's link and connects directly, or through TURN, to every other browser announced there. It has a <code>browserId</code> that stays the same for this browser: base64url of the first 16 bytes of SHA-256 of its public key, from a key pair the browser makes on first use and can never read the private half of. Before a connection counts, each browser signs a fresh challenge from the other; a browser that cannot sign for the id it claims is refused, and any connection already made to the real one stays. Opening the game in another tab of the same browser moves this browser there: the earlier tab's link loses every connection, as if closed.</dd>
-      <dt>Fails</dt><dd>Rejects if the relay cannot be reached<ins>, or if it refuses this browser's proof of id (only a tampered browser)</ins>.</dd>
+      <dt>Fails</dt><dd>Rejects if the relay cannot be reached, or if it refuses this browser's proof of id (only a tampered browser).</dd>
     </dl>
   </section>
 
