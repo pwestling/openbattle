@@ -512,7 +512,8 @@ export class Gestures {
       return {
         points: [{ ...start.position, h: h0 }, ...via.map((p) => ({ ...p, h: h0 })), { ...now.position, h: floorHeight(table, now.floor) }],
         colour: owner?.colour ?? this.colour,
-        text: `${inches(across)}${before > 0 ? ` · ${inches(before + across)} this turn` : ""}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
+        ...(before > 0 ? { total: `${inches(before + across)} total` } : {}),
+        text: `${inches(across)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
       };
     });
   }

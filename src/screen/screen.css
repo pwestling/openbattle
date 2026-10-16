@@ -180,3 +180,5 @@ label.file input[type="file"] { font-size: 12px; }
 .add-army-dialog .close { position: absolute; top: 6px; right: 6px; padding: 0 8px; }
 button.link { background: none; border: 0; padding: 0; color: inherit; font-weight: 700; cursor: pointer; text-align: left; }
 button.link:hover { text-decoration: underline; }
+/* The second line of a distance label: the model's total this turn, over several moves. */
+.label.distance .total { margin-top: 2px; padding-top: 2px; border-top: 1px solid rgba(26, 26, 26, 0.35); color: #5a2a00; font-weight: 700; }

@@ -10,6 +10,8 @@ export interface Guide {
   colour: string;
   /** Text shown at the last point. */
   text?: string;
+  /** A second line under the text: the total when this is one leg of several. */
+  total?: string;
 }
 
 export class Guides {
@@ -35,6 +37,12 @@ export class Guides {
       if (g.text) {
         const end = g.points.at(-1)!;
         const tag: CSS2DObject = label(g.text, "label distance");
+        if (g.total) {
+          const line = document.createElement("div");
+          line.className = "total";
+          line.textContent = g.total;
+          tag.element.append(line);
+        }
         tag.position.set(end.x, end.h + 0.6, -end.y);
         tag.center.set(0.5, 1.6);
         this.group.add(tag);
