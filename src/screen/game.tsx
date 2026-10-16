@@ -88,8 +88,9 @@ export function Game({ session }: { session: Session }) {
         <aside className="left">
           <Tabs />
         </aside>
-        {armyOpen && play.me && !play.readOnly && (
-          <section className="add-army-dialog" role="dialog" aria-label="Add to your army">
+        {/* Hidden rather than removed while read-only, so a list being typed survives a blip. */}
+        {armyOpen && play.me && (
+          <section className="add-army-dialog" role="dialog" aria-label="Add to your army" hidden={play.readOnly}>
             <button className="close" aria-label="Close" onClick={() => setArmyOpen(false)}>
               ×
             </button>

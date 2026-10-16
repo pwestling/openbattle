@@ -8,6 +8,8 @@ test("a pasted army list puts its models on the table", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Log" })).toContainText("Ana added Scouts (5 models) and Captain");
   await expect(labels(page, "Scouts")).toHaveCount(5);
   await expect(labels(page, "Captain")).toHaveCount(1);
+  // The list is read in a dialog the top bar opens, which closes once the army is added.
+  await expect(page.getByRole("dialog", { name: "Add to your army" })).toHaveCount(0);
   // More models for an existing unit join it, at any point in the game.
   await addArmy(page, "2x Scouts");
   await expect(labels(page, "Scouts")).toHaveCount(7);

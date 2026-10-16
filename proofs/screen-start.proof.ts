@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { addArmy, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
+import { addArmy, joinGame, labels, newGame, openArmy, rogueHost } from "./screen-helpers.ts";
 
 // Start page: a new game opens the table as host, with the invite link ready to copy.
 test("a new game opens the table with its invite link", async ({ page }) => {
@@ -51,6 +51,7 @@ test("the banner shows the connection's trouble and offers the host's copy", asy
   const link = await ana.getByLabel("Invite link").inputValue();
   const page = await joinGame(browser, link, "Ben");
   await expect(page.getByRole("status")).toHaveCount(0);
+  await openArmy(page);
   await page.getByLabel("Army list").fill("5x Scouts 25mm");
   await ana.close();
   await expect(page.getByRole("status")).toHaveText("Waiting for the host. The game is paused.", { timeout: 20_000 });
@@ -105,6 +106,7 @@ test("a spectator watches read-only and can save", async ({ page, browser }) => 
   await watcher.goto(link);
   await watcher.getByRole("button", { name: "Watch" }).click();
   await expect(watcher.getByLabel("The table")).toBeVisible();
+  await expect(watcher.getByRole("button", { name: "Add army" })).toHaveCount(0);
   await expect(watcher.getByLabel("Army list")).toHaveCount(0);
   await expect(watcher.getByRole("button", { name: "Roll" })).toHaveCount(0);
   await expect(watcher.getByRole("button", { name: "Next round" })).toBeDisabled();

@@ -24,8 +24,16 @@ export async function openLog(page: Page) {
 /** The labels drawn over the table whose text is exactly this. */
 export const labels = (page: Page, text: string) => page.locator(".table-labels .label", { hasText: new RegExp(`^${text}$`) });
 
+/** Opens the army list from the top bar, as it starts closed; does nothing if it is already open. */
+export async function openArmy(page: Page) {
+  const button = page.getByRole("button", { name: "Add army", exact: true });
+  if ((await button.getAttribute("aria-pressed")) !== "true") await button.click();
+  await expect(page.getByRole("dialog", { name: "Add to your army" })).toBeVisible();
+}
+
 /** Adds units to your army from a typed list. */
 export async function addArmy(page: Page, list: string) {
+  await openArmy(page);
   await page.getByLabel("Army list").fill(list);
   await page.getByRole("button", { name: "Read list" }).click();
   await page.getByRole("button", { name: "Add to army" }).click();

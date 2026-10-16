@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { addArmy, centre, drawn, joinGame, labels, lastKept, newGame, rogueHost } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, joinGame, labels, lastKept, newGame, openArmy, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 
@@ -94,6 +94,41 @@ test("a model carried onto terrain stands on its floor", async ({ page }) => {
   await page.mouse.move(box.x + 25 - 120, box.y + 25, { steps: 8 });
   await page.mouse.up();
   await expect(log(page).last()).toContainText("Ana moved Box");
+});
+
+// Terrain panel: a locked piece can't be picked up or selected on the table, so models can be
+// moved over it freely; unlocking it lets it be moved again.
+test("locked terrain stays put until unlocked", async ({ page }) => {
+  await newGame(page);
+  await page.getByRole("tab", { name: "Terrain" }).click();
+  await page.getByRole("button", { name: "Add terrain" }).click();
+  await expect(log(page).last()).toContainText("Ana placed Box");
+  const piece = page.getByRole("article", { name: "Box" });
+  await piece.getByRole("button", { name: "Lock", exact: true }).click();
+  await expect(piece.getByRole("button", { name: "Unlock", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await lookDown(page);
+  const box = await centre(labels(page, "Box"));
+  const dragBox = async () => {
+    await page.mouse.move(box.x + 25, box.y + 25);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 25 - 120, box.y + 25, { steps: 8 });
+    await page.mouse.up();
+  };
+  await dragBox();
+  await page.mouse.click(box.x + 25, box.y + 25);
+  await expect(page.locator(".label.selected")).toHaveCount(0);
+  // Nothing was sent: the next thing done is the next entry in the log.
+  await page.getByRole("button", { name: "Next round" }).click();
+  await expect(log(page).last()).toContainText("round 1");
+  await expect(log(page).filter({ hasText: "moved Box" })).toHaveCount(0);
+
+  // Unlock all, and it moves again.
+  await page.getByRole("button", { name: "Unlock all", exact: true }).click();
+  await expect(piece.getByRole("button", { name: "Lock", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await dragBox();
+  await expect(log(page).last()).toContainText("Ana moved Box");
+  await page.getByRole("button", { name: "Lock all", exact: true }).click();
+  await expect(piece.getByRole("button", { name: "Unlock", exact: true })).toBeVisible();
 });
 
 // Picking up, from the usual slanted view: pointing at a roof sets the model down on that roof,
@@ -205,6 +240,7 @@ test("a mesh file becomes terrain with floors from its shape", async ({ page }) 
 // Models: a mesh file can be chosen for each unit when adding to an army.
 test("a unit can be given a mesh file", async ({ page }) => {
   await newGame(page);
+  await openArmy(page);
   await page.getByLabel("Army list").fill('3x Walkers 32mm 2"');
   await page.getByRole("button", { name: "Read list" }).click();
   await page
