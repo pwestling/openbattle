@@ -600,11 +600,14 @@ export class Gestures {
   }
 
   /** Turns the card under the pointer over. */
+  private overPanel(): boolean {
+    const over = this.hover && document.elementFromPoint(this.hover.clientX, this.hover.clientY);
+    return !!over && !this.view.host.contains(over);
+  }
+
   /** Flips the card under the pointer; false if there is none to flip. */
   private flip(): boolean {
-    if (!this.hover || this.readOnly) return false;
-    const over = document.elementFromPoint(this.hover.clientX, this.hover.clientY);
-    if (over && !this.view.host.contains(over)) return false; // Over a panel.
+    if (!this.hover || this.readOnly || this.overPanel()) return false;
     const thing = this.thingAt(this.hover);
     const card = thing?.kind === "card" ? this.table?.cards[thing.id] : undefined;
     if (card?.place.in !== "table") return false;
@@ -614,7 +617,7 @@ export class Gestures {
 
   /** Closes in on the surface under the pointer, or back out if already in. */
   private zoomToPointer() {
-    const s = this.hover && this.table ? this.surfaceAt(this.hover) : null;
+    const s = this.hover && this.table && !this.overPanel() ? this.surfaceAt(this.hover) : null;
     this.view.camera.toggleZoomTo(s ? new Vector3(s.point.x, s.h, -s.point.y) : null);
   }
 
@@ -672,15 +675,18 @@ export class Gestures {
     if (key === "f" || key === "F") return void this.flip();
     // Ctrl, Alt and Cmd with a letter are the browser's.
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // A held P or Z repeats; each would toggle back.
+    if (e.repeat && (key === "p" || key === "P" || key === "z" || key === "Z")) return;
     if (key === "z" || key === "Z") return this.zoomToPointer();
     if (key === " ") {
+      if (this.rulerKey) return void e.preventDefault(); // About to measure; Space pins once the ruler is drawn.
       // Space on a focused button presses it; it is the camera's only while the table has focus.
       const focus = document.activeElement;
       if (focus && focus !== document.body && focus !== this.view.renderer.domElement) return;
       e.preventDefault();
     }
     if (key.startsWith("Arrow")) e.preventDefault();
-    this.view.camera.keyDown(key);
+    this.view.camera.keyDown(key, e.code);
   }
 
   private keyUp(e: KeyboardEvent) {
@@ -689,7 +695,7 @@ export class Gestures {
       this.ruler = null;
       this.redraw();
     }
-    this.view.camera.keyUp(e.key);
+    this.view.camera.keyUp(e.code);
   }
 
   dispose() {

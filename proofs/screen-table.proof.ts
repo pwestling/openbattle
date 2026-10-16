@@ -258,6 +258,17 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   }
   await page.keyboard.press("t");
   await changed();
+  // Looking straight down, the arrows turn about the middle of the view, which sliding would not:
+  // the Captain keeps its distance from the middle.
+  const middle = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  const fromMiddle = (p: { x: number; y: number }) => Math.hypot(p.x - middle.x, p.y - middle.y);
+  const before = seen.at(-1)!;
+  await page.keyboard.down("ArrowLeft");
+  await drawn(page);
+  await drawn(page);
+  await page.keyboard.up("ArrowLeft");
+  await changed();
+  expect(Math.abs(fromMiddle(seen.at(-1)!) - fromMiddle(before))).toBeLessThan(3);
   // Space goes back to your edge, as H does.
   await page.keyboard.press(" ");
   await drawn(page);
@@ -275,11 +286,14 @@ test("the ruler measures privately, and looking around sends nothing", async ({ 
   await changed();
   await page.keyboard.press("p");
   await there();
-  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 60);
+  // Z closes in on the spot under the pointer: pointing at the Captain brings it to the middle.
+  await page.mouse.move(home.x, home.y);
   await page.keyboard.press("z");
   await changed();
+  expect(fromMiddle(seen.at(-1)!)).toBeLessThan(fromMiddle(home) / 3);
   await page.keyboard.press("z");
   await there();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + box.height / 2 + 60);
   await page.mouse.down({ button: "middle" });
   await page.mouse.up({ button: "middle" });
   await changed();

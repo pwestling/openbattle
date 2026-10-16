@@ -78,6 +78,7 @@ export class Camera {
   }
 
   turn(dx: number, dy: number) {
+    if (dy) this.beforeTopDown = null;
     this.yaw -= dx * 0.006;
     this.pitch = MathUtils.clamp(this.pitch + dy * 0.006, 0.08, Math.PI / 2 - 0.0001);
     this.apply();
@@ -85,6 +86,7 @@ export class Camera {
 
   /** Slide by a screen-space amount, scaled to how far away the table is. */
   slide(dx: number, dy: number) {
+    this.beforeZoomIn = null;
     const k = this.distance * 0.0016;
     const right = new Vector3(Math.cos(this.yaw), 0, -Math.sin(this.yaw));
     const forward = new Vector3(-Math.sin(this.yaw), 0, -Math.cos(this.yaw));
@@ -93,21 +95,23 @@ export class Camera {
   }
 
   zoom(delta: number) {
+    this.beforeZoomIn = null;
     // No farthest zoom (ADR-020); H always brings the view home.
     this.distance = Math.max(3, this.distance * Math.exp(delta * 0.001));
     this.apply();
   }
 
-  keyDown(key: string) {
+  /** A key by what it types, and where it is: WASD go by place, so other layouts and Option still work. */
+  keyDown(key: string, code: string) {
     const k = key.length === 1 ? key.toLowerCase() : key;
     if (k === "t") this.topDown();
     else if (k === "p") this.toggleTopDown();
     else if (k === "h" || k === " ") this.home();
-    else if (held.has(k)) this.held.add(k);
+    else if (held.has(code)) this.held.add(code);
   }
 
-  keyUp(key: string) {
-    this.held.delete(key.length === 1 ? key.toLowerCase() : key);
+  keyUp(code: string) {
+    this.held.delete(code);
   }
 
   /** Forgets held keys, as when the window loses focus and their release goes unseen. */
@@ -118,10 +122,10 @@ export class Camera {
   /** Called every frame: slides while WASD are held, turns while the arrow keys are. */
   tick(seconds: number) {
     const s = 600 * seconds;
-    if (this.held.has("a")) this.slide(s, 0);
-    if (this.held.has("d")) this.slide(-s, 0);
-    if (this.held.has("w")) this.slide(0, s);
-    if (this.held.has("s")) this.slide(0, -s);
+    if (this.held.has("KeyA")) this.slide(s, 0);
+    if (this.held.has("KeyD")) this.slide(-s, 0);
+    if (this.held.has("KeyW")) this.slide(0, s);
+    if (this.held.has("KeyS")) this.slide(0, -s);
     const r = 250 * seconds;
     if (this.held.has("ArrowLeft")) this.turn(-r, 0);
     if (this.held.has("ArrowRight")) this.turn(r, 0);
@@ -165,4 +169,4 @@ export class Camera {
 }
 
 /** The keys that move the camera while held. */
-const held = new Set(["w", "a", "s", "d", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
+const held = new Set(["KeyW", "KeyA", "KeyS", "KeyD", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"]);
