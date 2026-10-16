@@ -241,6 +241,8 @@ function Controls() {
         <dd>Flip the card under the pointer.</dd>
         <dt>Escape</dt>
         <dd>Put back what you carry.</dd>
+        <dt>Ctrl-Z (Cmd-Z)</dt>
+        <dd>Undo your own latest action, as the log's Undo does.</dd>
       </dl>
     </details>
   );
