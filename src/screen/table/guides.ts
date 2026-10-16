@@ -33,7 +33,7 @@ export class Guides {
       // A pale line over a dark one, so it stands out on the felt, on terrain and against the sky alike.
       const flat = g.points.flatMap((p) => [p.x, p.h + 0.08, -p.y]);
       const { clientWidth, clientHeight } = this.view.host;
-      for (const [colour, width, order] of [["#1a1a1a", 8, 10], ["#fff2b0", 4, 11]] as const) {
+      for (const [colour, width, order] of [["#1a1a1a", 6, 10], ["#fff2b0", 3, 11]] as const) {
         const geometry = new LineGeometry();
         geometry.setPositions(flat);
         const material = new LineMaterial({ color: colour, linewidth: width, depthTest: false, transparent: true });
