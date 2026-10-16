@@ -142,10 +142,32 @@ test("locked terrain stays put for everyone until unlocked", async ({ page, brow
   await ben.getByRole("button", { name: "Unlock all", exact: true }).click();
   await expect(log(page).last()).toContainText("Ben unlocked Box");
   await expect(piece.getByRole("button", { name: "Lock", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await expect(bens.getByRole("button", { name: "Lock", exact: true })).toHaveAttribute("aria-pressed", "false");
   await dragBox(ben, box);
   await expect(log(page).last()).toContainText("Ben moved Box");
+
+  // Ben is carrying the Box when Ana locks it: it goes back, and letting go sends nothing.
+  await drawn(ben);
+  const moved = await centre(labels(ben, "Box"));
+  await ben.mouse.move(moved.x + 25, moved.y + 25);
+  await ben.mouse.down();
+  await ben.mouse.move(moved.x + 25 + 60, moved.y + 25, { steps: 6 });
+  const boxX = async () => (await centre(labels(ben, "Box"))).x;
+  await expect.poll(boxX).toBeGreaterThan(moved.x + 40);
   await page.getByRole("button", { name: "Lock all", exact: true }).click();
-  await expect(bens.getByRole("button", { name: "Unlock", exact: true })).toBeVisible();
+  await expect(bens.getByRole("button", { name: "Unlock", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(boxX).toBeLessThan(moved.x + 3);
+  await ben.mouse.move(moved.x + 25 + 120, moved.y + 25, { steps: 6 });
+  await ben.mouse.up();
+
+  // A lock is undone like any action.
+  await expect(log(page).last()).toContainText("Ana locked Box");
+  await page.getByRole("region", { name: "Log" }).getByRole("button", { name: "Undo" }).click();
+  await expect(log(page).last()).toContainText("Ana undid");
+  await expect(bens.getByRole("button", { name: "Lock", exact: true })).toHaveAttribute("aria-pressed", "false");
+  await ben.getByRole("button", { name: "Next round" }).click();
+  await expect(log(page).last()).toContainText("round 2");
+  await expect(log(page).filter({ hasText: "Ben moved Box" })).toHaveCount(1);
 });
 
 // Picking up, from the usual slanted view: pointing at a roof sets the model down on that roof,

@@ -193,7 +193,7 @@ export interface NewCard {
   picture?: Fingerprint;
 }
 
-/** The nineteen kinds of action (ADR-015). Adding a kind is an escalation. */
+/** The twenty kinds of action (ADR-015, ADR-024). Adding a kind is an escalation. */
 export type Action =
   | { kind: "join"; name: string; colour: string; publicKey: string }
   | { kind: "rename"; name: string; colour: string }

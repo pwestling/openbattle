@@ -110,6 +110,8 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "lock terrain", terrain: ["t1", "t2"], locked: true });
     take({ kind: "place terrain", terrain: { id: "t2", name: "Hill", shape: { kind: "mesh", mesh: "ab12", width: 8, depth: 8, height: 2 }, position: { x: 31, y: 10 }, facing: 45, floors: [] } }, bo);
     take({ kind: "lock terrain", terrain: ["t1"], locked: false }, bo);
+    // Nor can a lock be forged by placing a piece with one.
+    take({ kind: "place terrain", terrain: { ...ruin, locked: true } }, bo);
     const ruinUnlocked = r.tableAt(log).terrain.t1;
     take({ kind: "move", moves: [{ model: "m1", position: { x: 20, y: 15 }, facing: 90, floor: { terrain: "t1", floor: 0 }, path: [] }] });
     const onRuin = r.tableAt(log).models.m1?.floor;
@@ -207,6 +209,12 @@ test("check says in plain words why an action can't be taken, and append refuses
       twiceJoined: p({ kind: "join", name: "Ann again", colour: "#000", publicKey: annKey }),
       unknownKind: p({ kind: "teleport" }),
       lockNothing: p({ kind: "lock terrain", terrain: ["t9"], locked: true }),
+      lockNone: p({ kind: "lock terrain", terrain: [], locked: true }),
+      lockTwice: (() => {
+        const placed = r.append(log, { kind: "place terrain", terrain: { id: "t1", name: "Ruin", shape: { kind: "box", width: 6, depth: 6, height: 3 }, position: { x: 20, y: 15 }, facing: 0, floors: [] } }, ann);
+        const q = (action: unknown) => r.check(placed, action as Parameters<RecordModule["check"]>[1], ann)?.problem ?? null;
+        return { twice: q({ kind: "lock terrain", terrain: ["t1", "t1"], locked: true }), maybe: q({ kind: "lock terrain", terrain: ["t1"], locked: "yes" }), fine: q({ kind: "lock terrain", terrain: ["t1"], locked: false }) };
+      })(),
       malformed: p({ kind: "move" }),
       tooManyDice: p({ kind: "roll", dice: 1025, sides: 6, seal: "", hostValue: "", guestValue: "" }),
       oneSided: p({ kind: "roll", dice: 1, sides: 1, seal: "", hostValue: "", guestValue: "" }),
@@ -223,6 +231,10 @@ test("check says in plain words why an action can't be taken, and append refuses
   });
   expect(seen.fine).toBeNull();
   expect(seen.lockNothing).toBe('There is no terrain piece "t9".');
+  expect(seen.lockNone).toBe("Lock or unlock at least one terrain piece.");
+  expect(seen.lockTwice.twice).toMatch(/t1/);
+  expect(seen.lockTwice.maybe).toBe("Terrain must be locked or unlocked.");
+  expect(seen.lockTwice.fine).toBeNull();
   expect(seen.missingModel).toBe('There is no model "nobody".');
   expect(seen.thrown).toBe('There is no model "nobody".');
   expect(seen.infinite).toBe('Model "m1"\'s position must be a point with finite x and y.');

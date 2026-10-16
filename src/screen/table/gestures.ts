@@ -174,6 +174,11 @@ export class Gestures {
     // Read-only now, or something carried was taken off the table or locked by someone else: put it all back.
     const gone = (id: string) => (!(table.models[id] && !table.models[id].aside) && !table.terrain[id]) || table.terrain[id]?.locked;
     if (this.carry && (readOnly || this.carry.ids.some(gone))) this.cancelCarry();
+    // A piece locked while pressed on, before it was lifted, is no longer there to lift or select.
+    const pressed = this.press?.thing;
+    if (pressed?.kind === "terrain" && table.terrain[pressed.id]?.locked) this.press!.thing = null;
+    // Nor is a newly locked piece's label shown.
+    if (table.terrain[this.pieces.pointedAt ?? ""]?.locked) this.pieces.hover(null);
     this.redraw();
   }
 

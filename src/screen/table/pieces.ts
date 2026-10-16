@@ -153,6 +153,11 @@ export class Pieces {
     return null;
   }
 
+  /** The piece the pointer is over, if any. */
+  get pointedAt(): string | null {
+    return this.hovered;
+  }
+
   /** The piece the pointer is over, whose label shows once the pointer has rested there a moment. */
   hover(id: string | null) {
     if (id === this.hovered) return;
