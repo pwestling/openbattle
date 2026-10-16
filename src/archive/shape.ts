@@ -11,8 +11,11 @@ export function isSaved(value: unknown): value is Saved {
 
 export function isLog(value: unknown): value is Log {
   if (typeof value !== "object" || value === null) return false;
-  const { size, entries } = value as Partial<Log>;
+  const { size, link, host, copied, entries } = value as Partial<Log>;
   return (
+    typeof link === "string" &&
+    typeof host === "string" &&
+    Number.isInteger(copied) &&
     typeof size === "object" &&
     size !== null &&
     typeof size.width === "number" &&

@@ -127,6 +127,9 @@ class FakeSession implements Session {
       table: record.tableAt(this.log),
       connection: knobs.connection,
       disagreement: knobs.disagreement,
+      badSignatures: [],
+      aloneWhileHere: [],
+      unusedValues: [],
       kept: this.kept,
     };
   }

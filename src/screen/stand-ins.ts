@@ -11,7 +11,14 @@ import { fakeEnter, fakeOpen } from "./fake/session.ts";
 /** Only Session's own stub: a stub further down (Link's, say) must not switch the screen to the fake. */
 const notBuilt = (e: unknown) => e instanceof Error && e.message.startsWith("session.") && e.message.endsWith("is not built yet");
 
+/**
+ * The screen stays on the fake until it is wired to the real Session and its proofs are moved to
+ * real browsers; until then the real Session is proven on its own (proofs/session.proof.ts).
+ */
+const wired = false;
+
 async function orFake<T>(real: () => Promise<T>, fake: () => T | Promise<T>): Promise<T> {
+  if (!wired) return fake();
   try {
     return await real();
   } catch (e) {

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Drift report</title>
 <meta name="pdd-level" content="3">
-<meta name="pdd-derived" content="2026-10-16T00:31Z">
+<meta name="pdd-derived" content="2026-10-16T00:32Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
   <header>
     <nav><a rel="up" href="index.html">OpenBattle design</a> · Projection, regenerated</nav>
     <h1>Drift report</h1>
-    <p>Generated 2026-10-16T00:31Z.</p>
+    <p>Generated 2026-10-16T00:32Z.</p>
   </header>
   <p>What the code does that the design does not say, found by the latest upward pass.</p>
 <section data-node="surfaces/record">
@@ -22,17 +22,23 @@
     <li>A shuffled draw picks cards by their place in the deck's current order, and that order isn't signed. A host that knows both values can first log a <code>move card</code> into the deck to choose which cards come up. <ins>Proposed fix, for Porter: the other player also signs a fingerprint of the deck's cards in their current order, and every browser checks it against the deck as it stood just before the draw.</ins> This needs Session to send the fingerprint with the seal, and the record to carry it in the draw.</li>
   </ul>
 </section>
-<section data-node="surfaces/session">
-  <h2><a href="surfaces/session.html">Session surface</a></h2>
+<section data-node="surfaces/screen">
+  <h2><a href="surfaces/screen.html">Screen surface</a></h2>
   <ul>
-    <li>Rolling alone (<a href="decisions/ADR-023.html">ADR-023</a>) is not on the surface yet. The record lets the host take a roll or draw alone at any time, because who is connected is not in the log. So Session must keep it fair: <ins>the host goes alone only with nobody else connected; a connected player's browser flags an alone roll or draw that arrives while it is there; a player whose signed value never reaches the log is told so.</ins> Proposed, for Porter. Session's roll line still says a missing signature is logged as tampered, but the record refuses it.</li>
-    <li>A saved game opened again copies its entries without checking their signatures, so a hand-edited file could turn a roll taken alone into one that looks fair. Porter, 2026-10-15: not to be solved now; one possible fix is for Session to check the guest signature on copied entries too, or mark them as unchecked.</li>
+    <li>The screen doesn't yet warn a player of what Session flags (<a href="decisions/ADR-023.html">ADR-023</a>): a roll or draw the host took alone while they were connected, or a value they signed that the host never logged (the snapshot's <code>aloneWhileHere</code> and <code>unusedValues</code>).</li>
   </ul>
 </section>
 <section data-node="surfaces/screen">
   <h2><a href="surfaces/screen.html">Screen surface</a></h2>
   <ul>
-    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted.</li>
+    <li>Proofs: everything that needs two browsers is so far shown against a one-browser stand-in session, not proven (ADR-018): joining and seeing the same table, everyone seeing a roll, others seeing card backs, the host being away, tampering, the camera and ruler being private, and a mesh file arriving from another browser. These proofs get rewritten against the real Session when it lands, and the stand-in (including <code>window.openbattleFake</code>, which ships in the build until then) is deleted. Session has now landed on its branch, but 16 of the screen's 31 proofs depend on the stand-in, so the screen still uses it (<code>src/screen/stand-ins.ts</code>, <code>wired = false</code>) until those proofs are moved to real browsers. Until then, proof 1 (two browsers, one model moved, both see it) is proven at the Session's face from a proof page, not through the screen as a person would play.</li>
+  </ul>
+</section>
+<section data-node="surfaces/session">
+  <h2><a href="surfaces/session.html">Session surface</a></h2>
+  <ul>
+    <li><code>addFile</code> keeps the file and sends its bytes to every browser, including later arrivals (<code>src/session/game.ts</code>), but <del>simplifies a mesh over 100,000 triangles</del>, <del>reads STL as millimetres</del> and <del>sends only a link, letting each browser download it</del> are not built yet: a linked file is downloaded and its bytes sent instead, and the 512 MB cap is not enforced.</li>
+    <li>The snapshot doesn't say when another tab of this browser has taken the game over, so an old tab can't show itself as read-only (<a href="decisions/ADR-022.html">ADR-022</a>); its actions are refused.</li>
   </ul>
 </section>
 </main>
