@@ -50,7 +50,7 @@ export type Select = (ids: string[]) => void;
 
 export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandDrop | null>; selectRef: RefObject<Select | null> }) {
   const play = usePlay();
-  const { table, me, readOnly, lockedTerrain } = play;
+  const { table, me, readOnly } = play;
   const host = useRef<HTMLDivElement>(null);
   const parts = useRef<{ view: TableView; gestures: Gestures } | null>(null);
   const playRef = useRef(play);
@@ -99,10 +99,6 @@ export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandD
     p.view.camera.setEdge(edgeOf(table, me));
     p.gestures.setTable(table, me, readOnly, turnOrigins(play));
   }, [play, width, depth]);
-
-  useEffect(() => {
-    parts.current?.gestures.setLocked(lockedTerrain);
-  }, [lockedTerrain, width, depth]);
 
   return <div className="table" ref={host} />;
 }

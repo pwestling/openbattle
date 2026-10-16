@@ -48,6 +48,8 @@ export interface Terrain {
   /** Degrees, clockwise from facing +y. */
   facing: number;
   floors: Floor[];
+  /** Locked by a player, so nobody picks it up or selects it on the table. Kept when the piece is placed again. */
+  locked?: boolean;
 }
 
 export interface Base {
@@ -191,12 +193,13 @@ export interface NewCard {
   picture?: Fingerprint;
 }
 
-/** The nineteen kinds of action (ADR-015). Adding a kind is an escalation. */
+/** The twenty kinds of action (ADR-015, ADR-024). Adding a kind is an escalation. */
 export type Action =
   | { kind: "join"; name: string; colour: string; publicKey: string }
   | { kind: "rename"; name: string; colour: string }
   | { kind: "place terrain"; terrain: Terrain }
   | { kind: "remove terrain"; terrain: TerrainId }
+  | { kind: "lock terrain"; terrain: TerrainId[]; locked: boolean }
   | {
       kind: "add to army";
       units: { id: UnitId; name: string }[];

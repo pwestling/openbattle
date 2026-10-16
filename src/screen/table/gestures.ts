@@ -109,7 +109,6 @@ export class Gestures {
   private table: Table | null = null;
   private readOnly = true;
   private selected = new Set<string>();
-  private locked: ReadonlySet<string> = new Set();
   /** Where models that have moved this turn began it. */
   private origins: ReadonlyMap<string, Origin> = new Map();
   private carried = new Map<string, Place>();
@@ -160,14 +159,7 @@ export class Gestures {
 
   /** Selects these models or terrain pieces, as a click on them would. */
   select(ids: string[]) {
-    this.selected = new Set(ids.filter((id) => !this.locked.has(id)));
-    this.redraw();
-  }
-
-  /** Terrain pieces that can't be picked up or selected. */
-  setLocked(locked: ReadonlySet<string>) {
-    this.locked = locked;
-    for (const id of locked) this.selected.delete(id);
+    this.selected = new Set(ids.filter((id) => !this.table?.terrain[id]?.locked));
     this.redraw();
   }
 
@@ -177,10 +169,16 @@ export class Gestures {
     this.table = table;
     this.me = me;
     this.readOnly = readOnly;
-    for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
-    // Read-only now, or something carried was taken off the table by someone else: put it all back.
-    if (this.carry && (readOnly || this.carry.ids.some((id) => !(table.models[id] && !table.models[id].aside) && !table.terrain[id])))
-      this.cancelCarry();
+    for (const id of this.selected)
+      if (table.terrain[id]?.locked || (!table.terrain[id] && (!table.models[id] || table.models[id].aside))) this.selected.delete(id);
+    // Read-only now, or something carried was taken off the table or locked by someone else: put it all back.
+    const gone = (id: string) => (!(table.models[id] && !table.models[id].aside) && !table.terrain[id]) || table.terrain[id]?.locked;
+    if (this.carry && (readOnly || this.carry.ids.some(gone))) this.cancelCarry();
+    // A piece locked while pressed on, before it was lifted, is no longer there to lift or select.
+    const pressed = this.press?.thing;
+    if (pressed?.kind === "terrain" && table.terrain[pressed.id]?.locked) this.press!.thing = null;
+    // Nor is a newly locked piece's label shown.
+    if (table.terrain[this.pieces.pointedAt ?? ""]?.locked) this.pieces.hover(null);
     this.redraw();
   }
 
@@ -210,7 +208,7 @@ export class Gestures {
     const hits = this.raycaster
       .intersectObjects([...this.pieces.objects(), ...this.cards.objects()], true)
       .map((h) => Pieces.pieceOf(h.object))
-      .filter((h): h is Thing => !!h && h.id !== except && !(h.kind === "terrain" && this.locked.has(h.id)));
+      .filter((h): h is Thing => !!h && h.id !== except && !(h.kind === "terrain" && this.table?.terrain[h.id]?.locked));
     for (const kind of ["model", "card", "deck", "discard", "terrain"]) {
       const hit = hits.find((h) => h.kind === kind);
       if (hit) return hit;

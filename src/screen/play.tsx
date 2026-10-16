@@ -19,14 +19,6 @@ export interface Play {
   note(text: string): void;
   /** Selects these models or terrain pieces on the table. */
   select(ids: string[]): void;
-  /**
-   * Terrain pieces this browser has locked: they can't be picked up or selected on the table. Yours alone.
-   * TODO: locking should be an action in the record, so everyone sees it and it survives a reload. This is a
-   * stand-in kept in Game's state. Needs a design pass first (concept, record surface), then check/fold/words,
-   * then drop lockTerrain here and the gestures' setLocked in favour of table.terrain[id].locked, plus proofs.
-   */
-  lockedTerrain: ReadonlySet<string>;
-  lockTerrain(ids: string[], locked: boolean): void;
   /** A fresh id for something this player creates. */
   newId(): string;
 }

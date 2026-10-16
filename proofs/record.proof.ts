@@ -106,6 +106,13 @@ test("every kind of action changes the table as the Record surface says", async 
     const ruin = { id: "t1", name: "Ruin", shape: { kind: "box" as const, width: 6, depth: 6, height: 3 }, position: { x: 20, y: 15 }, facing: 0, floors };
     take({ kind: "place terrain", terrain: ruin }, bo);
     take({ kind: "place terrain", terrain: { id: "t2", name: "Hill", shape: { kind: "mesh", mesh: "ab12", width: 8, depth: 8, height: 2 }, position: { x: 30, y: 10 }, facing: 45, floors: [] } }, bo);
+    // A locked piece placed again, as when it is resized, stays locked.
+    take({ kind: "lock terrain", terrain: ["t1", "t2"], locked: true });
+    take({ kind: "place terrain", terrain: { id: "t2", name: "Hill", shape: { kind: "mesh", mesh: "ab12", width: 8, depth: 8, height: 2 }, position: { x: 31, y: 10 }, facing: 45, floors: [] } }, bo);
+    take({ kind: "lock terrain", terrain: ["t1"], locked: false }, bo);
+    // Nor can a lock be forged by placing a piece with one.
+    take({ kind: "place terrain", terrain: { ...ruin, locked: true } }, bo);
+    const ruinUnlocked = r.tableAt(log).terrain.t1;
     take({ kind: "move", moves: [{ model: "m1", position: { x: 20, y: 15 }, facing: 90, floor: { terrain: "t1", floor: 0 }, path: [] }] });
     const onRuin = r.tableAt(log).models.m1?.floor;
     take({ kind: "remove terrain", terrain: "t1" }, bo);
@@ -141,7 +148,7 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "move card", card: "c3", to: { in: "discard", deck: "d1" } }, bo);
     take({ kind: "move card", card: "c4", to: { in: "hand", player: bo } }, bo);
     take({ kind: "shuffle", deck: "d1" }, bo);
-    return { table: r.tableAt(log), onRuin, afterRemove, aside, grouped, reordered };
+    return { table: r.tableAt(log), onRuin, afterRemove, aside, grouped, reordered, ruinUnlocked };
   });
   // Renaming keeps the key the player joined with.
   expect(t.table.players[ann]).toEqual({ id: ann, name: "Annie", colour: "#a00", publicKey: annKey });
@@ -151,6 +158,9 @@ test("every kind of action changes the table as the Record surface says", async 
   expect(t.afterRemove.models.m1?.floor).toBeNull();
   expect(t.afterRemove.models.m1?.position).toEqual({ x: 20, y: 15 });
   expect(t.table.terrain.t2?.shape).toEqual({ kind: "mesh", mesh: "ab12", width: 8, depth: 8, height: 2 });
+  // Anyone may lock or unlock terrain; placing a piece again keeps its lock.
+  expect(t.table.terrain.t2).toMatchObject({ locked: true, position: { x: 31, y: 10 } });
+  expect(t.ruinUnlocked?.locked).toBeUndefined();
   expect(t.table.models.m3).toMatchObject({ unit: "u1", mesh: "cd34", base: { shape: "oval", width: 60, depth: 35 } });
   expect(t.table.units.u2?.owner).toBe(bo);
   expect(t.aside?.aside).toBe(true);
@@ -198,6 +208,13 @@ test("check says in plain words why an action can't be taken, and append refuses
       stranger: p({ kind: "phase", phase: { round: 1, turn: null, name: "Setup" } }, "eve"),
       twiceJoined: p({ kind: "join", name: "Ann again", colour: "#000", publicKey: annKey }),
       unknownKind: p({ kind: "teleport" }),
+      lockNothing: p({ kind: "lock terrain", terrain: ["t9"], locked: true }),
+      lockNone: p({ kind: "lock terrain", terrain: [], locked: true }),
+      lockTwice: (() => {
+        const placed = r.append(log, { kind: "place terrain", terrain: { id: "t1", name: "Ruin", shape: { kind: "box", width: 6, depth: 6, height: 3 }, position: { x: 20, y: 15 }, facing: 0, floors: [] } }, ann);
+        const q = (action: unknown) => r.check(placed, action as Parameters<RecordModule["check"]>[1], ann)?.problem ?? null;
+        return { twice: q({ kind: "lock terrain", terrain: ["t1", "t1"], locked: true }), maybe: q({ kind: "lock terrain", terrain: ["t1"], locked: "yes" }), fine: q({ kind: "lock terrain", terrain: ["t1"], locked: false }) };
+      })(),
       malformed: p({ kind: "move" }),
       tooManyDice: p({ kind: "roll", dice: 1025, sides: 6, seal: "", hostValue: "", guestValue: "" }),
       oneSided: p({ kind: "roll", dice: 1, sides: 1, seal: "", hostValue: "", guestValue: "" }),
@@ -213,6 +230,11 @@ test("check says in plain words why an action can't be taken, and append refuses
     };
   });
   expect(seen.fine).toBeNull();
+  expect(seen.lockNothing).toBe('There is no terrain piece "t9".');
+  expect(seen.lockNone).toBe("Lock or unlock at least one terrain piece.");
+  expect(seen.lockTwice.twice).toMatch(/t1/);
+  expect(seen.lockTwice.maybe).toBe("Terrain must be locked or unlocked.");
+  expect(seen.lockTwice.fine).toBeNull();
   expect(seen.missingModel).toBe('There is no model "nobody".');
   expect(seen.thrown).toBe('There is no model "nobody".');
   expect(seen.infinite).toBe('Model "m1"\'s position must be a point with finite x and y.');

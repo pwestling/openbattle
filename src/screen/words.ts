@@ -75,6 +75,8 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
     }
     case "remove terrain":
       return `${who} removed ${name(a.terrain)}`;
+    case "lock terrain":
+      return `${who} ${a.locked ? "locked" : "unlocked"} ${list(a.terrain.map(name))}`;
     case "add to army": {
       const parts = new Map<string, number>();
       for (const m of a.models) parts.set(m.unit, (parts.get(m.unit) ?? 0) + 1);

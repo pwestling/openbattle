@@ -20,7 +20,6 @@ export function Game({ session }: { session: Session }) {
   const [notes, setNotes] = useState<{ id: number; text: string }[]>([]);
   const [logOpen, setLogOpen] = useState(false);
   const [armyOpen, setArmyOpen] = useState(false);
-  const [locked, setLocked] = useState<ReadonlySet<string>>(new Set());
   const selectRef = useRef<Select | null>(null);
   const handDrop = useRef<HandDrop | null>(null);
   useEffect(() => session.watch(setNow), [session]);
@@ -54,16 +53,9 @@ export function Game({ session }: { session: Session }) {
       },
       note,
       select: (ids) => selectRef.current?.(ids),
-      lockedTerrain: locked,
-      lockTerrain: (ids, lock) =>
-        setLocked((was) => {
-          const next = new Set(was);
-          for (const id of ids) lock ? next.add(id) : next.delete(id);
-          return next;
-        }),
       newId: () => `${me ?? "x"}-${crypto.randomUUID().slice(0, 8)}`,
     };
-  }, [now, lookingAt, session, note, locked]);
+  }, [now, lookingAt, session, note]);
 
   if (!play || !now) return <main className="game" aria-busy="true" />;
   return (
