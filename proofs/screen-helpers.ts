@@ -11,6 +11,14 @@ export async function newGame(page: Page, name = "Ana", size?: { width: number; 
   }
   await page.getByRole("button", { name: "New game" }).click();
   await expect(page.getByLabel("The table")).toBeVisible();
+  await openLog(page);
+}
+
+/** Opens the log, which starts closed; does nothing if it is already open. */
+export async function openLog(page: Page) {
+  const button = page.getByRole("button", { name: "Log", exact: true });
+  if ((await button.getAttribute("aria-pressed")) !== "true") await button.click();
+  await expect(page.getByRole("region", { name: "Log" })).toBeVisible();
 }
 
 /** The labels drawn over the table whose text is exactly this. */
@@ -42,6 +50,7 @@ export async function joinGame(browser: Browser, link: string, name: string, col
   await page.getByRole("button", { name: `Colour ${colour}` }).click();
   await page.getByRole("button", { name: "Join" }).click();
   await expect(page.getByLabel("The table")).toBeVisible();
+  await openLog(page);
   return page;
 }
 

@@ -100,6 +100,7 @@ export class Gestures {
   private colour = "#e2b04a";
   private lastMove: Guide[] = [];
   private selected = new Set<string>();
+  private locked: ReadonlySet<string> = new Set();
   private carried = new Map<string, Place>();
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
@@ -146,6 +147,19 @@ export class Gestures {
     });
   }
 
+  /** Selects these models or terrain pieces, as a click on them would. */
+  select(ids: string[]) {
+    this.selected = new Set(ids.filter((id) => !this.locked.has(id)));
+    this.redraw();
+  }
+
+  /** Terrain pieces that can't be picked up or selected. */
+  setLocked(locked: ReadonlySet<string>) {
+    this.locked = locked;
+    for (const id of locked) this.selected.delete(id);
+    this.redraw();
+  }
+
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
   setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[]) {
     this.table = table;
@@ -190,7 +204,7 @@ export class Gestures {
     const hits = this.raycaster
       .intersectObjects([...this.pieces.objects(), ...this.cards.objects()], true)
       .map((h) => Pieces.pieceOf(h.object))
-      .filter((h): h is Thing => !!h && h.id !== except);
+      .filter((h): h is Thing => !!h && h.id !== except && !(h.kind === "terrain" && this.locked.has(h.id)));
     for (const kind of ["model", "card", "deck", "discard", "terrain"]) {
       const hit = hits.find((h) => h.kind === kind);
       if (hit) return hit;

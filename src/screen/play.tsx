@@ -17,6 +17,11 @@ export interface Play {
   /** Sends an action; on refusal shows a short note saying why and resolves false. */
   act(action: Action): Promise<boolean>;
   note(text: string): void;
+  /** Selects these models or terrain pieces on the table. */
+  select(ids: string[]): void;
+  /** Terrain pieces this browser has locked: they can't be picked up or selected on the table. Yours alone. */
+  lockedTerrain: ReadonlySet<string>;
+  lockTerrain(ids: string[], locked: boolean): void;
   /** A fresh id for something this player creates. */
   newId(): string;
 }

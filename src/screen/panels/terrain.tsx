@@ -32,7 +32,7 @@ function SizeFields({ size, setSize }: { size: Size; setSize: (s: Size) => void 
 }
 
 export function TerrainPanel() {
-  const { table, act, readOnly, newId, session, note } = usePlay();
+  const { table, act, readOnly, newId, session, note, lockTerrain } = usePlay();
   const [kind, setKind] = useState<"box" | "cylinder" | "ramp">("box");
   const [size, setSize] = useState<Size>({ width: 6, depth: 6, height: 3 });
   const [busy, setBusy] = useState(false);
@@ -98,6 +98,12 @@ export function TerrainPanel() {
           <p className="muted">Drag a piece on the table to move it; Q and E turn it while carried.</p>
         </>
       )}
+      {Object.keys(table.terrain).length > 0 && (
+        <p>
+          <button onClick={() => lockTerrain(Object.keys(table.terrain), true)}>Lock all</button>{" "}
+          <button onClick={() => lockTerrain(Object.keys(table.terrain), false)}>Unlock all</button>
+        </p>
+      )}
       {Object.values(table.terrain).map((t) => (
         <Piece key={t.id} terrain={t} />
       ))}
@@ -106,7 +112,8 @@ export function TerrainPanel() {
 }
 
 function Piece({ terrain }: { terrain: Terrain }) {
-  const { act, readOnly } = usePlay();
+  const { act, readOnly, lockedTerrain, lockTerrain } = usePlay();
+  const locked = lockedTerrain.has(terrain.id);
   const [size, setSize] = useState<Size>({ width: terrain.shape.width, depth: terrain.shape.depth, height: terrain.shape.height });
   const changed = (["width", "depth", "height"] as const).some((k) => size[k] !== terrain.shape[k]);
   return (
@@ -116,6 +123,9 @@ function Piece({ terrain }: { terrain: Terrain }) {
         <span className="muted">
           {terrain.shape.kind}, {terrain.floors.length === 1 ? "1 floor" : `${terrain.floors.length} floors`}
         </span>
+        <button aria-pressed={locked} title="A locked piece can't be picked up or selected on the table. Only you see it locked." onClick={() => lockTerrain([terrain.id], !locked)}>
+          {locked ? "Unlock" : "Lock"}
+        </button>
         {!readOnly && <button onClick={() => void act({ kind: "remove terrain", terrain: terrain.id })}>Remove</button>}
       </header>
       {!readOnly && (

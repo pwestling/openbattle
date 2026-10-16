@@ -17,9 +17,12 @@ function lastMove(play: Play): string[] {
   return entry?.action.kind === "move" ? entry.action.moves.map((m) => m.model) : [];
 }
 
-export function TableCanvas({ handDrop }: { handDrop: RefObject<HandDrop | null> }) {
+/** Lets the panels select things on the table. */
+export type Select = (ids: string[]) => void;
+
+export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandDrop | null>; selectRef: RefObject<Select | null> }) {
   const play = usePlay();
-  const { table, me, readOnly } = play;
+  const { table, me, readOnly, lockedTerrain } = play;
   const host = useRef<HTMLDivElement>(null);
   const parts = useRef<{ view: TableView; gestures: Gestures } | null>(null);
   const playRef = useRef(play);
@@ -41,6 +44,7 @@ export function TableCanvas({ handDrop }: { handDrop: RefObject<HandDrop | null>
       },
     });
     parts.current = { view, gestures };
+    selectRef.current = (ids) => gestures.select(ids);
     handDrop.current = (card, x, y, bottom) => {
       const target = gestures.targetAt(x, y);
       if (!target || target.into === "hand") return;
@@ -52,6 +56,7 @@ export function TableCanvas({ handDrop }: { handDrop: RefObject<HandDrop | null>
     };
     return () => {
       handDrop.current = null;
+      selectRef.current = null;
       gestures.dispose();
       cards.dispose();
       pieces.dispose();
@@ -66,6 +71,10 @@ export function TableCanvas({ handDrop }: { handDrop: RefObject<HandDrop | null>
     p.view.camera.setEdge(edgeOf(table, me));
     p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", lastMove(play));
   }, [play, width, depth]);
+
+  useEffect(() => {
+    parts.current?.gestures.setLocked(lockedTerrain);
+  }, [lockedTerrain, width, depth]);
 
   return <div className="table" ref={host} />;
 }

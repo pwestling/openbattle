@@ -1,22 +1,29 @@
 // The log: every action as a sentence, a slider to look back, and undo beside your own latest action.
 import { useEffect, useMemo, useRef } from "react";
+import type { Snapshot } from "../../session/index.ts";
 import { usePlay } from "../play.tsx";
 import { namesIn, sentence } from "../words.ts";
 
-export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; lookAt: (n: number | null) => void }) {
-  const { now, me, act } = usePlay();
-  const log = now.log;
-  const names = useMemo(() => namesIn(log), [log]);
+/** The number of the latest action if `me` may undo it now, else undefined. */
+export function undoableBy(now: Snapshot, me: string | null): number | undefined {
   const cancelled = new Set(now.table.cancelled);
   // Undo cancels the latest uncancelled action, and only its taker may undo it.
-  const latest = log.entries.findLast((e) => e.action.kind !== "undo" && !cancelled.has(e.n));
+  const latest = now.log.entries.findLast((e) => e.action.kind !== "undo" && !cancelled.has(e.n));
   // The record never undoes a roll or a shuffled draw; a join it would, but leaving is not an undo.
   const undoable =
     latest &&
     latest.action.kind !== "join" &&
     latest.action.kind !== "roll" &&
     !(latest.action.kind === "draw" && "seal" in latest.action);
-  const latestOwn = undoable && latest.by === me ? latest.n : undefined;
+  return undoable && latest.by === me ? latest.n : undefined;
+}
+
+export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; lookAt: (n: number | null) => void }) {
+  const { now, me, act } = usePlay();
+  const log = now.log;
+  const names = useMemo(() => namesIn(log), [log]);
+  const cancelled = new Set(now.table.cancelled);
+  const latestOwn = undoableBy(now, me);
   const end = useRef<HTMLLIElement>(null);
   // Braced: scrollIntoView returns a promise in newer browsers, and an effect may only return a clean-up.
   useEffect(() => {

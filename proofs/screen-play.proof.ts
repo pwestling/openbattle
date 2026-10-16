@@ -208,3 +208,17 @@ test("a model's label shows on mouse over and while selected", async ({ page }) 
   await page.mouse.move(5, 300);
   await expect(shown).toHaveText(["Captain"]);
 });
+
+// The log is something you open, and Ctrl-Z undoes your own latest action like its Undo button.
+test("the log starts closed, and Ctrl-Z undoes your latest action", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Your name").fill("Ana");
+  await page.getByRole("button", { name: "New game" }).click();
+  await expect(page.getByLabel("The table")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Log" })).toHaveCount(0);
+  await addList(page, "Captain 40mm");
+  await page.getByLabel("The table").focus();
+  await page.keyboard.press("ControlOrMeta+z");
+  await page.getByRole("button", { name: "Log", exact: true }).click();
+  await expect(log(page).last()).toContainText("Ana undid");
+});
