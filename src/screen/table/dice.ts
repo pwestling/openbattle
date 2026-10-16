@@ -30,6 +30,16 @@ const normals = [
   new Vector3(0, 0, -1),
 ];
 
+/** Which way each box face's picture points, as three.js maps it: its own "up" on the face. */
+const faceUps = [
+  new Vector3(0, 1, 0),
+  new Vector3(0, 1, 0),
+  new Vector3(0, 0, -1),
+  new Vector3(0, 0, 1),
+  new Vector3(0, 1, 0),
+  new Vector3(0, 1, 0),
+];
+
 function faceTexture(value: number, colour: string, ink: string): CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 64;
@@ -54,6 +64,8 @@ interface Die {
   line: Vector3;
   spin: Quaternion;
   rest: Quaternion;
+  /** Lying as it does in the line: the result up, and its number upright for someone looking down at the tray. */
+  upright: Quaternion;
 }
 
 const THROW = 1.1;
@@ -150,6 +162,12 @@ export class DiceTray {
       const rest = new Quaternion()
         .setFromAxisAngle(new Vector3(0, 1, 0), (Math.random() - 0.5) * 1.2)
         .multiply(new Quaternion().setFromUnitVectors(normals[up]!, new Vector3(0, 1, 0)));
+      // Turned about the vertical until the number's top points away from the viewer.
+      const turned = faceUps[up]!.clone().applyQuaternion(new Quaternion().setFromUnitVectors(normals[up]!, new Vector3(0, 1, 0)));
+      const twist = Math.atan2(turned.z, turned.x) - Math.atan2(-1, 0);
+      const upright = new Quaternion()
+        .setFromAxisAngle(new Vector3(0, 1, 0), twist)
+        .multiply(new Quaternion().setFromUnitVectors(normals[up]!, new Vector3(0, 1, 0)));
       const slot = slots.get(value)!.shift()!;
       const row = Math.floor(slot / perRow);
       const inRow = Math.min(perRow, n - row * perRow);
@@ -159,7 +177,7 @@ export class DiceTray {
       const spin = new Quaternion().setFromEuler(new Euler(Math.random() * 9, Math.random() * 9, Math.random() * 9));
       mesh.position.copy(from);
       this.scene.add(mesh);
-      this.dice.push({ mesh, from, land, line, spin, rest });
+      this.dice.push({ mesh, from, land, line, spin, rest, upright });
     });
   }
 
@@ -178,7 +196,8 @@ export class DiceTray {
       } else {
         const k = Math.min(1, (this.clock - THROW) / LINE_UP);
         d.mesh.position.lerpVectors(d.land, d.line, k * k * (3 - 2 * k));
-        d.mesh.quaternion.copy(d.rest);
+        // Lining up, each die also turns to sit square and upright.
+        d.mesh.quaternion.slerpQuaternions(d.rest, d.upright, k * k * (3 - 2 * k));
       }
     }
     if (this.clock > THROW + LINE_UP && this.done) {
