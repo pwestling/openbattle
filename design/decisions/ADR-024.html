@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-024: Locked terrain is locked for everyone — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-16T16:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-024">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-024: Locked terrain is locked for everyone</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Asked for by Porter on 2026-10-16: "locked terrain should be locked for everyone. If that requires a new Action that's fine".</dd>
+    <dt>Context</dt><dd>Porter's prototype let a player lock a <a href="../concepts/terrain.html">terrain</a> piece so it can't be picked up while models are moved over it, but only in their own browser: others could still move it, and a reload forgot it.</dd>
+    <dt>Decision</dt><dd>A new kind of action, lock terrain, locks or unlocks pieces for everyone. Any player may lock or unlock any piece. The lock is part of the piece on the table and is kept when the piece is placed again. The record does not refuse moving a locked piece; the screen keeps it from being picked up or selected on the table.</dd>
+    <dt>Because</dt><dd>Everyone sees exactly the same table, so a lock one player sees and another doesn't breaks the game's first promise. As an action it is in the log, survives a reload and a saved file, and can be undone.</dd>
+    <dt>Rejected</dt><dd>A lock kept by each browser: players disagree about what can move. A <a href="../concepts/mark.html">mark</a> named "locked": marks are rules state on units and the screen would have to know one mark's name. The record refusing to move a locked piece: resizing or removing it from the Terrain panel is deliberate and should still work.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/terrain.html">Terrain</a>, <a href="../surfaces/record.html">Record surface</a>, <a href="../surfaces/screen.html">Screen surface</a>, <a href="ADR-015.html">ADR-015</a></dd>
+  </dl>
+</article>
+</body>
+</html>

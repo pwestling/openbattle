@@ -86,9 +86,19 @@ function apply(table: Table, { n, by, action }: Entry) {
     case "rename":
       table.players[by] = { publicKey: "", ...table.players[by], id: by, name: action.name, colour: action.colour };
       return;
-    case "place terrain":
-      table.terrain[action.terrain.id] = copy(action.terrain);
+    case "place terrain": {
+      // Placing a piece again keeps its lock; only "lock terrain" changes it.
+      const { locked: _, ...placed } = copy(action.terrain);
+      table.terrain[placed.id] = table.terrain[placed.id]?.locked ? { ...placed, locked: true } : placed;
       settle(table);
+      return;
+    }
+    case "lock terrain":
+      for (const id of action.terrain) {
+        const piece = table.terrain[id]!;
+        if (action.locked) piece.locked = true;
+        else delete piece.locked;
+      }
       return;
     case "remove terrain":
       delete table.terrain[action.terrain];

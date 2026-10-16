@@ -235,6 +235,14 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
     case "remove terrain":
       if (!isText(action.terrain) || !table.terrain[action.terrain]) refuse(`There is no terrain piece "${String(action.terrain)}".`);
       return;
+    case "lock terrain": {
+      const ids = list<string>(action.terrain, "The terrain pieces");
+      if (ids.length === 0) refuse("Lock or unlock at least one terrain piece.");
+      distinct(ids, "The terrain piece");
+      for (const id of ids) if (!isText(id) || !table.terrain[id]) refuse(`There is no terrain piece "${String(id)}".`);
+      if (typeof action.locked !== "boolean") refuse("Terrain must be locked or unlocked.");
+      return;
+    }
     case "add to army": {
       const units = list<{ id: string; name: string }>(action.units, "The units");
       const models = list<(typeof action.models)[number]>(action.models, "The models");

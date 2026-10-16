@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { addArmy, centre, drawn, joinGame, labels, lastKept, newGame, openArmy, rogueHost } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, joinGame, labels, lastKept, newGame, openArmy, openLog, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 
@@ -96,39 +96,56 @@ test("a model carried onto terrain stands on its floor", async ({ page }) => {
   await expect(log(page).last()).toContainText("Ana moved Box");
 });
 
-// Terrain panel: a locked piece can't be picked up or selected on the table, so models can be
-// moved over it freely; unlocking it lets it be moved again.
-test("locked terrain stays put until unlocked", async ({ page }) => {
+// Terrain panel: a locked piece can't be picked up or selected on the table, by anyone, so models
+// can be moved over it freely; anyone unlocking it lets it be moved again. The lock is an action,
+// so it is in the log, and it survives a reload.
+test("locked terrain stays put for everyone until unlocked", async ({ page, browser }) => {
   await newGame(page);
+  const link = await page.getByLabel("Invite link").inputValue();
   await page.getByRole("tab", { name: "Terrain" }).click();
   await page.getByRole("button", { name: "Add terrain" }).click();
   await expect(log(page).last()).toContainText("Ana placed Box");
   const piece = page.getByRole("article", { name: "Box" });
   await piece.getByRole("button", { name: "Lock", exact: true }).click();
+  await expect(log(page).last()).toContainText("Ana locked Box");
   await expect(piece.getByRole("button", { name: "Unlock", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await lookDown(page);
-  const box = await centre(labels(page, "Box"));
-  const dragBox = async () => {
-    await page.mouse.move(box.x + 25, box.y + 25);
-    await page.mouse.down();
-    await page.mouse.move(box.x + 25 - 120, box.y + 25, { steps: 8 });
-    await page.mouse.up();
-  };
-  await dragBox();
-  await page.mouse.click(box.x + 25, box.y + 25);
-  await expect(page.locator(".label.selected")).toHaveCount(0);
-  // Nothing was sent: the next thing done is the next entry in the log.
-  await page.getByRole("button", { name: "Next round" }).click();
-  await expect(log(page).last()).toContainText("round 1");
-  await expect(log(page).filter({ hasText: "moved Box" })).toHaveCount(0);
 
-  // Unlock all, and it moves again.
-  await page.getByRole("button", { name: "Unlock all", exact: true }).click();
+  // Ben sees it locked, and can't carry or select it.
+  const ben = await joinGame(browser, link, "Ben");
+  await ben.getByRole("tab", { name: "Terrain" }).click();
+  const bens = ben.getByRole("article", { name: "Box" });
+  await expect(bens.getByRole("button", { name: "Unlock", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await lookDown(ben);
+  const box = await centre(labels(ben, "Box"));
+  const dragBox = async (who: Page, at: { x: number; y: number }) => {
+    await who.mouse.move(at.x + 25, at.y + 25);
+    await who.mouse.down();
+    await who.mouse.move(at.x + 25 - 120, at.y + 25, { steps: 8 });
+    await who.mouse.up();
+  };
+  await dragBox(ben, box);
+  await ben.mouse.click(box.x + 25, box.y + 25);
+  await expect(ben.locator(".label.selected")).toHaveCount(0);
+  // Nothing was sent: the next thing done is the next entry in the log.
+  await ben.getByRole("button", { name: "Next round" }).click();
+  await expect(log(ben).last()).toContainText("round 1");
+  await expect(log(ben).filter({ hasText: "moved Box" })).toHaveCount(0);
+
+  // Still locked after a reload.
+  await page.reload();
+  await expect(page.getByLabel("The table")).toBeVisible();
+  await openLog(page);
+  await page.getByRole("tab", { name: "Terrain" }).click();
+  await expect(piece.getByRole("button", { name: "Unlock", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+  // Ben unlocks all, and it moves again; Ana locks all again.
+  await ben.getByRole("button", { name: "Unlock all", exact: true }).click();
+  await expect(log(page).last()).toContainText("Ben unlocked Box");
   await expect(piece.getByRole("button", { name: "Lock", exact: true })).toHaveAttribute("aria-pressed", "false");
-  await dragBox();
-  await expect(log(page).last()).toContainText("Ana moved Box");
+  await dragBox(ben, box);
+  await expect(log(page).last()).toContainText("Ben moved Box");
   await page.getByRole("button", { name: "Lock all", exact: true }).click();
-  await expect(piece.getByRole("button", { name: "Unlock", exact: true })).toBeVisible();
+  await expect(bens.getByRole("button", { name: "Unlock", exact: true })).toBeVisible();
 });
 
 // Picking up, from the usual slanted view: pointing at a roof sets the model down on that roof,

@@ -31,6 +31,7 @@ const KINDS: Record<Action["kind"], true> = {
   rename: true,
   "place terrain": true,
   "remove terrain": true,
+  "lock terrain": true,
   "add to army": true,
   move: true,
   "set aside": true,
