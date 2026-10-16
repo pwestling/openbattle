@@ -101,6 +101,8 @@ export class Gestures {
   private lastMove: Guide[] = [];
   private selected = new Set<string>();
   private locked: ReadonlySet<string> = new Set();
+  /** Inches each model has already moved this turn. */
+  private moved: ReadonlyMap<string, number> = new Map();
   private carried = new Map<string, Place>();
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
@@ -161,7 +163,8 @@ export class Gestures {
   }
 
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[]) {
+  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[], moved: ReadonlyMap<string, number>) {
+    this.moved = moved;
     this.table = table;
     this.me = me;
     this.readOnly = readOnly;
@@ -505,10 +508,11 @@ export class Gestures {
       const up = floorHeight(table, now.floor) - floorHeight(table, start.floor);
       const h0 = floorHeight(table, start.floor);
       const owner = table.players[table.units[table.models[id]!.unit]?.owner ?? ""];
+      const before = this.moved.get(id) ?? 0;
       return {
         points: [{ ...start.position, h: h0 }, ...via.map((p) => ({ ...p, h: h0 })), { ...now.position, h: floorHeight(table, now.floor) }],
         colour: owner?.colour ?? this.colour,
-        text: `${inches(across)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
+        text: `${inches(across)}${before > 0 ? ` · ${inches(before + across)} this turn` : ""}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
       };
     });
   }

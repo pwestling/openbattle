@@ -185,7 +185,7 @@ export class Cards {
         const object = new Group();
         object.userData.card = card.id;
         object.add(cardMesh(card, faceUp, () => this.view.invalidate()));
-        const tag = label(faceUp ? card.name : "Card", "label card");
+        const tag = label(faceUp ? card.name : "Card", "label table-card");
         tag.position.y = THICK + 0.2;
         object.add(tag);
         return { object, key, tag };
