@@ -20,6 +20,9 @@ import type { TableView } from "./view.ts";
 
 export const MM = 1 / 25.4;
 
+/** How long the pointer rests on a piece before its label shows, in milliseconds. */
+export const LABEL_DELAY = 500;
+
 /** Where a model or terrain piece is drawn: the record's place for it, or where it is being carried. */
 export interface Place {
   position: Point;
@@ -51,6 +54,7 @@ export function drop(parent: Object3D, object: Object3D) {
     if ((o instanceof Mesh || o instanceof Line) && !o.userData.shared) {
       o.geometry.dispose();
       for (const m of [o.material].flat()) {
+        if (m.userData.shared) continue;
         (m as { map?: { dispose(): void } }).map?.dispose();
         m.dispose();
       }
@@ -109,6 +113,9 @@ export class Pieces {
   private view: TableView;
   private drawn = new Map<string, Drawn>();
   private hovered: string | null = null;
+  /** The piece whose label is showing: the one hovered for a moment. */
+  private labelled: string | null = null;
+  private labelTimer: ReturnType<typeof setTimeout> | undefined;
   private offTick: () => void;
 
   constructor(view: TableView) {
@@ -146,12 +153,19 @@ export class Pieces {
     return null;
   }
 
-  /** The piece the pointer is over, whose label shows. */
+  /** The piece the pointer is over, whose label shows once the pointer has rested there a moment. */
   hover(id: string | null) {
     if (id === this.hovered) return;
-    this.drawn.get(this.hovered ?? "")?.label.element.classList.remove("pointed");
+    clearTimeout(this.labelTimer);
+    this.drawn.get(this.labelled ?? "")?.label.element.classList.remove("pointed");
+    this.labelled = null;
     this.hovered = id;
-    this.drawn.get(id ?? "")?.label.element.classList.add("pointed");
+    if (id === null) return;
+    this.labelTimer = setTimeout(() => {
+      this.labelled = id;
+      this.drawn.get(id)?.label.element.classList.add("pointed");
+      this.view.invalidate();
+    }, LABEL_DELAY);
   }
 
   objects(): Object3D[] {
@@ -200,7 +214,7 @@ export class Pieces {
       d.object.rotation.y = target.facing;
       this.view.root.add(d.object);
       this.drawn.set(id, d);
-      d.label.element.classList.toggle("pointed", id === this.hovered);
+      d.label.element.classList.toggle("pointed", id === this.labelled);
     }
     d.target = target;
     d.ring.visible = selected;
@@ -277,6 +291,7 @@ export class Pieces {
   }
 
   dispose() {
+    clearTimeout(this.labelTimer);
     this.offTick();
     for (const d of this.drawn.values()) drop(this.view.root, d.object);
     this.drawn.clear();

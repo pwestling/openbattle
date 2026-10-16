@@ -2,22 +2,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Action } from "../record/index.ts";
 import type { Session, Snapshot } from "../session/index.ts";
-import { ArmyPanel } from "./panels/army.tsx";
+import { AddToArmy, ArmyPanel } from "./panels/army.tsx";
 import { DecksPanel } from "./panels/decks.tsx";
 import { DicePanel } from "./panels/dice.tsx";
 import { Hand } from "./panels/hand.tsx";
-import { LogPanel } from "./panels/log.tsx";
+import { LogPanel, undoableBy } from "./panels/log.tsx";
 import { PhaseBar } from "./panels/phase.tsx";
 import { TerrainPanel } from "./panels/terrain.tsx";
 import { PlayContext, usePlay, type Play } from "./play.tsx";
 import { toFile } from "../archive/index.ts";
 import { tableAt } from "../record/index.ts";
-import { TableCanvas, type HandDrop } from "./table/canvas.tsx";
+import { TableCanvas, type HandDrop, type Select } from "./table/canvas.tsx";
 
 export function Game({ session }: { session: Session }) {
   const [now, setNow] = useState<Snapshot | null>(null);
   const [lookingAt, lookAt] = useState<number | null>(null);
   const [notes, setNotes] = useState<{ id: number; text: string }[]>([]);
+  const [logOpen, setLogOpen] = useState(false);
+  const [armyOpen, setArmyOpen] = useState(false);
+  const [locked, setLocked] = useState<ReadonlySet<string>>(new Set());
+  const selectRef = useRef<Select | null>(null);
   const handDrop = useRef<HandDrop | null>(null);
   useEffect(() => session.watch(setNow), [session]);
   useEffect(() => () => session.leave(), [session]);
@@ -49,28 +53,63 @@ export function Game({ session }: { session: Session }) {
         }
       },
       note,
+      select: (ids) => selectRef.current?.(ids),
+      lockedTerrain: locked,
+      lockTerrain: (ids, lock) =>
+        setLocked((was) => {
+          const next = new Set(was);
+          for (const id of ids) lock ? next.add(id) : next.delete(id);
+          return next;
+        }),
       newId: () => `${me ?? "x"}-${crypto.randomUUID().slice(0, 8)}`,
     };
-  }, [now, lookingAt, session, note]);
+  }, [now, lookingAt, session, note, locked]);
 
   if (!play || !now) return <main className="game" aria-busy="true" />;
   return (
     <PlayContext.Provider value={play}>
       <main className={`game${play.readOnly ? " read-only" : ""}`}>
-        <TableCanvas handDrop={handDrop} />
+        <TableCanvas handDrop={handDrop} selectRef={selectRef} />
         <header className="topbar">
           <PhaseBar />
           <Invite link={now.link} />
           <Save />
+          {play.me && (
+            <button aria-pressed={armyOpen} disabled={play.readOnly} onClick={() => setArmyOpen((o) => !o)}>
+              Add army
+            </button>
+          )}
+          <button
+            aria-pressed={logOpen}
+            onClick={() => {
+              // Looking back lives in the log, so closing it comes back to now.
+              if (logOpen) lookAt(null);
+              setLogOpen(!logOpen);
+            }}
+          >
+            Log
+          </button>
           <Controls />
         </header>
         <Banner now={now} session={session} />
         <aside className="left">
           <Tabs />
         </aside>
-        <aside className="right">
-          <LogPanel lookingAt={lookingAt} lookAt={lookAt} />
-        </aside>
+        {/* Hidden rather than removed while read-only, so a list being typed survives a blip. */}
+        {armyOpen && play.me && (
+          <section className="add-army-dialog" role="dialog" aria-label="Add to your army" hidden={play.readOnly}>
+            <button className="close" aria-label="Close" onClick={() => setArmyOpen(false)}>
+              ×
+            </button>
+            <AddToArmy onDone={() => setArmyOpen(false)} />
+          </section>
+        )}
+        {logOpen && (
+          <aside className="right">
+            <LogPanel lookingAt={lookingAt} lookAt={lookAt} />
+          </aside>
+        )}
+        <UndoKey />
         <aside className="corner">
           <DicePanel />
         </aside>
@@ -85,6 +124,33 @@ export function Game({ session }: { session: Session }) {
       </main>
     </PlayContext.Provider>
   );
+}
+
+/** Ctrl-Z (Cmd-Z on a Mac) undoes your own latest action, as the log's Undo button does. */
+function UndoKey() {
+  const { now, me, act, lookingAt } = usePlay();
+  const ready = useRef<(() => void) | null>(null);
+  ready.current =
+    lookingAt === null && now.connection === "playing" && undoableBy(now, me) !== undefined ? () => void act({ kind: "undo" }) : null;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== "z") return;
+      const t = e.target;
+      // A field being typed in keeps its own undo; a tick box, choice or slider has none.
+      const typing =
+        (t instanceof HTMLInputElement && !["checkbox", "radio", "range", "button", "submit", "file", "color"].includes(t.type)) ||
+        t instanceof HTMLTextAreaElement ||
+        (t instanceof HTMLElement && t.isContentEditable);
+      if (typing) return;
+      e.preventDefault();
+      // Held down, the key repeats; one press is one undo.
+      if (e.repeat) return;
+      ready.current?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  return null;
 }
 
 function Tabs() {
@@ -189,6 +255,8 @@ function Controls() {
         <dd>Flip the card under the pointer.</dd>
         <dt>Escape</dt>
         <dd>Put back what you carry.</dd>
+        <dt>Ctrl-Z (Cmd-Z)</dt>
+        <dd>Undo your own latest action, as the log's Undo does.</dd>
       </dl>
     </details>
   );

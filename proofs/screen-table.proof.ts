@@ -38,7 +38,8 @@ async function drag(page: Page, from: { x: number; y: number }, legs: { dx: numb
 }
 
 // Picking up: dragging carries the model, the distance shows live, and letting go is one move.
-// Carrying with a waypoint measures the path along its true length.
+// Dragging a model again in the same turn adjusts its move, still measured from where it began the
+// turn; a leg is added by pinning a waypoint, which measures the path along its true length.
 test("carrying a model measures the move, along a path with corners", async ({ page }) => {
   await newGame(page);
   await addArmy(page, "Captain 40mm");
@@ -52,20 +53,36 @@ test("carrying a model measures the move, along a path with corners", async ({ p
   const after = await centre(labels(page, "Captain"));
   expect(after.x - before.x).toBeGreaterThan(140);
 
-  // The same distance again, then the same again at a right angle, with a waypoint at the corner.
-  await drag(
+  // Dragged on the same distance again: the move is adjusted, measured from the turn's start.
+  const again = await drag(page, after, [{ dx: 160, dy: 0 }]);
+  await expect(log(page)).toHaveCount(4);
+  expect(inchesIn((await log(page).last().textContent())!)).toBeCloseTo(2 * straight, 0);
+  expect(inchesIn(again!)).toBeCloseTo(2 * straight, 0);
+  expect(again).not.toContain("total");
+  expect((await lastAction(page)).moves[0].path).toHaveLength(2);
+
+  // Lifted a little and a corner pinned there, then on at a right angle: the label shows this
+  // leg, and the whole way from the turn's start as a second line.
+  const far = await centre(labels(page, "Captain"));
+  const legged = await drag(
     page,
-    after,
+    far,
     [
-      { dx: 160, dy: 0 },
+      { dx: 0, dy: 8 },
       { dx: 0, dy: 160 },
     ],
     "Space",
   );
-  await expect(log(page)).toHaveCount(4);
-  expect(inchesIn((await log(page).last().textContent())!)).toBeCloseTo(2 * straight, 0);
+  await expect(log(page)).toHaveCount(5);
+  expect(Math.abs(inchesIn((await log(page).last().textContent())!) - 3 * straight)).toBeLessThan(1);
+  expect(Math.abs(inchesIn(legged!) - straight)).toBeLessThan(1);
+  expect(Math.abs(Number(/([\d.]+)″ total/.exec(legged!)![1]) - 3 * straight)).toBeLessThan(1);
+  expect((await lastAction(page)).moves[0].path).toHaveLength(3);
 
-  // A right-click while carrying pins a waypoint too.
+  // A new round starts afresh from where the model stands. A right-click pins a waypoint too.
+  await page.getByRole("button", { name: "Next round" }).click();
+  await expect(log(page)).toHaveCount(6);
+  await lookDown(page);
   const corner = await centre(labels(page, "Captain"));
   await page.mouse.move(corner.x, corner.y);
   await page.mouse.down();
@@ -74,7 +91,7 @@ test("carrying a model measures the move, along a path with corners", async ({ p
   await page.mouse.up({ button: "right" });
   await page.mouse.move(corner.x - 160, corner.y - 160, { steps: 8 });
   await page.mouse.up();
-  await expect(log(page)).toHaveCount(5);
+  await expect(log(page)).toHaveCount(7);
   expect(inchesIn((await log(page).last().textContent())!)).toBeCloseTo(2 * straight, 0);
   expect((await lastAction(page)).moves[0].path).toHaveLength(3);
 });
@@ -151,6 +168,20 @@ test("shift-click adds and removes models from the selection", async ({ page }) 
   await page.mouse.click(captain.x, captain.y);
   await page.keyboard.up("Shift");
   await expect(page.locator(".label.selected")).toHaveText(["Sergeant"]);
+});
+
+// Army panel: a unit's name selects its models on the table, ready to be carried.
+test("a unit's name in the Army panel selects it on the table", async ({ page }) => {
+  await newGame(page);
+  await addArmy(page, "5x Scouts 25mm\nCaptain 40mm");
+  await lookDown(page);
+  await page.getByRole("article", { name: "Scouts" }).getByRole("button", { name: "Scouts" }).click();
+  await expect(page.locator(".label.selected")).toHaveCount(5);
+  await expect(page.locator(".label.selected")).toHaveText(Array(5).fill("Scouts"));
+  const before = await centre(labels(page, "Scouts").nth(0));
+  await drag(page, await centre(labels(page, "Scouts").nth(3)), [{ dx: 0, dy: -120 }]);
+  await expect(log(page).last()).toContainText("Ana moved Scouts");
+  expect((await centre(labels(page, "Scouts").nth(0))).y - before.y).toBeLessThan(-100);
 });
 
 // Picking up: click selects, a second click selects the whole unit, and dragging carries it all,

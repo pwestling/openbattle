@@ -3,7 +3,6 @@
 // it is shown.
 import {
   AmbientLight,
-  BoxGeometry,
   CanvasTexture,
   Color,
   DirectionalLight,
@@ -18,17 +17,7 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-
-/** A d6's faces in three.js box order (+x, -x, +y, -y, +z, -z); opposite faces add to seven. */
-const d6Faces = [3, 4, 1, 6, 2, 5];
-const normals = [
-  new Vector3(1, 0, 0),
-  new Vector3(-1, 0, 0),
-  new Vector3(0, 1, 0),
-  new Vector3(0, -1, 0),
-  new Vector3(0, 0, 1),
-  new Vector3(0, 0, -1),
-];
+import { geometryOf, polyhedronFor } from "./polyhedra.ts";
 
 function faceTexture(value: number, colour: string, ink: string): CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -54,6 +43,8 @@ interface Die {
   line: Vector3;
   spin: Quaternion;
   rest: Quaternion;
+  /** Lying as it does in the line: the result up, and its number upright for someone looking down at the tray. */
+  upright: Quaternion;
 }
 
 const THROW = 1.1;
@@ -132,34 +123,47 @@ export class DiceTray {
       return m;
     };
     results.forEach((value, i) => {
-      let faces: number[];
+      // Any number of sides is drawn as the closest real die; its result is on the top face.
+      const { shape, sides: real } = polyhedronFor(sides);
+      let labels: number[];
       let up: number;
-      if (sides === 6) {
-        faces = d6Faces;
-        up = d6Faces.indexOf(value);
+      if (sides === real) {
+        labels = shape.labels;
+        up = labels.indexOf(value);
       } else {
-        // Any other die is drawn as a block showing its result on top, with other numbers around it.
-        faces = normals.map((_, f) => (f === 2 ? value : ((value + f * 7) % sides) + 1));
-        up = 2;
+        // Not a real die: the result on top, with other numbers around it.
+        up = 0;
+        labels = shape.faces.map((_, f) => (f === 0 ? value : ((value + f * 7) % sides) + 1));
       }
+      const top = shape.faces[up]!;
+      const toUp = new Quaternion().setFromUnitVectors(top.normal, new Vector3(0, 1, 0));
+      const radius = size * shape.fit;
+      const geometry = geometryOf(shape, radius);
+      // How far the die reaches below its centre with the result up: a face for most, a point for a d4.
+      const corners = geometry.getAttribute("position");
+      let half = 0;
+      for (let k = 0; k < corners.count; k++)
+        half = Math.max(half, -(corners.getX(k) * top.normal.x + corners.getY(k) * top.normal.y + corners.getZ(k) * top.normal.z));
       const mesh = new Mesh(
-        new BoxGeometry(size, size, size),
-        faces.map((v) => face(v)),
+        geometry,
+        labels.map((v) => face(v)),
       );
       // The face showing the result turns to point up, with a random twist around the vertical.
-      const rest = new Quaternion()
-        .setFromAxisAngle(new Vector3(0, 1, 0), (Math.random() - 0.5) * 1.2)
-        .multiply(new Quaternion().setFromUnitVectors(normals[up]!, new Vector3(0, 1, 0)));
+      const rest = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), (Math.random() - 0.5) * 1.2).multiply(toUp);
+      // Turned about the vertical until the number's top points away from the viewer.
+      const turned = top.up.clone().applyQuaternion(toUp);
+      const twist = Math.atan2(turned.z, turned.x) - Math.atan2(-1, 0);
+      const upright = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), twist).multiply(toUp);
       const slot = slots.get(value)!.shift()!;
       const row = Math.floor(slot / perRow);
       const inRow = Math.min(perRow, n - row * perRow);
-      const line = new Vector3(((slot % perRow) - (inRow - 1) / 2) * size * 1.3, size / 2, (row - (rows - 1) / 2) * size * 1.3);
-      const land = new Vector3((Math.random() - 0.5) * across * 1.6, size / 2, (Math.random() - 0.5) * 3);
+      const line = new Vector3(((slot % perRow) - (inRow - 1) / 2) * size * 1.3, half, (row - (rows - 1) / 2) * size * 1.3);
+      const land = new Vector3((Math.random() - 0.5) * across * 1.6, half, (Math.random() - 0.5) * 3);
       const from = new Vector3(-across - 2 + Math.random(), 4 + Math.random() * 2, 2 + Math.random() * 2);
       const spin = new Quaternion().setFromEuler(new Euler(Math.random() * 9, Math.random() * 9, Math.random() * 9));
       mesh.position.copy(from);
       this.scene.add(mesh);
-      this.dice.push({ mesh, from, land, line, spin, rest });
+      this.dice.push({ mesh, from, land, line, spin, rest, upright });
     });
   }
 
@@ -178,7 +182,8 @@ export class DiceTray {
       } else {
         const k = Math.min(1, (this.clock - THROW) / LINE_UP);
         d.mesh.position.lerpVectors(d.land, d.line, k * k * (3 - 2 * k));
-        d.mesh.quaternion.copy(d.rest);
+        // Lining up, each die also turns to sit square and upright.
+        d.mesh.quaternion.slerpQuaternions(d.rest, d.upright, k * k * (3 - 2 * k));
       }
     }
     if (this.clock > THROW + LINE_UP && this.done) {

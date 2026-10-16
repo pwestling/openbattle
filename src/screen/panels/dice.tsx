@@ -9,8 +9,12 @@ import { DiceTray } from "../table/dice.ts";
 
 export function DicePanel() {
   const { table, now, me, readOnly, session, note } = usePlay();
-  const [dice, setDice] = useState(2);
-  const [sides, setSides] = useState(6);
+  // Kept as typed, so a field can be emptied to type a new number.
+  const [diceText, setDice] = useState("2");
+  const [sidesText, setSides] = useState("6");
+  const dice = Number(diceText);
+  const sides = Number(sidesText);
+  const valid = Number.isSafeInteger(dice) && dice >= 1 && dice <= 1024 && Number.isSafeInteger(sides) && sides >= 2;
   const [label, setLabel] = useState("");
   const [rolling, setRolling] = useState(false);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -71,17 +75,17 @@ export function DicePanel() {
         >
           <label>
             Dice
-            <input type="number" min={1} max={1024} value={dice} onChange={(e) => setDice(Number(e.target.value))} />
+            <input type="number" min={1} max={1024} value={diceText} onChange={(e) => setDice(e.target.value)} />
           </label>
           <label>
             Sides
-            <input type="number" min={2} value={sides} onChange={(e) => setSides(Number(e.target.value))} />
+            <input type="number" min={2} value={sidesText} onChange={(e) => setSides(e.target.value)} />
           </label>
           <label>
             Label
             <input value={label} placeholder="optional" onChange={(e) => setLabel(e.target.value)} />
           </label>
-          <button type="submit" disabled={rolling}>
+          <button type="submit" disabled={rolling || !valid}>
             Roll
           </button>
         </form>

@@ -5,7 +5,7 @@ import { BoxGeometry, CanvasTexture, Group, Mesh, MeshStandardMaterial, PlaneGeo
 import type { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import type { Card, Deck, Point, Table } from "../../record/index.ts";
 import { getFile } from "../../archive/index.ts";
-import { drop, label } from "./pieces.ts";
+import { drop, label, LABEL_DELAY } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 
 export const CARD = { width: 2.5, depth: 3.5 };
@@ -13,7 +13,43 @@ export const CARD = { width: 2.5, depth: 3.5 };
 /** Where a deck's discard pile lies. */
 export const discardAt = (deck: Deck): Point => ({ x: deck.position.x + CARD.width + 1, y: deck.position.y });
 
-const back = new MeshStandardMaterial({ color: "#2b3a6b", roughness: 0.8 });
+/** A card is a thin slab, as in a real game, so it has an edge and stacks have height. */
+const THICK = 0.02;
+
+/** The back of a card: a deep blue with a lighter border and a diamond lattice. */
+function backTexture(): CanvasTexture {
+  const canvas = document.createElement("canvas");
+  canvas.width = 250;
+  canvas.height = 350;
+  const g = canvas.getContext("2d")!;
+  g.fillStyle = "#2b3a6b";
+  g.fillRect(0, 0, 250, 350);
+  g.strokeStyle = "rgba(255,255,255,0.18)";
+  g.lineWidth = 2;
+  for (let i = -350; i < 350; i += 28) {
+    g.beginPath();
+    g.moveTo(0, i);
+    g.lineTo(250, i + 250);
+    g.moveTo(250, i);
+    g.lineTo(0, i + 250);
+    g.stroke();
+  }
+  g.strokeStyle = "#d8d2c0";
+  g.lineWidth = 8;
+  g.strokeRect(10, 10, 230, 330);
+  const t = new CanvasTexture(canvas);
+  t.colorSpace = SRGBColorSpace;
+  return t;
+}
+
+const backFace = new MeshStandardMaterial({ map: backTexture(), roughness: 0.8 });
+const backEdge = new MeshStandardMaterial({ color: "#1d2748", roughness: 0.8 });
+const faceEdge = new MeshStandardMaterial({ color: "#e8e2d2", roughness: 0.9 });
+// Shared by every card, so never disposed with one.
+for (const m of [backFace, backEdge, faceEdge]) m.userData.shared = true;
+
+/** A slab's faces in three's order (+x, -x, up, down, +z, -z): the given top, the back underneath. */
+const slab = (top: MeshStandardMaterial, edge: MeshStandardMaterial) => [edge, edge, top, backFace, edge, edge];
 
 function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
   const canvas = document.createElement("canvas");
@@ -46,12 +82,11 @@ function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
   return t;
 }
 
-/** A card lying flat, face up or down. Pictures arrive later, once their file is here. */
-function cardMesh(card: Card, faceUp: boolean, loaded: () => void): Mesh {
-  const geometry = new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2);
-  if (!faceUp) return new Mesh(geometry, back);
+/** A card slab with its face on top and its back underneath. Pictures arrive later, once their file is here. */
+function cardMesh(card: Card, loaded: () => void): Mesh {
+  const geometry = new BoxGeometry(CARD.width, THICK, CARD.depth).translate(0, THICK / 2, 0);
   const material = new MeshStandardMaterial({ map: faceTexture(card), roughness: 0.8 });
-  const mesh = new Mesh(geometry, material);
+  const mesh = new Mesh(geometry, slab(material, faceEdge));
   if (card.picture) {
     void getFile(card.picture).then((blob) => {
       if (!blob) return;
@@ -75,14 +110,51 @@ interface Drawn {
   object: Object3D;
   key: string;
   tag: CSS2DObject;
+  /** A card on the table: what turns it over, and which way up it is now. */
+  pivot?: Group;
+  faceUp?: boolean;
 }
+
+/** How long turning a card over takes, in seconds. */
+const FLIP = 0.4;
 
 export class Cards {
   private view: TableView;
   private drawn = new Map<string, Drawn>();
+  private hovered: string | null = null;
+  private labelled: string | null = null;
+  private labelTimer: ReturnType<typeof setTimeout> | undefined;
+  private flips = new Map<string, { pivot: Group; from: number; to: number; t: number }>();
+  private offTick: () => void;
 
   constructor(view: TableView) {
     this.view = view;
+    this.offTick = view.onTick((seconds) => {
+      for (const [id, f] of this.flips) {
+        f.t = Math.min(1, f.t + seconds / FLIP);
+        const ease = f.t * f.t * (3 - 2 * f.t);
+        f.pivot.rotation.x = f.from + (f.to - f.from) * ease;
+        // Up and over: the card rises as it turns.
+        f.pivot.position.y = THICK / 2 + Math.sin(f.t * Math.PI) * 1.6;
+        if (f.t === 1) this.flips.delete(id);
+      }
+      return this.flips.size > 0;
+    });
+  }
+
+  /** The deck, pile or card the pointer is over ("deck:id", "discard:id" or "card:id"), whose label shows after a moment. */
+  hover(key: string | null) {
+    if (key === this.hovered) return;
+    clearTimeout(this.labelTimer);
+    this.drawn.get(this.labelled ?? "")?.tag.element.classList.remove("pointed");
+    this.labelled = null;
+    this.hovered = key;
+    if (key === null) return;
+    this.labelTimer = setTimeout(() => {
+      this.labelled = key;
+      this.drawn.get(key)?.tag.element.classList.add("pointed");
+      this.view.invalidate();
+    }, LABEL_DELAY);
   }
 
   objects(): Object3D[] {
@@ -103,6 +175,7 @@ export class Cards {
         d = draw();
         this.view.root.add(d.object);
         this.drawn.set(id, d);
+        d.tag.element.classList.toggle("pointed", id === this.labelled);
       }
       d.object.position.set(at.x, height, -at.y);
     };
@@ -113,9 +186,9 @@ export class Cards {
       put(`deck:${deck.id}`, text, deck.position, 0, () => {
         const object = new Group();
         object.userData.deck = deck.id;
-        const h = Math.max(0.03, count * 0.02);
+        const h = Math.max(THICK, count * THICK);
         const faint = new MeshStandardMaterial({ color: "#2b3a6b", transparent: true, opacity: 0.3 });
-        const stack = new Mesh(new BoxGeometry(CARD.width, h, CARD.depth).translate(0, h / 2, 0), count === 0 ? faint : back);
+        const stack = new Mesh(new BoxGeometry(CARD.width, h, CARD.depth).translate(0, h / 2, 0), count === 0 ? faint : slab(backFace, backEdge));
         object.add(stack);
         const tag = label(text, "label deck");
         tag.position.y = h + 0.3;
@@ -129,12 +202,12 @@ export class Cards {
         const object = new Group();
         object.userData.discard = deck.id;
         const pile = top
-          ? cardMesh(top, true, () => this.view.invalidate())
+          ? cardMesh(top, () => this.view.invalidate())
           : new Mesh(
               new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2),
               new MeshStandardMaterial({ color: "#555555", transparent: true, opacity: 0.25 }),
             );
-        pile.position.y = 0.01 + discarded.length * 0.005;
+        pile.position.y = Math.max(0, discarded.length - 1) * THICK;
         object.add(pile);
         const tag = label(pileText, "label deck");
         tag.position.y = 0.3;
@@ -145,26 +218,42 @@ export class Cards {
     for (const card of cards) {
       if (card.place.in !== "table") continue;
       const faceUp = card.place.faceUp;
-      const key = `${card.id}|${faceUp}`;
+      // The same object across a flip, so it can be seen turning over.
+      const key = card.id;
       const at = carried.get(card.id) ?? card.place.position;
-      put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0.01, () => {
+      put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0, () => {
         const object = new Group();
         object.userData.card = card.id;
-        object.add(cardMesh(card, faceUp, () => this.view.invalidate()));
-        const tag = label(faceUp ? card.name : "Card", "label card");
-        tag.position.y = 0.2;
+        const pivot = new Group();
+        pivot.position.y = THICK / 2;
+        pivot.rotation.x = faceUp ? 0 : Math.PI;
+        const mesh = cardMesh(card, () => this.view.invalidate());
+        mesh.position.y = -THICK / 2;
+        pivot.add(mesh);
+        object.add(pivot);
+        const tag = label(faceUp ? card.name : "Card", "label table-card");
+        tag.position.y = THICK + 0.2;
         object.add(tag);
-        return { object, key, tag };
+        return { object, key, tag, pivot, faceUp };
       });
+      const d = this.drawn.get(`card:${card.id}`)!;
+      if (d.pivot && d.faceUp !== faceUp) {
+        d.faceUp = faceUp;
+        d.tag.element.textContent = faceUp ? card.name : "Card";
+        this.flips.set(card.id, { pivot: d.pivot, from: d.pivot.rotation.x, to: faceUp ? 0 : Math.PI, t: 0 });
+      }
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
       drop(this.view.root, d.object);
       this.drawn.delete(id);
+      this.flips.delete(id.replace(/^card:/, ""));
     }
   }
 
   dispose() {
+    clearTimeout(this.labelTimer);
+    this.offTick();
     for (const d of this.drawn.values()) drop(this.view.root, d.object);
     this.drawn.clear();
   }

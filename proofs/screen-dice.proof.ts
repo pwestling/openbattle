@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { joinGame, newGame, rogueHost } from "./screen-helpers.ts";
+import { joinGame, newGame, openLog, rogueHost } from "./screen-helpers.ts";
 
 const rolls = (page: Page) => page.getByRole("list", { name: "Recent rolls" }).locator("li");
 
@@ -27,6 +27,17 @@ test("rolled dice land on the result and stay in the tray", async ({ page }) => 
   await tray.getByRole("button", { name: "Roll" }).click();
   await expect(rolls(page).first()).toContainText("Ana · 1d20");
   await expect(rolls(page)).toHaveCount(2);
+
+  // A field can be emptied to type a new number; there is nothing to roll until it has one.
+  await tray.getByLabel("Dice").fill("");
+  await expect(tray.getByLabel("Dice")).toHaveValue("");
+  await expect(tray.getByRole("button", { name: "Roll" })).toBeDisabled();
+  await tray.getByLabel("Dice").pressSequentially("4");
+  await tray.getByLabel("Sides").fill("");
+  await expect(tray.getByRole("button", { name: "Roll" })).toBeDisabled();
+  await tray.getByLabel("Sides").pressSequentially("8");
+  await tray.getByRole("button", { name: "Roll" }).click();
+  await expect(rolls(page).first()).toContainText("Ana · 4d8");
 });
 
 // Dice tray: the largest roll Session allows lands, twice over, without losing the tray's graphics.
@@ -67,6 +78,7 @@ test("a roll made alone is marked as such", async ({ page, browser }) => {
   await page.getByLabel("Choose a saved game file").setInputFiles(file);
   await expect(page.getByLabel("The table")).toBeVisible();
   await expect(rolls(page).first()).toContainText("Rolled alone");
+  await openLog(page);
   await expect(log.first()).toBeVisible();
   await expect(log.filter({ hasText: "(rolled alone)" })).toHaveCount(1);
 

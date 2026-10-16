@@ -46,9 +46,10 @@ label { display: grid; gap: 4px; }
   font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); white-space: nowrap; pointer-events: none;
 }
 .label.selected { outline: 1px solid var(--accent); }
-/* A piece's label shows while pointed at or selected, so a crowded table stays readable. */
-.label.piece { visibility: hidden; }
-.label.piece.pointed, .label.piece.selected { visibility: visible; }
+/* A label shows once the pointer has rested on its piece, deck or card, and never over a measurement. */
+.label.piece, .label.deck, .label.table-card { visibility: hidden; }
+.label.pointed { visibility: visible; }
+.measuring .label.pointed { visibility: hidden; }
 .label.missing { font-style: italic; opacity: 0.8; }
 .label.missing::after { content: " · mesh missing"; }
 .label.distance { background: rgba(226, 176, 74, 0.9); color: #1a1a1a; font-weight: 600; }
@@ -171,3 +172,13 @@ label.file input[type="file"] { font-size: 12px; }
 .controls dt { font-weight: 600; white-space: nowrap; }
 .controls dd { margin: 0; }
 ::placeholder { color: var(--muted, #777); opacity: 0.7; font-style: italic; }
+.add-army-dialog {
+  position: absolute; top: 56px; left: 50%; transform: translateX(-50%); width: 440px; max-height: calc(100% - 80px); overflow: auto; z-index: 6;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px;
+}
+.add-army-dialog h3 { margin: 0 0 6px; font-size: 14px; }
+.add-army-dialog .close { position: absolute; top: 6px; right: 6px; padding: 0 8px; }
+button.link { background: none; border: 0; padding: 0; color: inherit; font-weight: 700; cursor: pointer; text-align: left; }
+button.link:hover { text-decoration: underline; }
+/* The second line of a distance label: the model's total this turn, over several moves. */
+.label.distance .total { margin-top: 2px; padding-top: 2px; border-top: 1px solid rgba(26, 26, 26, 0.35); color: #5a2a00; font-weight: 700; }

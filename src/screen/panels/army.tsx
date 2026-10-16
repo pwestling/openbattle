@@ -8,15 +8,9 @@ import { MM } from "../table/pieces.ts";
 import { Counters } from "./counters.tsx";
 
 export function ArmyPanel() {
-  const { table, me, readOnly } = usePlay();
+  const { table } = usePlay();
   return (
     <section className="army" aria-label="Armies">
-      {/* Hidden rather than removed while read-only, so a list being typed survives a blip. */}
-      {me && (
-        <div hidden={readOnly}>
-          <AddToArmy />
-        </div>
-      )}
       {Object.values(table.players).map((p) => (
         <section key={p.id} className="player" aria-label={`${p.name}'s army`}>
           <h3>
@@ -36,14 +30,16 @@ export function ArmyPanel() {
 }
 
 function UnitRow({ unit }: { unit: Unit }) {
-  const { table, act, readOnly } = usePlay();
+  const { table, act, readOnly, select } = usePlay();
   const models = Object.values(table.models).filter((m) => m.unit === unit.id);
   const aside = models.filter((m) => m.aside);
   const onTable = models.filter((m) => !m.aside);
   return (
     <article className="unit" aria-label={unit.name}>
       <header>
-        <strong>{unit.name}</strong>
+        <button className="link" title="Select this unit on the table" onClick={() => select(models.filter((m) => !m.aside).map((m) => m.id))}>
+          {unit.name}
+        </button>
         <span className="muted">
           {models.length} {models.length === 1 ? "model" : "models"}
           {aside.length > 0 && `, ${aside.length} set aside`}
@@ -128,13 +124,13 @@ function Grouping({ owner }: { owner: PlayerId }) {
   );
 }
 
-function AddToArmy() {
+/** Reads a list and adds it to your army. It lives in a dialog the top bar opens, since it is used about once a game. */
+export function AddToArmy({ onDone }: { onDone: () => void }) {
   const { table, me, act, newId, note, session } = usePlay();
   const [meshes, setMeshes] = useState<Record<number, Fingerprint>>({});
   const [text, setText] = useState("");
   const [listed, setListed] = useState<ListedUnit[] | null>(null);
   const [unread, setUnread] = useState<string[]>([]);
-  const [open, setOpen] = useState(() => Object.values(table.units).every((u) => u.owner !== me));
 
   const add = async () => {
     if (!listed || !me) return;
@@ -145,12 +141,13 @@ function AddToArmy() {
       setListed(null);
       setUnread([]);
       setMeshes({});
+      onDone();
     }
   };
 
   return (
-    <details className="add-army" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary>Add to your army</summary>
+    <div className="add-army">
+      <h3>Add to your army</h3>
       <label>
         Army list
         <textarea
@@ -229,7 +226,7 @@ function AddToArmy() {
           </button>
         </>
       )}
-    </details>
+    </div>
   );
 }
 

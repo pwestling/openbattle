@@ -32,6 +32,13 @@ export type CardTarget =
   | { into: "hand" }
   | { into: "table"; at: Point };
 
+/** Where a model began the turn, and the waypoints its latest move was pinned through. */
+export interface Origin {
+  position: Point;
+  floor: FloorRef | null;
+  via: Point[];
+}
+
 interface Carry {
   /** The models carried, or the one terrain piece. */
   ids: string[];
@@ -39,6 +46,8 @@ interface Carry {
   starts: Map<string, Place>;
   offsets: Map<string, Point>;
   waypoints: Map<string, Point[]>;
+  /** Where each carried model began the turn, if it has moved already. */
+  origins: Map<string, Origin>;
   turn: number;
   /** Steps from the floor the pointer is on: positive is down, negative is up. */
   floorStep: number;
@@ -99,9 +108,10 @@ export class Gestures {
   private hooks: Hooks;
   private table: Table | null = null;
   private readOnly = true;
-  private colour = "#e2b04a";
-  private lastMove: Guide[] = [];
   private selected = new Set<string>();
+  private locked: ReadonlySet<string> = new Set();
+  /** Where models that have moved this turn began it. */
+  private origins: ReadonlyMap<string, Origin> = new Map();
   private carried = new Map<string, Place>();
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
@@ -148,23 +158,29 @@ export class Gestures {
     });
   }
 
-  /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[]) {
+  /** Selects these models or terrain pieces, as a click on them would. */
+  select(ids: string[]) {
+    this.selected = new Set(ids.filter((id) => !this.locked.has(id)));
+    this.redraw();
+  }
+
+  /** Terrain pieces that can't be picked up or selected. */
+  setLocked(locked: ReadonlySet<string>) {
+    this.locked = locked;
+    for (const id of locked) this.selected.delete(id);
+    this.redraw();
+  }
+
+  /** A new moment to show, and where models moved this turn began it. */
+  setTable(table: Table, me: string | null, readOnly: boolean, origins: ReadonlyMap<string, Origin>) {
+    this.origins = origins;
     this.table = table;
     this.me = me;
     this.readOnly = readOnly;
-    this.colour = colour;
     for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
     // Read-only now, or something carried was taken off the table by someone else: put it all back.
     if (this.carry && (readOnly || this.carry.ids.some((id) => !(table.models[id] && !table.models[id].aside) && !table.terrain[id])))
       this.cancelCarry();
-    this.lastMove = lastMove.flatMap((id) => {
-      const m = table.models[id];
-      if (!m || m.aside || m.path.length < 2) return [];
-      const owner = table.players[table.units[m.unit]?.owner ?? ""];
-      const h = floorHeight(table, m.floor);
-      return [{ points: m.path.map((p) => ({ ...p, h })), colour: owner?.colour ?? "#ffffff" }];
-    });
     this.redraw();
   }
 
@@ -172,10 +188,12 @@ export class Gestures {
     if (!this.table) return;
     this.pieces.sync(this.table, this.selected, this.carried);
     this.cards.sync(this.table, this.carriedCards);
-    const guides: Guide[] = [...this.lastMove];
+    const guides: Guide[] = [];
     if (this.carry?.moved) guides.push(...this.carryGuides());
     if (this.ruler) guides.push(this.rulerGuide());
     this.guides.show(guides);
+    // Piece labels stay out of the way of the measurements.
+    this.view.host.classList.toggle("measuring", guides.length > 0);
   }
 
   // Where the pointer is.
@@ -192,7 +210,7 @@ export class Gestures {
     const hits = this.raycaster
       .intersectObjects([...this.pieces.objects(), ...this.cards.objects()], true)
       .map((h) => Pieces.pieceOf(h.object))
-      .filter((h): h is Thing => !!h && h.id !== except);
+      .filter((h): h is Thing => !!h && h.id !== except && !(h.kind === "terrain" && this.locked.has(h.id)));
     for (const kind of ["model", "card", "deck", "discard", "terrain"]) {
       const hit = hits.find((h) => h.kind === kind);
       if (hit) return hit;
@@ -424,7 +442,9 @@ export class Gestures {
       terrain: !!piece,
       starts,
       offsets,
-      waypoints: new Map(ids.map((id) => [id, []])),
+      // A model already moved this turn is measured from where it began, through what was pinned.
+      origins: new Map(ids.flatMap((id) => (this.origins.get(id) && !piece ? [[id, this.origins.get(id)!] as const] : []))),
+      waypoints: new Map(ids.map((id) => [id, [...(piece ? [] : (this.origins.get(id)?.via ?? []))]])),
       turn: 0,
       floorStep: 0,
       aimFloor: surface.floor,
@@ -487,17 +507,19 @@ export class Gestures {
     if (c.terrain) return [];
     const table = this.table!;
     return c.ids.map((id) => {
-      const start = c.starts.get(id)!;
+      const start = c.origins.get(id) ?? c.starts.get(id)!;
       const now = this.carried.get(id)!;
       const via = c.waypoints.get(id)!;
       const { across } = distance(table, start.position, now.position, via);
+      // With waypoints, the first line is the leg being moved and the second the whole way.
+      const last = via.at(-1);
+      const leg = last ? Math.hypot(now.position.x - last.x, now.position.y - last.y) : across;
       const up = floorHeight(table, now.floor) - floorHeight(table, start.floor);
       const h0 = floorHeight(table, start.floor);
-      const owner = table.players[table.units[table.models[id]!.unit]?.owner ?? ""];
       return {
         points: [{ ...start.position, h: h0 }, ...via.map((p) => ({ ...p, h: h0 })), { ...now.position, h: floorHeight(table, now.floor) }],
-        colour: owner?.colour ?? this.colour,
-        text: `${inches(across)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
+        ...(last ? { total: `${inches(across)} total` } : {}),
+        text: `${inches(leg)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
       };
     });
   }
@@ -554,7 +576,7 @@ export class Gestures {
         position: at.position,
         facing: at.facing,
         floor: at.floor,
-        path: [c.starts.get(id)!.position, ...c.waypoints.get(id)!, at.position],
+        path: [(c.origins.get(id) ?? c.starts.get(id)!).position, ...c.waypoints.get(id)!, at.position],
       };
     });
     this.redraw();
@@ -596,7 +618,9 @@ export class Gestures {
   private showLabelUnder(e: PointerEvent) {
     const onTable = e.target === this.view.renderer.domElement;
     const thing = onTable && !this.orbit ? this.thingAt(e) : null;
-    this.pieces.hover(thing && (thing.kind === "model" || thing.kind === "terrain") ? thing.id : null);
+    const piece = thing && (thing.kind === "model" || thing.kind === "terrain");
+    this.pieces.hover(piece ? thing.id : null);
+    this.cards.hover(thing && !piece ? `${thing.kind}:${thing.id}` : null);
   }
 
   /** Turns the card under the pointer over. */
@@ -638,7 +662,6 @@ export class Gestures {
     }
     return {
       points: [r.fromPoint, ...r.via, r.toPoint],
-      colour: "#ffffff",
       text,
     };
   }
