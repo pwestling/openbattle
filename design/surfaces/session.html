@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away. From the Session build, 2026-10-15, while Porter slept: the game's link names its host, the snapshot's link is the address to share, <code>enter</code> takes that address or the link, a missing signature is refused rather than flagged (unless the roll is taken alone), the host refuses a badly signed value, a whole log from the host is taken only when asked for and only if it extends this browser's, and the browser that started a game but no longer has it can't take it back. Accepted by Porter on 2026-10-16, with the rest of the Session build\'s lines. <ins>From playtesting with Porter on 2026-10-16 (the black screen in current Chrome): the lines marked as proposed, awaiting his review.</ins></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. <code>open</code> and <code>enter</code> return promises, since both can reject; agreed with Porter on 2026-10-15. Minor fixes from the scaffold review, 2026-10-15: <code>act</code> leaves roll, draw and join to their own operations; the snapshot says whether the game is kept; the other player signs their value (<a href="../decisions/ADR-022.html">ADR-022</a>). <code>open</code> takes an optional starting log, so a saved file opens as a new game; decided on 2026-10-15 under Porter's instruction to go with the best guess on easily reversed calls while he was away. From the Session build, 2026-10-15, while Porter slept: the game's link names its host, the snapshot's link is the address to share, <code>enter</code> takes that address or the link, a missing signature is refused rather than flagged (unless the roll is taken alone), the host refuses a badly signed value, a whole log from the host is taken only when asked for and only if it extends this browser's, and the browser that started a game but no longer has it can't take it back. Accepted by Porter on 2026-10-16, with the rest of the Session build\'s lines. From playtesting with Porter on 2026-10-16 (the black screen in current Chrome): the joiner's colour swap, accepted by Porter on 2026-10-16; the fault page, the army list's added forms and where Undo appears, made under his standing rule for minor choices.</dd>
   </dl>
   <p>Two ways in, and seven operations on the session you get back. Everything a screen shows comes from one snapshot.</p>
 
@@ -27,21 +27,21 @@
     <h2><code>open(size: { width, depth }, me: { name, colour }, from?: Log): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved. Given a starting log (from a saved file), the new game starts from that log instead (Record's <code>reopen</code>), with this browser as its host; it joins as <code>me</code> unless its key is already one of the log's players. <ins>If one of the log's players already has <code>me</code>'s colour, it joins with the first of <code>colours</code> nobody has.</ins> Other players come in by the new link.</dd>
+      <dt>Post</dt><dd>A new <a href="../concepts/game.html">game</a> with a fresh link. This browser is its <a href="../concepts/host.html">host</a> and has joined as a <a href="../concepts/player.html">player</a>. The game is saved. Given a starting log (from a saved file), the new game starts from that log instead (Record's <code>reopen</code>), with this browser as its host; it joins as <code>me</code> unless its key is already one of the log's players. If one of the log's players already has <code>me</code>'s colour, it joins with the first of <code>colours</code> nobody has. Other players come in by the new link.</dd>
       <dt>Fails</dt><dd>Rejects if the relay cannot be reached, or a starting log has no players; nothing is saved.</dd>
     </dl>
   </section>
 
   <section id="colours">
-    <h2><code><ins>colours: string[]</ins></code></h2>
-    <p><ins>The colours a player can pick, in order. The screen offers these; a joiner whose colour is taken is given the first one free.</ins></p>
+    <h2><code>colours: string[]</code></h2>
+    <p>The colours a player can pick, in order. The screen offers these; a joiner whose colour is taken is given the first one free.</p>
   </section>
   <section id="enter">
     <p>A game's link is 8 random characters, a dash and the host's browser id, so every browser knows who the host is before trusting anything it is sent (<a href="../decisions/ADR-022.html">ADR-022</a>); a game opened from a saved file adds a dash and the number of entries copied. The address to share is the page's address with <code>?game=</code> and the link, and <code>enter</code> takes either.</p>
     <h2><code>enter(link: string, as: { name, colour } | "watch"): Promise&lt;Session&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host. <ins>If another player already has the colour asked for, the host gives the joiner the first of <code>colours</code> nobody has, so no two armies look alike.</ins></dd>
+      <dt>Post</dt><dd>If this browser has been in the game before, it comes back as who it was (the host comes back as host, and the game resumes from its saved log). Otherwise it joins as a new player, or as a <a href="../concepts/spectator.html">spectator</a> with <code>"watch"</code>, once it has caught up with the host. If another player already has the colour asked for, the host gives the joiner the first of <code>colours</code> nobody has, so no two armies look alike.</dd>
       <dt>Fails</dt><dd>Rejects if the link is malformed, or if this browser started the game but no longer has it. If the host is away, it still resolves, with the snapshot saying so.</dd>
     </dl>
   </section>

@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15. The minor choices made while building it (the keys, the Decks panel, the army list's format, where new things go, flipping cards, mesh units) are written in here under Porter's standing rule of 2026-10-15. The camera having no bound, Undo showing only while your action is the game's latest, and the two "alone" marks of ADR-023 were decided while Porter was away, and accepted by Porter on 2026-10-15. <ins>From playtesting with Porter on 2026-10-16 (the black screen in current Chrome): the lines marked as proposed, awaiting his review.</ins></dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15. The minor choices made while building it (the keys, the Decks panel, the army list's format, where new things go, flipping cards, mesh units) are written in here under Porter's standing rule of 2026-10-15. The camera having no bound, Undo showing only while your action is the game's latest, and the two "alone" marks of ADR-023 were decided while Porter was away, and accepted by Porter on 2026-10-15. From playtesting with Porter on 2026-10-16 (the black screen in current Chrome): the joiner's colour swap, accepted by Porter on 2026-10-16; the fault page, the army list's added forms and where Undo appears, made under his standing rule for minor choices.</dd>
   </dl>
   <p>The screen's outside is the person using it. Each section is a place or a gesture. Mouse and keyboard controls follow Tabletop Simulator's where it has one.</p>
 
@@ -74,9 +74,9 @@
     <h2>Panels</h2>
     <dl>
       <dt>Phase bar</dt><dd>Round, whose turn, phase name; each can be changed by a player.</dd>
-      <dt>Army</dt><dd>Each player's units and groups with their counters and marks. Change a counter with + and −, toggle a mark, set models aside or return them. Paste or type a list to add units or models to your army, at the start or at any point in the game: one unit per line, such as <code>5x Scouts 25mm</code>, <code>Captain 40mm 1.5"</code> or <code>Tank 100x60mm rect 2.5"</code> (count, base, and the stand-in's height; by default 1, a 25 mm round base and 1.2″). <ins>The x after a count may be left off (<code>10 Scouts</code>); a line with no name, such as a lone number, is reported as unread. A list exported as text from Army Forge reads too: each unit line (<code>Battle Brothers [5] Q3+ D3+ | …</code>) is that many models on the default base (<code>2x Name [5]</code> is one unit of ten), and the equipment lines under it are skipped.</ins> A line naming one of your units adds models to it. New models stand in rows along your table edge.</dd>
+      <dt>Army</dt><dd>Each player's units and groups with their counters and marks. Change a counter with + and −, toggle a mark, set models aside or return them. Paste or type a list to add units or models to your army, at the start or at any point in the game: one unit per line, such as <code>5x Scouts 25mm</code>, <code>Captain 40mm 1.5"</code> or <code>Tank 100x60mm rect 2.5"</code> (count, base, and the stand-in's height; by default 1, a 25 mm round base and 1.2″). The x after a count may be left off (<code>10 Scouts</code>); a line with no name, such as a lone number, is reported as unread. A list exported as text from Army Forge reads too: each unit line (<code>Battle Brothers [5] Q3+ D3+ | …</code>) is that many models on the default base (<code>2x Name [5]</code> is one unit of ten), and the equipment lines under it are skipped. A line naming one of your units adds models to it. New models stand in rows along your table edge.</dd>
       <dt>Terrain</dt><dd>Add a box, cylinder or ramp, or load a 3D mesh file (.glb, .gltf, .obj or .stl), then size, move and turn it like a model. New pieces go in a row across the middle of the table. Each mesh format is read as its makers mean it: glTF in metres, STL in millimetres with +z up, and OBJ, which says neither, in inches with +y up. A model set down over terrain lands on the highest floor under it; while carrying, Page Up and Page Down (or Shift with the wheel) step between the floors there. Models pass through walls; nothing pushes them away.</dd>
-      <dt>Log</dt><dd>Every action as a sentence ("Ana moved Scouts 5.8″"). A slider looks back through the game; the table shows that moment, read-only, until you return to now. Undo appears beside your own latest action. From Record's undo rule, it appears only while your action is the latest one in the game not yet undone, because undo cancels that one. Once anyone acts after you, your action can no longer be undone. <ins>It never appears beside a roll or a draw from a shuffled deck, which the record never undoes, nor beside a join: leaving the game is not an undo.</ins></dd>
+      <dt>Log</dt><dd>Every action as a sentence ("Ana moved Scouts 5.8″"). A slider looks back through the game; the table shows that moment, read-only, until you return to now. Undo appears beside your own latest action. From Record's undo rule, it appears only while your action is the latest one in the game not yet undone, because undo cancels that one. Once anyone acts after you, your action can no longer be undone. It never appears beside a roll or a draw from a shuffled deck, which the record never undoes, nor beside a join: leaving the game is not an undo.</dd>
       <dt>Decks</dt><dd>Beside Army and Terrain: make a new deck, and Draw, Draw face up or Shuffle each deck.</dd>
       <dt>Save</dt><dd>Saves the game to a file. Available to players and spectators.</dd>
     </dl>
@@ -89,9 +89,9 @@
     </dl>
   </section>
   <section id="fault">
-    <h2><ins>When the screen breaks</ins></h2>
+    <h2>When the screen breaks</h2>
     <dl>
-      <dt>Shows</dt><dd><ins>If anything on the screen fails, a page saying something went wrong, with what broke and a Reload button, instead of a blank page. If this browser keeps the game, reloading comes back to the same table.</ins></dd>
+      <dt>Shows</dt><dd>If anything on the screen fails, a page saying something went wrong, with what broke and a Reload button, instead of a blank page. If this browser keeps the game, reloading comes back to the same table.</dd>
     </dl>
   </section>
   <footer class="decisions">
