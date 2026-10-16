@@ -95,7 +95,7 @@ export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandD
     const p = parts.current;
     if (!p) return;
     p.view.camera.setEdge(edgeOf(table, me));
-    p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", turnOrigins(play));
+    p.gestures.setTable(table, me, readOnly, turnOrigins(play));
   }, [play, width, depth]);
 
   useEffect(() => {

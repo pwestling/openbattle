@@ -106,7 +106,6 @@ export class Gestures {
   private hooks: Hooks;
   private table: Table | null = null;
   private readOnly = true;
-  private colour = "#e2b04a";
   private selected = new Set<string>();
   private locked: ReadonlySet<string> = new Set();
   /** Where models that have moved this turn began it. */
@@ -171,12 +170,11 @@ export class Gestures {
   }
 
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, origins: ReadonlyMap<string, Origin>) {
+  setTable(table: Table, me: string | null, readOnly: boolean, origins: ReadonlyMap<string, Origin>) {
     this.origins = origins;
     this.table = table;
     this.me = me;
     this.readOnly = readOnly;
-    this.colour = colour;
     for (const id of this.selected) if (!table.terrain[id] && (!table.models[id] || table.models[id].aside)) this.selected.delete(id);
     // Read-only now, or something carried was taken off the table by someone else: put it all back.
     if (this.carry && (readOnly || this.carry.ids.some((id) => !(table.models[id] && !table.models[id].aside) && !table.terrain[id])))
@@ -513,10 +511,8 @@ export class Gestures {
       const leg = last ? Math.hypot(now.position.x - last.x, now.position.y - last.y) : across;
       const up = floorHeight(table, now.floor) - floorHeight(table, start.floor);
       const h0 = floorHeight(table, start.floor);
-      const owner = table.players[table.units[table.models[id]!.unit]?.owner ?? ""];
       return {
         points: [{ ...start.position, h: h0 }, ...via.map((p) => ({ ...p, h: h0 })), { ...now.position, h: floorHeight(table, now.floor) }],
-        colour: owner?.colour ?? this.colour,
         ...(last ? { total: `${inches(across)} total` } : {}),
         text: `${inches(leg)}${Math.abs(up) >= 0.05 ? ` ${up > 0 ? "↑" : "↓"}${inches(Math.abs(up))}` : ""}`,
       };
@@ -650,7 +646,6 @@ export class Gestures {
     }
     return {
       points: [r.fromPoint, ...r.via, r.toPoint],
-      colour: "#ffffff",
       text,
     };
   }
