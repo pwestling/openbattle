@@ -80,10 +80,9 @@ function faceTexture(card: Card, picture?: HTMLImageElement): CanvasTexture {
   return t;
 }
 
-/** A card lying flat, face up or down. Pictures arrive later, once their file is here. */
-function cardMesh(card: Card, faceUp: boolean, loaded: () => void): Mesh {
+/** A card slab with its face on top and its back underneath. Pictures arrive later, once their file is here. */
+function cardMesh(card: Card, loaded: () => void): Mesh {
   const geometry = new BoxGeometry(CARD.width, THICK, CARD.depth).translate(0, THICK / 2, 0);
-  if (!faceUp) return new Mesh(geometry, slab(backFace, backEdge));
   const material = new MeshStandardMaterial({ map: faceTexture(card), roughness: 0.8 });
   const mesh = new Mesh(geometry, slab(material, faceEdge));
   if (card.picture) {
@@ -109,7 +108,13 @@ interface Drawn {
   object: Object3D;
   key: string;
   tag: CSS2DObject;
+  /** A card on the table: what turns it over, and which way up it is now. */
+  pivot?: Group;
+  faceUp?: boolean;
 }
+
+/** How long turning a card over takes, in seconds. */
+const FLIP = 0.4;
 
 export class Cards {
   private view: TableView;
@@ -117,9 +122,22 @@ export class Cards {
   private hovered: string | null = null;
   private labelled: string | null = null;
   private labelTimer: ReturnType<typeof setTimeout> | undefined;
+  private flips = new Map<string, { pivot: Group; from: number; to: number; t: number }>();
+  private offTick: () => void;
 
   constructor(view: TableView) {
     this.view = view;
+    this.offTick = view.onTick((seconds) => {
+      for (const [id, f] of this.flips) {
+        f.t = Math.min(1, f.t + seconds / FLIP);
+        const ease = f.t * f.t * (3 - 2 * f.t);
+        f.pivot.rotation.x = f.from + (f.to - f.from) * ease;
+        // Up and over: the card rises as it turns.
+        f.pivot.position.y = THICK / 2 + Math.sin(f.t * Math.PI) * 1.6;
+        if (f.t === 1) this.flips.delete(id);
+      }
+      return this.flips.size > 0;
+    });
   }
 
   /** The deck, pile or card the pointer is over ("deck:id", "discard:id" or "card:id"), whose label shows after a moment. */
@@ -182,7 +200,7 @@ export class Cards {
         const object = new Group();
         object.userData.discard = deck.id;
         const pile = top
-          ? cardMesh(top, true, () => this.view.invalidate())
+          ? cardMesh(top, () => this.view.invalidate())
           : new Mesh(
               new PlaneGeometry(CARD.width, CARD.depth).rotateX(-Math.PI / 2),
               new MeshStandardMaterial({ color: "#555555", transparent: true, opacity: 0.25 }),
@@ -198,27 +216,42 @@ export class Cards {
     for (const card of cards) {
       if (card.place.in !== "table") continue;
       const faceUp = card.place.faceUp;
-      const key = `${card.id}|${faceUp}`;
+      // The same object across a flip, so it can be seen turning over.
+      const key = card.id;
       const at = carried.get(card.id) ?? card.place.position;
       put(`card:${card.id}`, key, at, carried.has(card.id) ? 0.4 : 0, () => {
         const object = new Group();
         object.userData.card = card.id;
-        object.add(cardMesh(card, faceUp, () => this.view.invalidate()));
+        const pivot = new Group();
+        pivot.position.y = THICK / 2;
+        pivot.rotation.x = faceUp ? 0 : Math.PI;
+        const mesh = cardMesh(card, () => this.view.invalidate());
+        mesh.position.y = -THICK / 2;
+        pivot.add(mesh);
+        object.add(pivot);
         const tag = label(faceUp ? card.name : "Card", "label table-card");
         tag.position.y = THICK + 0.2;
         object.add(tag);
-        return { object, key, tag };
+        return { object, key, tag, pivot, faceUp };
       });
+      const d = this.drawn.get(`card:${card.id}`)!;
+      if (d.pivot && d.faceUp !== faceUp) {
+        d.faceUp = faceUp;
+        d.tag.element.textContent = faceUp ? card.name : "Card";
+        this.flips.set(card.id, { pivot: d.pivot, from: d.pivot.rotation.x, to: faceUp ? 0 : Math.PI, t: 0 });
+      }
     }
     for (const [id, d] of this.drawn) {
       if (seen.has(id)) continue;
       drop(this.view.root, d.object);
       this.drawn.delete(id);
+      this.flips.delete(id.replace(/^card:/, ""));
     }
   }
 
   dispose() {
     clearTimeout(this.labelTimer);
+    this.offTick();
     for (const d of this.drawn.values()) drop(this.view.root, d.object);
     this.drawn.clear();
   }
