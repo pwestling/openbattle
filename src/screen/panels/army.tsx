@@ -156,7 +156,7 @@ function AddToArmy() {
         <textarea
           rows={5}
           value={text}
-          placeholder={'5x Scouts 25mm\nCaptain 40mm 1.5"\n3x Bikers 60x35mm oval'}
+          placeholder={'For example:\n5x Scouts 25mm\nCaptain 40mm 1.5"\nor paste an Army Forge list'}
           onChange={(e) => {
             setText(e.target.value);
             setListed(null);
@@ -177,50 +177,52 @@ function AddToArmy() {
         </button>
       ) : (
         <>
-          <table className="listed">
-            <thead>
-              <tr>
-                <th>Unit</th>
-                <th>Models</th>
-                <th>Base</th>
-                <th>Height</th>
-                <th>Mesh</th>
-              </tr>
-            </thead>
-            <tbody>
-              {listed.map((u, i) => (
-                <tr key={i}>
-                  <td>{u.name}</td>
-                  <td>{u.count}</td>
-                  <td>
-                    {u.base.width === u.base.depth ? u.base.width : `${u.base.width}×${u.base.depth}`}mm {u.base.shape}
-                  </td>
-                  <td>{u.height}″</td>
-                  <td>
-                    <label className="file" title="A mesh file for this unit's models">
-                      {meshes[i] ? "✓" : "…"}
-                      <input
-                        type="file"
-                        aria-label={`Mesh for ${u.name}`}
-                        accept=".glb,.gltf,.obj,.stl"
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          try {
-                            await readMesh(file);
-                            const fingerprint = await session.addFile(file);
-                            setMeshes((m) => ({ ...m, [i]: fingerprint }));
-                          } catch (err) {
-                            note(err instanceof Error ? err.message : "That mesh could not be loaded.");
-                          }
-                        }}
-                      />
-                    </label>
-                  </td>
+          {listed.length > 0 && (
+            <table className="listed">
+              <thead>
+                <tr>
+                  <th>Unit</th>
+                  <th>Models</th>
+                  <th>Base</th>
+                  <th>Height</th>
+                  <th>Mesh</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {listed.map((u, i) => (
+                  <tr key={i}>
+                    <td>{u.name}</td>
+                    <td>{u.count}</td>
+                    <td>
+                      {u.base.width === u.base.depth ? u.base.width : `${u.base.width}×${u.base.depth}`}mm {u.base.shape}
+                    </td>
+                    <td>{u.height}″</td>
+                    <td>
+                      <label className="file" title="A mesh file for this unit's models">
+                        {meshes[i] ? "✓" : "…"}
+                        <input
+                          type="file"
+                          aria-label={`Mesh for ${u.name}`}
+                          accept=".glb,.gltf,.obj,.stl"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            try {
+                              await readMesh(file);
+                              const fingerprint = await session.addFile(file);
+                              setMeshes((m) => ({ ...m, [i]: fingerprint }));
+                            } catch (err) {
+                              note(err instanceof Error ? err.message : "That mesh could not be loaded.");
+                            }
+                          }}
+                        />
+                      </label>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
           {unread.length > 0 && <p className="problem">Couldn't read: {unread.join("; ")}</p>}
           <button disabled={listed.length === 0} onClick={() => void add()}>
             Add to army

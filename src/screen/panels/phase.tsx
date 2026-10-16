@@ -7,7 +7,9 @@ export function PhaseBar() {
   const { table, act, readOnly } = usePlay();
   const phase = table.phase;
   const [name, setName] = useState(phase.name);
-  useEffect(() => setName(phase.name), [phase.name]);
+  useEffect(() => {
+    setName(phase.name);
+  }, [phase.name]);
   const latest = useBuildOn(phase);
   const set = (change: Partial<Phase>) => {
     const next = { ...latest.get(), ...change };
