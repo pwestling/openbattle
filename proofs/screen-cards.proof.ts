@@ -1,5 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import { centre, drawn, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
+import { centre, drawn, joinGame, keptLog, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 const log = (page: Page) => page.getByRole("region", { name: "Log" }).locator("li");
 const hand = (page: Page) => page.getByRole("region", { name: "Your hand" });
@@ -132,6 +132,21 @@ test("a tampered draw is flagged in the log", async ({ browser }) => {
   const ben = await joinGame(browser, link, "Ben");
   await newDeck(ben, "Missions", "A\nB\nC\nD", "Shuffled");
   await expect(labels(ben, "Missions · 4 · shuffled")).toHaveCount(1);
+
+  // Shared with Ben, who sends his value, but under a seal the host's value doesn't open.
+  const benId = ((await keptLog(ben)).entries as any[]).find((e) => e.action.kind === "join" && e.action.name === "Ben").by;
+  await rogue.evaluate(async (to) => {
+    const r = (window as any).rogue;
+    const deck = r.log.entries.find((e: any) => e.action.kind === "add deck").action.deck;
+    await r.askValue(to, 1, { kind: "draw", deck, cards: 1, to: "table" }, true);
+  }, benId);
+  await rogue.waitForFunction(() => (window as any).rogue.values.length === 1);
+  await rogue.evaluate(() => (window as any).rogue.use(1));
+  await expect(log(ben).last()).toContainText("Rogue drew 1 card from Missions");
+  await expect(log(ben).last()).toHaveClass(/tampered/);
+  await expect(log(ben).last()).not.toHaveClass(/alone/);
+  await expect(log(ben).last().getByRole("alert")).toContainText("This draw was tampered with");
+
   const before = await log(ben).count();
   await rogue.evaluate(() => {
     const r = (window as any).rogue;

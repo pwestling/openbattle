@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { addArmy, joinGame, labels, newGame } from "./screen-helpers.ts";
+import { addArmy, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 // Army panel: paste a list to add units; the models stand on the table and the log says so.
 test("a pasted army list puts its models on the table", async ({ page }) => {
@@ -15,18 +15,18 @@ test("a pasted army list puts its models on the table", async ({ page }) => {
 });
 
 // Army panel: counters with + and −, marks toggled, models set aside and returned, units grouped.
-test("counters, marks, setting aside and groups", async ({ page: host, browser }) => {
+test("counters, marks, setting aside and groups", async ({ browser }) => {
   // Ben plays from his own browser, so every click goes to the host and back.
-  await newGame(host);
-  const link = await host.getByLabel("Invite link").inputValue();
+  const { rogue, link } = await rogueHost(browser);
   const page = await joinGame(browser, link, "Ben");
   await addArmy(page, "5x Scouts\nCaptain 40mm");
   const scouts = page.getByRole("article", { name: "Scouts" });
   await scouts.getByTitle("Add a counter or mark").click();
   await scouts.getByLabel("Counter or mark name").fill("Wounds");
   await scouts.getByRole("button", { name: "Add counter" }).click();
-  // Quick clicks build on each other, though each waits on the host, while someone else's change
+  // Quick clicks build on each other, even over a slow connection while someone else's change
   // arrives between them.
+  await rogue.evaluate(() => ((window as any).rogue.delay = 400));
   const raise = scouts.getByRole("button", { name: "Raise Wounds" });
   await raise.click();
   await raise.click();
@@ -36,6 +36,7 @@ test("counters, marks, setting aside and groups", async ({ page: host, browser }
   await raise.click();
   await scouts.getByRole("button", { name: "Lower Wounds" }).click();
   await expect(scouts.getByLabel("Wounds counter")).toContainText("4");
+  await rogue.evaluate(() => ((window as any).rogue.delay = 0));
   await expect(page.getByRole("region", { name: "Log" }).locator("li").last()).toContainText("Ben set Scouts’ Wounds to 4");
 
   await scouts.getByTitle("Add a counter or mark").click();
@@ -61,21 +62,22 @@ test("counters, marks, setting aside and groups", async ({ page: host, browser }
 });
 
 // Phase bar: round, whose turn and phase name can each be changed.
-test("the phase bar changes round, turn and phase", async ({ page: host, browser }) => {
-  // Ben changes it from his own browser, so each quick click waits on the host.
-  await newGame(host);
-  const page = await joinGame(browser, await host.getByLabel("Invite link").inputValue(), "Ben");
+test("the phase bar changes round, turn and phase", async ({ browser }) => {
+  // Ben changes it from his own browser, over a slow connection.
+  const { rogue, link } = await rogueHost(browser);
+  const page = await joinGame(browser, link, "Ben");
   const phase = page.getByRole("group", { name: "Phase" });
+  await rogue.evaluate(() => ((window as any).rogue.delay = 400));
   await phase.getByRole("button", { name: "Next round" }).click();
   await phase.getByRole("button", { name: "Next round" }).click();
   await phase.getByRole("button", { name: "Next round" }).click();
   await phase.getByRole("button", { name: "Previous round" }).click();
   // A game starts at round 0, before its first round.
   await expect(phase.getByLabel("Round", { exact: true })).toHaveText("2");
-  await phase.getByRole("combobox").selectOption({ label: "Ana" });
+  await phase.getByRole("combobox").selectOption({ label: "Ben" });
   await phase.getByLabel("Phase name").fill("Shooting");
   await phase.getByLabel("Phase name").press("Enter");
-  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ben set round 2, Ana’s turn, Shooting");
+  await expect(page.getByRole("region", { name: "Log" })).toContainText("Ben set round 2, Ben’s turn, Shooting");
 });
 
 // Log: undo beside your own latest action; the slider shows an earlier moment, read-only, until you return.

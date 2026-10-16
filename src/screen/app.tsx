@@ -177,14 +177,14 @@ function Arrive({ link, onEnter, onBroken }: { link: string; onEnter: (s: Sessio
 
   useEffect(() => {
     // Someone coming back on the same browser goes straight back to their seat.
-    // Session keeps a game under its id, the address's ?game= (see the Session surface).
-    let id = link;
+    // Session keeps a game under its link, the ?game= part of the address to share (Session surface).
+    let gameLink = link;
     try {
-      id = new URL(link).searchParams.get("game") ?? link;
+      gameLink = new URL(link).searchParams.get("game") ?? link;
     } catch {
       // Not an address: the link itself.
     }
-    void load(id).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
+    void load(gameLink).then((saved) => (saved ? enter(saved.me === "watch" ? "watch" : rememberedMe()) : setAsking(true)));
   }, [link]);
 
   if (!asking) return <main className="start" aria-busy="true" />;
