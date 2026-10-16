@@ -10,14 +10,6 @@ import { TableView } from "./view.ts";
 /** Lets a card dragged out of the hand be let go on the table. */
 export type HandDrop = (card: string, clientX: number, clientY: number, bottom: boolean) => void;
 
-/** The models of the latest move up to the moment shown, whose paths stay visible to everyone. */
-function lastMove(play: Play): string[] {
-  const upTo = play.lookingAt ?? play.now.log.entries.length;
-  const cancelled = new Set(play.table.cancelled);
-  const entry = play.now.log.entries.findLast((e) => e.n <= upTo && e.action.kind === "move" && !cancelled.has(e.n));
-  return entry?.action.kind === "move" ? entry.action.moves.map((m) => m.model) : [];
-}
-
 /**
  * Where each model that has moved this turn began the turn, and the waypoints its latest move was
  * pinned through. Dragging it again only adjusts that move; a leg is added by pinning a waypoint.
@@ -103,7 +95,7 @@ export function TableCanvas({ handDrop, selectRef }: { handDrop: RefObject<HandD
     const p = parts.current;
     if (!p) return;
     p.view.camera.setEdge(edgeOf(table, me));
-    p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", lastMove(play), turnOrigins(play));
+    p.gestures.setTable(table, me, readOnly, (me && table.players[me]?.colour) || "#e2b04a", turnOrigins(play));
   }, [play, width, depth]);
 
   useEffect(() => {

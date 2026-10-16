@@ -107,7 +107,6 @@ export class Gestures {
   private table: Table | null = null;
   private readOnly = true;
   private colour = "#e2b04a";
-  private lastMove: Guide[] = [];
   private selected = new Set<string>();
   private locked: ReadonlySet<string> = new Set();
   /** Where models that have moved this turn began it. */
@@ -172,7 +171,7 @@ export class Gestures {
   }
 
   /** A new moment to show. The latest move's paths stay drawn for everyone. */
-  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, lastMove: string[], origins: ReadonlyMap<string, Origin>) {
+  setTable(table: Table, me: string | null, readOnly: boolean, colour: string, origins: ReadonlyMap<string, Origin>) {
     this.origins = origins;
     this.table = table;
     this.me = me;
@@ -182,13 +181,6 @@ export class Gestures {
     // Read-only now, or something carried was taken off the table by someone else: put it all back.
     if (this.carry && (readOnly || this.carry.ids.some((id) => !(table.models[id] && !table.models[id].aside) && !table.terrain[id])))
       this.cancelCarry();
-    this.lastMove = lastMove.flatMap((id) => {
-      const m = table.models[id];
-      if (!m || m.aside || m.path.length < 2) return [];
-      const owner = table.players[table.units[m.unit]?.owner ?? ""];
-      const h = floorHeight(table, m.floor);
-      return [{ points: m.path.map((p) => ({ ...p, h })), colour: owner?.colour ?? "#ffffff" }];
-    });
     this.redraw();
   }
 
@@ -196,12 +188,12 @@ export class Gestures {
     if (!this.table) return;
     this.pieces.sync(this.table, this.selected, this.carried);
     this.cards.sync(this.table, this.carriedCards);
-    const guides: Guide[] = [...this.lastMove];
+    const guides: Guide[] = [];
     if (this.carry?.moved) guides.push(...this.carryGuides());
     if (this.ruler) guides.push(this.rulerGuide());
     this.guides.show(guides);
     // Piece labels stay out of the way of the measurements.
-    this.view.host.classList.toggle("measuring", guides.length > this.lastMove.length);
+    this.view.host.classList.toggle("measuring", guides.length > 0);
   }
 
   // Where the pointer is.
