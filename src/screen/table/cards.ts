@@ -5,7 +5,7 @@ import { BoxGeometry, CanvasTexture, Group, Mesh, MeshStandardMaterial, PlaneGeo
 import type { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import type { Card, Deck, Point, Table } from "../../record/index.ts";
 import { getFile } from "../../archive/index.ts";
-import { drop, label } from "./pieces.ts";
+import { drop, label, LABEL_DELAY } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 
 export const CARD = { width: 2.5, depth: 3.5 };
@@ -114,9 +114,27 @@ interface Drawn {
 export class Cards {
   private view: TableView;
   private drawn = new Map<string, Drawn>();
+  private hovered: string | null = null;
+  private labelled: string | null = null;
+  private labelTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(view: TableView) {
     this.view = view;
+  }
+
+  /** The deck, pile or card the pointer is over ("deck:id", "discard:id" or "card:id"), whose label shows after a moment. */
+  hover(key: string | null) {
+    if (key === this.hovered) return;
+    clearTimeout(this.labelTimer);
+    this.drawn.get(this.labelled ?? "")?.tag.element.classList.remove("pointed");
+    this.labelled = null;
+    this.hovered = key;
+    if (key === null) return;
+    this.labelTimer = setTimeout(() => {
+      this.labelled = key;
+      this.drawn.get(key)?.tag.element.classList.add("pointed");
+      this.view.invalidate();
+    }, LABEL_DELAY);
   }
 
   objects(): Object3D[] {
@@ -137,6 +155,7 @@ export class Cards {
         d = draw();
         this.view.root.add(d.object);
         this.drawn.set(id, d);
+        d.tag.element.classList.toggle("pointed", id === this.labelled);
       }
       d.object.position.set(at.x, height, -at.y);
     };
@@ -199,6 +218,7 @@ export class Cards {
   }
 
   dispose() {
+    clearTimeout(this.labelTimer);
     for (const d of this.drawn.values()) drop(this.view.root, d.object);
     this.drawn.clear();
   }

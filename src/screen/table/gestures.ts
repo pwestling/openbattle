@@ -611,7 +611,9 @@ export class Gestures {
   private showLabelUnder(e: PointerEvent) {
     const onTable = e.target === this.view.renderer.domElement;
     const thing = onTable && !this.orbit ? this.thingAt(e) : null;
-    this.pieces.hover(thing && (thing.kind === "model" || thing.kind === "terrain") ? thing.id : null);
+    const piece = thing && (thing.kind === "model" || thing.kind === "terrain");
+    this.pieces.hover(piece ? thing.id : null);
+    this.cards.hover(thing && !piece ? `${thing.kind}:${thing.id}` : null);
   }
 
   /** Turns the card under the pointer over. */

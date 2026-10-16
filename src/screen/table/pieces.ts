@@ -21,7 +21,7 @@ import type { TableView } from "./view.ts";
 export const MM = 1 / 25.4;
 
 /** How long the pointer rests on a piece before its label shows, in milliseconds. */
-const LABEL_DELAY = 500;
+export const LABEL_DELAY = 500;
 
 /** Where a model or terrain piece is drawn: the record's place for it, or where it is being carried. */
 export interface Place {
