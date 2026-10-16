@@ -273,6 +273,7 @@ export class Gestures {
 
   private move(e: PointerEvent) {
     this.hover = { clientX: e.clientX, clientY: e.clientY };
+    this.showLabelUnder(e);
     // A right button pressed while the left is held comes as a move, not a press.
     if (e.button === 2 && e.buttons & 2 && (this.carry || this.ruler)) return this.pin();
     if (this.orbit) {
@@ -585,6 +586,13 @@ export class Gestures {
   }
 
   private me: string | null = null;
+
+  /** A piece's label shows while the pointer is over it, and not while it is over a panel. */
+  private showLabelUnder(e: PointerEvent) {
+    const onTable = e.target === this.view.renderer.domElement;
+    const thing = onTable && !this.orbit ? this.thingAt(e) : null;
+    this.pieces.hover(thing && (thing.kind === "model" || thing.kind === "terrain") ? thing.id : null);
+  }
 
   /** Turns the card under the pointer over. */
   private flip() {

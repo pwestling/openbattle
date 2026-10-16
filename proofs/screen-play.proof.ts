@@ -187,3 +187,24 @@ Heavy Pistol (12", A1, AP(1))`);
   await expect(log(page).last()).toContainText("Ana added Battle Brothers (5 models) and Captain");
   await expect(labels(page, "Battle Brothers")).toHaveCount(5);
 });
+
+// Labels: a piece's name shows only while the pointer is over it or it is selected, so a crowded
+// table stays readable (Porter, 2026-10-16).
+test("a model's label shows on mouse over and while selected", async ({ page }) => {
+  await newGame(page, "Ana");
+  await addList(page, "5x Scouts 25mm\nCaptain 40mm");
+  const shown = page.locator(".table-labels .label:visible");
+  await expect(labels(page, "Scouts")).toHaveCount(5);
+  await expect(shown).toHaveCount(0);
+  await drawn(page);
+  const captain = await centre(labels(page, "Captain"));
+  await page.mouse.move(captain.x, captain.y + 6);
+  await expect(shown).toHaveText(["Captain"]);
+  // Off the piece, onto a panel: hidden again.
+  await page.mouse.move(5, 300);
+  await expect(shown).toHaveCount(0);
+  // A click selects the unit's model; its label stays while selected.
+  await page.mouse.click(captain.x, captain.y + 6);
+  await page.mouse.move(5, 300);
+  await expect(shown).toHaveText(["Captain"]);
+});
