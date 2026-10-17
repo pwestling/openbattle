@@ -33,6 +33,11 @@ export interface Place {
   lift?: number;
 }
 
+/** Where a model stands, or null when it is set aside. */
+export function placed(model: Model): Place | null {
+  return model.place.in === "table" ? model.place : null;
+}
+
 /** The height of a floor on the table; the table itself is 0. */
 export function floorHeight(table: Table, floor: FloorRef | null): number {
   if (!floor) return 0;
@@ -211,11 +216,12 @@ export class Pieces {
       this.put(t.id, key, target(place, 0), selected.has(t.id), () => this.drawTerrain(t));
     }
     for (const m of Object.values(table.models)) {
-      if (m.aside) continue;
+      const stands = placed(m);
+      if (!stands) continue;
       seen.add(m.id);
       const colour = table.players[table.units[m.unit]?.owner ?? ""]?.colour ?? "#999999";
       const key = JSON.stringify([m.base, m.height, m.mesh, colour, m.name]);
-      const place = carried.get(m.id) ?? m;
+      const place = carried.get(m.id) ?? stands;
       this.put(m.id, key, target(place, floorHeight(table, place.floor)), selected.has(m.id), () => this.drawModel(m, colour));
     }
     for (const [id, d] of this.drawn) {

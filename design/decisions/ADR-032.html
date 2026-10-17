@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-032: A model's place is one value, and a target says what it is — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T12:00Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-032">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-032: A model's place is one value, and a target says what it is</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> From findings 3 and 6 of the decomplecting review, 2026-10-17, before any code builds reserves, markers or items on the old shapes.</dd>
+    <dt>Context</dt><dd>A <a href="../concepts/model.html">model</a> is kept as "set aside, yes or no" beside a position that means nothing while it is set aside, and every reader has to check the flag first. <a rel="decision" href="ADR-025.html">ADR-025</a> adds reserves, kept apart from removed models, which a yes or no can't hold. A <a href="../concepts/counter.html">counter</a> or <a href="../concepts/mark.html">mark</a> names what it sits on by a bare id, or the word "game", and the record finds out what that id is by looking in every list in turn; ADR-025 and <a rel="decision" href="ADR-027.html">ADR-027</a> add terrain, markers and items to that list.</dd>
+    <dt>Decision</dt><dd>A model's place is one value: on the table (with its position, facing and floor), in reserve, or removed. Only a model on the table has a position. A counter or mark names its target together with what kind of thing it is: a model, unit, group, player, terrain piece, marker or item, or the game itself. The table keeps counters and marks for each kind of thing apart.</dd>
+    <dt>Because</dt><dd>Each fact is stored once, and nothing reads a stale position or guesses what an id names. Cards already keep their place this way. It is cheap now and costly once the <a href="../concepts/rules-package.html">rules package</a> reads counters and reserves everywhere.</dd>
+    <dt>Rejected</dt><dd>Keeping the yes or no and adding a second "reserve" flag beside it: two flags that must agree. Keeping bare ids: every new kind of thing that can hold a counter grows the guessing.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/model.html">Model</a>, <a href="../concepts/counter.html">Counter</a>, <a href="../concepts/mark.html">Mark</a>, <a href="../boundaries/record.html">Record</a>, <a href="../boundaries/measure.html">Measure</a>, <a href="../boundaries/screen.html">Screen</a></dd>
+  </dl>
+</article>
+</body>
+</html>

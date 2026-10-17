@@ -22,10 +22,8 @@ export interface TableShape {
     {
       unit: string;
       base: { shape: "round" | "oval" | "rect"; width: number; depth: number };
-      position: Point;
-      facing: number;
-      floor: { terrain: string; floor: number } | null;
-      aside: boolean;
+      /** Where the model is; only one on the table is measured or seen (ADR-032). */
+      place: Standing | { in: "reserve" | "removed" };
       /** The body: a mesh named by its file's fingerprint, or a stand-in of this height in inches. */
       mesh?: string;
       height: number;
@@ -40,10 +38,20 @@ export interface TableShape {
       shape: { kind: "box" | "cylinder" | "ramp" | "mesh"; width: number; depth: number; height: number };
     }
   >;
+  /** Flat shapes on the table, sized in inches (ADR-025). */
+  markers?: Record<string, { shape: "disc" | "rect"; width: number; depth: number; position: Point; facing: number }>;
 }
 
-/** A point in inches, a model, or a unit (its closest model). */
-export type Spot = Point | { model: string } | { unit: string };
+/** Where a model on the table stands: on the table itself, or on a floor of a terrain piece. */
+export interface Standing {
+  in: "table";
+  position: Point;
+  facing: number;
+  floor: { terrain: string; floor: number } | null;
+}
+
+/** A point in inches, a model, a unit (its closest model), or a marker (to its edge). */
+export type Spot = Point | { model: string } | { unit: string } | { marker: string };
 
 /**
  * Triangles in the mesh's own units, as three.js reads them: +y is up, corners run anticlockwise seen

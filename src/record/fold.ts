@@ -1,12 +1,23 @@
 // Working out the table from the log. Only ever called on actions check has accepted.
 import { drawFrom, opens, rollDice } from "./chance.ts";
-import type { Card, Entry, FloorRef, Log, Sealed, Size, Table } from "./types.ts";
+import type { ByTarget, Card, Entry, FloorRef, Log, Sealed, Size, Stats, Table, Target } from "./types.ts";
 
 /**
  * A record keyed by ids, with nothing inherited, so an id such as "__proto__" or "toString"
  * is only ever a key the log put there.
  */
 const byId = <T>(): Record<string, T> => Object.create(null) as Record<string, T>;
+
+const byTarget = <T>(game: T): ByTarget<T> => ({
+  model: byId(),
+  unit: byId(),
+  group: byId(),
+  player: byId(),
+  terrain: byId(),
+  marker: byId(),
+  item: byId(),
+  game,
+});
 
 export function bareTable(size: Size): Table {
   return {
@@ -16,9 +27,13 @@ export function bareTable(size: Size): Table {
     units: byId(),
     models: byId(),
     groups: byId(),
+    items: byId(),
+    markers: byId(),
     phase: { round: 0, turn: null, name: "" },
-    counters: byId(),
-    marks: byId(),
+    priority: { players: [], note: "" },
+    rules: null,
+    counters: byTarget(byId<number>()),
+    marks: byTarget<string[]>([]),
     rolls: [],
     draws: [],
     decks: byId(),
@@ -70,7 +85,8 @@ const copy = <T>(value: T): T => structuredClone(value);
 /** Puts back on the table any model whose floor no longer exists. */
 function settle(table: Table) {
   for (const model of Object.values(table.models)) {
-    if (model.floor && !table.terrain[model.floor.terrain]?.floors[model.floor.floor]) model.floor = null;
+    const place = model.place;
+    if (place.in === "table" && place.floor && !table.terrain[place.floor.terrain]?.floors[place.floor.floor]) place.floor = null;
   }
 }
 
@@ -102,10 +118,14 @@ function apply(table: Table, { n, by, action }: Entry) {
       return;
     case "remove terrain":
       delete table.terrain[action.terrain];
+      forget(table, { terrain: action.terrain });
       settle(table);
       return;
     case "add to army":
-      for (const unit of action.units) table.units[unit.id] = { id: unit.id, owner: by, name: unit.name };
+      for (const unit of action.units) {
+        table.units[unit.id] = { id: unit.id, owner: by, name: unit.name };
+        stats(table, { unit: unit.id }, unit);
+      }
       for (const m of action.models) {
         table.models[m.id] = {
           id: m.id,
@@ -114,35 +134,32 @@ function apply(table: Table, { n, by, action }: Entry) {
           base: copy(m.base),
           ...(m.mesh === undefined ? {} : { mesh: m.mesh }),
           height: m.height,
-          position: copy(m.position),
-          facing: m.facing,
-          floor: floorOf(m.floor),
+          place: { in: "table", position: copy(m.position), facing: m.facing, floor: floorOf(m.floor) },
           path: [],
-          aside: false,
         };
+        stats(table, { model: m.id }, m);
+      }
+      for (const item of action.items ?? []) {
+        table.items[item.id] = { id: item.id, name: item.name, carrier: item.carrier };
+        stats(table, { item: item.id }, item);
       }
       for (const g of action.groups) table.groups[g.id] = { id: g.id, owner: by, name: g.name, members: [...g.members] };
       return;
     case "move":
       for (const move of action.moves) {
         const model = table.models[move.model]!;
-        model.position = copy(move.position);
-        model.facing = move.facing;
-        model.floor = floorOf(move.floor);
+        model.place = { in: "table", position: copy(move.position), facing: move.facing, floor: floorOf(move.floor) };
         model.path = copy(move.path);
       }
       return;
     case "set aside":
-      for (const id of action.models) table.models[id]!.aside = true;
+      for (const id of action.models) table.models[id]!.place = { in: action.to ?? "removed" };
       return;
     case "return":
       for (const back of action.models) {
         const model = table.models[back.model]!;
-        model.position = copy(back.position);
-        model.facing = back.facing;
-        model.floor = floorOf(back.floor);
+        model.place = { in: "table", position: copy(back.position), facing: back.facing, floor: floorOf(back.floor) };
         model.path = [];
-        model.aside = false;
       }
       return;
     case "group": {
@@ -153,25 +170,48 @@ function apply(table: Table, { n, by, action }: Entry) {
     case "ungroup":
       delete table.groups[action.group];
       for (const group of Object.values(table.groups)) group.members = group.members.filter((m) => m !== action.group);
-      forget(table, action.group);
+      forget(table, { group: action.group });
       return;
     case "phase":
       table.phase = copy(action.phase);
       return;
     case "counter": {
-      const counters = (table.counters[action.target] ??= byId());
+      const counters = Object.assign(byId<number>(), countersOn(table, action.target));
       if (action.value === null) delete counters[action.name];
       else counters[action.name] = action.value;
-      if (Object.keys(counters).length === 0) delete table.counters[action.target];
+      keep(table.counters, action.target, Object.keys(counters).length ? counters : undefined, byId());
       return;
     }
     case "mark": {
-      const marks = (table.marks[action.target] ?? []).filter((m) => m !== action.name);
+      const marks = (marksOn(table, action.target) ?? []).filter((m) => m !== action.name);
       if (action.on) marks.push(action.name);
-      if (marks.length) table.marks[action.target] = marks;
-      else delete table.marks[action.target];
+      keep(table.marks, action.target, marks.length ? marks : undefined, []);
       return;
     }
+    case "item": {
+      const { id, name, carrier } = action.item;
+      table.items[id] = { id, name, carrier };
+      return;
+    }
+    case "remove item":
+      for (const id of heldIn(table, action.item)) {
+        delete table.items[id];
+        forget(table, { item: id });
+      }
+      return;
+    case "place marker":
+      table.markers[action.marker.id] = copy(action.marker);
+      return;
+    case "remove marker":
+      delete table.markers[action.marker];
+      forget(table, { marker: action.marker });
+      return;
+    case "priority":
+      table.priority = { players: [...action.players], note: action.note ?? "" };
+      return;
+    case "rules":
+      table.rules = action.name;
+      return;
     case "roll":
       table.rolls.push({
         at: n,
@@ -242,8 +282,43 @@ function apply(table: Table, { n, by, action }: Entry) {
   }
 }
 
+/** Sets the counters and marks a new unit, model or item comes with. */
+function stats(table: Table, target: Target, { counters, marks }: Stats) {
+  if (counters && Object.keys(counters).length) keep(table.counters, target, Object.assign(byId<number>(), counters), byId());
+  if (marks?.length) keep(table.marks, target, [...new Set(marks)], []);
+}
+
+const countersOn = (table: Table, target: Target) => ("game" in target ? table.counters.game : held(table.counters, target));
+const marksOn = (table: Table, target: Target) => ("game" in target ? table.marks.game : held(table.marks, target));
+
+/** What is kept for a thing, by its kind and id. */
+function held<T>(all: ByTarget<T>, target: Exclude<Target, { game: true }>): T | undefined {
+  const [kind, id] = Object.entries(target)[0] as [Exclude<keyof ByTarget<T>, "game">, string];
+  return all[kind][id];
+}
+
+/** Keeps a value for a target, or drops it when undefined (the game's goes back to empty). */
+function keep<T>(all: ByTarget<T>, target: Target, value: T | undefined, empty: T) {
+  if ("game" in target) {
+    all.game = value ?? empty;
+    return;
+  }
+  const [kind, id] = Object.entries(target)[0] as [Exclude<keyof ByTarget<T>, "game">, string];
+  if (value === undefined) delete all[kind][id];
+  else all[kind][id] = value;
+}
+
+/** An item and every item it holds, through any depth. */
+export function heldIn(table: Table, item: string): string[] {
+  const all = [item];
+  for (let i = 0; i < all.length; i++) {
+    for (const other of Object.values(table.items)) if (other.carrier === all[i]) all.push(other.id);
+  }
+  return all;
+}
+
 /** Drops counters and marks on a target that no longer exists. */
-function forget(table: Table, target: string) {
-  delete table.counters[target];
-  delete table.marks[target];
+function forget(table: Table, target: Target) {
+  keep(table.counters, target, undefined, byId());
+  keep(table.marks, target, undefined, []);
 }

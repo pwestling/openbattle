@@ -46,6 +46,12 @@ const KINDS: Record<Action["kind"], true> = {
   shuffle: true,
   draw: true,
   "move card": true,
+  item: true,
+  "remove item": true,
+  "place marker": true,
+  "remove marker": true,
+  priority: true,
+  rules: true,
   undo: true,
 };
 
