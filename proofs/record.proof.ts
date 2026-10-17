@@ -187,8 +187,9 @@ test("every kind of action changes the table as the Record surface says", async 
   expect(t.table.cards.c4?.place).toEqual({ in: "hand", player: bo });
   expect(t.table.decks.d1).toMatchObject({ order: "shuffled", cards: ["c2", "c1"] });
   // A deck's list and the places of its cards always agree.
-  const inDeck = Object.values(t.table.cards).filter((c) => c.place.in === "deck").map((c) => c.id);
-  expect(inDeck.sort()).toEqual([...t.table.decks.d1!.cards].sort());
+  const inDeck = Object.values(t.table.cards).flatMap((c) => (c.place.in === "deck" ? [`${c.place.deck}:${c.id}`] : []));
+  const listed = Object.values(t.table.decks).flatMap((d) => d.cards.map((id) => `${d.id}:${id}`));
+  expect(inDeck.sort()).toEqual(listed.sort());
 });
 
 test("check says in plain words why an action can't be taken, and append refuses it", async ({ page }) => {
