@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Item — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T00:45Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/item">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Item</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#rules">Players apply the rules</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Porter chose "add item" on 2026-10-17, with items able to hold items. This wording awaits his review.</dd>
+    <dt>Purpose</dt><dd>Give a model's gear its own numbers and states, so a game's stats have the shape its army books give them.</dd>
+    <dt>Meaning</dt><dd>A named thing a <a href="../concepts/model.html">model</a> carries, such as a weapon or wargear, holding <a href="../concepts/counter.html">counters</a> and <a href="../concepts/mark.html">marks</a>: a Pulse Rifle with Range 30, Attacks 1 and AP 1, and the mark "Rending". An item may hold other items, such as a vehicle's hardpoint holding a weapon.</dd>
+    <dt>Invariants</dt><dd><ul><li>Every item is carried by exactly one model or held by exactly one other item, and no item holds itself, directly or through another item.</li><li>Adding, removing, moving or renaming an item is an <a href="../concepts/action.html">action</a>.</li><li>An item is not drawn on the <a href="../concepts/table.html">table</a> and has no position; it goes where its model goes.</li><li>In the first version no item has a built-in meaning.</li></ul></dd>
+    <dt>Not</dt><dd>A <a href="../concepts/model.html">model</a> or a <a href="../concepts/card.html">card</a>. Not a structured value inside a counter: counters stay single named numbers, and structure comes from what carries them.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-027.html">ADR-027</a>
+  </footer>
+</article>
+</body>
+</html>

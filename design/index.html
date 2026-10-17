@@ -5,23 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle design</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-17T00:30Z">
+<meta name="pdd-derived" content="2026-10-17T00:33Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
 <main data-level="0" id="index">
   <header>
-    <nav>Projection, regenerated 2026-10-17T00:30Z</nav>
+    <nav>Projection, regenerated 2026-10-17T00:33Z</nav>
     <h1>OpenBattle design</h1>
-    <p>1 intent · 22 concepts · 7 boundaries · 7 surfaces · 26 decisions · 4 awaiting approval · 3 open drift</p>
+    <p>1 intent · 23 concepts · 7 boundaries · 7 surfaces · 27 decisions · 6 awaiting approval · 3 open drift</p>
   </header>
   <section id="waiting">
     <h2>Waiting on Porter</h2>
     <ul>
+      <li><a href="concepts/item.html">Item</a> <small>proposed</small></li>
       <li><a href="concepts/marker.html">Marker</a> <small>proposed</small></li>
       <li><a href="concepts/priority.html">Priority</a> <small>proposed</small></li>
       <li><a href="decisions/ADR-025.html">ADR-025: Neutral markers, marks on terrain, and reserves</a> <small>proposed</small></li>
       <li><a href="decisions/ADR-026.html">ADR-026: Priority says who the game is waiting on</a> <small>proposed</small></li>
+      <li><a href="decisions/ADR-027.html">ADR-027: Stats are counters and marks on things, and items give them structure</a> <small>proposed</small></li>
     </ul>
   </section>
   <section id="tree">
@@ -92,6 +94,14 @@
     <details><summary><span>L1</span><a href="concepts/host.html">Host</a><small>2026-10-14T07:30Z</small></summary>
       <details><summary><span>L2</span><a href="boundaries/session.html">Session</a><small>2026-10-15T06:30Z</small></summary>
         <details><summary><span>L3</span><a href="surfaces/session.html">Session surface</a><small>2026-10-15T06:40Z</small> <mark>Drift</mark></summary></details>
+      </details>
+    </details>
+    <details><summary><span>L1</span><a href="concepts/item.html">Item</a><small>2026-10-17T00:45Z</small></summary>
+      <details><summary><span>L2</span><a href="boundaries/record.html">Record</a><small>2026-10-15T06:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/record.html">Record surface</a><small>2026-10-15T08:20Z</small> <mark>Drift</mark></summary></details>
+      </details>
+      <details><summary><span>L2</span><a href="boundaries/screen.html">Screen</a><small>2026-10-15T06:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/screen.html">Screen surface</a><small>2026-10-16T16:30Z</small> <mark>Drift</mark></summary></details>
       </details>
     </details>
     <details><summary><span>L1</span><a href="concepts/log.html">Log</a><small>2026-10-14T07:30Z</small></summary>
@@ -242,6 +252,7 @@
       <li><a href="decisions/ADR-024.html">ADR-024: Locked terrain is locked for everyone</a> <small>L1 · Accepted</small></li>
       <li><a href="decisions/ADR-025.html">ADR-025: Neutral markers, marks on terrain, and reserves</a> <small>L1 · Proposed</small></li>
       <li><a href="decisions/ADR-026.html">ADR-026: Priority says who the game is waiting on</a> <small>L1 · Proposed</small></li>
+      <li><a href="decisions/ADR-027.html">ADR-027: Stats are counters and marks on things, and items give them structure</a> <small>L1 · Proposed</small></li>
     </ul>
   </section>
   <section id="instruments">
