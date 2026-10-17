@@ -55,7 +55,7 @@ export function LogPanel({ lookingAt, lookAt }: { lookingAt: number | null; look
               <strong role="alert">This {e.action.kind === "roll" ? "roll" : "draw"} was tampered with: its seal doesn't match.</strong>
             )}
             {e.n === latestOwn && lookingAt === null && now.connection === "playing" && (
-              <button onClick={() => void act({ kind: "undo" })}>Undo</button>
+              <button onClick={() => void act({ kind: "undo", of: e.n })}>Undo</button>
             )}
           </li>
         ))}

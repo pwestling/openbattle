@@ -122,8 +122,8 @@ export function Game({ session }: { session: Session }) {
 function UndoKey() {
   const { now, me, act, lookingAt } = usePlay();
   const ready = useRef<(() => void) | null>(null);
-  ready.current =
-    lookingAt === null && now.connection === "playing" && undoableBy(now, me) !== undefined ? () => void act({ kind: "undo" }) : null;
+  const undoable = undoableBy(now, me);
+  ready.current = lookingAt === null && now.connection === "playing" && undoable !== undefined ? () => void act({ kind: "undo", of: undoable }) : null;
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey || e.key.toLowerCase() !== "z") return;

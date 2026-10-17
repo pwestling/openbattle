@@ -35,7 +35,7 @@ test("a saved game is still there after the tab closes, and saving again replace
   await openArchive(second);
   expect(await second.evaluate(() => window.archive.load("game-a"))).toEqual({ log, me: "ann" });
 
-  const longer: Log = { ...log, entries: [...log.entries, { n: 4, by: "bob", action: { kind: "undo" } }] };
+  const longer: Log = { ...log, entries: [...log.entries, { n: 4, by: "bob", action: { kind: "undo", of: 3 } }] };
   await second.evaluate((longer) => window.archive.save("game-a", { log: longer, me: "watch" }), longer);
   await second.reload();
   await expect(second.locator("body[data-ready=yes]")).toBeAttached();

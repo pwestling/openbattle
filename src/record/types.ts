@@ -320,7 +320,8 @@ export type Kind =
   | { kind: "priority"; players: PlayerId[]; note?: string }
   /** The game's rules package by name, or none (ADR-029). */
   | { kind: "rules"; name: string | null }
-  | { kind: "undo" };
+  /** Cancels the action with this log number, which must be the latest uncancelled one (ADR-034). */
+  | { kind: "undo"; of: number };
 
 /** A roll: the action whose values the other player signs. */
 export type RollAction = Extract<Action, { kind: "roll" }>;
