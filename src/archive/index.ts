@@ -2,6 +2,7 @@
 import type { Entry, Fingerprint, Log, PlayerId } from "../record/index.ts";
 import { NotAGame, pack, unpack, type Packed } from "./gamefile.ts";
 import { isSaved } from "./shape.ts";
+import { upgrade } from "./upgrade.ts";
 import { FILES, GAMES, request, within } from "./store.ts";
 
 export interface Saved {
@@ -17,7 +18,7 @@ export async function save(link: string, saved: Saved): Promise<void> {
 export async function load(link: string): Promise<Saved | null> {
   try {
     const stored: unknown = await within([GAMES], "readonly", (tx) => request(tx.objectStore(GAMES).get(link)));
-    return isSaved(stored) ? { log: stored.log, me: stored.me } : null;
+    return isSaved(stored) ? { log: upgrade(stored.log), me: stored.me } : null;
   } catch {
     return null;
   }
@@ -79,7 +80,7 @@ export async function fromFile(file: Blob): Promise<{ link: string; log: Log }> 
   }
   // Keeping is best effort: where the browser refuses storage the game still opens, and its pieces show as missing.
   for (const { fingerprint, bytes } of files) await keep(link, bytes, fingerprint).catch(() => {});
-  return { link, log };
+  return { link, log: upgrade(log) };
 }
 
 /** Every mesh and card picture the log names, each once, in the order they first appear. */

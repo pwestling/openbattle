@@ -56,10 +56,10 @@
   </section>
 
   <section id="roll">
-    <h2><code>session.roll(dice: number, sides: number, label?: string): Promise&lt;number[]&gt;</code></h2>
+    <h2><code>session.roll(dice: number, sides: number, label?: string, about?: Target[]): Promise&lt;number[]&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>This browser is a player; 1 to 1024 dice, of at least two sides. The cap stops a typo from freezing every browser in the game.</dd>
-      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice and the host's seal, and for their own roll only after checking the host describes the roll they asked for, and every browser checks the signature as the roll arrives and when a saved game is loaded (<a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>). When no other player is connected, the host rolls alone (<a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>): its browser makes both values, nobody signs, and the roll is marked as rolled alone for everyone. With another player connected, the host always uses the sealed exchange.</dd>
+      <dt>Post</dt><dd>Resolves with the numbers that came up, after the sealed exchange of <a rel="decision" href="../decisions/ADR-008.html">ADR-008</a> and with the <a href="../concepts/roll.html">roll</a> in the log. The other player (the roller, or when the host rolls, a player who is not the host) signs their value together with the game's link, the dice, the roll's label and what it is about (<a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>) and the host's seal, and for their own roll only after checking the host describes the roll they asked for, and every browser checks the signature as the roll arrives and when a saved game is loaded (<a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>). When no other player is connected, the host rolls alone (<a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>): its browser makes both values, nobody signs, and the roll is marked as rolled alone for everyone. With another player connected, the host always uses the sealed exchange.</dd>
       <dt>Fails</dt><dd>Rejects as <code>act</code> does, or if the other player does not send their value. A roll whose check fails is still logged, flagged as tampered, as is one whose signature does not check in a browser that receives it; the host itself refuses a value whose signature does not check, with nothing logged. The record refuses a roll with no signature unless it is marked as rolled alone.</dd>
     </dl>
   </section>
@@ -128,6 +128,7 @@
     <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
     <a rel="decision" href="../decisions/ADR-022.html">ADR-022</a>
     <a rel="decision" href="../decisions/ADR-031.html">ADR-031</a>
+    <a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>
   </footer>
 </article>
 </body>

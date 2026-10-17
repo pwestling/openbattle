@@ -19,10 +19,7 @@ const round25 = { shape: "round" as const, width: 25, depth: 25 };
 const model = (x: number, y: number, more: { height?: number; mesh?: string; floor?: { terrain: string; floor: number }; facing?: number } = {}) => ({
   unit: "u",
   base: round25,
-  position: { x, y },
-  facing: more.facing ?? 0,
-  floor: more.floor ?? null,
-  aside: false,
+  place: { in: "table", position: { x, y }, facing: more.facing ?? 0, floor: more.floor ?? null } as nodeMeasure.Standing,
   height: more.height ?? 1.2,
   ...(more.mesh ? { mesh: more.mesh } : {}),
 });
@@ -68,7 +65,7 @@ test("a model sees another across open ground, not through a tall wall, and over
       tower: m.sight(s.tower, {}, { model: "a" }, { model: "b" }),
       towerBack: m.sight(s.tower, {}, { model: "b" }, { model: "a" }),
       // The same two on the ground: the 2" wall hides the 1.32" model completely.
-      ground: m.sight({ ...s.tower, models: { ...s.tower.models, a: { ...s.tower.models.a, floor: null } } }, {}, { model: "a" }, { model: "b" }, ["tower"]),
+      ground: m.sight({ ...s.tower, models: { ...s.tower.models, a: { ...s.tower.models.a, place: { ...s.tower.models.a.place, floor: null } } } }, {}, { model: "a" }, { model: "b" }, ["tower"]),
     }),
     scenes,
   );
@@ -192,7 +189,7 @@ test("mesh bodies are their true shape: a model's mesh, scaled to its height, an
         // Every mesh must be here, even an ignored one, so every browser gives the same answer.
         wallMissing: fails(() => m.sight(wallTable, {}, { model: "a" }, { model: "b" }, ["wall"])),
         nobody: fails(() => m.sight(poleTable, {}, { model: "a" }, { model: "nobody" })),
-        aside: fails(() => m.sight({ ...poleTable, models: { ...poleTable.models, b: { ...x.b, aside: true } } }, { pole: mesh(x.pole) }, { model: "a" }, { model: "b" })),
+        aside: fails(() => m.sight({ ...poleTable, models: { ...poleTable.models, b: { ...x.b, place: { in: "removed" as const } } } }, { pole: mesh(x.pole) }, { model: "a" }, { model: "b" })),
       };
     },
     arg,
@@ -284,7 +281,7 @@ test("a spot on a roof is not hidden by the roof, and only pieces that hide some
         floors: [{ height: h, outline: [{ x: -w / 2, y: -d / 2 }, { x: w / 2, y: -d / 2 }, { x: w / 2, y: d / 2 }, { x: -w / 2, y: d / 2 }] }],
         shape: { kind: "box" as const, width: w, depth: d, height: h },
       });
-      const tower = { models: { a: { ...x.a, floor: { terrain: "tower", floor: 0 } } }, terrain: { tower: block(-6, 0, 2, 2, 5), roof: block(0, 0, 3, 3, 7 / 3) } };
+      const tower = { models: { a: { ...x.a, place: { ...x.a.place, floor: { terrain: "tower", floor: 0 } } } }, terrain: { tower: block(-6, 0, 2, 2, 5), roof: block(0, 0, 3, 3, 7 / 3) } };
       return {
         // A roof's floor height is kept to a thousandth, so the spot is a hair under the true surface.
         roof: m.sight(tower, {}, { model: "a" }, { x: 0, y: 0, z: 2.333 }).seen,

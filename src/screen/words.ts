@@ -1,5 +1,5 @@
 // Every action as a sentence for the log ("Ana moved Scouts 5.8″").
-import type { Action, Entry, Log, PlayerId, Table } from "../record/index.ts";
+import type { Action, Entry, Log, PlayerId, Table, Target } from "../record/index.ts";
 import { distance } from "../measure/index.ts";
 
 /** Names for everything the log ever named, so removed things still read well. */
@@ -18,7 +18,10 @@ export function namesIn(log: Log): Names {
       for (const u of a.units) things.set(u.id, u.name);
       for (const m of a.models) things.set(m.id, m.name);
       for (const g of a.groups) things.set(g.id, g.name);
-    } else if (a.kind === "group") things.set(a.group, a.name);
+      for (const i of a.items ?? []) things.set(i.id, i.name);
+    } else if (a.kind === "item") things.set(a.item.id, a.item.name);
+    else if (a.kind === "place marker") things.set(a.marker.id, a.marker.name);
+    else if (a.kind === "group") things.set(a.group, a.name);
     else if (a.kind === "add deck") {
       things.set(a.deck, a.name);
       for (const c of a.cards) things.set(c.id, c.name);
@@ -42,7 +45,8 @@ function plural(n: number, one: string, many = `${one}s`) {
 
 export function sentence(entry: Entry, log: Log, table: Table, names: Names, me: PlayerId | null): string {
   const who = names.players.get(entry.by) ?? "Someone";
-  const name = (id: string) => names.things.get(id) ?? names.players.get(id) ?? (id === "game" ? "the game" : "something");
+  const name = (id: string) => names.things.get(id) ?? names.players.get(id) ?? "something";
+  const named = (target: Target) => ("game" in target ? "the game" : name(Object.values(target)[0] as string));
   const unitOf = (model: string) => {
     for (const e of log.entries) {
       if (e.action.kind !== "add to army") continue;
@@ -95,7 +99,7 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
       return `${who} moved ${list([...longest].map(([u, d]) => `${name(u)} ${inches(d)}`))}`;
     }
     case "set aside":
-      return `${who} set aside ${describeModels(a.models, unitOf, name)}`;
+      return `${who} ${a.to === "reserve" ? "put into reserve" : "set aside"} ${describeModels(a.models, unitOf, name)}`;
     case "return":
       return `${who} returned ${describeModels(
         a.models.map((m) => m.model),
@@ -112,10 +116,10 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
     }
     case "counter":
       return a.value === null
-        ? `${who} cleared ${possessive(name(a.target))} ${a.name}`
-        : `${who} set ${possessive(name(a.target))} ${a.name} to ${a.value}`;
+        ? `${who} cleared ${possessive(list(a.targets.map(named)))} ${a.name}`
+        : `${who} set ${possessive(list(a.targets.map(named)))} ${a.name} to ${a.value}`;
     case "mark":
-      return `${who} ${a.on ? "marked" : "unmarked"} ${name(a.target)} ${a.name}`;
+      return `${who} ${a.on ? "marked" : "unmarked"} ${list(a.targets.map(named))} ${a.name}`;
     case "roll": {
       const roll = table.rolls.find((r) => r.at === entry.n);
       const result = roll ? `: ${roll.result.join(", ")}` : "";
@@ -139,9 +143,38 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
       if (to.in === "discard") return `${who} discarded ${name(a.card)}`;
       return `${who} put a card ${a.at === "bottom" ? "at the bottom of" : "back into"} ${name(to.deck)}`;
     }
+    case "item": {
+      const it = a.item;
+      const earlier = log.entries.findLast((e) => e.n < entry.n && itemIn(e.action, it.id));
+      const was = earlier ? itemIn(earlier.action, it.id) : undefined;
+      if (!was) return `${who} gave ${name(it.carrier)} ${it.name}`;
+      if (was.carrier !== it.carrier) return `${who} moved ${it.name} to ${name(it.carrier)}`;
+      return `${who} renamed ${was.name} to ${it.name}`;
+    }
+    case "remove item":
+      return `${who} removed ${name(a.item)}`;
+    case "place marker": {
+      const earlier = log.entries.some((e) => e.n < entry.n && e.action.kind === "place marker" && e.action.marker.id === a.marker.id);
+      return `${who} ${earlier ? "moved" : "placed"} ${a.marker.name}`;
+    }
+    case "remove marker":
+      return `${who} removed ${name(a.marker)}`;
+    case "priority": {
+      const to = a.players.length ? list(a.players.map((p) => names.players.get(p) ?? "someone")) : "nobody";
+      return `${who} handed priority to ${to}${a.note ? `: ${a.note}` : ""}`;
+    }
+    case "rules":
+      return a.name ? `${who} turned on the ${a.name} rules` : `${who} turned off the rules`;
     case "undo":
       return `${who} undid their last action`;
   }
+}
+
+/** The item an action gives or changes, if it is this one. */
+function itemIn(action: Action, id: string): { name: string; carrier: string } | undefined {
+  if (action.kind === "item" && action.item.id === id) return action.item;
+  if (action.kind === "add to army") return action.items?.find((i) => i.id === id);
+  return undefined;
 }
 
 function describeModels(models: string[], unitOf: (m: string) => string, name: (id: string) => string): string {

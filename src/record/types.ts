@@ -10,6 +10,8 @@ export type ModelId = string;
 export type GroupId = string;
 export type DeckId = string;
 export type CardId = string;
+export type ItemId = string;
+export type MarkerId = string;
 
 /** The hex SHA-256 of a file's bytes: a mesh or a card picture. */
 export type Fingerprint = string;
@@ -67,12 +69,45 @@ export interface Model {
   /** The body: a mesh, or a stand-in of this height in inches when mesh is absent. */
   mesh?: Fingerprint;
   height: number;
-  position: Point;
-  facing: number;
-  floor: FloorRef | null;
+  place: ModelPlace;
   /** The waypoints of this model's latest move, so everyone can see the path it took. */
   path: Point[];
-  aside: boolean;
+}
+
+/**
+ * Where a model is (ADR-032): on the table, standing on the table or a floor, or set aside, either in
+ * reserve waiting to come onto the table (ADR-025) or removed. Only a model on the table has a position.
+ */
+export type ModelPlace =
+  | { in: "table"; position: Point; facing: number; floor: FloorRef | null }
+  | { in: "reserve" }
+  | { in: "removed" };
+
+/** Gear a model carries, such as a weapon (ADR-027). It goes where its model goes and has no position. */
+export interface Item {
+  id: ItemId;
+  name: string;
+  /** The model that carries it, or the item that holds it. */
+  carrier: ModelId | ItemId;
+}
+
+/** A flat shape lying on the table that belongs to nobody, such as an objective or a zone (ADR-025). */
+export interface Marker {
+  id: MarkerId;
+  name: string;
+  colour: string;
+  shape: "disc" | "rect";
+  /** Inches. A disc's width is its diameter, and equals its depth. */
+  width: number;
+  depth: number;
+  position: Point;
+  facing: number;
+}
+
+/** Who the game is waiting on next, and what for (ADR-026). Nobody, when players is empty. */
+export interface Priority {
+  players: PlayerId[];
+  note: string;
 }
 
 export interface Unit {
@@ -103,8 +138,28 @@ export interface Phase {
   name: string;
 }
 
-/** A counter or mark target: a model, unit, group or player id, or "game". */
-export type Target = string;
+/** What a counter or mark is on, saying what kind of thing it is (ADR-032). */
+export type Target =
+  | { model: ModelId }
+  | { unit: UnitId }
+  | { group: GroupId }
+  | { player: PlayerId }
+  | { terrain: TerrainId }
+  | { marker: MarkerId }
+  | { item: ItemId }
+  | { game: true };
+
+/** Something kept for each kind of target: by id for each kind of thing, and once for the game. */
+export interface ByTarget<T> {
+  model: Record<ModelId, T>;
+  unit: Record<UnitId, T>;
+  group: Record<GroupId, T>;
+  player: Record<PlayerId, T>;
+  terrain: Record<TerrainId, T>;
+  marker: Record<MarkerId, T>;
+  item: Record<ItemId, T>;
+  game: T;
+}
 
 export type CardPlace =
   | { in: "deck"; deck: DeckId }
@@ -155,6 +210,8 @@ export interface Roll {
   dice: number;
   sides: number;
   label?: string;
+  /** What the roll is about, such as the units shooting and being shot (ADR-033). */
+  about?: Target[];
   result: number[];
   /** The seal did not match the host's value. */
   tampered: boolean;
@@ -186,6 +243,18 @@ export interface NewModel {
   floor: FloorRef | null;
 }
 
+/** Counters and marks a new unit, model or item comes with (ADR-027). */
+export interface Stats {
+  counters?: Record<string, number>;
+  marks?: string[];
+}
+
+export interface NewItem extends Stats {
+  id: ItemId;
+  name: string;
+  carrier: ModelId | ItemId;
+}
+
 export interface NewCard {
   id: CardId;
   name: string;
@@ -193,8 +262,13 @@ export interface NewCard {
   picture?: Fingerprint;
 }
 
-/** The twenty kinds of action (ADR-015, ADR-024). Adding a kind is an escalation. */
-export type Action =
+/** The twenty-six kinds of action (ADR-015, ADR-024 to ADR-027, ADR-029). Adding a kind is an escalation. */
+export type Action = Kind & {
+  /** Why, in a line, shown in the log beside the action (ADR-029). A roll's label is its note, so a roll has none. */
+  note?: string;
+};
+
+export type Kind =
   | { kind: "join"; name: string; colour: string; publicKey: string }
   | { kind: "rename"; name: string; colour: string }
   | { kind: "place terrain"; terrain: Terrain }
@@ -202,19 +276,21 @@ export type Action =
   | { kind: "lock terrain"; terrain: TerrainId[]; locked: boolean }
   | {
       kind: "add to army";
-      units: { id: UnitId; name: string }[];
-      models: (NewModel & { unit: UnitId })[];
+      units: ({ id: UnitId; name: string } & Stats)[];
+      models: (NewModel & { unit: UnitId } & Stats)[];
+      items?: NewItem[];
       groups: { id: GroupId; name: string; members: (UnitId | GroupId)[] }[];
     }
   | { kind: "move"; moves: { model: ModelId; position: Point; facing: number; floor: FloorRef | null; path: Point[] }[] }
-  | { kind: "set aside"; models: ModelId[] }
+  | { kind: "set aside"; models: ModelId[]; to?: "removed" | "reserve" }
   | { kind: "return"; models: { model: ModelId; position: Point; facing: number; floor: FloorRef | null }[] }
   | { kind: "group"; group: GroupId; name: string; members: (UnitId | GroupId)[] }
   | { kind: "ungroup"; group: GroupId }
   | { kind: "phase"; phase: Phase }
-  | { kind: "counter"; target: Target; name: string; value: number | null }
-  | { kind: "mark"; target: Target; name: string; on: boolean }
-  | ({ kind: "roll"; dice: number; sides: number; label?: string } & Sealed)
+  /** The same counter on one or more targets at once (ADR-033). */
+  | { kind: "counter"; targets: Target[]; name: string; value: number | null }
+  | { kind: "mark"; targets: Target[]; name: string; on: boolean }
+  | ({ kind: "roll"; dice: number; sides: number; label?: string; about?: Target[] } & Sealed)
   | {
       kind: "add deck";
       deck: DeckId;
@@ -237,6 +313,13 @@ export type Action =
       /** Into an ordered deck: 0 is the top, "bottom" the bottom. */
       at?: number | "bottom";
     }
+  | { kind: "item"; item: Item }
+  | { kind: "remove item"; item: ItemId }
+  | { kind: "place marker"; marker: Marker }
+  | { kind: "remove marker"; marker: MarkerId }
+  | { kind: "priority"; players: PlayerId[]; note?: string }
+  /** The game's rules package by name, or none (ADR-029). */
+  | { kind: "rules"; name: string | null }
   | { kind: "undo" };
 
 /** A roll: the action whose values the other player signs. */
@@ -274,9 +357,14 @@ export interface Table {
   units: Record<UnitId, Unit>;
   models: Record<ModelId, Model>;
   groups: Record<GroupId, Group>;
+  items: Record<ItemId, Item>;
+  markers: Record<MarkerId, Marker>;
   phase: Phase;
-  counters: Record<Target, Record<string, number>>;
-  marks: Record<Target, string[]>;
+  priority: Priority;
+  /** The rules package the game uses, by name, or null. */
+  rules: string | null;
+  counters: ByTarget<Record<string, number>>;
+  marks: ByTarget<string[]>;
   rolls: Roll[];
   draws: Draw[];
   decks: Record<DeckId, Deck>;

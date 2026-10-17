@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { addArmy, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
+import { addArmy, centre, drawn, joinGame, labels, newGame, rogueHost } from "./screen-helpers.ts";
 
 // Army panel: paste a list to add units; the models stand on the table and the log says so.
 test("a pasted army list puts its models on the table", async ({ page }) => {
@@ -48,11 +48,16 @@ test("counters, marks, setting aside and groups", async ({ browser }) => {
   await scouts.getByRole("button", { name: "Activated" }).click();
   await expect(scouts.getByRole("button", { name: "Activated" })).toHaveCount(0);
 
+  // Returned models stand where they stood before they were set aside.
+  const where = async () => (await Promise.all((await labels(page, "Scouts").all()).map(centre))).map((c) => `${Math.round(c.x)},${Math.round(c.y)}`).sort();
+  await drawn(page);
+  const before = await where();
   await scouts.getByRole("button", { name: "Set aside" }).click();
   await expect(labels(page, "Scouts")).toHaveCount(0);
   await expect(scouts).toContainText("5 set aside");
   await scouts.getByRole("button", { name: "Return" }).click();
   await expect(labels(page, "Scouts")).toHaveCount(5);
+  await expect.poll(where).toEqual(before);
 
   await page.getByText("Make a group").click();
   await page.getByRole("checkbox", { name: "Scouts" }).check();

@@ -18,13 +18,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 type Base = { shape: "round" | "oval" | "rect"; width: number; depth: number };
+type Place = nodeMeasure.TableShape["models"][string]["place"];
 const model = (unit: string, x: number, y: number, base: Base, facing = 0, floor: { terrain: string; floor: number } | null = null) => ({
   unit,
   base,
-  position: { x, y },
-  facing,
-  floor,
-  aside: false,
+  place: { in: "table", position: { x, y }, facing, floor } as Place,
   height: 1.2,
 });
 const round32 = { shape: "round" as const, width: 32, depth: 32 };
@@ -47,7 +45,7 @@ const table = {
     u2: model("pair", 34, 0, round32),
     high: model("uh", 50, 30, round25, 0, { terrain: "ruin", floor: 1 }),
     low: model("ul", 50, 25, round25),
-    gone: { ...model("ug", 1, 1, round25), aside: true },
+    gone: { ...model("ug", 1, 1, round25), place: { in: "removed" } as Place },
   },
   terrain: {
     ruin: { position: { x: 50, y: 30 }, facing: 0, shape: { kind: "box" as const, width: 4, depth: 4, height: 3 }, floors: [{ height: 0.25, outline: square }, { height: 3, outline: square }] },
@@ -355,4 +353,43 @@ test("turned bases measure true at any angle, and ids every object inherits are 
   expect(seen.manyTurns).toEqual(seen.thirty);
   expect(seen.toString).toBe('There is no model "toString".');
   expect(seen.proto).toBe('There is no model "__proto__".');
+});
+
+// ADR-025: a marker is a spot, measured to its edge, lying flat on the table.
+test("distances reach a marker's edge, a disc or a rectangle turned any way", async ({ page }) => {
+  const markers = {
+    disc: { shape: "disc" as const, width: 2, depth: 2, position: { x: 10, y: 0 }, facing: 0 },
+    zone: { shape: "rect" as const, width: 4, depth: 2, position: { x: 0, y: 10 }, facing: 0 },
+    turned: { shape: "rect" as const, width: 4, depth: 2, position: { x: 0, y: 10 }, facing: 90 },
+  };
+  const seen = await inBrowser(
+    page,
+    (m, t) => {
+      const fails = (f: () => unknown) => {
+        try {
+          f();
+          return null;
+        } catch (e) {
+          return (e as Error).message;
+        }
+      };
+      return {
+        toDisc: m.distance(t, { model: "a" }, { marker: "disc" }),
+        toZone: m.distance(t, { model: "a" }, { marker: "zone" }),
+        toTurned: m.distance(t, { model: "a" }, { marker: "turned" }),
+        inside: m.distance(t, { marker: "zone" }, { x: 1, y: 10.5 }),
+        fromHigh: m.distance(t, { marker: "disc" }, { model: "high" }),
+        missing: fails(() => m.distance(t, { model: "a" }, { marker: "nowhere" })),
+      };
+    },
+    { ...table, markers },
+  );
+  // 10" between centres, less the 16 mm base radius and the disc's 1" radius.
+  expect(seen.toDisc).toEqual({ across: 8.37, up: 0 });
+  // The zone's near edge is 1" short of its centre; turned a quarter, 2".
+  expect(seen.toZone).toEqual({ across: 8.37, up: 0 });
+  expect(seen.toTurned).toEqual({ across: 7.37, up: 0 });
+  expect(seen.inside).toEqual({ across: 0, up: 0 });
+  expect(seen.fromHigh.up).toBe(3);
+  expect(seen.missing).toBe('There is no marker "nowhere".');
 });

@@ -73,8 +73,8 @@ test("the table is worked out from the log, and appending never changes an earli
       numbers: log.entries.map((e) => e.n),
       players: Object.values(after.players).map((p) => p.name),
       unitOwner: after.units.u1?.owner,
-      before: r.tableAt(log, 3).models.m1?.position,
-      after: after.models.m1?.position,
+      before: r.tableAt(log, 3).models.m1?.place,
+      after: after.models.m1?.place,
       path: after.models.m1?.path,
       oldLength: log.entries.length,
       newLength: longer.entries.length,
@@ -86,8 +86,8 @@ test("the table is worked out from the log, and appending never changes an earli
   expect(seen.numbers).toEqual([1, 2, 3, 4]);
   expect(seen.players).toEqual(["Ann", "Bo"]);
   expect(seen.unitOwner).toBe(ann);
-  expect(seen.before).toEqual({ x: 5, y: 5 });
-  expect(seen.after).toEqual({ x: 5, y: 11 });
+  expect(seen.before).toEqual({ in: "table", position: { x: 5, y: 5 }, facing: 0, floor: null });
+  expect(seen.after).toEqual({ in: "table", position: { x: 5, y: 11 }, facing: 0, floor: null });
   expect(seen.path).toEqual([{ x: 5, y: 8 }]);
   expect(seen.oldLength).toBe(4);
   expect(seen.newLength).toBe(5);
@@ -114,7 +114,7 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "place terrain", terrain: { ...ruin, locked: true } }, bo);
     const ruinUnlocked = r.tableAt(log).terrain.t1;
     take({ kind: "move", moves: [{ model: "m1", position: { x: 20, y: 15 }, facing: 90, floor: { terrain: "t1", floor: 0 }, path: [] }] });
-    const onRuin = r.tableAt(log).models.m1?.floor;
+    const onRuin = r.tableAt(log).models.m1?.place;
     take({ kind: "remove terrain", terrain: "t1" }, bo);
     const afterRemove = r.tableAt(log);
     take({ kind: "add to army", units: [], models: [{ id: "m3", unit: "u1", name: "Warden 3", base: { shape: "oval", width: 60, depth: 35 }, mesh: "cd34", height: 2, position: { x: 9, y: 11 }, facing: 0, floor: null }], groups: [] });
@@ -128,13 +128,13 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "group", group: "g2", name: "Outer", members: ["g1"] });
     take({ kind: "ungroup", group: "g1" });
     take({ kind: "phase", phase: { round: 2, turn: bo, name: "Shooting" } }, bo);
-    take({ kind: "counter", target: "m1", name: "wounds", value: 3 });
-    take({ kind: "counter", target: bo, name: "points", value: 5 }, bo);
-    take({ kind: "counter", target: "game", name: "round marker", value: 2 }, bo);
-    take({ kind: "counter", target: bo, name: "points", value: null }, bo);
-    take({ kind: "mark", target: "u1", name: "has moved", on: true });
-    take({ kind: "mark", target: "u1", name: "pinned", on: true }, bo);
-    take({ kind: "mark", target: "u1", name: "has moved", on: false });
+    take({ kind: "counter", targets: [{ model: "m1" }], name: "wounds", value: 3 });
+    take({ kind: "counter", targets: [{ player: bo }], name: "points", value: 5 }, bo);
+    take({ kind: "counter", targets: [{ game: true }], name: "round marker", value: 2 }, bo);
+    take({ kind: "counter", targets: [{ player: bo }], name: "points", value: null }, bo);
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "has moved", on: true });
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "pinned", on: true }, bo);
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "has moved", on: false });
     take({
       kind: "add deck", deck: "d1", name: "Missions", owner: null, order: "ordered", position: { x: 40, y: 2 },
       cards: [{ id: "c1", name: "Hold" }, { id: "c2", name: "Take", text: "Take the hill" }, { id: "c3", name: "Break", picture: "ef56" }, { id: "c4", name: "Scout" }],
@@ -152,27 +152,27 @@ test("every kind of action changes the table as the Record surface says", async 
   });
   // Renaming keeps the key the player joined with.
   expect(t.table.players[ann]).toEqual({ id: ann, name: "Annie", colour: "#a00", publicKey: annKey });
-  expect(t.onRuin).toEqual({ terrain: "t1", floor: 0 });
+  expect(t.onRuin).toEqual({ in: "table", position: { x: 20, y: 15 }, facing: 90, floor: { terrain: "t1", floor: 0 } });
   // Removing terrain puts the models standing on it back on the table, where they were.
   expect(t.afterRemove.terrain.t1).toBeUndefined();
-  expect(t.afterRemove.models.m1?.floor).toBeNull();
-  expect(t.afterRemove.models.m1?.position).toEqual({ x: 20, y: 15 });
+  expect(t.afterRemove.models.m1?.place).toEqual({ in: "table", position: { x: 20, y: 15 }, facing: 90, floor: null });
   expect(t.table.terrain.t2?.shape).toEqual({ kind: "mesh", mesh: "ab12", width: 8, depth: 8, height: 2 });
   // Anyone may lock or unlock terrain; placing a piece again keeps its lock.
   expect(t.table.terrain.t2).toMatchObject({ locked: true, position: { x: 31, y: 10 } });
   expect(t.ruinUnlocked?.locked).toBeUndefined();
   expect(t.table.models.m3).toMatchObject({ unit: "u1", mesh: "cd34", base: { shape: "oval", width: 60, depth: 35 } });
   expect(t.table.units.u2?.owner).toBe(bo);
-  expect(t.aside?.aside).toBe(true);
-  expect(t.table.models.m2).toMatchObject({ aside: false, position: { x: 8, y: 9 }, facing: 10 });
+  expect(t.aside?.place).toEqual({ in: "removed" });
+  expect(t.table.models.m2?.place).toEqual({ in: "table", position: { x: 8, y: 9 }, facing: 10, floor: null });
   // Another player may change a group, as at a real table, but it keeps its owner.
   expect(t.grouped).toEqual({ id: "g1", owner: ann, name: "Vanguard!", members: ["u1"] });
   expect(t.table.groups.g1).toBeUndefined();
   expect(t.table.groups.g2?.members).toEqual([]);
   expect(t.table.units.u1).toBeDefined();
   expect(t.table.phase).toEqual({ round: 2, turn: bo, name: "Shooting" });
-  expect(t.table.counters).toEqual({ m1: { wounds: 3 }, game: { "round marker": 2 } });
-  expect(t.table.marks).toEqual({ u1: ["pinned"] });
+  const nothingOn = { model: {}, unit: {}, group: {}, player: {}, terrain: {}, marker: {}, item: {} };
+  expect(t.table.counters).toEqual({ ...nothingOn, model: { m1: { wounds: 3 } }, game: { "round marker": 2 } });
+  expect(t.table.marks).toEqual({ ...nothingOn, unit: { u1: ["pinned"] }, game: [] });
   expect(t.reordered).toEqual(["c3", "c2", "c4", "c1"]);
   expect(t.table.cards.c1?.place).toEqual({ in: "deck", deck: "d1" });
   expect(t.table.cards.c2).toMatchObject({ text: "Take the hill", place: { in: "deck", deck: "d1" } });
@@ -195,7 +195,11 @@ test("check says in plain words why an action can't be taken, and append refuses
       fine: p({ kind: "set aside", models: ["m1"] }),
       missingModel: p({ kind: "set aside", models: ["nobody"] }),
       infinite: p({ kind: "move", moves: [{ model: "m1", position: { x: Infinity, y: 0 }, facing: 0, floor: null, path: [] }] }),
-      notANumber: p({ kind: "counter", target: "m1", name: "wounds", value: NaN }),
+      notANumber: p({ kind: "counter", targets: [{ model: "m1" }], name: "wounds", value: NaN }),
+      bareTarget: p({ kind: "counter", targets: ["m1"], name: "wounds", value: 1 }),
+      twoTargets: p({ kind: "counter", targets: [{ model: "m1", unit: "u1" }], name: "wounds", value: 1 }),
+      noSuchTarget: p({ kind: "mark", targets: [{ unit: "nobody" }], name: "pinned", on: true }),
+      gameNamedOddly: p({ kind: "counter", targets: [{ game: "yes" }], name: "round", value: 1 }),
       selfGroup: p({ kind: "group", group: "army-ann", name: "Loop", members: ["army-ann"] }),
       loop: (() => {
         const two = r.append(log, { kind: "group", group: "g1", name: "Inner", members: ["army-ann"] }, ann);
@@ -239,6 +243,10 @@ test("check says in plain words why an action can't be taken, and append refuses
   expect(seen.thrown).toBe('There is no model "nobody".');
   expect(seen.infinite).toBe('Model "m1"\'s position must be a point with finite x and y.');
   expect(seen.notANumber).toBe("The counter's value must be a finite number.");
+  expect(seen.bareTarget).toBe("A target is one model, unit, group, player, terrain piece, marker or item, or the game.");
+  expect(seen.twoTargets).toBe("A target is one model, unit, group, player, terrain piece, marker or item, or the game.");
+  expect(seen.noSuchTarget).toBe('There is no unit "nobody".');
+  expect(seen.gameNamedOddly).toBe("The game is named as { game: true }.");
   expect(seen.selfGroup).toBe('Group "army-ann" would contain itself.');
   expect(seen.loop).toBe('Group "army-ann" would contain itself.');
   expect(seen.takenId).toBe('The id "m1" for the new unit already names a model.');
@@ -264,7 +272,7 @@ test("check says in plain words why an action can't be taken, and append refuses
 test("undo cancels the latest action, only for the player who took it, and looking back still shows it", async ({ page }) => {
   const seen = await inBrowser(page, (r, start) => {
     let log = start(r);
-    log = r.append(log, { kind: "counter", target: "game", name: "score", value: 1 }, bo);
+    log = r.append(log, { kind: "counter", targets: [{ game: true }], name: "score", value: 1 }, bo);
     const boOnly = r.check(log, { kind: "undo" }, ann)?.problem;
     log = r.append(log, { kind: "undo" }, bo);
     const afterFirst = r.tableAt(log);
@@ -279,7 +287,7 @@ test("undo cancels the latest action, only for the player who took it, and looki
       boCannot,
       scoreGone: afterFirst.counters,
       cancelled: [afterFirst.cancelled, afterSecond.cancelled, afterThird.cancelled],
-      backHome: afterSecond.models.m1?.position,
+      backHome: afterSecond.models.m1?.place,
       noArmy: Object.keys(afterThird.models),
       lookBack: r.tableAt(log, 5).counters,
       length: log.entries.length,
@@ -288,11 +296,12 @@ test("undo cancels the latest action, only for the player who took it, and looki
   });
   expect(seen.boOnly).toBe("Only the player who took the latest action can undo it.");
   expect(seen.boCannot).toBe("Only the player who took the latest action can undo it.");
-  expect(seen.scoreGone).toEqual({});
+  const nothingOn = { model: {}, unit: {}, group: {}, player: {}, terrain: {}, marker: {}, item: {} };
+  expect(seen.scoreGone).toEqual({ ...nothingOn, game: {} });
   expect(seen.cancelled).toEqual([[5], [4, 5], [3, 4, 5]]);
-  expect(seen.backHome).toEqual({ x: 5, y: 5 });
+  expect(seen.backHome).toEqual({ in: "table", position: { x: 5, y: 5 }, facing: 0, floor: null });
   expect(seen.noArmy).toEqual([]);
-  expect(seen.lookBack).toEqual({ game: { score: 1 } });
+  expect(seen.lookBack).toEqual({ ...nothingOn, game: { score: 1 } });
   // The log only grows: three undos are three more actions.
   expect(seen.length).toBe(8);
   // Bo's join is now the latest standing action, so Ann cannot undo it.
@@ -440,27 +449,32 @@ test("ids that every object inherits, such as __proto__ and toString, can't brea
   const seen = await inBrowser(page, (r, start) => {
     let log = start(r);
     const problems = [
-      r.check(log, { kind: "counter", target: "__proto__", name: "polluted", value: 1 }, ann)?.problem,
-      r.check(log, { kind: "mark", target: "toString", name: "pinned", on: true }, ann)?.problem,
+      r.check(log, { kind: "counter", targets: [{ unit: "__proto__" }], name: "polluted", value: 1 }, ann)?.problem,
+      r.check(log, { kind: "mark", targets: [{ model: "toString" }], name: "pinned", on: true }, ann)?.problem,
+      // Nor is a kind of thing every object inherits a kind of target.
+      r.check(log, { kind: "mark", targets: [JSON.parse('{"__proto__": "u1"}')], name: "pinned", on: true }, ann)?.problem,
+      r.check(log, { kind: "mark", targets: [{ toString: "u1" }], name: "pinned", on: true } as unknown as Parameters<RecordModule["check"]>[1], ann)?.problem,
       r.check(log, { kind: "move card", card: "constructor", to: { in: "hand", player: ann } }, ann)?.problem,
       r.check(log, { kind: "set aside", models: ["hasOwnProperty"] }, ann)?.problem,
     ];
     // Such an id is just a name when a player chooses it for something new.
     log = r.append(log, { kind: "add to army", units: [{ id: "__proto__", name: "Odd name" }], models: [], groups: [] }, ann);
-    log = r.append(log, { kind: "counter", target: "__proto__", name: "polluted", value: 1 }, ann);
+    log = r.append(log, { kind: "counter", targets: [{ unit: "__proto__" }], name: "polluted", value: 1 }, ann);
     const table = r.tableAt(log);
     return {
       problems,
       unit: table.units["__proto__"]?.name,
-      counter: table.counters["__proto__"],
+      counter: Object.hasOwn(table.counters.unit, "__proto__") ? table.counters.unit["__proto__"] : "not its own",
       polluted: "polluted" in {},
       stillWorks: r.check(log, { kind: "undo" }, ann),
       print: r.fingerprint(table).length,
     };
   });
   expect(seen.problems).toEqual([
-    '"__proto__" is not a model, unit, group, player or the game.',
-    '"toString" is not a model, unit, group, player or the game.',
+    'There is no unit "__proto__".',
+    'There is no model "toString".',
+    '"__proto__" is not a model, unit, group, player, terrain piece, marker, item or the game.',
+    '"toString" is not a model, unit, group, player, terrain piece, marker, item or the game.',
     'There is no card "constructor".',
     'There is no model "hasOwnProperty".',
   ]);

@@ -1,10 +1,10 @@
 // The army panel: each player's units and groups with their counters and marks, and adding to your army.
 import { useState } from "react";
-import type { Action, Fingerprint, Group, Model, NewModel, PlayerId, Table, Unit } from "../../record/index.ts";
+import { tableAt, type Action, type Fingerprint, type FloorRef, type Group, type Log, type Model, type NewModel, type PlayerId, type Point, type Table, type Unit } from "../../record/index.ts";
 import { readArmyList, type ListedUnit } from "../army-list.ts";
 import { edgeOf, usePlay } from "../play.tsx";
 import { readMesh } from "../table/meshes.ts";
-import { MM } from "../table/pieces.ts";
+import { MM, placed } from "../table/pieces.ts";
 import { Counters } from "./counters.tsx";
 
 export function ArmyPanel() {
@@ -16,7 +16,7 @@ export function ArmyPanel() {
           <h3>
             <span className="dot" style={{ background: p.colour }} /> {p.name}
           </h3>
-          <Counters target={p.id} />
+          <Counters target={{ player: p.id }} />
           <Grouping owner={p.id} />
           {Object.values(table.units)
             .filter((u) => u.owner === p.id)
@@ -30,14 +30,14 @@ export function ArmyPanel() {
 }
 
 function UnitRow({ unit }: { unit: Unit }) {
-  const { table, act, readOnly, select } = usePlay();
+  const { table, act, readOnly, select, now } = usePlay();
   const models = Object.values(table.models).filter((m) => m.unit === unit.id);
-  const aside = models.filter((m) => m.aside);
-  const onTable = models.filter((m) => !m.aside);
+  const aside = models.filter((m) => !placed(m));
+  const onTable = models.filter((m) => placed(m));
   return (
     <article className="unit" aria-label={unit.name}>
       <header>
-        <button className="link" title="Select this unit on the table" onClick={() => select(models.filter((m) => !m.aside).map((m) => m.id))}>
+        <button className="link" title="Select this unit on the table" onClick={() => select(onTable.map((m) => m.id))}>
           {unit.name}
         </button>
         <span className="muted">
@@ -55,7 +55,7 @@ function UnitRow({ unit }: { unit: Unit }) {
             onClick={() =>
               void act({
                 kind: "return",
-                models: aside.map((m) => ({ model: m.id, position: m.position, facing: m.facing, floor: m.floor })),
+                models: aside.map((m) => ({ model: m.id, ...lastStood(now.log, m.id) })),
               })
             }
           >
@@ -63,7 +63,7 @@ function UnitRow({ unit }: { unit: Unit }) {
           </button>
         )}
       </header>
-      <Counters target={unit.id} />
+      <Counters target={{ unit: unit.id }} />
     </article>
   );
 }
@@ -86,7 +86,7 @@ function Grouping({ owner }: { owner: PlayerId }) {
             <span className="muted">{g.members.map(nameOf).join(", ")}</span>
             {mine && <button onClick={() => void act({ kind: "ungroup", group: g.id })}>Ungroup</button>}
           </header>
-          <Counters target={g.id} />
+          <Counters target={{ group: g.id }} />
         </article>
       ))}
       {mine && units.length + groups.length > 1 && (
@@ -238,7 +238,8 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
   const edge = edgeOf(table, me);
   const { width, depth } = table.size;
   const mine = Object.values(table.models).filter((m: Model) => table.units[m.unit]?.owner === me);
-  let x = mine.length ? Math.max(...mine.map((m) => m.position.x)) + 2.5 : width / 2 - 8;
+  const xs = mine.flatMap((m) => placed(m)?.position.x ?? []);
+  let x = xs.length ? Math.max(...xs) + 2.5 : width / 2 - 8;
   let band = 0;
   const units: { id: string; name: string }[] = [];
   const named = (name: string) =>
@@ -275,4 +276,18 @@ function armyAction(table: Table, me: PlayerId, listed: ListedUnit[], newId: () 
     x += cols * sx + 1.5;
   }
   return { kind: "add to army", units, models, groups: [] };
+}
+
+/** Where a set-aside model last stood on the table, from the log, so returning puts it back there. */
+function lastStood(log: Log, model: string): { position: Point; facing: number; floor: FloorRef | null } {
+  const now = tableAt(log);
+  for (let i = log.entries.length - 1; i >= 0; i--) {
+    const e = log.entries[i]!;
+    if (e.action.kind !== "set aside" || !e.action.models.includes(model) || now.cancelled.includes(e.n)) continue;
+    const was = tableAt(log, i).models[model]?.place;
+    // Back on the floor it stood on, if that floor is still there; otherwise on the table.
+    const floor = was?.in === "table" && was.floor && now.terrain[was.floor.terrain]?.floors[was.floor.floor] ? was.floor : null;
+    if (was?.in === "table") return { position: was.position, facing: was.facing, floor };
+  }
+  return { position: { x: now.size.width / 2, y: now.size.depth / 2 }, facing: 0, floor: null };
 }

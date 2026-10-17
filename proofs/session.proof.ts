@@ -16,7 +16,7 @@ type Now = {
   connection: string;
   disagreement: boolean;
   badSignatures: number[];
-  table: { players: Record<string, { name: string }>; models: Record<string, { position: { x: number; y: number }; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean }[] };
+  table: { players: Record<string, { name: string }>; models: Record<string, { place: unknown; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean; about?: unknown }[] };
   log: { entries: unknown[] };
 };
 
@@ -52,11 +52,11 @@ test("proof 1: two browsers, one model moved, both see it", async ({ browser }) 
   await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
   await expect.poll(async () => (await now(ben)).connection).toBe("playing");
   await expect.poll(async () => Object.values((await now(ana)).table.players).map((p) => p.name).sort()).toEqual(["Ana", "Ben"]);
-  expect((await now(ben)).table.models["scout-1"]!.position).toEqual({ x: 10, y: 5 });
+  expect((await now(ben)).table.models["scout-1"]!.place).toEqual({ in: "table", position: { x: 10, y: 5 }, facing: 0, floor: null });
 
   // Ana moves her scout around a corner; Ben sees where it went and the path it took.
   await act(ana, { kind: "move", moves: [{ model: "scout-1", position: { x: 16, y: 9 }, facing: 90, floor: null, path: [{ x: 10, y: 9 }] }] });
-  await expect.poll(async () => (await now(ben)).table.models["scout-1"]!.position).toEqual({ x: 16, y: 9 });
+  await expect.poll(async () => (await now(ben)).table.models["scout-1"]!.place).toEqual({ in: "table", position: { x: 16, y: 9 }, facing: 90, floor: null });
   expect((await now(ben)).table.models["scout-1"]!.path).toEqual([{ x: 10, y: 9 }]);
   expect((await now(ben)).disagreement).toBe(false);
 });
@@ -99,6 +99,21 @@ test("a roll uses the sealed exchange: both browsers see the same signed result"
   for (const p of [ana, ben]) {
     await expect.poll(async () => (await now(p)).badSignatures).toEqual([]);
     expect((await now(p)).table.rolls.every((r) => !r.tampered)).toBe(true);
+  }
+});
+
+test("a roll names what it is about, signed with it, and both browsers see it", async ({ browser }) => {
+  const ana = await person(browser);
+  const ben = await person(browser);
+  const link = await ana.evaluate(() => (window as any).proof.open({ width: 60, depth: 44 }, { name: "Ana", colour: "#d1453b" }));
+  await act(ana, army);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => (await now(ben)).connection).toBe("playing");
+
+  await ben.evaluate(() => (window as any).proof.session.roll(5, 6, "Rifles shoot Scouts", [{ unit: "scouts" }]));
+  for (const p of [ana, ben]) {
+    await expect.poll(async () => (await now(p)).table.rolls.map((r) => r.about)).toEqual([[{ unit: "scouts" }]]);
+    await expect.poll(async () => (await now(p)).badSignatures).toEqual([]);
   }
 });
 
@@ -263,6 +278,18 @@ test("a player signs only the roll they asked for, not one the host relabels", a
 
   await rogue.evaluate(() => (window as any).rogue.relabelAsks());
   const roll = await ben.evaluate(() => (window as any).proof.session.roll(2, 6, "to hit").then(() => "rolled", (e: Error) => e.message));
+  expect(roll).toMatch(/different roll/);
+  expect(await rogue.evaluate(() => (window as any).rogue.values.length)).toBe(0);
+});
+
+test("a player signs only what their roll is about, not what the host says it is about", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+
+  await rogue.evaluate(() => (window as any).rogue.readdressAsks());
+  const roll = await ben.evaluate(() => (window as any).proof.session.roll(2, 6, "to hit", [{ player: "x" }]).then(() => "rolled", (e: Error) => e.message));
   expect(roll).toMatch(/different roll/);
   expect(await rogue.evaluate(() => (window as any).rogue.values.length)).toBe(0);
 });

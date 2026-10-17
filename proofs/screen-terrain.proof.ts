@@ -147,8 +147,17 @@ test("locked terrain stays put for everyone until unlocked", async ({ page, brow
   await expect(log(page).last()).toContainText("Ben moved Box");
 
   // Ben is carrying the Box when Ana locks it: it goes back, and letting go sends nothing.
-  await drawn(ben);
-  const moved = await centre(labels(ben, "Box"));
+  // The dropped Box glides to where it was let go; take its place once it has stopped.
+  let moved = await centre(labels(ben, "Box"));
+  await expect
+    .poll(async () => {
+      await drawn(ben);
+      const now = await centre(labels(ben, "Box"));
+      const still = Math.abs(now.x - moved.x) < 0.5 && Math.abs(now.y - moved.y) < 0.5;
+      moved = now;
+      return still;
+    })
+    .toBe(true);
   await ben.mouse.move(moved.x + 25, moved.y + 25);
   await ben.mouse.down();
   await ben.mouse.move(moved.x + 25 + 60, moved.y + 25, { steps: 6 });
