@@ -281,3 +281,15 @@ test("a player signs only the roll they asked for, not one the host relabels", a
   expect(roll).toMatch(/different roll/);
   expect(await rogue.evaluate(() => (window as any).rogue.values.length)).toBe(0);
 });
+
+test("a player signs only what their roll is about, not what the host says it is about", async ({ browser }) => {
+  const { rogue, link } = await rogueHost(browser);
+  const ben = await person(browser);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => Object.keys((await now(ben)).table.players).length).toBe(2);
+
+  await rogue.evaluate(() => (window as any).rogue.readdressAsks());
+  const roll = await ben.evaluate(() => (window as any).proof.session.roll(2, 6, "to hit", [{ player: "x" }]).then(() => "rolled", (e: Error) => e.message));
+  expect(roll).toMatch(/different roll/);
+  expect(await rogue.evaluate(() => (window as any).rogue.values.length)).toBe(0);
+});

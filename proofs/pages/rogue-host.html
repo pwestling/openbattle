@@ -100,6 +100,14 @@
         rogue.link.send({ t: "seal", id: m.id, ask: { ...m.ask, label: "forged" }, link: rogue.log.link, seal }, from);
       });
     },
+    /** Asks the player to sign their roll as being about something else than they asked. */
+    readdressAsks() {
+      rogue.link.onMessage(async (m, from) => {
+        if (m.t !== "ask") return;
+        const seal = await sealOf(random());
+        rogue.link.send({ t: "seal", id: m.id, ask: { ...m.ask, about: [{ unit: "forged" }] }, link: rogue.log.link, seal }, from);
+      });
+    },
     /** Answers a player's resync with a log whose entry n is rewritten as a roll made alone. */
     async rewriteOnResync(n) {
       const hostValue = random();

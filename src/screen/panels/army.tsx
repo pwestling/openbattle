@@ -285,7 +285,9 @@ function lastStood(log: Log, model: string): { position: Point; facing: number; 
     const e = log.entries[i]!;
     if (e.action.kind !== "set aside" || !e.action.models.includes(model) || now.cancelled.includes(e.n)) continue;
     const was = tableAt(log, i).models[model]?.place;
-    if (was?.in === "table") return { position: was.position, facing: was.facing, floor: was.floor };
+    // Back on the floor it stood on, if that floor is still there; otherwise on the table.
+    const floor = was?.in === "table" && was.floor && now.terrain[was.floor.terrain]?.floors[was.floor.floor] ? was.floor : null;
+    if (was?.in === "table") return { position: was.position, facing: was.facing, floor };
   }
   return { position: { x: now.size.width / 2, y: now.size.depth / 2 }, facing: 0, floor: null };
 }

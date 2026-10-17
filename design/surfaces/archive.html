@@ -36,7 +36,7 @@
     <h2><code>load(link: string): Promise&lt;{ log, me } | null&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>What was last saved for that link, or <code>null</code>.</dd>
+      <dt>Post</dt><dd>What was last saved for that link, or <code>null</code>. <ins>A game saved before targets said what kind of thing they name comes back with each counter's and mark's target typed (<a rel="decision" href="../decisions/ADR-032.html">ADR-032</a>), so older games still open.</ins></dd>
       <dt>Fails</dt><dd>Never; unreadable data counts as nothing saved.</dd>
     </dl>
   </section>
@@ -63,7 +63,7 @@
     <h2><code>fromFile(file: Blob): Promise&lt;{ link, log }&gt;</code></h2>
     <dl>
       <dt>Pre</dt><dd>None.</dd>
-      <dt>Post</dt><dd>The game in the file, ready to open as a new game or to look back through. The meshes and pictures in the file are kept in this browser, as <code>keepFile</code> would.</dd>
+      <dt>Post</dt><dd>The game in the file, ready to open as a new game or to look back through, <ins>with older targets typed as <code>load</code> does</ins>. The meshes and pictures in the file are kept in this browser, as <code>keepFile</code> would.</dd>
       <dt>Fails</dt><dd>Rejects if the file is not a saved game, or was made by a newer version.</dd>
     </dl>
   </section>
