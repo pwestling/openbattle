@@ -22,7 +22,7 @@
   <dl>
     <dt>Purpose</dt><dd>Know where the game is up to.</dd>
     <dt>Meaning</dt><dd>The current round, whose turn it is, and the name of the current step of the turn, such as "Movement".</dd>
-    <dt>Invariants</dt><dd><ul><li>Changing the phase is an <a href="../concepts/action.html">action</a>.</li><li>In the first version the players name and change phases by hand; the app attaches no rules to them.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>Changing the phase is an <a href="../concepts/action.html">action</a>.</li><li>Players may name and change phases by hand, and the engine attaches no rules to them; a <a href="../concepts/rules-package.html">rules package</a> may suggest phase changes (<a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>).</li></ul></dd>
     <dt>Not</dt><dd>Who the game is waiting on right now, which is <a href="../concepts/priority.html">priority</a> and can move inside a turn. A timer or a clock.</dd>
   </dl>
   <footer class="decisions">

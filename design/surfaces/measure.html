@@ -19,15 +19,15 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15. Accepted 2026-10-17 and built the same day: the sight operation (<a href="../decisions/ADR-028.html">ADR-028</a>). Accepted by Porter on 2026-10-17: a marker as a spot, which accepted ADR-025 asks for and the Grimdark Future package needs for objectives.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15. Accepted 2026-10-17 and built the same day: the sight operation (<a rel="decision" href="../decisions/ADR-028.html">ADR-028</a>). Accepted by Porter on 2026-10-17: a marker as a spot, which accepted ADR-025 asks for and the Grimdark Future package needs for objectives.</dd>
   </dl>
   <p>Three operations, all pure functions.</p>
 
   <section id="distance">
     <h2><code>distance(table: Table, from: Spot, to: Spot, via?: Point[]): { across, up }</code></h2>
-    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, a <a href="../concepts/unit.html">unit</a>, or a <a href="../concepts/marker.html">marker</a>, measured to its edge (<a href="../decisions/ADR-025.html">ADR-025</a>). <code>via</code> is an optional list of waypoints, for a path around terrain.</p>
+    <p>A <code>Spot</code> is a point in inches, a <a href="../concepts/model.html">model</a>, a <a href="../concepts/unit.html">unit</a>, or a <a href="../concepts/marker.html">marker</a>, measured to its edge (<a rel="decision" href="../decisions/ADR-025.html">ADR-025</a>). <code>via</code> is an optional list of waypoints, for a path around terrain.</p>
     <dl>
-      <dt>Pre</dt><dd>Named models and units are on the table.</dd>
+      <dt>Pre</dt><dd>Named models, units and markers are on the table.</dd>
       <dt>Post</dt><dd><code>across</code> is the distance in inches across the table: with no waypoints, the shortest one, base edge to base edge, and for a unit its closest model; with waypoints, the length of the path from the first spot through each waypoint in order to the last, measured from base edges at the two ends. <code>up</code> is the height difference between their bases, positive when the far end stands higher, which for a model on a terrain floor is that floor's height. Both are rounded to a hundredth of an inch, and the same in every browser.</dd>
       <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist, or a named unit has no model on the table.</dd>
     </dl>

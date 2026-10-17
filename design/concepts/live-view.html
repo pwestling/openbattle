@@ -22,12 +22,12 @@
     <dt>Status</dt><dd><mark>Accepted</mark> Porter chose "Live view" on 2026-10-17, after noticing that what a player is doing was hidden from the opponent until it became an action. The pointer added at his request the same day. Accepted by Porter on 2026-10-17.</dd>
     <dt>Purpose</dt><dd>Let the other players watch what someone is doing as they do it, as they would across a real table.</dd>
     <dt>Meaning</dt><dd>What a <a href="../concepts/player.html">player</a> is in the middle of right now, before it becomes an <a href="../concepts/action.html">action</a>: where their pointer is on the table, as in Tabletop Simulator; models they are carrying and where, the ruler they are dragging, the sight lines they are checking, and the <a href="../concepts/suggestion.html">suggestion</a> choices they have open, such as the targets they have picked.</dd>
-    <dt>Invariants</dt><dd><ul><li>A live view never enters the <a href="../concepts/log.html">log</a>, is never undone and is not saved; a reload or a dropped connection simply ends it.</li><li>A live view changes nothing: only the action that follows counts, so nothing ever depends on one being honest.</li><li>Everyone in the game, spectators included, sees every player's live view; spectators have none of their own.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>A live view never enters the <a href="../concepts/log.html">log</a>, is never undone and is not saved; a reload or a dropped connection simply ends it.</li><li>A live view changes nothing: only the action that follows counts, so nothing ever depends on one being honest.</li><li>Everyone in the game, spectators included, sees every player's live view; spectators have none of their own.</li><li>A live view never shows a card face that is hidden from the one watching: a card carried from a hidden hand shows only its back.</li></ul></dd>
     <dt>Not</dt><dd>An <a href="../concepts/action.html">action</a>. Not a <a href="../concepts/measurement.html">measurement</a>, which is the answer; a live view only shows someone measuring. Not the camera: where someone is looking stays their own.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
-    <a href="../decisions/ADR-031.html">ADR-031</a>
+    <a rel="decision" href="../decisions/ADR-031.html">ADR-031</a>
   </footer>
 </article>
 </body>
