@@ -15,7 +15,7 @@
     <h1>ADR-026: Priority says who the game is waiting on</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Asked for by Porter on 2026-10-17. The wording awaits his review.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Asked for by Porter on 2026-10-17. Accepted by Porter on 2026-10-17.</dd>
     <dt>Context</dt><dd>In Grimdark Future the player who is not activating acts often during the other's turn: rolling blocks, picking casualties, the defender's 3-inch move, striking back, spending tokens against a spell. Online, the waiting player can't see the active player's hands, so both need to know whose move it is. Porter is aiming at rules automation, and a <a href="../concepts/rules-package.html">rules package</a> needs a way to say "your move" to one player.</dd>
     <dt>Decision</dt><dd>A new concept, <a href="../concepts/priority.html">priority</a>: the player or players expected to act next, with an optional note. Handing it over is an action. It never stops anyone acting. Players hand it over by hand in the first version.</dd>
     <dt>Because</dt><dd>It is what a person across a real table gets from a glance or a word. As an action it is in the log, survives a reload, and a later package can set it the same way a player does, which keeps <a href="ADR-001.html">ADR-001</a>'s promise that a game replays without the package.</dd>
