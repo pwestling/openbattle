@@ -21,13 +21,14 @@
   </header>
   <dl>
     <dt>Purpose</dt><dd>Every change, so it can be seen, undone and replayed.</dd>
-    <dt>Meaning</dt><dd>One thing a <a href="../concepts/player.html">player</a> did that changed the <a href="../concepts/table.html">table</a> or the <a href="../concepts/game.html">game</a>: moving models, placing terrain, rolling, drawing or moving a card, changing the phase, a counter or a mark, undoing.</dd>
+    <dt>Meaning</dt><dd>One thing a <a href="../concepts/player.html">player</a> did that changed the <a href="../concepts/table.html">table</a> or the <a href="../concepts/game.html">game</a>: moving models, placing terrain, rolling, drawing or moving a card, changing the phase, a counter or a mark, undoing. An action may carry a short note saying why, such as "Failed morale: rolled 2, needed 4+", which the log shows beside it. A roll's label is its note.</dd>
     <dt>Invariants</dt><dd><ul><li>Every change to the table is an action.</li><li>Everyone agrees on the order of all actions.</li></ul></dd>
     <dt>Not</dt><dd>A <a href="../concepts/measurement.html">measurement</a>, or anything that only changes one person's view.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-003.html">ADR-003</a>
+    <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
   </footer>
 </article>
 </body>

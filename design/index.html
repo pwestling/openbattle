@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle design</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-17T01:00Z">
+<meta name="pdd-derived" content="2026-10-17T15:44Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
 <main data-level="0" id="index">
   <header>
-    <nav>Projection, regenerated 2026-10-17T01:00Z</nav>
+    <nav>Projection, regenerated 2026-10-17T15:44Z</nav>
     <h1>OpenBattle design</h1>
-    <p>1 intent · 24 concepts · 7 boundaries · 7 surfaces · 28 decisions · 0 awaiting approval · 3 open drift</p>
+    <p>1 intent · 26 concepts · 8 boundaries · 8 surfaces · 31 decisions · 0 awaiting approval · 8 open drift</p>
   </header>
   <section id="waiting">
     <h2>Waiting on Porter</h2>
@@ -99,7 +99,15 @@
     </details>
     <details><summary><span>L1</span><a href="concepts/sight.html">Line of sight</a><small>2026-10-17T01:30Z</small></summary>
       <details><summary><span>L2</span><a href="boundaries/measure.html">Measure</a><small>2026-10-17T01:30Z</small></summary>
-        <details><summary><span>L3</span><a href="surfaces/measure.html">Measure surface</a><small>2026-10-17T01:30Z</small></summary></details>
+        <details><summary><span>L3</span><a href="surfaces/measure.html">Measure surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
+      </details>
+    </details>
+    <details><summary><span>L1</span><a href="concepts/live-view.html">Live view</a><small>2026-10-17T02:40Z</small></summary>
+      <details><summary><span>L2</span><a href="boundaries/screen.html">Screen</a><small>2026-10-15T06:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/screen.html">Screen surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
+      </details>
+      <details><summary><span>L2</span><a href="boundaries/session.html">Session</a><small>2026-10-15T06:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/session.html">Session surface</a><small>2026-10-15T06:40Z</small> <mark>Drift</mark></summary></details>
       </details>
     </details>
     <details><summary><span>L1</span><a href="concepts/log.html">Log</a><small>2026-10-14T07:30Z</small></summary>
@@ -128,7 +136,7 @@
     </details>
     <details><summary><span>L1</span><a href="concepts/measurement.html">Measurement</a><small>2026-10-15T05:50Z</small></summary>
       <details><summary><span>L2</span><a href="boundaries/measure.html">Measure</a><small>2026-10-17T01:30Z</small></summary>
-        <details><summary><span>L3</span><a href="surfaces/measure.html">Measure surface</a><small>2026-10-17T01:30Z</small></summary></details>
+        <details><summary><span>L3</span><a href="surfaces/measure.html">Measure surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
       </details>
       <details><summary><span>L2</span><a href="boundaries/screen.html">Screen</a><small>2026-10-15T06:30Z</small></summary>
         <details><summary><span>L3</span><a href="surfaces/screen.html">Screen surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
@@ -174,7 +182,19 @@
         <details><summary><span>L3</span><a href="surfaces/session.html">Session surface</a><small>2026-10-15T06:40Z</small> <mark>Drift</mark></summary></details>
       </details>
     </details>
-    <details><summary><span>L1</span><a href="concepts/rules-package.html">Rules package</a><small>2026-10-14T07:30Z</small></summary></details>
+    <details><summary><span>L1</span><a href="concepts/rules-package.html">Rules package</a><small>2026-10-14T07:30Z</small></summary>
+      <details><summary><span>L1</span><a href="concepts/suggestion.html">Suggestion</a><small>2026-10-17T02:30Z</small></summary>
+        <details><summary><span>L2</span><a href="boundaries/grimdark-future.html">Grimdark Future</a><small>2026-10-17T02:30Z</small></summary>
+          <details><summary><span>L3</span><a href="surfaces/grimdark-future.html">Grimdark Future surface</a><small>2026-10-17T02:30Z</small> <mark>Drift</mark></summary></details>
+        </details>
+        <details><summary><span>L2</span><a href="boundaries/screen.html">Screen</a><small>2026-10-15T06:30Z</small></summary>
+          <details><summary><span>L3</span><a href="surfaces/screen.html">Screen surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
+        </details>
+      </details>
+      <details><summary><span>L2</span><a href="boundaries/grimdark-future.html">Grimdark Future</a><small>2026-10-17T02:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/grimdark-future.html">Grimdark Future surface</a><small>2026-10-17T02:30Z</small> <mark>Drift</mark></summary></details>
+      </details>
+    </details>
     <details><summary><span>L1</span><a href="concepts/spectator.html">Spectator</a><small>2026-10-14T07:30Z</small></summary>
       <details><summary><span>L2</span><a href="boundaries/archive.html">Archive</a><small>2026-10-15T05:55Z</small></summary>
         <details><summary><span>L3</span><a href="surfaces/archive.html">Archive surface</a><small>2026-10-15T05:55Z</small></summary></details>
@@ -184,6 +204,14 @@
       </details>
       <details><summary><span>L2</span><a href="boundaries/session.html">Session</a><small>2026-10-15T06:30Z</small></summary>
         <details><summary><span>L3</span><a href="surfaces/session.html">Session surface</a><small>2026-10-15T06:40Z</small> <mark>Drift</mark></summary></details>
+      </details>
+    </details>
+    <details><summary><span>L1</span><a href="concepts/suggestion.html">Suggestion</a><small>2026-10-17T02:30Z</small></summary>
+      <details><summary><span>L2</span><a href="boundaries/grimdark-future.html">Grimdark Future</a><small>2026-10-17T02:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/grimdark-future.html">Grimdark Future surface</a><small>2026-10-17T02:30Z</small> <mark>Drift</mark></summary></details>
+      </details>
+      <details><summary><span>L2</span><a href="boundaries/screen.html">Screen</a><small>2026-10-15T06:30Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/screen.html">Screen surface</a><small>2026-10-17T01:30Z</small> <mark>Drift</mark></summary></details>
       </details>
     </details>
     <details><summary><span>L1</span><a href="concepts/table.html">Table</a><small>2026-10-14T07:30Z</small></summary>
@@ -252,12 +280,15 @@
       <li><a href="decisions/ADR-026.html">ADR-026: Priority says who the game is waiting on</a> <small>L1 · Accepted</small></li>
       <li><a href="decisions/ADR-027.html">ADR-027: Stats are counters and marks on things, and items give them structure</a> <small>L1 · Accepted</small></li>
       <li><a href="decisions/ADR-028.html">ADR-028: True line of sight, any part to any part</a> <small>L1 · Accepted</small></li>
+      <li><a href="decisions/ADR-029.html">ADR-029: The first rules package is Grimdark Future, and it suggests rather than acts</a> <small>L0 · Accepted</small></li>
+      <li><a href="decisions/ADR-030.html">ADR-030: The package ships mechanics and names; players bring their lists</a> <small>L0 · Accepted</small></li>
+      <li><a href="decisions/ADR-031.html">ADR-031: Players see each other's moves as they happen, outside the log</a> <small>L1 · Accepted</small></li>
     </ul>
   </section>
   <section id="instruments">
     <h2>Drift and instruments</h2>
     <ul>
-      <li><a href="DRIFT.html">Drift report</a> <small>3 open</small></li>
+      <li><a href="DRIFT.html">Drift report</a> <small>8 open</small></li>
       <li>Instruments appear with the first upward pass, once the modules are built.</li>
     </ul>
   </section>

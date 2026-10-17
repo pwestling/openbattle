@@ -20,7 +20,7 @@
   </section>
   <section id="feel">
     <h2>It feels like the real table</h2>
-    <p>Playing should feel like standing over a real table: a 3D table you look around, models you pick up and set down, dice you throw. Tabletop Simulator mostly gets this feel right. OpenBattle keeps that feel and adds help Tabletop Simulator doesn't give: exact measuring, moving a unit as a unit, a readable history, and undo.</p>
+    <p>Playing should feel like standing over a real table: a 3D table you look around, models you pick up and set down, dice you throw. Tabletop Simulator mostly gets this feel right. OpenBattle keeps that feel and adds help Tabletop Simulator doesn't give: exact measuring, moving a unit as a unit, a readable history, and undo. As on a real table, each player sees the other moving models, measuring and choosing as it happens (<a rel="decision" href="decisions/ADR-031.html">ADR-031</a>).</p>
   </section>
   <section id="for-whom">
     <h2>For whom</h2>
@@ -42,12 +42,13 @@
       <li>Set units aside in reserve and bring them onto the table later.</li>
       <li>Pick up and move a model or a whole unit, and see the distance in inches while moving, including along a path with corners, such as around terrain.</li>
       <li>Measure between any two points or models, or a model and a marker.</li>
-      <li>See whether one model can see another, through the true shapes of models and terrain, and what is in the way (<a href="decisions/ADR-028.html">ADR-028</a>).</li>
+      <li>See whether one model can see another, through the true shapes of models and terrain, and what is in the way (<a rel="decision" href="decisions/ADR-028.html">ADR-028</a>).</li>
       <li>Throw dice that everyone sees land on the same result.</li>
       <li>Draw cards from a deck, face up or into your hand, and play or discard them.</li>
       <li>Keep track of the round, the phase, counters such as wounds and victory points, and marks such as "has moved", including on terrain, such as "cover". See who the game is waiting on next.</li>
       <li>Read every action in a shared log, look back through it, and undo the latest action.</li>
       <li>Close the tab, come back later from the same link, and carry on. Save the game to a file.</li>
+      <li>Play Grimdark Future with its rules package turned on (<a rel="decision" href="decisions/ADR-029.html">ADR-029</a>): bring an army from an Army Forge list with its stats, and have the app suggest each step, such as which units can still activate, who can shoot whom, the dice to roll to hit and to block, the models to remove, morale tests, the objectives held at the end of a round, and the winner. Each step is one click, the other player is asked when it is their part, and anything can still be done by hand instead.</li>
     </ol>
   </section>
   <section id="proof">
@@ -55,8 +56,8 @@
     <p>Every behaviour above is proven by a check that drives the running app the way a person would, in real browsers, and shows the intended result. We don't write unit tests. Something counts as done when its proof passes.</p>
   </section>
   <section id="rules">
-    <h2>Players apply the rules; packages can help later</h2>
-    <p>In the first version the players apply their game's rules and the app never refuses a move. The engine is built so that rules packages can later automate parts of a game. They use the same physical actions a player has, plus the few rules ideas nearly every wargame shares: groups of models and units, phases, priority, counters and marks, and items that carry them. A player can always override a package.</p>
+    <h2>Players apply the rules; a package helps</h2>
+    <p>In the first version the players apply their game's rules and the app never refuses a move. A rules package automates the chores of one game by suggesting each next step to the player whose step it is; it never acts unless a player clicks, and Grimdark Future's is the first (<a rel="decision" href="decisions/ADR-029.html">ADR-029</a>). Packages use the same physical actions a player has, plus the few rules ideas nearly every wargame shares: groups of models and units, phases, priority, counters and marks, and items that carry them. A player can always override a package.</p>
   </section>
   <section id="shared-truth">
     <h2>One table, seen the same way</h2>
@@ -76,12 +77,12 @@
   </section>
   <section id="content">
     <h2>Whose content we ship</h2>
-    <p>OnePageRules names for things may appear in the app and the repository. Nothing from Games Workshop or other publishers ships: no unit names, stats, rules text, art or models. Players bring their own armies.</p>
+    <p>OnePageRules names for things may appear in the app and the repository. Nothing from Games Workshop or other publishers ships: no unit names, stats, rules text, art or models. Players bring their own armies. The Grimdark Future package ships the game's mechanics as code and the names of its rules, never OnePageRules' rules text or army book stats; players load their own Army Forge lists (<a rel="decision" href="decisions/ADR-030.html">ADR-030</a>).</p>
   </section>
   <section id="not-in-v0">
     <h2>Not in the first version</h2>
     <ul>
-      <li>Rules packages. The engine is shaped for them, but none ship.</li>
+      <li>Rules packages other than Grimdark Future, or loaded from outside the app. Special rules that only an army book defines: the package shows them by name for players to apply.</li>
       <li>More than two players, or computer opponents</li>
       <li>Hands that stay secret from someone reading their own browser's data. Hands are hidden on screen only.</li>
       <li>Accounts, or games stored on a server</li>
@@ -97,6 +98,9 @@
     <a rel="decision" href="decisions/ADR-014.html">ADR-014</a>
     <a rel="decision" href="decisions/ADR-018.html">ADR-018</a>
     <a rel="decision" href="decisions/ADR-028.html">ADR-028</a>
+    <a rel="decision" href="decisions/ADR-029.html">ADR-029</a>
+    <a rel="decision" href="decisions/ADR-030.html">ADR-030</a>
+    <a rel="decision" href="decisions/ADR-031.html">ADR-031</a>
   </footer>
 </article>
 </body>

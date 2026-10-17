@@ -19,14 +19,16 @@
     </nav>
   </header>
   <dl>
-    <dt>Purpose</dt><dd>Let a game's chores be automated, later.</dd>
-    <dt>Meaning</dt><dd>An add-on for one wargame that suggests or takes <a href="../concepts/action.html">actions</a> according to that game's rules.</dd>
-    <dt>Invariants</dt><dd><ul><li>A package can only take actions a player could take, so a game replays without it.</li><li>A player can always override what a package suggests or does.</li><li>No package ships in the first version.</li></ul></dd>
-    <dt>Not</dt><dd>Part of the engine.</dd>
+    <dt>Purpose</dt><dd>Let a game's chores be automated.</dd>
+    <dt>Meaning</dt><dd>An add-on for one wargame that suggests or takes <a href="../concepts/action.html">actions</a> according to that game's rules. It reads the table and the log and offers the player whose step it is a <a href="../concepts/suggestion.html">suggestion</a>: the next step, with the dice to roll. Which package a game uses is part of the game, so every browser in it runs the same one.</dd>
+    <dt>Invariants</dt><dd><ul><li>A package can only take actions a player could take, so a game replays without it.</li><li>A player can always override what a package suggests or does.</li><li>The first version ships one package, for Grimdark Future (<a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>).</li><li>A package keeps nothing of its own: it works out where the game is from the log, so a reload, a late joiner or a spectator sees the same step.</li><li>A package never acts on its own: every action it takes is one a player clicked.</li><li>A package ships no rules text and no army data; players bring their own lists (<a rel="decision" href="../decisions/ADR-030.html">ADR-030</a>).</li></ul></dd>
+    <dt>Not</dt><dd>Part of the engine. Not a referee: it never refuses a move, and a game played by hand next to it stays valid.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-001.html">ADR-001</a>
+    <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
+    <a rel="decision" href="../decisions/ADR-030.html">ADR-030</a>
   </footer>
 </article>
 </body>

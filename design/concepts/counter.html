@@ -22,7 +22,7 @@
   <dl>
     <dt>Purpose</dt><dd>Keep track of the numbers a game needs.</dd>
     <dt>Meaning</dt><dd>A named number on a <a href="../concepts/model.html">model</a>, <a href="../concepts/unit.html">unit</a>, <a href="../concepts/group.html">group</a>, <a href="../concepts/item.html">item</a>, <a href="../concepts/terrain.html">terrain</a> piece, <a href="../concepts/marker.html">marker</a>, <a href="../concepts/player.html">player</a> or the <a href="../concepts/game.html">game</a>: wounds left, victory points, command points, a unit's Quality, a weapon's range.</dd>
-    <dt>Invariants</dt><dd><ul><li>Changing a counter is an <a href="../concepts/action.html">action</a>.</li><li>In the first version no counter has a built-in meaning.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>Changing a counter is an <a href="../concepts/action.html">action</a>.</li><li>The engine gives no counter a built-in meaning; a <a href="../concepts/rules-package.html">rules package</a> may read one and suggest from it (<a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>).</li></ul></dd>
     <dt>Not</dt><dd>A <a href="../concepts/mark.html">mark</a>, which is on or off rather than a number.</dd>
   </dl>
   <footer class="decisions">
