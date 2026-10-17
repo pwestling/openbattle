@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grimdark Future — Surface</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-17T02:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="surfaces/grimdark-future">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Surface</nav>
+    <h1>Grimdark Future surface</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../boundaries/grimdark-future.html">Grimdark Future</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Drafted on 2026-10-17 (<a href="../decisions/ADR-029.html">ADR-029</a>, <a href="../decisions/ADR-030.html">ADR-030</a>).</dd>
+  </dl>
+  <p>One name and two pure functions. Every rules package the app ships would have this same shape; with one package, nothing more general is built.</p>
+
+  <section id="name">
+    <h2><code>name: "Grimdark Future"</code></h2>
+    <p>What a game names when it turns this package on (Record's <code>rules</code> action), and what the screen shows.</p>
+  </section>
+
+  <section id="read-list">
+    <h2><code>readList(text: string, owner: PlayerId, table: Table): { action: Action | null, unread: string[] }</code></h2>
+    <dl>
+      <dt>Pre</dt><dd><code>text</code> is a list as Army Forge exports it as text, pasted or loaded from a file, or typed in the same form: a unit line such as <code>Battle Brothers [5] Q3+ D3+ | 175pts | Fearless, Tough(3)</code> and the weapon lines under it, such as <code>5x Heavy Rifle (24", A1, AP(1))</code>.</dd>
+      <dt>Post</dt><dd>One <code>add to army</code> action for that player, or <code>null</code> if nothing was read. Each unit has its models, on 25 mm round bases unless the line says otherwise, standing in rows along the owner's table edge, as the screen places them today. Each unit gets the counters Quality and Defense; each special rule becomes a mark of that name, or a counter where it has a number (Tough 3). Each weapon becomes an <a href="../concepts/item.html">item</a> on a model, with counters Range (none for a melee weapon), Attacks and AP, and its rules as marks or counters (Rending, Blast 3). A line of <code>5x</code> weapons goes one to each of the first five models; players can move items between models afterwards. A line naming a unit already in the army adds models to it. <code>unread</code> lists the lines it couldn't read, word for word, so the screen can show them.</dd>
+      <dt>Fails</dt><dd>Never; what it can't read is in <code>unread</code>. Points, costs and army-building limits are ignored: the app never checks an army.</dd>
+    </dl>
+  </section>
+
+  <section id="suggest">
+    <h2><code>suggest(log: Log, bodies: Bodies): Suggestion[]</code></h2>
+    <p>A <code>Suggestion</code> is <code>{ for: PlayerId, says: string, take: { actions: Action[] } | { roll: { dice, sides, label } }, about: (UnitId | ModelId)[] }</code>: whose step it is, the sentence shown on its button, what clicking it does, and the pieces it is about so the screen can point them out. <code>bodies</code> is as for Measure's <code>sight</code>.</p>
+    <dl>
+      <dt>Pre</dt><dd>The game's rules package is Grimdark Future.</dd>
+      <dt>Post</dt><dd>The steps open now, for every player, worked out from the log and its table alone. Where the rules leave a choice, there is a suggestion per choice (one per unit that can activate, one per target in range and sight). Every action in a suggestion carries its <code>says</code> as its note, and a roll's label is its <code>says</code>, so the package finds its own rolls again in the log. Steps that hand the game to the other player include a <code>priority</code> action with a note, such as "Roll 7 blocks, 4+". The same log and bodies give the same list in every browser. Empty when nothing is waiting on anyone, such as before both armies are in.</dd>
+      <dt>Fails</dt><dd>Never throws. If a mesh on the table hasn't arrived, suggestions that need line of sight are left out, and one suggestion for nobody says which pieces it is waiting for.</dd>
+    </dl>
+  </section>
+
+  <section id="keeps">
+    <h2>What it keeps on things</h2>
+    <p>All of it is ordinary counters, marks, phase and priority, so players see it in the Army panel and can change it by hand.</p>
+    <table>
+      <tr><th>On</th><th>Counters</th><th>Marks</th></tr>
+      <tr><td>Unit</td><td>Quality, Defense, numbered rules (Impact 3, Caster 2), Spell tokens</td><td>Each special rule; Activated, Shaken, Fatigued, In melee; Arrived by Ambush</td></tr>
+      <tr><td>Model</td><td>Tough, Wounds taken</td><td>Hero</td></tr>
+      <tr><td>Weapon (item)</td><td>Range, Attacks, AP, numbered rules (Blast 3, Deadly 3)</td><td>Each other rule (Rending, Reliable)</td></tr>
+      <tr><td>Terrain</td><td></td><td>Cover, Difficult, Dangerous, Sight blocker, set by players</td></tr>
+      <tr><td>Marker</td><td></td><td>Objective; "Held by" and the player's name</td></tr>
+      <tr><td>Game</td><td>Round, through the phase</td><td>The player who finished activating first</td></tr>
+    </table>
+  </section>
+
+  <section id="slices">
+    <h2>What it suggests, built in this order</h2>
+    <p>Each slice ships when its proof passes in two real browsers.</p>
+    <table>
+      <tr><th>Slice</th><th>Suggestions</th></tr>
+      <tr><td>1. Armies</td><td><code>readList</code>, used by Add army.</td></tr>
+      <tr><td>2. Rounds and activations</td><td>Start round 1 (the deployment roll-off decides who goes first); Activate one of your units not yet activated; the action to take (Hold, Advance, Rush, Charge); End activation, which marks it Activated and hands priority to the other player, or keeps it if they have nothing left; End round, which scores nothing yet, clears Activated and Fatigued, and starts the next round with whoever finished first.</td></tr>
+      <tr><td>3. Shooting</td><td>Shoot a target in range and sight, rolling one die per attack with the number to hit; then, for the defender, Roll blocks with the Defense needed after AP and cover; then Remove models, suggesting the casualties within the Tough and hero rules; then morale if the unit fell to half.</td></tr>
+      <tr><td>4. Melee</td><td>Charge targets in reach; the defender's strike back choice; the melee result and its morale test.</td></tr>
+      <tr><td>5. Morale</td><td>The quality test at half strength, Shaken, routing, and staying idle to recover.</td></tr>
+      <tr><td>6. Objectives and winner</td><td>At the end of each round, which markers are seized or contested; after round 4, the winner.</td></tr>
+      <tr><td>7. Spells and reserves</td><td>Casting and helping with spell tokens; Scout and Ambush arrivals.</td></tr>
+    </table>
+  </section>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
+    <a rel="decision" href="../decisions/ADR-030.html">ADR-030</a>
+  </footer>
+</article>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suggestion — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T02:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/suggestion">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Suggestion</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#rules">Players apply the rules; a package helps</a>
+      <a rel="realizes" href="../concepts/rules-package.html">Rules package</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Drafted on 2026-10-17 for the Grimdark Future package, after Porter asked to start one.</dd>
+    <dt>Purpose</dt><dd>Let a <a href="../concepts/rules-package.html">rules package</a> help without taking the game out of the players' hands.</dd>
+    <dt>Meaning</dt><dd>One next step a package offers one <a href="../concepts/player.html">player</a>: a sentence saying what and why, such as "Scouts shoot Orc Boyz: 10 attacks, hitting on 4+", and either the <a href="../concepts/action.html">actions</a> it would take or the <a href="../concepts/roll.html">roll</a> it would make. Where the rules leave a choice, such as which unit to shoot, there is one suggestion per choice.</dd>
+    <dt>Invariants</dt><dd><ul><li>Showing a suggestion changes nothing; only taking it does.</li><li>Taking a suggestion is exactly the same as taking its actions by hand, each carrying the suggestion's sentence as its note.</li><li>A suggestion is for the player whose step it is, which is usually whoever has <a href="../concepts/priority.html">priority</a>. Others see it too, so everyone knows what the game is waiting on.</li><li>The same log gives the same suggestions in every browser.</li></ul></dd>
+    <dt>Not</dt><dd>A rules check: a suggestion never refuses a move, and ignoring it is always allowed. Not <a href="../concepts/priority.html">priority</a>, which says who the game waits on; a suggestion says what they might do.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
+  </footer>
+</article>
+</body>
+</html>
