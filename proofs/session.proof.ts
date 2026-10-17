@@ -16,7 +16,7 @@ type Now = {
   connection: string;
   disagreement: boolean;
   badSignatures: number[];
-  table: { players: Record<string, { name: string }>; models: Record<string, { position: { x: number; y: number }; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean }[] };
+  table: { players: Record<string, { name: string }>; models: Record<string, { place: unknown; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean }[] };
   log: { entries: unknown[] };
 };
 

@@ -9,10 +9,17 @@ type Log = ReturnType<RecordModule["newLog"]>;
 
 const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
-const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";`;
+const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";
+// An undo of the latest uncancelled action (ADR-033), or of nothing when there is none.
+const undo = (log) => { const c = new Set(window.record.tableAt(log).cancelled); return { kind: "undo", of: log.entries.findLast((e) => e.action.kind !== "undo" && !c.has(e.n))?.n ?? 0 }; };`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];
 const link = `Xy3kP9qA-${ann}`;
+// The same undo, for the type checker; the browser page uses the copy in the text above.
+const undo = (log: Log) => {
+  const cancelled = new Set(nodeRecord.tableAt(log).cancelled);
+  return { kind: "undo" as const, of: log.entries.findLast((e) => e.action.kind !== "undo" && !cancelled.has(e.n))?.n ?? 0 };
+};
 
 // Ann and Bo join; Ann brings a squad of two whose models carry weapons with their stats.
 const opening = (r: RecordModule): Log => {
@@ -78,7 +85,7 @@ test("items can hold items, move between carriers and be removed with what they 
     const moved = r.tableAt(log);
     take({ kind: "remove item", item: "h1" });
     const removed = r.tableAt(log);
-    take({ kind: "undo" });
+    take(undo(log));
     const back = r.tableAt(log);
     return { nested, itself, ownHolder, nowhere, takenId, moved, removed, back };
   });

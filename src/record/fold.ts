@@ -77,7 +77,16 @@ export function fold(log: Log, upTo: number): Table {
   for (const entry of entries) {
     if (entry.action.kind !== "undo" && !cancelled.has(entry.n)) apply(table, entry);
   }
+  placeInDecks(table);
   return table;
+}
+
+/**
+ * A deck's list is the one record of which cards are in it and in what order. A card in a deck takes
+ * its place from that list once the log is applied, so no action has to keep the two in step.
+ */
+function placeInDecks(table: Table) {
+  for (const deck of Object.values(table.decks)) for (const id of deck.cards) table.cards[id]!.place = { in: "deck", deck: deck.id };
 }
 
 const copy = <T>(value: T): T => structuredClone(value);
@@ -234,6 +243,7 @@ function apply(table: Table, { n, by, action }: Entry) {
         position: copy(action.position),
       };
       for (const c of action.cards) {
+        // Its place comes from the deck's list (placeInDecks).
         const card: Card = { id: c.id, name: c.name, place: { in: "deck", deck: action.deck } };
         if (c.text !== undefined) card.text = c.text;
         if (c.picture !== undefined) card.picture = c.picture;
@@ -266,12 +276,8 @@ function apply(table: Table, { n, by, action }: Entry) {
       return;
     }
     case "move card": {
-      const card = table.cards[action.card]!;
-      if (card.place.in === "deck") {
-        const from = table.decks[card.place.deck]!;
-        from.cards = from.cards.filter((id) => id !== action.card);
-      }
-      card.place = copy(action.to);
+      for (const deck of Object.values(table.decks)) deck.cards = deck.cards.filter((id) => id !== action.card);
+      table.cards[action.card]!.place = copy(action.to);
       if (action.to.in === "deck") {
         const into = table.decks[action.to.deck]!;
         const at = into.order === "ordered" && typeof action.at === "number" ? action.at : action.at === "bottom" ? into.cards.length : 0;

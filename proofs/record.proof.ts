@@ -12,12 +12,19 @@ type Log = ReturnType<RecordModule["newLog"]>;
 const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
 const cyKey = "Y3kncyBrZXk", cy = "tbo45df-YItJZP0k4aLgmg";
-const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";`;
+const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";
+// An undo of the latest uncancelled action (ADR-033), or of nothing when there is none.
+const undo = (log) => { const c = new Set(window.record.tableAt(log).cancelled); return { kind: "undo", of: log.entries.findLast((e) => e.action.kind !== "undo" && !c.has(e.n))?.n ?? 0 }; };`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];
 const [cyKey, cy] = ["Y3kncyBrZXk", "tbo45df-YItJZP0k4aLgmg"];
 // The game's link: eight random base64url characters, "-", then the host's id, as Session makes it.
 const link = `Xy3kP9qA-${ann}`;
+// The same undo, for the type checker; the browser page uses the copy in the text above.
+const undo = (log: Log) => {
+  const cancelled = new Set(nodeRecord.tableAt(log).cancelled);
+  return { kind: "undo" as const, of: log.entries.findLast((e) => e.action.kind !== "undo" && !cancelled.has(e.n))?.n ?? 0 };
+};
 
 // A short game several proofs start from, hosted by Ann: two players join, Ann brings a unit of two models and moves them.
 const opening = (r: RecordModule): Log => {
@@ -179,6 +186,9 @@ test("every kind of action changes the table as the Record surface says", async 
   expect(t.table.cards.c3).toMatchObject({ picture: "ef56", place: { in: "discard", deck: "d1" } });
   expect(t.table.cards.c4?.place).toEqual({ in: "hand", player: bo });
   expect(t.table.decks.d1).toMatchObject({ order: "shuffled", cards: ["c2", "c1"] });
+  // A deck's list and the places of its cards always agree.
+  const inDeck = Object.values(t.table.cards).filter((c) => c.place.in === "deck").map((c) => c.id);
+  expect(inDeck.sort()).toEqual([...t.table.decks.d1!.cards].sort());
 });
 
 test("check says in plain words why an action can't be taken, and append refuses it", async ({ page }) => {
@@ -269,21 +279,26 @@ test("check says in plain words why an action can't be taken, and append refuses
   expect(seen.cy).toBeNull();
 });
 
-test("undo cancels the latest action, only for the player who took it, and looking back still shows it", async ({ page }) => {
+test("undo cancels the latest action, named by its number, only for the player who took it, and looking back still shows it", async ({ page }) => {
   const seen = await inBrowser(page, (r, start) => {
     let log = start(r);
     log = r.append(log, { kind: "counter", target: { game: true }, name: "score", value: 1 }, bo);
-    const boOnly = r.check(log, { kind: "undo" }, ann)?.problem;
-    log = r.append(log, { kind: "undo" }, bo);
+    const boOnly = r.check(log, undo(log), ann)?.problem;
+    // An undo names what it cancels (ADR-033): one sent while Bo's counter was on its way, meaning Ann's move, is refused.
+    const stale = r.check(log, { kind: "undo", of: 4 }, ann)?.problem;
+    const unnamed = r.check(log, { kind: "undo" } as unknown as Parameters<typeof r.check>[1], bo)?.problem;
+    log = r.append(log, undo(log), bo);
     const afterFirst = r.tableAt(log);
     // Ann's move (4) is now the latest standing action, so Ann can undo it, and then her army (3).
-    const boCannot = r.check(log, { kind: "undo" }, bo)?.problem;
-    log = r.append(log, { kind: "undo" }, ann);
+    const boCannot = r.check(log, undo(log), bo)?.problem;
+    log = r.append(log, undo(log), ann);
     const afterSecond = r.tableAt(log);
-    log = r.append(log, { kind: "undo" }, ann);
+    log = r.append(log, undo(log), ann);
     const afterThird = r.tableAt(log);
     return {
       boOnly,
+      stale,
+      unnamed,
       boCannot,
       scoreGone: afterFirst.counters,
       cancelled: [afterFirst.cancelled, afterSecond.cancelled, afterThird.cancelled],
@@ -291,10 +306,12 @@ test("undo cancels the latest action, only for the player who took it, and looki
       noArmy: Object.keys(afterThird.models),
       lookBack: r.tableAt(log, 5).counters,
       length: log.entries.length,
-      bothJoined: r.check(log, { kind: "undo" }, ann)?.problem,
+      bothJoined: r.check(log, undo(log), ann)?.problem,
     };
   });
   expect(seen.boOnly).toBe("Only the player who took the latest action can undo it.");
+  expect(seen.stale).toBe("Action 4 is not the latest action, so it can't be undone.");
+  expect(seen.unnamed).toBe("An undo names the log number of the action it cancels.");
   expect(seen.boCannot).toBe("Only the player who took the latest action can undo it.");
   const nothingOn = { model: {}, unit: {}, group: {}, player: {}, terrain: {}, marker: {}, item: {} };
   expect(seen.scoreGone).toEqual({ ...nothingOn, game: {} });
@@ -341,7 +358,7 @@ test("a roll's result comes from both random values, the same in every browser, 
         again: roll(r, fair).roll.result,
         otherGuest: roll(r, otherGuest).roll.result,
         tampered: roll(r, { ...fair, hostValue: "a different value" }).roll,
-        undo: r.check(first.log, { kind: "undo" }, ann)?.problem,
+        undo: r.check(first.log, undo(first.log), ann)?.problem,
         reused: r.check(first.log, { kind: "roll", dice: 10, sides: 6, ...fair }, ann)?.problem,
         counts: [1, 2, 3, 4, 5, 6].map((face) => many.filter((d) => d === face).length),
       };
@@ -382,7 +399,7 @@ test("a shuffled deck is drawn from with the same sealed exchange, and a bad sea
       drawn: Object.values(table.cards).filter((c) => c.place.in === "hand").map((c) => c.id),
       left: table.decks.d1!.cards,
       draws: table.draws,
-      undo: r.check(log, { kind: "undo" }, bo)?.problem,
+      undo: r.check(log, undo(log), bo)?.problem,
     };
   };
   const seen = await page.evaluate(
@@ -466,7 +483,7 @@ test("ids that every object inherits, such as __proto__ and toString, can't brea
       unit: table.units["__proto__"]?.name,
       counter: Object.hasOwn(table.counters.unit, "__proto__") ? table.counters.unit["__proto__"] : "not its own",
       polluted: "polluted" in {},
-      stillWorks: r.check(log, { kind: "undo" }, ann),
+      stillWorks: r.check(log, undo(log), ann),
       print: r.fingerprint(table).length,
     };
   });
@@ -606,7 +623,7 @@ test("the host stays the host when its join is undone, so it can never send the 
   const scenario = (r: RecordModule, s: typeof sealed) => {
     let log = r.newLog({ width: 44, depth: 30 }, link, ann);
     log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
-    log = r.append(log, { kind: "undo" }, ann);
+    log = r.append(log, undo(log), ann);
     log = r.append(log, { kind: "join", name: "Bo", colour: "#33c", publicKey: boKey }, bo);
     log = r.append(log, { kind: "join", name: "Ann", colour: "#c33", publicKey: annKey }, ann);
     return [
@@ -644,7 +661,7 @@ test("with nobody else connected the host can roll or draw alone, and everyone s
     log = r.append(log, { kind: "roll", dice: 2, sides: 6, ...v.roll }, ann);
     log = r.append(log, { kind: "draw", deck: "d1", cards: 1, to: "hand", ...v.draw }, ann);
     const afterAlone = {
-      undoDraw: problem({ kind: "undo" }, ann),
+      undoDraw: problem({ kind: "undo", of: log.entries.length }, ann),
       // A seal opens once, whether it was used alone or with a signature.
       signedReusesAloneSeal: problem({ kind: "roll", dice: 2, sides: 6, ...v.fair, seal: v.roll.seal }, ann),
     };
