@@ -123,6 +123,8 @@ export class Gestures {
   private sightShift = false;
   private sightIgnored = new Set<string>();
   private hiding = new Set<string>();
+  /** Mesh files being read for line of sight, so each is asked for once at a time. */
+  private reading = new Set<string>();
   private press: { x: number; y: number; thing: Thing | null; detail: number; shift: boolean } | null = null;
   private cards: Cards;
   private cardCarry: { id: string; offset: Point } | null = null;
@@ -707,17 +709,36 @@ export class Gestures {
       if (mesh) bodies[p.id] = mesh;
       else {
         missing.push(p.name);
-        // Read it if the file is here; the next look finds it.
-        void meshOf(p.mesh).then((m) => m && this.sightKey && this.redraw());
+        // Read it if the file is here; the next look finds it. A file not here yet is asked for again shortly.
+        const fingerprint = p.mesh;
+        if (this.reading.has(fingerprint)) continue;
+        this.reading.add(fingerprint);
+        void meshOf(fingerprint).then((m) => {
+          if (m) {
+            this.reading.delete(fingerprint);
+            if (this.sightKey) this.redraw();
+          } else setTimeout(() => this.reading.delete(fingerprint), 2000);
+        });
       }
     }
     return { bodies, missing: [...new Set(missing)].sort() };
   }
 
+  /** The spot the pointer is on when it is on a terrain piece, a wall's side as well as a floor. */
+  private spotOnTerrain(e: { clientX: number; clientY: number }): { point: Point; h: number } | null {
+    this.aim(e);
+    for (const hit of this.raycaster.intersectObjects(this.pieces.objects(), true)) {
+      let shown = true;
+      for (let o: Object3D | null = hit.object; o; o = o.parent) shown &&= o.visible;
+      if (shown && Pieces.pieceOf(hit.object)?.kind === "terrain") return { point: { x: hit.point.x, y: -hit.point.z }, h: hit.point.y };
+    }
+    return null;
+  }
+
   /** Sight lines from each selected model to the model or spot under the pointer. */
   private sightGuides(): Guide[] {
     const table = this.table!;
-    if (!this.hover || this.overPanel()) return [];
+    if (!this.hover || this.overPanel() || this.carry) return [];
     const thing = this.thingAt(this.hover);
     let to: SightTarget;
     let end: Spot3;
@@ -726,7 +747,7 @@ export class Gestures {
       to = { model: aimed.id };
       end = { ...aimed.position, h: floorHeight(table, aimed.floor) + 0.12 + aimed.height / 2 };
     } else {
-      const s = this.surfaceAt(this.hover);
+      const s = this.spotOnTerrain(this.hover) ?? this.surfaceAt(this.hover);
       if (!s) return [];
       to = { x: s.point.x, y: s.point.y, z: s.h };
       end = { ...s.point, h: s.h };
@@ -778,6 +799,9 @@ export class Gestures {
       return;
     }
     if ((key === "v" || key === "V") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      // Like the ruler, line of sight is the table's only while it has focus.
+      const focus = document.activeElement;
+      if (focus && focus !== document.body && focus !== this.view.renderer.domElement) return;
       if (!e.repeat) {
         this.sightKey = true;
         this.sightShift = e.shiftKey;

@@ -239,3 +239,68 @@ test("a terrain mesh of 100,000 triangles, the most a mesh is simplified to, is 
   expect(seen.firstTime).toBeLessThan(5000);
   expect(seen.laterTime).toBeLessThan(500);
 });
+
+test("pieces turn and meshes lie the way the screen draws them", async ({ page }) => {
+  const arg = {
+    a: model(0, -10),
+    side: model(-10, 0),
+    // A mesh tall over its -z half (the far half, table +y) and a thin plate over its near half.
+    lopsided: [...box(-50, 50, 0, 10, -50, 0), ...box(-50, 50, 0, 0.1, 0, 50)],
+  };
+  const seen = await inBrowser(
+    page,
+    (m, x) => {
+      // A ramp 4″ square and 3″ high at the middle of the table rises toward where it faces.
+      const ramp = (facing: number) => ({ position: { x: 0, y: 0 }, facing, floors: [], shape: { kind: "ramp" as const, width: 4, depth: 4, height: 3 } });
+      const look = (looker: string, facing: number, at: { x: number; y: number; z: number }) =>
+        m.sight({ models: { a: x.a, side: x.side }, terrain: { ramp: ramp(facing) } }, {}, { model: looker }, at).seen;
+      const meshTable = {
+        models: { a: x.a },
+        terrain: { block: { position: { x: 0, y: 0 }, facing: 0, floors: [], shape: { kind: "mesh" as const, width: 4, depth: 4, height: 3 } } },
+      };
+      return {
+        // A spot 0.6″ up over the ramp's back half: above the slope when the ramp rises away, inside it when it rises toward the looker.
+        risingAway: look("a", 0, { x: 0, y: -1.5, z: 0.6 }),
+        risingToward: look("a", 180, { x: 0, y: -1.5, z: 0.6 }),
+        // Turned a quarter clockwise, the ramp rises toward +x.
+        quarterAway: look("side", 90, { x: -1.5, y: 0, z: 0.6 }),
+        quarterToward: look("side", 270, { x: -1.5, y: 0, z: 0.6 }),
+        meshNearHalf: m.sight(meshTable, { block: { positions: new Float32Array(x.lopsided) } }, { model: "a" }, { x: 0, y: -1, z: 0.6 }).seen,
+        meshFarHalf: m.sight(meshTable, { block: { positions: new Float32Array(x.lopsided) } }, { model: "a" }, { x: 0, y: 1, z: 0.6 }).seen,
+      };
+    },
+    arg,
+  );
+  expect(seen).toEqual({ risingAway: 1, risingToward: 0, quarterAway: 1, quarterToward: 0, meshNearHalf: 1, meshFarHalf: 0 });
+});
+
+test("a spot on a roof is not hidden by the roof, and only pieces that hide something are named", async ({ page }) => {
+  const seen = await inBrowser(
+    page,
+    (m, x) => {
+      const block = (px: number, py: number, w: number, d: number, h: number) => ({
+        position: { x: px, y: py },
+        facing: 0,
+        floors: [{ height: h, outline: [{ x: -w / 2, y: -d / 2 }, { x: w / 2, y: -d / 2 }, { x: w / 2, y: d / 2 }, { x: -w / 2, y: d / 2 }] }],
+        shape: { kind: "box" as const, width: w, depth: d, height: h },
+      });
+      const tower = { models: { a: { ...x.a, floor: { terrain: "tower", floor: 0 } } }, terrain: { tower: block(-6, 0, 2, 2, 5), roof: block(0, 0, 3, 3, 7 / 3) } };
+      return {
+        // A roof's floor height is kept to a thousandth, so the spot is a hair under the true surface.
+        roof: m.sight(tower, {}, { model: "a" }, { x: 0, y: 0, z: 2.333 }).seen,
+        // A low wall right in front of the looker hides nothing its head can't see over; a tall post beyond hides part of the target.
+        named: m.sight(
+          { models: { a: x.b, b: x.c }, terrain: { low: { ...block(0.8, 0, 0.3, 3, 0.8), floors: [] }, tall: { ...block(18, -0.5, 0.3, 1, 5), floors: [] } } },
+          {},
+          { model: "a" },
+          { model: "b" },
+        ),
+      };
+    },
+    { a: model(-6, 0), b: model(0, 0), c: model(20, 0) },
+  );
+  expect(seen.roof).toBe(1);
+  expect(seen.named.seen).toBeGreaterThan(0);
+  expect(seen.named.seen).toBeLessThan(1);
+  expect(seen.named.hiddenBy).toEqual(["tall"]);
+});

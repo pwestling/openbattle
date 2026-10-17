@@ -155,18 +155,14 @@ export class Pieces {
     return null;
   }
 
-  /** The piece the pointer is over, if any. */
-  /** Outlines these pieces in red and shows their labels: what hides part of a sight line's target. */
+  /** Outlines these pieces in red and shows their labels: what hides part of a sight line's target. Drawn afresh each time, where the pieces are now. */
   outline(ids: ReadonlySet<string>) {
-    for (const [id, helper] of this.outlines) {
-      if (ids.has(id) && this.drawn.has(id)) continue;
-      drop(this.view.scene, helper);
-      this.outlines.delete(id);
-      this.drawn.get(id)?.label.element.classList.remove("hiding");
-    }
+    for (const helper of this.outlines.values()) drop(this.view.scene, helper);
+    this.outlines.clear();
+    for (const d of this.drawn.values()) d.label.element.classList.remove("hiding");
     for (const id of ids) {
       const d = this.drawn.get(id);
-      if (!d || this.outlines.has(id)) continue;
+      if (!d) continue;
       const helper = new BoxHelper(d.object, "#e0533d");
       this.view.scene.add(helper);
       this.outlines.set(id, helper);
@@ -175,6 +171,7 @@ export class Pieces {
     this.view.invalidate();
   }
 
+  /** The piece the pointer is over, if any. */
   get pointedAt(): string | null {
     return this.hovered;
   }

@@ -12,6 +12,8 @@ const baseThickness = 0.12;
 const cellsPerSide = 6;
 /** A body's own surface is not in the way: crossings this close to either end of a line are ignored. */
 const ends = 1e-6;
+/** A point on a surface, such as a spot on a roof, is not hidden by that surface: crossings this close to it (inches) are ignored. */
+const onSurface = 0.01;
 
 type Vec = [number, number, number];
 
@@ -284,8 +286,8 @@ function meetsBox(a: Vec, b: Vec, low: Vec, high: Vec): boolean {
   return true;
 }
 
-/** Whether the line from a to b crosses a triangle strictly between its ends (Möller and Trumbore). */
-function crosses(c: Float64Array, t: number, a: Vec, b: Vec): boolean {
+/** Whether the line from a to b crosses a triangle between from and to, as shares of its length (Möller and Trumbore). */
+function crosses(c: Float64Array, t: number, a: Vec, b: Vec, from: number, to: number): boolean {
   const o = t * 9;
   const e1 = [c[o + 3]! - c[o]!, c[o + 4]! - c[o + 1]!, c[o + 5]! - c[o + 2]!];
   const e2 = [c[o + 6]! - c[o]!, c[o + 7]! - c[o + 1]!, c[o + 8]! - c[o + 2]!];
@@ -300,13 +302,17 @@ function crosses(c: Float64Array, t: number, a: Vec, b: Vec): boolean {
   const v = (d[0]! * q[0]! + d[1]! * q[1]! + d[2]! * q[2]!) / det;
   if (v < 0 || u + v > 1) return false;
   const along = (e2[0]! * q[0]! + e2[1]! * q[1]! + e2[2]! * q[2]!) / det;
-  return along > ends && along < 1 - ends;
+  return along > from && along < to;
 }
 
-/** Whether a piece stands in the way of the line from a to b, both on the table. The same either way round. */
-function blocks(p: Placed, a: Vec, b: Vec): boolean {
+/**
+ * Whether a piece stands in the way of the line from a to b, both on the table, leaving out crossings
+ * within slack of b (a share of its length). With no slack, the same either way round.
+ */
+function blocks(p: Placed, a: Vec, b: Vec, slack = ends): boolean {
+  let [from, to] = [ends, 1 - slack];
   // Always worked out from the same end, so a line grazing an edge gives one answer both ways.
-  if (a[0] > b[0] || (a[0] === b[0] && (a[1] > b[1] || (a[1] === b[1] && a[2] > b[2])))) [a, b] = [b, a];
+  if (a[0] > b[0] || (a[0] === b[0] && (a[1] > b[1] || (a[1] === b[1] && a[2] > b[2])))) [a, b, from, to] = [b, a, 1 - to, 1 - from];
   if (!meetsBox(a, b, p.low, p.high)) return false;
   const la = toPiece(p, a);
   const lb = toPiece(p, b);
@@ -315,7 +321,7 @@ function blocks(p: Placed, a: Vec, b: Vec): boolean {
     const node = stack.pop()!;
     if (!meetsBox(la, lb, node.low, node.high)) continue;
     if (node.left) stack.push(node.left, node.right!);
-    else for (const t of node.triangles) if (crosses(p.shape.corners, t, la, lb)) return true;
+    else for (const t of node.triangles) if (crosses(p.shape.corners, t, la, lb, from, to)) return true;
   }
   return false;
 }
@@ -370,18 +376,29 @@ export function sightOf(table: TableShape, bodies: Record<string, Mesh>, from: {
 
   const eyes = looker.shape.points.map((v) => toTable(looker, v));
   const marks: Vec[] = target ? target.shape.points.map((v) => toTable(target, v)) : [["x" in to ? to.x : 0, "x" in to ? to.y : 0, "x" in to ? (to.z ?? 0) : 0]];
-  const middle: Vec = toTable(looker, [(looker.shape.low[0] + looker.shape.high[0]) / 2, (looker.shape.low[1] + looker.shape.high[1]) / 2, (looker.shape.low[2] + looker.shape.high[2]) / 2]);
-  const clear = (a: Vec, b: Vec) => !blockers.some((p) => blocks(p, a, b));
+  // A point target may lie on a surface; a body's own points never need this.
+  const slack = (a: Vec, b: Vec) => (target ? ends : Math.max(ends, onSurface / Math.sqrt(dist2(a, b))));
+  const blocking = (a: Vec, b: Vec) => blockers.filter((p) => blocks(p, a, b, slack(a, b)));
 
   let seen = 0;
   let line: Sight["line"] = null;
   const hidden = new Set<string>();
   for (const mark of marks) {
-    const eye = eyes.find((e) => clear(e, mark));
+    const eye = eyes.find((e) => !blockers.some((p) => blocks(p, e, mark, slack(e, mark))));
     if (eye) {
       seen++;
       line ??= [{ x: eye[0], y: eye[1], z: eye[2] }, { x: mark[0], y: mark[1], z: mark[2] }];
-    } else for (const p of blockers) if (blocks(p, middle, mark)) hidden.add(p.id);
+      continue;
+    }
+    // What hides this part: each piece that alone stands between some part of the looker and it,
+    // or, where pieces overlap so none is alone, those in the way of the least hidden line.
+    const lines = eyes.map((e) => blocking(e, mark));
+    const alone = lines.filter((l) => l.length === 1).map((l) => l[0]!.id);
+    if (alone.length) for (const id of alone) hidden.add(id);
+    else {
+      const fewest = lines.reduce((best, l) => (l.length < best.length ? l : best), lines[0] ?? []);
+      for (const p of fewest) hidden.add(p.id);
+    }
   }
   return { seen: marks.length ? hundredths(seen / marks.length) : 0, hiddenBy: [...hidden].sort(), line };
 }
