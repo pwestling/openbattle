@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-033: A roll names what it is about, and one mark or counter covers several things — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T21:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-033">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-033: A roll names what it is about, and one mark or counter covers several things</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> From the review of the Grimdark Future package design, 2026-10-17. Porter chose "Both" and accepted it on 2026-10-17.</dd>
+    <dt>Context</dt><dd>The package's defender steps (roll blocks, remove models) must know which unit was shot, but a <a href="../concepts/roll.html">roll</a> carries only its label, so the package would read unit names back out of words. Players often have two units with the same name, and rewording a label later would change what old games suggest. Ending a round clears marks on every unit, which takes one action per unit: a long log and an undo per unit.</dd>
+    <dt>Decision</dt><dd>A roll may name what it is about, as typed targets (<a rel="decision" href="ADR-032.html">ADR-032</a>), such as the shooting unit and its target. That list is signed with the roll, as its label is, and kept on the table's roll; the label stays words only. A <a href="../concepts/counter.html">counter</a> or <a href="../concepts/mark.html">mark</a> action names one or more targets, and sets the same counter or mark on each, as a move moves several models.</dd>
+    <dt>Because</dt><dd>The package matches on ids, never on words, so repeated names and reworded labels change nothing. One step a player took is one line in the log and one undo.</dd>
+    <dt>Rejected</dt><dd>Making target picks into actions: Porter chose that picks are not actions (<a rel="decision" href="ADR-031.html">ADR-031</a>). Grouping several actions into one: a new idea in the record for one use.</dd>
+    <dt>Affects</dt><dd><a href="../concepts/roll.html">Roll</a>, <a href="../concepts/counter.html">Counter</a>, <a href="../concepts/mark.html">Mark</a>, <a href="../boundaries/record.html">Record</a>, <a href="../boundaries/session.html">Session</a>, <a href="../boundaries/grimdark-future.html">Grimdark Future</a></dd>
+  </dl>
+</article>
+</body>
+</html>

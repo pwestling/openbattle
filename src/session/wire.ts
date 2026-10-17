@@ -1,10 +1,10 @@
 // What browsers in one game say to each other over the link. Only Session speaks this.
 // The host's browser keeps the log; everyone else asks it to add actions and follows along.
-import type { Action, Entry, Log } from "../record/index.ts";
+import type { Action, Entry, Log, Target } from "../record/index.ts";
 
 /** What a roll or a draw asks for, before any value is chosen. */
 export type Ask =
-  | { kind: "roll"; dice: number; sides: number; label?: string }
+  | { kind: "roll"; dice: number; sides: number; label?: string; about?: Target[] }
   | { kind: "draw"; deck: string; cards: number; to: "hand" | "table" };
 
 export type ToHost =

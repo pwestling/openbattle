@@ -116,10 +116,10 @@ export function sentence(entry: Entry, log: Log, table: Table, names: Names, me:
     }
     case "counter":
       return a.value === null
-        ? `${who} cleared ${possessive(named(a.target))} ${a.name}`
-        : `${who} set ${possessive(named(a.target))} ${a.name} to ${a.value}`;
+        ? `${who} cleared ${possessive(list(a.targets.map(named)))} ${a.name}`
+        : `${who} set ${possessive(list(a.targets.map(named)))} ${a.name} to ${a.value}`;
     case "mark":
-      return `${who} ${a.on ? "marked" : "unmarked"} ${named(a.target)} ${a.name}`;
+      return `${who} ${a.on ? "marked" : "unmarked"} ${list(a.targets.map(named))} ${a.name}`;
     case "roll": {
       const roll = table.rolls.find((r) => r.at === entry.n);
       const result = roll ? `: ${roll.result.join(", ")}` : "";

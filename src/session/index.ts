@@ -5,7 +5,7 @@
 // "-N" (Record's reopen). The address to share is this page with ?game= and the link.
 import * as archive from "../archive/index.ts";
 import { connect, thisBrowser } from "../link/index.ts";
-import { newLog, reopen, tableAt, type Action, type CardId, type DeckId, type Fingerprint, type Log, type Size } from "../record/index.ts";
+import { newLog, reopen, tableAt, type Action, type CardId, type DeckId, type Fingerprint, type Log, type Size, type Target } from "../record/index.ts";
 import { Game, randomValue, type Me, type Snapshot } from "./game.ts";
 
 export { colours } from "./game.ts";
@@ -14,7 +14,7 @@ export type { Ask } from "./wire.ts";
 
 export interface Session {
   act(action: Action): Promise<void>;
-  roll(dice: number, sides: number, label?: string): Promise<number[]>;
+  roll(dice: number, sides: number, label?: string, about?: Target[]): Promise<number[]>;
   draw(deck: DeckId, cards: number, to: "hand" | "table"): Promise<CardId[]>;
   watch(listener: (now: Snapshot) => void): () => void;
   resync(): Promise<void>;

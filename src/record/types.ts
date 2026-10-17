@@ -210,6 +210,8 @@ export interface Roll {
   dice: number;
   sides: number;
   label?: string;
+  /** What the roll is about, such as the units shooting and being shot (ADR-033). */
+  about?: Target[];
   result: number[];
   /** The seal did not match the host's value. */
   tampered: boolean;
@@ -285,9 +287,10 @@ export type Kind =
   | { kind: "group"; group: GroupId; name: string; members: (UnitId | GroupId)[] }
   | { kind: "ungroup"; group: GroupId }
   | { kind: "phase"; phase: Phase }
-  | { kind: "counter"; target: Target; name: string; value: number | null }
-  | { kind: "mark"; target: Target; name: string; on: boolean }
-  | ({ kind: "roll"; dice: number; sides: number; label?: string } & Sealed)
+  /** The same counter on one or more targets at once (ADR-033). */
+  | { kind: "counter"; targets: Target[]; name: string; value: number | null }
+  | { kind: "mark"; targets: Target[]; name: string; on: boolean }
+  | ({ kind: "roll"; dice: number; sides: number; label?: string; about?: Target[] } & Sealed)
   | {
       kind: "add deck";
       deck: DeckId;

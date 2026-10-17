@@ -16,7 +16,7 @@ type Now = {
   connection: string;
   disagreement: boolean;
   badSignatures: number[];
-  table: { players: Record<string, { name: string }>; models: Record<string, { place: unknown; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean }[] };
+  table: { players: Record<string, { name: string }>; models: Record<string, { place: unknown; path: { x: number; y: number }[] }>; rolls: { result: number[]; tampered: boolean; about?: unknown }[] };
   log: { entries: unknown[] };
 };
 
@@ -99,6 +99,21 @@ test("a roll uses the sealed exchange: both browsers see the same signed result"
   for (const p of [ana, ben]) {
     await expect.poll(async () => (await now(p)).badSignatures).toEqual([]);
     expect((await now(p)).table.rolls.every((r) => !r.tampered)).toBe(true);
+  }
+});
+
+test("a roll names what it is about, signed with it, and both browsers see it", async ({ browser }) => {
+  const ana = await person(browser);
+  const ben = await person(browser);
+  const link = await ana.evaluate(() => (window as any).proof.open({ width: 60, depth: 44 }, { name: "Ana", colour: "#d1453b" }));
+  await act(ana, army);
+  await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
+  await expect.poll(async () => (await now(ben)).connection).toBe("playing");
+
+  await ben.evaluate(() => (window as any).proof.session.roll(5, 6, "Rifles shoot Scouts", [{ unit: "scouts" }]));
+  for (const p of [ana, ben]) {
+    await expect.poll(async () => (await now(p)).table.rolls.map((r) => r.about)).toEqual([[{ unit: "scouts" }]]);
+    await expect.poll(async () => (await now(p)).badSignatures).toEqual([]);
   }
 });
 
