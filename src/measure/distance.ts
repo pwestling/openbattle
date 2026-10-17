@@ -24,7 +24,7 @@ const length = (x: number, y: number) => Math.sqrt(x * x + y * y);
  * The cosine and sine of an angle in degrees, worked out with only adding and multiplying, which
  * give the same results in every browser, unlike Math.cos and Math.sin. Whole quarter turns are exact.
  */
-function turnOf(degrees: number): { cos: number; sin: number } {
+export function turnOf(degrees: number): { cos: number; sin: number } {
   let d = degrees % 360;
   if (d < 0) d += 360;
   let quarter = Math.floor(d / 90);
