@@ -26,6 +26,7 @@ import {
   type RollAction,
   type ShuffledDrawAction,
   type Table,
+  type Target,
 } from "../record/index.ts";
 import { isMessage, type Ask, type FromHost, type Message, type ToHost } from "./wire.ts";
 
@@ -248,8 +249,8 @@ export class Game {
     await this.request((id) => ({ t: "act", id, action }));
   }
 
-  async roll(dice: number, sides: number, label?: string): Promise<number[]> {
-    const ask: Ask = label === undefined ? { kind: "roll", dice, sides } : { kind: "roll", dice, sides, label };
+  async roll(dice: number, sides: number, label?: string, about?: Target[]): Promise<number[]> {
+    const ask: Ask = { kind: "roll", dice, sides, ...(label === undefined ? {} : { label }), ...(about === undefined ? {} : { about }) };
     const n = await this.exchange(ask);
     const roll = tableAt(this.log).rolls.find((r) => r.at === n);
     if (!roll) throw new Error("The roll is not in the log.");

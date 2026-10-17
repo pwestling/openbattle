@@ -145,7 +145,7 @@ function members(table: Table, group: string, members: unknown, extra: Map<strin
 }
 
 /** Each kind of thing a counter or mark can be on, and where the table keeps them. */
-const targets = {
+const kinds = {
   model: ["models", "model"],
   unit: ["units", "unit"],
   group: ["groups", "group"],
@@ -163,9 +163,17 @@ function target(table: Table, value: unknown) {
     if (id !== true) refuse("The game is named as { game: true }.");
     return;
   }
-  if (!Object.hasOwn(targets, kind)) refuse(`"${kind}" is not a model, unit, group, player, terrain piece, marker, item or the game.`);
-  const [where, word] = targets[kind as keyof typeof targets];
+  if (!Object.hasOwn(kinds, kind)) refuse(`"${kind}" is not a model, unit, group, player, terrain piece, marker, item or the game.`);
+  const [where, word] = kinds[kind as keyof typeof kinds];
   if (!isText(id) || !table[where][id]) refuse(`There is no ${word} "${String(id)}".`);
+}
+
+/** One or more targets, none named twice. */
+function targets(table: Table, value: unknown) {
+  const all = list<unknown>(value, "The targets");
+  if (all.length === 0) refuse("Name at least one target.");
+  all.forEach((t) => target(table, t));
+  distinct(all.map((t) => JSON.stringify(t)), "Target");
 }
 
 function stats(value: Stats, what: string) {
@@ -401,12 +409,12 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       text(action.phase.name, "The phase's name");
       return;
     case "counter":
-      target(table, action.target);
+      targets(table, action.targets);
       text(action.name, "The counter's name");
       if (action.value !== null) number(action.value, "The counter's value");
       return;
     case "mark":
-      target(table, action.target);
+      targets(table, action.targets);
       text(action.name, "The mark's name");
       if (typeof action.on !== "boolean") refuse("A mark must be turned on or off.");
       return;
@@ -414,6 +422,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       if (!isWhole(action.dice) || action.dice < 1 || action.dice > mostDice) refuse(`A roll is 1 to ${mostDice} dice.`);
       if (!Number.isSafeInteger(action.sides) || action.sides < 2) refuse("A die has a whole number of sides, at least two.");
       if (action.label !== undefined) text(action.label, "The roll's label");
+      if (action.about !== undefined) list<unknown>(action.about, "What the roll is about").forEach((t) => target(table, t));
       sealed(log, table, by, action, "A roll");
       return;
     case "add deck": {

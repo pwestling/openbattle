@@ -45,7 +45,7 @@ export function playerIdOf(publicKey: string): PlayerId | null {
 /**
  * The text the other player signs: a JSON object with its keys in alphabetical order, holding who
  * takes the action (so the host can't log it as its own), the link of the game it was signed in, the kind of action, what is rolled or drawn, the seal and their
- * value; a roll's label (if it has one) and where a draw goes, so the host can't change what the roll
+ * value; a roll's label and what it is about (if it has them) and where a draw goes, so the host can't change what the roll
  * was for or where the cards went. The signature fields are left out, and so is the host's value,
  * which isn't known when the other player signs.
  * {"by":"…","dice":2,"guestValue":"…","kind":"roll","label":"…","link":"…","seal":"…","sides":6} for a roll, and
@@ -55,7 +55,7 @@ export function guestStatement(action: (RollAction | ShuffledDrawAction) & { gue
   const link = action.link;
   const fields =
     action.kind === "roll"
-      ? { by, dice: action.dice, guestValue: action.guestValue, kind: "roll", label: action.label, link, seal: action.seal, sides: action.sides }
+      ? { about: action.about, by, dice: action.dice, guestValue: action.guestValue, kind: "roll", label: action.label, link, seal: action.seal, sides: action.sides }
       : { by, cards: action.cards, deck: action.deck, guestValue: action.guestValue, kind: "draw", link, seal: action.seal, to: action.to };
   return JSON.stringify(fields);
 }

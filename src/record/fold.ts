@@ -175,19 +175,21 @@ function apply(table: Table, { n, by, action }: Entry) {
     case "phase":
       table.phase = copy(action.phase);
       return;
-    case "counter": {
-      const counters = Object.assign(byId<number>(), countersOn(table, action.target));
-      if (action.value === null) delete counters[action.name];
-      else counters[action.name] = action.value;
-      keep(table.counters, action.target, Object.keys(counters).length ? counters : undefined, byId());
+    case "counter":
+      for (const target of action.targets) {
+        const counters = Object.assign(byId<number>(), countersOn(table, target));
+        if (action.value === null) delete counters[action.name];
+        else counters[action.name] = action.value;
+        keep(table.counters, target, Object.keys(counters).length ? counters : undefined, byId());
+      }
       return;
-    }
-    case "mark": {
-      const marks = (marksOn(table, action.target) ?? []).filter((m) => m !== action.name);
-      if (action.on) marks.push(action.name);
-      keep(table.marks, action.target, marks.length ? marks : undefined, []);
+    case "mark":
+      for (const target of action.targets) {
+        const marks = (marksOn(table, target) ?? []).filter((m) => m !== action.name);
+        if (action.on) marks.push(action.name);
+        keep(table.marks, target, marks.length ? marks : undefined, []);
+      }
       return;
-    }
     case "item": {
       const { id, name, carrier } = action.item;
       table.items[id] = { id, name, carrier };
@@ -219,6 +221,7 @@ function apply(table: Table, { n, by, action }: Entry) {
         dice: action.dice,
         sides: action.sides,
         ...(action.label === undefined ? {} : { label: action.label }),
+        ...(action.about === undefined ? {} : { about: copy(action.about) }),
         result: rollDice(action, action.dice, action.sides),
         tampered: !opens(action),
         alone: action.guestBy === null,

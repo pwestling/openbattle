@@ -128,13 +128,13 @@ test("every kind of action changes the table as the Record surface says", async 
     take({ kind: "group", group: "g2", name: "Outer", members: ["g1"] });
     take({ kind: "ungroup", group: "g1" });
     take({ kind: "phase", phase: { round: 2, turn: bo, name: "Shooting" } }, bo);
-    take({ kind: "counter", target: { model: "m1" }, name: "wounds", value: 3 });
-    take({ kind: "counter", target: { player: bo }, name: "points", value: 5 }, bo);
-    take({ kind: "counter", target: { game: true }, name: "round marker", value: 2 }, bo);
-    take({ kind: "counter", target: { player: bo }, name: "points", value: null }, bo);
-    take({ kind: "mark", target: { unit: "u1" }, name: "has moved", on: true });
-    take({ kind: "mark", target: { unit: "u1" }, name: "pinned", on: true }, bo);
-    take({ kind: "mark", target: { unit: "u1" }, name: "has moved", on: false });
+    take({ kind: "counter", targets: [{ model: "m1" }], name: "wounds", value: 3 });
+    take({ kind: "counter", targets: [{ player: bo }], name: "points", value: 5 }, bo);
+    take({ kind: "counter", targets: [{ game: true }], name: "round marker", value: 2 }, bo);
+    take({ kind: "counter", targets: [{ player: bo }], name: "points", value: null }, bo);
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "has moved", on: true });
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "pinned", on: true }, bo);
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "has moved", on: false });
     take({
       kind: "add deck", deck: "d1", name: "Missions", owner: null, order: "ordered", position: { x: 40, y: 2 },
       cards: [{ id: "c1", name: "Hold" }, { id: "c2", name: "Take", text: "Take the hill" }, { id: "c3", name: "Break", picture: "ef56" }, { id: "c4", name: "Scout" }],
@@ -195,11 +195,11 @@ test("check says in plain words why an action can't be taken, and append refuses
       fine: p({ kind: "set aside", models: ["m1"] }),
       missingModel: p({ kind: "set aside", models: ["nobody"] }),
       infinite: p({ kind: "move", moves: [{ model: "m1", position: { x: Infinity, y: 0 }, facing: 0, floor: null, path: [] }] }),
-      notANumber: p({ kind: "counter", target: { model: "m1" }, name: "wounds", value: NaN }),
-      bareTarget: p({ kind: "counter", target: "m1", name: "wounds", value: 1 }),
-      twoTargets: p({ kind: "counter", target: { model: "m1", unit: "u1" }, name: "wounds", value: 1 }),
-      noSuchTarget: p({ kind: "mark", target: { unit: "nobody" }, name: "pinned", on: true }),
-      gameNamedOddly: p({ kind: "counter", target: { game: "yes" }, name: "round", value: 1 }),
+      notANumber: p({ kind: "counter", targets: [{ model: "m1" }], name: "wounds", value: NaN }),
+      bareTarget: p({ kind: "counter", targets: ["m1"], name: "wounds", value: 1 }),
+      twoTargets: p({ kind: "counter", targets: [{ model: "m1", unit: "u1" }], name: "wounds", value: 1 }),
+      noSuchTarget: p({ kind: "mark", targets: [{ unit: "nobody" }], name: "pinned", on: true }),
+      gameNamedOddly: p({ kind: "counter", targets: [{ game: "yes" }], name: "round", value: 1 }),
       selfGroup: p({ kind: "group", group: "army-ann", name: "Loop", members: ["army-ann"] }),
       loop: (() => {
         const two = r.append(log, { kind: "group", group: "g1", name: "Inner", members: ["army-ann"] }, ann);
@@ -272,7 +272,7 @@ test("check says in plain words why an action can't be taken, and append refuses
 test("undo cancels the latest action, only for the player who took it, and looking back still shows it", async ({ page }) => {
   const seen = await inBrowser(page, (r, start) => {
     let log = start(r);
-    log = r.append(log, { kind: "counter", target: { game: true }, name: "score", value: 1 }, bo);
+    log = r.append(log, { kind: "counter", targets: [{ game: true }], name: "score", value: 1 }, bo);
     const boOnly = r.check(log, { kind: "undo" }, ann)?.problem;
     log = r.append(log, { kind: "undo" }, bo);
     const afterFirst = r.tableAt(log);
@@ -449,17 +449,17 @@ test("ids that every object inherits, such as __proto__ and toString, can't brea
   const seen = await inBrowser(page, (r, start) => {
     let log = start(r);
     const problems = [
-      r.check(log, { kind: "counter", target: { unit: "__proto__" }, name: "polluted", value: 1 }, ann)?.problem,
-      r.check(log, { kind: "mark", target: { model: "toString" }, name: "pinned", on: true }, ann)?.problem,
+      r.check(log, { kind: "counter", targets: [{ unit: "__proto__" }], name: "polluted", value: 1 }, ann)?.problem,
+      r.check(log, { kind: "mark", targets: [{ model: "toString" }], name: "pinned", on: true }, ann)?.problem,
       // Nor is a kind of thing every object inherits a kind of target.
-      r.check(log, { kind: "mark", target: JSON.parse('{"__proto__": "u1"}'), name: "pinned", on: true }, ann)?.problem,
-      r.check(log, { kind: "mark", target: { toString: "u1" }, name: "pinned", on: true } as unknown as Parameters<RecordModule["check"]>[1], ann)?.problem,
+      r.check(log, { kind: "mark", targets: [JSON.parse('{"__proto__": "u1"}')], name: "pinned", on: true }, ann)?.problem,
+      r.check(log, { kind: "mark", targets: [{ toString: "u1" }], name: "pinned", on: true } as unknown as Parameters<RecordModule["check"]>[1], ann)?.problem,
       r.check(log, { kind: "move card", card: "constructor", to: { in: "hand", player: ann } }, ann)?.problem,
       r.check(log, { kind: "set aside", models: ["hasOwnProperty"] }, ann)?.problem,
     ];
     // Such an id is just a name when a player chooses it for something new.
     log = r.append(log, { kind: "add to army", units: [{ id: "__proto__", name: "Odd name" }], models: [], groups: [] }, ann);
-    log = r.append(log, { kind: "counter", target: { unit: "__proto__" }, name: "polluted", value: 1 }, ann);
+    log = r.append(log, { kind: "counter", targets: [{ unit: "__proto__" }], name: "polluted", value: 1 }, ann);
     const table = r.tableAt(log);
     return {
       problems,

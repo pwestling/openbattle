@@ -23,10 +23,10 @@ export function Counters({ target }: { target: Target }) {
     const next = { ...latest.get() };
     if (value === null) delete next[name];
     else next[name] = value;
-    latest.send(next, act({ kind: "counter", target, name, value }));
+    latest.send(next, act({ kind: "counter", targets: [target], name, value }));
   };
   const step = (name: string, by: number) => set(name, (latest.get()[name] ?? 0) + by);
-  const mark = (name: string, on: boolean) => void act({ kind: "mark", target, name, on });
+  const mark = (name: string, on: boolean) => void act({ kind: "mark", targets: [target], name, on });
 
   return (
     <div className="counters">

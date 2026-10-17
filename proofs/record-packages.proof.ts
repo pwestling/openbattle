@@ -67,8 +67,8 @@ test("items can hold items, move between carriers and be removed with what they 
     const take = (action: Parameters<RecordModule["append"]>[1], by = ann) => (log = r.append(log, action, by));
     take({ kind: "item", item: { id: "h1", name: "Hardpoint", carrier: "m1" } });
     take({ kind: "item", item: { id: "w1", name: "Heavy Rifle", carrier: "h1" } });
-    take({ kind: "counter", target: { item: "w1" }, name: "Attacks", value: 2 });
-    take({ kind: "mark", target: { item: "h1" }, name: "Turret", on: true });
+    take({ kind: "counter", targets: [{ item: "w1" }], name: "Attacks", value: 2 });
+    take({ kind: "mark", targets: [{ item: "h1" }], name: "Turret", on: true });
     const nested = r.tableAt(log);
     const itself = r.check(log, { kind: "item", item: { id: "h1", name: "Hardpoint", carrier: "w1" } }, ann);
     const ownHolder = r.check(log, { kind: "item", item: { id: "h1", name: "Hardpoint", carrier: "h1" } }, ann);
@@ -111,7 +111,7 @@ test("markers belong to nobody: anyone places, moves and removes them, and they 
     const take = (action: Parameters<RecordModule["append"]>[1], by = ann) => (log = r.append(log, action, by));
     const objective = { id: "o1", name: "Objective 1", colour: "#eee", shape: "disc" as const, width: 1.25, depth: 1.25, position: { x: 36, y: 24 }, facing: 0 };
     take({ kind: "place marker", marker: objective });
-    take({ kind: "mark", target: { marker: "o1" }, name: "Held by Ann", on: true }, bo);
+    take({ kind: "mark", targets: [{ marker: "o1" }], name: "Held by Ann", on: true }, bo);
     take({ kind: "place marker", marker: { ...objective, position: { x: 30, y: 20 } } }, bo);
     const moved = r.tableAt(log);
     const egg = r.check(log, { kind: "place marker", marker: { ...objective, id: "o2", width: 2 } }, ann);
@@ -132,7 +132,7 @@ test("terrain carries counters and marks, which go with it when it is removed", 
     let log = start(r);
     const take = (action: Parameters<RecordModule["append"]>[1], by = ann) => (log = r.append(log, action, by));
     take({ kind: "place terrain", terrain: { id: "t1", name: "Ruin", shape: { kind: "box", width: 6, depth: 6, height: 3 }, position: { x: 20, y: 15 }, facing: 0, floors: [] } });
-    take({ kind: "mark", target: { terrain: "t1" }, name: "Cover", on: true }, bo);
+    take({ kind: "mark", targets: [{ terrain: "t1" }], name: "Cover", on: true }, bo);
     const marked = r.tableAt(log).marks.terrain.t1;
     take({ kind: "remove terrain", terrain: "t1" });
     return { marked, after: r.tableAt(log).marks.terrain.t1 };
@@ -168,7 +168,7 @@ test("priority names who the game waits on, any player can hand it over, and it 
     take({ kind: "priority", players: [bo], note: "Roll 7 blocks, 4+" });
     const handed = r.tableAt(log).priority;
     // Ann acts without priority, and nothing refuses it.
-    take({ kind: "counter", target: { unit: "u1" }, name: "Wounds", value: 1 });
+    take({ kind: "counter", targets: [{ unit: "u1" }], name: "Wounds", value: 1 });
     take({ kind: "priority", players: [] }, bo);
     const nobody = r.tableAt(log).priority;
     const stranger = r.check(log, { kind: "priority", players: ["nobody-here"] }, ann);
@@ -187,9 +187,9 @@ test("the game names its rules package by an action, and any action can carry a 
     const none = r.tableAt(log).rules;
     take({ kind: "rules", name: "Grimdark Future" }, bo);
     const on = r.tableAt(log).rules;
-    take({ kind: "mark", target: { unit: "u1" }, name: "Shaken", on: true, note: "Failed morale: rolled 2, needed 4+" });
+    take({ kind: "mark", targets: [{ unit: "u1" }], name: "Shaken", on: true, note: "Failed morale: rolled 2, needed 4+" });
     const note = log.entries.at(-1)?.action.note;
-    const badNote = r.check(log, { kind: "mark", target: { unit: "u1" }, name: "Shaken", on: false, note: 5 as unknown as string }, ann);
+    const badNote = r.check(log, { kind: "mark", targets: [{ unit: "u1" }], name: "Shaken", on: false, note: 5 as unknown as string }, ann);
     const rollNote = r.check(log, { kind: "roll", dice: 1, sides: 6, link, seal: "s", hostValue: "h", guestValue: "g", guestBy: null, note: "why" }, ann);
     take({ kind: "rules", name: null });
     return { none, on, note, badNote, rollNote, off: r.tableAt(log).rules };
@@ -200,4 +200,52 @@ test("the game names its rules package by an action, and any action can carry a 
   expect(seen.badNote?.problem).toMatch(/note must be text/);
   expect(seen.rollNote?.problem).toMatch(/label is its note/);
   expect(seen.off).toBeNull();
+});
+
+// ADR-033: one counter or mark action covers several things, and a roll names what it is about.
+test("one mark or counter action can cover several things, and undo takes it all back at once", async ({ page }) => {
+  const seen = await inBrowser(page, (r, start) => {
+    let log = start(r);
+    const take = (action: Parameters<RecordModule["append"]>[1], by = ann) => (log = r.append(log, action, by));
+    take({ kind: "mark", targets: [{ unit: "u1" }, { model: "m1" }, { item: "w1" }], name: "Activated", on: true });
+    const marked = r.tableAt(log).marks;
+    take({ kind: "counter", targets: [{ model: "m1" }, { model: "m2" }, { game: true }], name: "Wounds", value: 2 });
+    const counted = r.tableAt(log).counters;
+    take({ kind: "mark", targets: [{ unit: "u1" }, { model: "m1" }, { item: "w1" }], name: "Activated", on: false });
+    const cleared = r.tableAt(log).marks;
+    take({ kind: "undo" });
+    const undone = r.tableAt(log).marks;
+    const empty = r.check(log, { kind: "mark", targets: [], name: "Activated", on: true }, ann);
+    const twice = r.check(log, { kind: "mark", targets: [{ unit: "u1" }, { unit: "u1" }], name: "Activated", on: true }, ann);
+    const oneBad = r.check(log, { kind: "counter", targets: [{ unit: "u1" }, { unit: "nobody" }], name: "Wounds", value: 1 }, ann);
+    return { marked, counted, cleared, undone, empty, twice, oneBad };
+  });
+  expect(seen.marked.unit.u1).toEqual(["Fearless", "Activated"]);
+  expect(seen.marked.model.m1).toEqual(["Activated"]);
+  expect(seen.marked.item.w1).toEqual(["Activated"]);
+  expect(seen.counted.model.m1).toEqual({ Tough: 1, Wounds: 2 });
+  expect(seen.counted.model.m2).toEqual({ Wounds: 2 });
+  expect(seen.counted.game).toEqual({ Wounds: 2 });
+  expect(seen.cleared.unit.u1).toEqual(["Fearless"]);
+  expect(seen.cleared.model.m1).toBeUndefined();
+  expect(seen.undone.unit.u1).toEqual(["Fearless", "Activated"]);
+  expect(seen.undone.model.m1).toEqual(["Activated"]);
+  expect(seen.empty?.problem).toBe("Name at least one target.");
+  expect(seen.twice?.problem).toMatch(/named twice/);
+  expect(seen.oneBad?.problem).toBe('There is no unit "nobody".');
+});
+
+test("a roll can name what it is about, kept on the table's roll, and only things that exist", async ({ page }) => {
+  const seen = await inBrowser(page, (r, start) => {
+    let log = start(r);
+    const roll = { kind: "roll" as const, dice: 2, sides: 6, label: "Rifles shoot", link, seal: "s", hostValue: "h", guestValue: "g", guestBy: null };
+    log = r.append(log, { ...roll, about: [{ unit: "u1" }, { model: "m2" }] }, ann);
+    const kept = r.tableAt(log).rolls.at(-1)?.about;
+    const unknown = r.check(log, { ...roll, seal: "s2", about: [{ unit: "ghosts" }] }, ann);
+    const notList = r.check(log, { ...roll, seal: "s3", about: { unit: "u1" } as unknown as [] }, ann);
+    return { kept, unknown, notList };
+  });
+  expect(seen.kept).toEqual([{ unit: "u1" }, { model: "m2" }]);
+  expect(seen.unknown?.problem).toBe('There is no unit "ghosts".');
+  expect(seen.notList?.problem).toMatch(/must be a list/);
 });
