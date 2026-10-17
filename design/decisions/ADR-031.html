@@ -15,7 +15,7 @@
     <h1>ADR-031: Players see each other's moves as they happen, outside the log</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Porter chose "Live view" on 2026-10-17 over making target picks into actions or keeping them private.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter chose "Live view" on 2026-10-17 over making target picks into actions or keeping them private. Accepted by Porter on 2026-10-17.</dd>
     <dt>Context</dt><dd>Only actions reach the other browsers. A model being carried jumps when it is let go; the ruler and sight checks are private; and the Grimdark Future package's target picks would stay on one screen until the roll. Across a real table the opponent watches all of this happen.</dd>
     <dt>Decision</dt><dd>A new concept, <a href="../concepts/live-view.html">live view</a>. Each player's browser sends where its pointer is on the table, as Tabletop Simulator shows other players' pointers, and what it is in the middle of to the host, which passes it to everyone, beside the actions but never into the log. Each browser draws the others' live views faintly in their colour. It is sent only when it changes, and at most about ten times a second, which keeps the relay's traffic modest (<a href="ADR-020.html">ADR-020</a>).</dd>
     <dt>Because</dt><dd>It is the feel of a real table, and it covers moving, measuring, sight and the package's choices with one idea. Keeping it out of the log keeps the log to things that changed the game, and since nothing depends on a live view, a dishonest one does no harm.</dd>

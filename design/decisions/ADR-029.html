@@ -15,7 +15,7 @@
     <h1>ADR-029: The first rules package is Grimdark Future, and it suggests rather than acts</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Porter asked on 2026-10-17 to start a rules package implementing OnePageRules. Drafted the same day from the Grimdark Future game flow. Porter, 2026-10-17: packages will want to change the look and feel in places not yet known; deferred.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter asked on 2026-10-17 to start a rules package implementing OnePageRules. Drafted the same day from the Grimdark Future game flow. Porter, 2026-10-17: packages will want to change the look and feel in places not yet known; deferred. Accepted by Porter on 2026-10-17.</dd>
     <dt>Context</dt><dd><a href="ADR-001.html">ADR-001</a> left rules packages for later, and the engine now has what one needs: units, phases, <a href="../concepts/priority.html">priority</a>, counters and marks, and <a href="../concepts/item.html">items</a> for weapons (<a href="ADR-025.html">ADR-025</a> to <a href="ADR-027.html">ADR-027</a>), and line of sight (<a href="ADR-028.html">ADR-028</a>). Walking a Grimdark Future game showed where the chores are: counting attacks, working out the number to hit and block after AP and cover, rolling, asking the other player to block and remove models, morale, and scoring objectives. The first attempt collapsed under a general package runtime with sandboxes, hooks and replayed scripts.</dd>
     <dt>Decision</dt><dd><ul>
       <li>The first version ships one <a href="../concepts/rules-package.html">rules package</a>, for Grimdark Future, as part of the app's own code. There is no way to load a package from elsewhere.</li>

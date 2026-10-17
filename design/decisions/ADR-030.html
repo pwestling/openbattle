@@ -15,7 +15,7 @@
     <h1>ADR-030: The package ships mechanics and names; players bring their lists</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Drafted on 2026-10-17. The default the coordinator picked where this forks; Porter may change it.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Drafted on 2026-10-17. The default the coordinator picked where this forks; Porter may change it. Accepted by Porter on 2026-10-17.</dd>
     <dt>Context</dt><dd>OnePageRules' rules PDF says "All Rights Reserved", and their site's terms forbid sharing or republishing their files. No written permission for software was found. <a href="ADR-014.html">ADR-014</a> lets OnePageRules names ship. A package needs each unit's Quality, Defense, special rules and weapon profiles, which only the army books and Army Forge hold.</dd>
     <dt>Decision</dt><dd>The package's code holds the game's mechanics (how a hit, a block, AP, cover, Tough or Blast works) and the names of the core rules and special rules, and nothing else of OnePageRules'. No rules text and no army data go in the repository or the app. Each player brings their own army as the text list Army Forge exports, pasted or loaded from a file, and the package reads its stats into counters, marks and items on their units, models and weapons. A list typed by hand in the same form works the same way.</dd>
     <dt>Because</dt><dd>Mechanics written as code and names are what ADR-014 already allows; rules text and stat lines are the publisher's content, which their terms keep from being republished. Army Forge is where Grimdark Future players already build lists, so the stats arrive with no retyping, and the app already reads its unit lines.</dd>
