@@ -3,7 +3,7 @@
 // a terrain piece's mesh or simple solid. Bases are not bodies. Only adding, multiplying, dividing and
 // square roots, which give the same results in every browser; turns use turnOf, not Math.cos.
 import { turnOf } from "./distance.ts";
-import type { Mesh, Point, Sight, SightTarget, TableShape } from "./index.ts";
+import type { Mesh, Point, Sight, SightTarget, Standing, TableShape } from "./index.ts";
 
 const mmPerInch = 25.4;
 /** How thick a base is, in inches: a model's body stands on top of it, as the screen draws it. */
@@ -331,20 +331,21 @@ function blocks(p: Placed, a: Vec, b: Vec, slack = ends): boolean {
 function modelOf(table: TableShape, id: string): TableShape["models"][string] {
   const model = own(table.models, id);
   if (!model) throw new Error(`There is no model "${id}".`);
-  if (model.aside) throw new Error(`Model "${id}" is not on the table.`);
+  if (model.place.in !== "table") throw new Error(`Model "${id}" is not on the table.`);
   return model;
 }
 
-function floorHeight(table: TableShape, model: TableShape["models"][string]): number {
-  const f = model.floor;
+function floorHeight(table: TableShape, at: Standing): number {
+  const f = at.floor;
   return f ? (own(table.terrain, f.terrain)?.floors[f.floor]?.height ?? 0) : 0;
 }
 
 function placeModel(table: TableShape, bodies: Record<string, Mesh>, id: string): Placed {
   const model = table.models[id]!;
+  const at = model.place as Standing;
   const mesh = model.mesh ? own(bodies, id) : undefined;
   if (model.mesh && !mesh) throw new Error(`The mesh of model "${id}" has not been read.`);
-  return place(id, modelShape(model, mesh), model.position, model.facing, floorHeight(table, model) + baseThickness);
+  return place(id, modelShape(model, mesh), at.position, at.facing, floorHeight(table, at) + baseThickness);
 }
 
 function placeTerrain(table: TableShape, bodies: Record<string, Mesh>, id: string): Placed {
@@ -369,7 +370,7 @@ export function sightOf(table: TableShape, bodies: Record<string, Mesh>, from: {
     if (!skip.has(id)) blockers.push(p);
   }
   for (const id of Object.keys(table.models).sort()) {
-    if (table.models[id]!.aside || id === from.model || ("model" in to && id === to.model)) continue;
+    if (table.models[id]!.place.in !== "table" || id === from.model || ("model" in to && id === to.model)) continue;
     const p = placeModel(table, bodies, id);
     if (!skip.has(id)) blockers.push(p);
   }

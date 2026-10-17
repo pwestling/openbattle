@@ -2,7 +2,7 @@
 // contains itself, and the player may take it. Game rules are never checked.
 import { latestStanding } from "./fold.ts";
 import { playerIdOf } from "./keys.ts";
-import type { Action, Base, CardPlace, FloorRef, Log, PlayerId, Point, Sealed, Shape, Table, Terrain } from "./types.ts";
+import type { Action, Base, CardPlace, FloorRef, Item, Log, Marker, PlayerId, Point, Sealed, Shape, Stats, Table, Terrain } from "./types.ts";
 
 /** Dice per roll: more would freeze every browser in the game (ADR-020). */
 const mostDice = 1024;
@@ -55,7 +55,6 @@ function distinct(ids: string[], what: string) {
 
 /** What an id already names in the game, if anything. Every id is unique within the game. */
 function named(table: Table, id: string): string | null {
-  if (id === "game") return "the game";
   if (table.players[id]) return "a player";
   if (table.terrain[id]) return "a terrain piece";
   if (table.units[id]) return "a unit";
@@ -63,6 +62,8 @@ function named(table: Table, id: string): string | null {
   if (table.groups[id]) return "a group";
   if (table.decks[id]) return "a deck";
   if (table.cards[id]) return "a card";
+  if (table.items[id]) return "an item";
+  if (table.markers[id]) return "a marker";
   return null;
 }
 
@@ -79,7 +80,7 @@ function player(table: Table, id: unknown, what: string) {
 function onTable(table: Table, id: unknown) {
   const model = isText(id) ? table.models[id] : undefined;
   if (!model) return refuse(`There is no model "${String(id)}".`);
-  if (model.aside) refuse(`Model "${id}" is set aside; return it to the table first.`);
+  if (model.place.in !== "table") refuse(`Model "${id}" is set aside; return it to the table first.`);
 }
 
 function floor(table: Table, ref: FloorRef | null, what: string) {
@@ -143,9 +144,66 @@ function members(table: Table, group: string, members: unknown, extra: Map<strin
   visit(group);
 }
 
-function target(table: Table, id: unknown) {
-  if (!isText(id) || !(id === "game" || table.models[id] || table.units[id] || table.groups[id] || table.players[id]))
-    refuse(`"${String(id)}" is not a model, unit, group, player or the game.`);
+/** Each kind of thing a counter or mark can be on, and where the table keeps them. */
+const targets = {
+  model: ["models", "model"],
+  unit: ["units", "unit"],
+  group: ["groups", "group"],
+  player: ["players", "player"],
+  terrain: ["terrain", "terrain piece"],
+  marker: ["markers", "marker"],
+  item: ["items", "item"],
+} as const;
+
+function target(table: Table, value: unknown) {
+  const entries = typeof value === "object" && value !== null && !Array.isArray(value) ? Object.entries(value) : [];
+  if (entries.length !== 1) refuse("A target is one model, unit, group, player, terrain piece, marker or item, or the game.");
+  const [kind, id] = entries[0]!;
+  if (kind === "game") {
+    if (id !== true) refuse("The game is named as { game: true }.");
+    return;
+  }
+  if (!Object.hasOwn(targets, kind)) refuse(`"${kind}" is not a model, unit, group, player, terrain piece, marker, item or the game.`);
+  const [where, word] = targets[kind as keyof typeof targets];
+  if (!isText(id) || !table[where][id]) refuse(`There is no ${word} "${String(id)}".`);
+}
+
+function stats(value: Stats, what: string) {
+  if (value.counters !== undefined) {
+    if (typeof value.counters !== "object" || value.counters === null || Array.isArray(value.counters)) refuse(`${what}'s counters must be named numbers.`);
+    for (const [name, n] of Object.entries(value.counters)) number(n, `${what}'s counter "${name}"`);
+  }
+  if (value.marks !== undefined) list<unknown>(value.marks, `${what}'s marks`).forEach((m) => text(m, `${what}'s mark`));
+}
+
+/**
+ * Checks an item may be carried by carrier: a model, or an item that is not the item itself nor held by it.
+ * extra is items being added in the same action, by id to their carrier.
+ */
+function carrier(table: Table, item: string, carrier: unknown, extra: Map<string, string> = new Map()) {
+  const carrierOf = (id: string): string | undefined => (id === item ? (carrier as string) : extra.get(id) ?? table.items[id]?.carrier);
+  if (!isText(carrier) || !(table.models[carrier] || extra.has(carrier) || table.items[carrier]))
+    refuse(`Item "${item}" must be carried by a model or held by an item, not "${String(carrier)}".`);
+  const seen = new Set<string>();
+  for (let at: string | undefined = carrier as string; at !== undefined && !table.models[at]; at = carrierOf(at)) {
+    if (at === item) refuse(`Item "${item}" would hold itself.`);
+    if (seen.has(at)) break;
+    seen.add(at);
+  }
+}
+
+function marker(table: Table, value: Marker) {
+  if (typeof value !== "object" || value === null) refuse("The marker is missing.");
+  text(value.id, "The marker's id");
+  if (!table.markers[value.id]) fresh(table, value.id, "marker");
+  text(value.name, "The marker's name");
+  text(value.colour, "The marker's colour");
+  if (value.shape !== "disc" && value.shape !== "rect") refuse("A marker is a disc or a rectangle.");
+  positive(value.width, "The marker's width");
+  positive(value.depth, "The marker's depth");
+  if (value.shape === "disc" && value.width !== value.depth) refuse("A disc's width and depth must be equal.");
+  point(value.position, "The marker's position");
+  number(value.facing, "The marker's facing");
 }
 
 function deck(table: Table, id: unknown) {
@@ -207,6 +265,10 @@ export function problemWith(log: Log, table: Table, action: Action, by: PlayerId
       if (table.players[by]) refuse("This player has already joined.");
       fresh(table, by, "player");
     } else player(table, by, "Player");
+    if (action.note !== undefined) {
+      text(action.note, "The note");
+      if (action.kind === "roll") refuse("A roll's label is its note.");
+    }
     takeable(log, table, action, by);
     return null;
   } catch (error) {
@@ -244,13 +306,15 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       return;
     }
     case "add to army": {
-      const units = list<{ id: string; name: string }>(action.units, "The units");
+      const units = list<(typeof action.units)[number]>(action.units, "The units");
       const models = list<(typeof action.models)[number]>(action.models, "The models");
       const groups = list<(typeof action.groups)[number]>(action.groups, "The groups");
-      distinct([...units.map((u) => u.id), ...models.map((m) => m.id), ...groups.map((g) => g.id)], "The id");
+      const items = action.items === undefined ? [] : list<(NonNullable<typeof action.items>)[number]>(action.items, "The items");
+      distinct([...units.map((u) => u.id), ...models.map((m) => m.id), ...groups.map((g) => g.id), ...items.map((i) => i.id)], "The id");
       for (const unit of units) {
         fresh(table, unit.id, "unit");
         text(unit.name, "A unit's name");
+        stats(unit, `Unit "${unit.id}"`);
       }
       const newUnits = new Set(units.map((u) => u.id));
       for (const model of models) {
@@ -267,6 +331,18 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
         point(model.position, `Model "${model.id}"'s position`);
         number(model.facing, `Model "${model.id}"'s facing`);
         floor(table, model.floor, `Model "${model.id}"`);
+        stats(model, `Model "${model.id}"`);
+      }
+      // New items may be carried by new models, by models of this player's army, or by other new items.
+      const newModels = new Set(models.map((m) => m.id));
+      const newItems = new Map(items.map((i) => [i.id, i.carrier]));
+      for (const item of items) {
+        fresh(table, item.id, "item");
+        text(item.name, "An item's name");
+        const on = table.models[item.carrier];
+        if (on && table.units[on.unit]!.owner !== by) refuse(`Model "${item.carrier}" is in another player's army.`);
+        if (!newModels.has(item.carrier)) carrier(table, item.id, item.carrier, newItems);
+        stats(item, `Item "${item.id}"`);
       }
       const extra = new Map<string, string[] | null>([...newUnits].map((id) => [id, null]));
       for (const group of groups) {
@@ -293,6 +369,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       const ids = list<string>(action.models, "The models");
       distinct(ids, "Model");
       for (const id of ids) onTable(table, id);
+      if (action.to !== undefined && action.to !== "removed" && action.to !== "reserve") refuse("Models are set aside as removed or into reserve.");
       return;
     }
     case "return": {
@@ -301,7 +378,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       for (const back of backs) {
         const model = isText(back.model) ? table.models[back.model] : undefined;
         if (!model) refuse(`There is no model "${String(back.model)}".`);
-        if (!model!.aside) refuse(`Model "${back.model}" is already on the table.`);
+        if (model!.place.in === "table") refuse(`Model "${back.model}" is already on the table.`);
         point(back.position, `Model "${back.model}"'s position`);
         number(back.facing, `Model "${back.model}"'s facing`);
         floor(table, back.floor, `Model "${back.model}"`);
@@ -386,6 +463,34 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
       }
       return;
     }
+    case "item": {
+      const item = action.item as Item;
+      if (typeof item !== "object" || item === null) refuse("The item is missing.");
+      text(item.id, "The item's id");
+      if (!table.items[item.id]) fresh(table, item.id, "item");
+      text(item.name, "The item's name");
+      carrier(table, item.id, item.carrier);
+      return;
+    }
+    case "remove item":
+      if (!isText(action.item) || !table.items[action.item]) refuse(`There is no item "${String(action.item)}".`);
+      return;
+    case "place marker":
+      marker(table, action.marker);
+      return;
+    case "remove marker":
+      if (!isText(action.marker) || !table.markers[action.marker]) refuse(`There is no marker "${String(action.marker)}".`);
+      return;
+    case "priority": {
+      const ids = list<string>(action.players, "The players with priority");
+      distinct(ids, "Player");
+      for (const id of ids) player(table, id, "Player");
+      if (action.note !== undefined) text(action.note, "Priority's note");
+      return;
+    }
+    case "rules":
+      if (action.name !== null) text(action.name, "The rules package's name");
+      return;
     case "undo": {
       const latest = latestStanding(log.entries);
       if (!latest) refuse("There is nothing to undo.");

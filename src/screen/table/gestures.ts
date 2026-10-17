@@ -19,7 +19,7 @@ import { distance, sight, type Mesh, type SightTarget, type Spot } from "../../m
 import { Guides, type Guide } from "./guides.ts";
 import type { Cards } from "./cards.ts";
 import { meshNow, meshOf } from "./meshes.ts";
-import { floorHeight, Pieces, type Place, type Thing } from "./pieces.ts";
+import { floorHeight, Pieces, placed, type Place, type Thing } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 
 /** What the table needs from the game around it. */
@@ -70,6 +70,9 @@ interface Ruler {
   to: Spot;
   toPoint: Spot3;
 }
+
+/** Where a model stands, or null when it is set aside or there is no such model. */
+const stood = (table: Table, id: string): Place | null => (table.models[id] ? placed(table.models[id]) : null);
 
 const sameFloor = (a: FloorRef | null, b: FloorRef | null) => a === b || (!!a && !!b && a.terrain === b.terrain && a.floor === b.floor);
 
@@ -181,9 +184,9 @@ export class Gestures {
     this.me = me;
     this.readOnly = readOnly;
     for (const id of this.selected)
-      if (table.terrain[id]?.locked || (!table.terrain[id] && (!table.models[id] || table.models[id].aside))) this.selected.delete(id);
+      if (table.terrain[id]?.locked || (!table.terrain[id] && !stood(table, id))) this.selected.delete(id);
     // Read-only now, or something carried was taken off the table or locked by someone else: put it all back.
-    const gone = (id: string) => (!(table.models[id] && !table.models[id].aside) && !table.terrain[id]) || table.terrain[id]?.locked;
+    const gone = (id: string) => (!stood(table, id) && !table.terrain[id]) || table.terrain[id]?.locked;
     if (this.carry && (readOnly || this.carry.ids.some(gone))) this.cancelCarry();
     // A piece locked while pressed on, before it was lifted, is no longer there to lift or select.
     const pressed = this.press?.thing;
@@ -303,8 +306,8 @@ export class Gestures {
 
   /** A spot for the ruler: the model under the pointer, or the surface there. */
   private spotAt(e: { clientX: number; clientY: number }, model: string | null): { spot: Spot; point: Spot3 } | null {
-    const m = model ? this.table?.models[model] : undefined;
-    if (m) return { spot: { model: m.id }, point: { ...m.position, h: floorHeight(this.table!, m.floor) } };
+    const m = model && this.table ? stood(this.table, model) : null;
+    if (m) return { spot: { model: model! }, point: { ...m.position, h: floorHeight(this.table!, m.floor) } };
     const s = this.surfaceAt(e);
     return s ? { spot: s.point, point: { ...s.point, h: s.h } } : null;
   }
@@ -391,7 +394,7 @@ export class Gestures {
       const unit = this.table.models[model]?.unit;
       this.selected = new Set(
         Object.values(this.table.models)
-          .filter((m) => m.unit === unit && !m.aside)
+          .filter((m) => m.unit === unit && placed(m))
           .map((m) => m.id),
       );
     } else this.selected = new Set([model]);
@@ -431,8 +434,9 @@ export class Gestures {
     const [y0, y1] = [Math.min(press.y, e.clientY), Math.max(press.y, e.clientY)];
     this.selected = new Set();
     for (const m of Object.values(this.table.models)) {
-      if (m.aside) continue;
-      const v = new Vector3(m.position.x, floorHeight(this.table, m.floor), -m.position.y).project(this.view.camera.camera);
+      const at = placed(m);
+      if (!at) continue;
+      const v = new Vector3(at.position.x, floorHeight(this.table, at.floor), -at.position.y).project(this.view.camera.camera);
       if (v.z > 1) continue; // Behind the camera.
       const sx = rect.left + ((v.x + 1) / 2) * rect.width;
       const sy = rect.top + ((1 - v.y) / 2) * rect.height;
@@ -451,11 +455,11 @@ export class Gestures {
     const surface = piece ? ground && { point: ground, floor: null, h: 0 } : this.surfaceAt(at);
     if (!surface) return;
     const grab = surface.point;
-    const ids = piece ? [piece.id] : [...this.selected].filter((id) => table.models[id] && !table.models[id].aside);
+    const ids = piece ? [piece.id] : [...this.selected].filter((id) => stood(table, id));
     const starts = new Map<string, Place>();
     const offsets = new Map<string, Point>();
     for (const id of ids) {
-      const m = table.models[id] ?? { ...table.terrain[id]!, floor: null };
+      const m = stood(table, id) ?? { ...table.terrain[id]!, floor: null };
       starts.set(id, { position: m.position, facing: m.facing, floor: m.floor });
       offsets.set(id, { x: m.position.x - grab.x, y: m.position.y - grab.y });
     }
@@ -700,7 +704,7 @@ export class Gestures {
     const bodies: Record<string, Mesh> = {};
     const missing: string[] = [];
     const pieces = [
-      ...Object.values(table.models).filter((m) => !m.aside).map((m) => ({ id: m.id, name: m.name, mesh: m.mesh })),
+      ...Object.values(table.models).filter((m) => placed(m)).map((m) => ({ id: m.id, name: m.name, mesh: m.mesh })),
       ...Object.values(table.terrain).map((t) => ({ id: t.id, name: t.name, mesh: t.shape.kind === "mesh" ? t.shape.mesh : undefined })),
     ];
     for (const p of pieces) {
@@ -743,16 +747,17 @@ export class Gestures {
     let to: SightTarget;
     let end: Spot3;
     const aimed = thing?.kind === "model" ? table.models[thing.id] : undefined;
-    if (aimed) {
+    const aimedAt = aimed && placed(aimed);
+    if (aimed && aimedAt) {
       to = { model: aimed.id };
-      end = { ...aimed.position, h: floorHeight(table, aimed.floor) + 0.12 + aimed.height / 2 };
+      end = { ...aimedAt.position, h: floorHeight(table, aimedAt.floor) + 0.12 + aimed.height / 2 };
     } else {
       const s = this.spotOnTerrain(this.hover) ?? this.surfaceAt(this.hover);
       if (!s) return [];
       to = { x: s.point.x, y: s.point.y, z: s.h };
       end = { ...s.point, h: s.h };
     }
-    const lookers = [...this.selected].filter((id) => table.models[id] && !table.models[id].aside && id !== aimed?.id);
+    const lookers = [...this.selected].filter((id) => stood(table, id) && id !== aimed?.id);
     if (lookers.length === 0) return [];
     const { bodies, missing } = this.bodies(table);
     if (missing.length) return [{ points: [end], text: `Waiting for ${missing.join(", ")}` }];
@@ -762,6 +767,7 @@ export class Gestures {
     let share = 0;
     for (const id of lookers.sort()) {
       const m = table.models[id]!;
+      const at = stood(table, id)!;
       let r;
       try {
         r = sight(table, bodies, { model: id }, to, ignore);
@@ -773,7 +779,7 @@ export class Gestures {
         seeing++;
         share = r.seen;
         guides.push({ points: r.line.map((p) => ({ x: p.x, y: p.y, h: p.z })) });
-      } else guides.push({ points: [{ ...m.position, h: floorHeight(table, m.floor) + 0.12 + m.height / 2 }, end], blocked: true });
+      } else guides.push({ points: [{ ...at.position, h: floorHeight(table, at.floor) + 0.12 + m.height / 2 }, end], blocked: true });
     }
     const text = lookers.length === 1 ? (seeing ? `Sees ${Math.round(share * 100)}%` : "Can't see") : `${seeing} of ${lookers.length} see`;
     guides.push({ points: [end], text });
