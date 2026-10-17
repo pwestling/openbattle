@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-033: Undo names the action it cancels — Decision</title>
+<meta name="pdd-level" content="3">
+<meta name="pdd-derived" content="2026-10-17T16:21Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="3" id="decisions/ADR-033">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 3 · Decision</nav>
+    <h1>ADR-033: Undo names the action it cancels</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> From finding 4 of the decomplecting review, 2026-10-17. Porter asked for the Record surface changes to be drafted.</dd>
+    <dt>Context</dt><dd>An undo carries nothing: it cancels whatever is the latest uncancelled <a href="../concepts/action.html">action</a> when the host adds it to the <a href="../concepts/log.html">log</a>. Its meaning comes from where it lands, not from what the player saw. A player who moves twice quickly and presses Undo while the second move is still on its way cancels the second move, not the one on their screen. Reading the log, an undo also doesn't say which action it cancelled.</dd>
+    <dt>Decision</dt><dd>An undo names the log number of the action it cancels. It is refused unless that action is still the latest uncancelled one and was taken by the same player, which are the rules undo already has. The screen sends the number of the action it shows as undoable.</dd>
+    <dt>Because</dt><dd>What the player meant is written in the action, so a stale undo is refused instead of cancelling something else, and the log reads on its own. Who may undo and what can be undone stay exactly as they are.</dd>
+    <dt>Rejected</dt><dd>Letting an undo cancel any earlier action of the player's, not just the latest: it changes the rule that undo only takes back the latest action, and an older action may have been built on. Keeping the undo empty and having the screen check before sending: the race is between browsers, so only the host's check can see it.</dd>
+    <dt>Affects</dt><dd><a href="../surfaces/record.html">Record surface</a> (the undo action and check), <a href="../surfaces/screen.html">Screen surface</a> (no visible change)</dd>
+  </dl>
+</article>
+</body>
+</html>
