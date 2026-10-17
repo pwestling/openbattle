@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-031: Players see each other's moves as they happen, outside the log — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T02:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-031">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-031: Players see each other's moves as they happen, outside the log</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Porter chose "Live view" on 2026-10-17 over making target picks into actions or keeping them private.</dd>
+    <dt>Context</dt><dd>Only actions reach the other browsers. A model being carried jumps when it is let go; the ruler and sight checks are private; and the Grimdark Future package's target picks would stay on one screen until the roll. Across a real table the opponent watches all of this happen.</dd>
+    <dt>Decision</dt><dd>A new concept, <a href="../concepts/live-view.html">live view</a>. Each player's browser sends what it is in the middle of to the host, which passes it to everyone, beside the actions but never into the log. Each browser draws the others' live views faintly in their colour. It is sent only when it changes, and at most about ten times a second, which keeps the relay's traffic modest (<a href="ADR-020.html">ADR-020</a>).</dd>
+    <dt>Because</dt><dd>It is the feel of a real table, and it covers moving, measuring, sight and the package's choices with one idea. Keeping it out of the log keeps the log to things that changed the game, and since nothing depends on a live view, a dishonest one does no harm.</dd>
+    <dt>Rejected</dt><dd>Making target picks into actions: the log fills with steps that change nothing, and moving and measuring stay hidden. Keeping it all private: the opponent sees each step only once it lands. Sharing the camera too: where a player looks is their own.</dd>
+    <dt>Affects</dt><dd><a href="../intent.html#feel">It feels like the real table</a>, <a href="../concepts/live-view.html">Live view</a>, <a href="../concepts/suggestion.html">Suggestion</a>, <a href="../boundaries/session.html">Session</a>, <a href="../boundaries/screen.html">Screen</a></dd>
+  </dl>
+</article>
+</body>
+</html>
