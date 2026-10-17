@@ -15,7 +15,7 @@
     <h1>ADR-029: The first rules package is Grimdark Future, and it suggests rather than acts</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Porter asked on 2026-10-17 to start a rules package implementing OnePageRules. Drafted the same day from the Grimdark Future game flow.</dd>
+    <dt>Status</dt><dd><mark>Proposed</mark> Porter asked on 2026-10-17 to start a rules package implementing OnePageRules. Drafted the same day from the Grimdark Future game flow. Porter, 2026-10-17: packages will want to change the look and feel in places not yet known; deferred.</dd>
     <dt>Context</dt><dd><a href="ADR-001.html">ADR-001</a> left rules packages for later, and the engine now has what one needs: units, phases, <a href="../concepts/priority.html">priority</a>, counters and marks, and <a href="../concepts/item.html">items</a> for weapons (<a href="ADR-025.html">ADR-025</a> to <a href="ADR-027.html">ADR-027</a>), and line of sight (<a href="ADR-028.html">ADR-028</a>). Walking a Grimdark Future game showed where the chores are: counting attacks, working out the number to hit and block after AP and cover, rolling, asking the other player to block and remove models, morale, and scoring objectives. The first attempt collapsed under a general package runtime with sandboxes, hooks and replayed scripts.</dd>
     <dt>Decision</dt><dd><ul>
       <li>The first version ships one <a href="../concepts/rules-package.html">rules package</a>, for Grimdark Future, as part of the app's own code. There is no way to load a package from elsewhere.</li>
@@ -26,6 +26,7 @@
       <li>It asks the other player by handing them priority with a note, such as "Roll 7 blocks, 4+", and their browser offers them that step.</li>
       <li>Every action may carry a note, so the log says why, such as "Failed morale: rolled 2, needed 4+".</li>
       <li>It automates the core rules and the core special rules. Rules that only an army book defines are shown by name for the players to apply by hand.</li>
+      <li>Deferred: a package may later change how parts of the screen look for its game. Where it may do so is decided when the first need appears, by its own decision.</li>
       <li>It is built in slices, each proven in two real browsers before the next: stats from a list, then the round and activations, shooting, melee, morale, objectives and the winner, then spells.</li>
     </ul></dd>
     <dt>Because</dt><dd>Suggestions keep "the app never refuses a move" and "a player can always override a package" true without any override machinery: the player simply doesn't click, or does it by hand. Two browsers each acting on their own would act twice; a click happens once. Reading only the log means a reload, a late joiner, a spectator and a saved file all agree on the step, and the game replays without the package (ADR-001). One package compiled into the app is the smallest thing that can help a real game, with none of the first attempt's runtime.</dd>

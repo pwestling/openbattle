@@ -75,7 +75,7 @@
 
   <section id="show">
     <h2><ins><code>session.show(view: LiveView | null): void</code></ins></h2>
-    <p><ins>A <code>LiveView</code> is what this player is in the middle of (<a href="../concepts/live-view.html">live view</a>, <a href="../decisions/ADR-031.html">ADR-031</a>): the models they are carrying with where each is now, the path of the ruler they are dragging, the sight lines they are checking, and the suggestion they have open with its choices and hints. <code>null</code> means nothing.</ins></p>
+    <p><ins>A <code>LiveView</code> is where this player's pointer is on the table (a point in inches with a height, or none when it is off the table), and what they are in the middle of (<a href="../concepts/live-view.html">live view</a>, <a href="../decisions/ADR-031.html">ADR-031</a>): the models they are carrying with where each is now, the path of the ruler they are dragging, the sight lines they are checking, and the suggestion they have open with its choices and hints. <code>null</code> means nothing.</ins></p>
     <dl>
       <dt>Pre</dt><dd><ins>None. A spectator's call does nothing.</ins></dd>
       <dt>Post</dt><dd><ins>The view goes to the host and from it to everyone in the game, and appears in their snapshots under this player until it is replaced, set to <code>null</code>, or this player's connection drops. Sent only when it changes, at most about ten times a second; a newer view replaces one not yet sent. It never enters the log.</ins></dd>
