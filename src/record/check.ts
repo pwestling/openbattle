@@ -494,7 +494,7 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
     case "undo": {
       const latest = latestStanding(log.entries);
       if (!latest) refuse("There is nothing to undo.");
-      // Named, so an undo sent while another action was on its way is refused rather than cancelling that one (ADR-033).
+      // Named, so an undo sent while another action was on its way is refused rather than cancelling that one (ADR-034).
       if (!isWhole(action.of)) refuse("An undo names the log number of the action it cancels.");
       if (action.of !== latest!.n) refuse(`Action ${action.of} is not the latest action, so it can't be undone.`);
       if (latest!.by !== by) refuse("Only the player who took the latest action can undo it.");

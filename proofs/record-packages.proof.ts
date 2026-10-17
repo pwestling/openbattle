@@ -10,7 +10,7 @@ type Log = ReturnType<RecordModule["newLog"]>;
 const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
 const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";
-// An undo of the latest uncancelled action (ADR-033), or of nothing when there is none.
+// An undo of the latest uncancelled action (ADR-034), or of nothing when there is none.
 const undo = (log) => { const c = new Set(window.record.tableAt(log).cancelled); return { kind: "undo", of: log.entries.findLast((e) => e.action.kind !== "undo" && !c.has(e.n))?.n ?? 0 }; };`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];

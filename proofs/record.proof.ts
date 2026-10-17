@@ -13,7 +13,7 @@ const players = `const annKey = "YW5uJ3Mga2V5", ann = "SoweuLK7skk73J7j96M1ew";
 const boKey = "Ym8ncyBrZXk", bo = "O5bDnDqwoYALSkMu-2db0w";
 const cyKey = "Y3kncyBrZXk", cy = "tbo45df-YItJZP0k4aLgmg";
 const link = "Xy3kP9qA-SoweuLK7skk73J7j96M1ew";
-// An undo of the latest uncancelled action (ADR-033), or of nothing when there is none.
+// An undo of the latest uncancelled action (ADR-034), or of nothing when there is none.
 const undo = (log) => { const c = new Set(window.record.tableAt(log).cancelled); return { kind: "undo", of: log.entries.findLast((e) => e.action.kind !== "undo" && !c.has(e.n))?.n ?? 0 }; };`;
 const [annKey, ann] = ["YW5uJ3Mga2V5", "SoweuLK7skk73J7j96M1ew"];
 const [boKey, bo] = ["Ym8ncyBrZXk", "O5bDnDqwoYALSkMu-2db0w"];
@@ -285,7 +285,7 @@ test("undo cancels the latest action, named by its number, only for the player w
     let log = start(r);
     log = r.append(log, { kind: "counter", target: { game: true }, name: "score", value: 1 }, bo);
     const boOnly = r.check(log, undo(log), ann)?.problem;
-    // An undo names what it cancels (ADR-033): one sent while Bo's counter was on its way, meaning Ann's move, is refused.
+    // An undo names what it cancels (ADR-034): one sent while Bo's counter was on its way, meaning Ann's move, is refused.
     const stale = r.check(log, { kind: "undo", of: 4 }, ann)?.problem;
     const unnamed = r.check(log, { kind: "undo" } as unknown as Parameters<typeof r.check>[1], bo)?.problem;
     log = r.append(log, undo(log), bo);

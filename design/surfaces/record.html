@@ -19,7 +19,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him. Rolling alone, from ADR-023, added the same night and Proposed with it, and the signed text then also took who takes the action, a roll's label and where a draw goes.</ins> Accepted by Porter on 2026-10-17: the action kinds for the accepted markers, reserves, priority and items (ADR-025 to ADR-027), which the record surface did not yet have, plus the rules action and notes on actions for the Grimdark Future package (ADR-029). Accepted by Porter on 2026-10-17: an undo names the action it cancels (ADR-033).</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15, including flagging tampered draws. Keys and signatures from ADR-022 added 2026-10-15. <ins>Proposed, not yet seen by Porter: who signs, what is signed and how ids are checked, as the design thread tightened ADR-022, and the log's link and host, so that a reopened saved file is a new game. Built and merged on 2026-10-15 while he was away, as he asked; the lines marked like this are what is waiting on him. Rolling alone, from ADR-023, added the same night and Proposed with it, and the signed text then also took who takes the action, a roll's label and where a draw goes.</ins> Accepted by Porter on 2026-10-17: the action kinds for the accepted markers, reserves, priority and items (ADR-025 to ADR-027), which the record surface did not yet have, plus the rules action and notes on actions for the Grimdark Future package (ADR-029). Accepted by Porter on 2026-10-17: an undo names the action it cancels (ADR-034).</dd>
   </dl>
   <p>Pure functions over plain data. Nothing here touches the network, storage, a clock or randomness.</p>
 
@@ -54,7 +54,7 @@
         <tr><td>shuffle</td><td>Turns an ordered deck into a shuffled one.</td></tr>
         <tr><td>draw</td><td>Records cards drawn from a deck, into the drawer's hand or face up on the table. From an ordered deck, the top cards; from a shuffled deck, <ins>the link,</ins> both random values, who sent the other one, and their signature, as for a roll; from the values the record works out the cards, the same in every browser. Every draw stays on the table's list of draws; a shuffled draw whose host value does not open its seal is kept and flagged as tampered, as a roll is. <ins>The host may draw from a shuffled deck alone, as it may roll alone, and the draw is marked as drawn alone.</ins></td></tr>
         <tr><td>move card</td><td>Moves a card between a hand, the table (with a position, face up or down), a discard pile, or back into a deck (on top, at the bottom or at a position if it is ordered).</td></tr>
-        <tr><td>undo</td><td>Cancels the latest uncancelled action, which it names by its log number (<a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>). It is refused if that action is no longer the latest uncancelled one.</td></tr>
+        <tr><td>undo</td><td>Cancels the latest uncancelled action, which it names by its log number (<a rel="decision" href="../decisions/ADR-034.html">ADR-034</a>). It is refused if that action is no longer the latest uncancelled one.</td></tr>
       </tbody>
     </table>
   </section>
@@ -150,7 +150,7 @@
     <a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>
     <a rel="decision" href="../decisions/ADR-027.html">ADR-027</a>
     <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
-    <a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>
+    <a rel="decision" href="../decisions/ADR-034.html">ADR-034</a>
   </footer>
 </article>
 </body>
