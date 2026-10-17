@@ -19,9 +19,9 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> First draft, 2026-10-14. Accepted by Porter on 2026-10-15. Built 2026-10-15, with changes from building it accepted by Porter on 2026-10-15. <ins>Proposed 2026-10-17: the sight operation (<a href="../decisions/ADR-026.html">ADR-026</a>).</ins></dd>
   </dl>
-  <p>Two operations, both pure functions.</p>
+  <p><del>Two</del><ins>Three</ins> operations, <del>both</del><ins>all</ins> pure functions.</p>
 
   <section id="distance">
     <h2><code>distance(table: Table, from: Spot, to: Spot, via?: Point[]): { across, up }</code></h2>
@@ -41,11 +41,21 @@
       <dt>Fails</dt><dd>Never; a mesh with no flat areas has no floors, and models then stand on the table beneath it.</dd>
     </dl>
   </section>
+  <section id="sight">
+    <h2><ins><code>sight(table: Table, bodies: Bodies, from: Model, to: Model | Point, ignore?: Piece[]): { seen, hiddenBy, line }</code></ins></h2>
+    <ins><p><a href="../concepts/sight.html">Line of sight</a> from one <a href="../concepts/model.html">model</a> to another model, or to a point in inches with a height. <code>Bodies</code> holds the mesh of every model and <a href="../concepts/terrain.html">terrain</a> piece that has one, read from its file; the others use their simple solid or stand-in body. <code>ignore</code> lists pieces that don't count as in the way; the looker and the target never do.</p>
+    <dl>
+      <dt>Pre</dt><dd>Both models are on the table. Every mesh on the table is in <code>bodies</code>.</dd>
+      <dt>Post</dt><dd><code>seen</code> is how much of the target's body some part of the looker's body can see, from 0 (not seen) to 1, judged from points spread evenly over both bodies and rounded to a hundredth; a point is either seen (1) or not (0). <code>hiddenBy</code> lists the pieces that hide some part of the target that would otherwise be seen. <code>line</code> is one clear sight line, two points, when anything is seen, for the screen to draw. Bases are not part of any body. A model on a floor is raised to that floor. Swapping the looker and a model target gives the same <code>seen</code> and <code>hiddenBy</code>. The same in every browser.</dd>
+      <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist, or a mesh on the table is missing from <code>bodies</code>.</dd>
+    </dl></ins>
+  </section>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-010.html">ADR-010</a>
     <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
     <a rel="decision" href="../decisions/ADR-020.html">ADR-020</a>
+    <a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>
   </footer>
 </article>
 </body>

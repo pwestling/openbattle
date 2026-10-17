@@ -5,19 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle design</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-16T16:15Z">
+<meta name="pdd-derived" content="2026-10-17T00:33Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
 <main data-level="0" id="index">
   <header>
-    <nav>Projection, regenerated 2026-10-16T16:15Z</nav>
+    <nav>Projection, regenerated 2026-10-17T00:33Z</nav>
     <h1>OpenBattle design</h1>
-    <p>1 intent · 20 concepts · 7 boundaries · 7 surfaces · 24 decisions · 0 awaiting approval · 3 open drift</p>
+    <p>1 intent · 21 concepts · 7 boundaries · 7 surfaces · 25 decisions · 2 awaiting approval · 3 open drift</p>
   </header>
   <section id="waiting">
     <h2>Waiting on Porter</h2>
-    <p>Nothing.</p>
+    <ul>
+      <li><a href="concepts/sight.html">Line of sight</a> <small>proposed</small></li>
+      <li><a href="decisions/ADR-026.html">ADR-026: True line of sight, any part to any part</a> <small>proposed</small></li>
+    </ul>
   </section>
   <section id="tree">
     <h2>The ladder</h2>
@@ -87,6 +90,11 @@
     <details><summary><span>L1</span><a href="concepts/host.html">Host</a><small>2026-10-14T07:30Z</small></summary>
       <details><summary><span>L2</span><a href="boundaries/session.html">Session</a><small>2026-10-15T06:30Z</small></summary>
         <details><summary><span>L3</span><a href="surfaces/session.html">Session surface</a><small>2026-10-15T06:40Z</small> <mark>Drift</mark></summary></details>
+      </details>
+    </details>
+    <details><summary><span>L1</span><a href="concepts/sight.html">Line of sight</a><small>2026-10-17T00:35Z</small></summary>
+      <details><summary><span>L2</span><a href="boundaries/measure.html">Measure</a><small>2026-10-15T06:00Z</small></summary>
+        <details><summary><span>L3</span><a href="surfaces/measure.html">Measure surface</a><small>2026-10-15T07:00Z</small></summary></details>
       </details>
     </details>
     <details><summary><span>L1</span><a href="concepts/log.html">Log</a><small>2026-10-14T07:30Z</small></summary>
@@ -219,6 +227,7 @@
       <li><a href="decisions/ADR-022.html">ADR-022: Each browser proves who it is with a key</a> <small>L1 · Accepted</small></li>
       <li><a href="decisions/ADR-023.html">ADR-023: Rolling alone</a> <small>L1 · Accepted</small></li>
       <li><a href="decisions/ADR-024.html">ADR-024: Locked terrain is locked for everyone</a> <small>L1 · Accepted</small></li>
+      <li><a href="decisions/ADR-026.html">ADR-026: True line of sight, any part to any part</a> <small>L1 · Proposed</small></li>
     </ul>
   </section>
   <section id="instruments">
