@@ -25,6 +25,7 @@ const model = (unit: string, x: number, y: number, base: Base, facing = 0, floor
   facing,
   floor,
   aside: false,
+  height: 1.2,
 });
 const round32 = { shape: "round" as const, width: 32, depth: 32 };
 const round25 = { shape: "round" as const, width: 25, depth: 25 };
@@ -49,7 +50,7 @@ const table = {
     gone: { ...model("ug", 1, 1, round25), aside: true },
   },
   terrain: {
-    ruin: { position: { x: 50, y: 30 }, facing: 0, floors: [{ height: 0.25, outline: square }, { height: 3, outline: square }] },
+    ruin: { position: { x: 50, y: 30 }, facing: 0, shape: { kind: "box" as const, width: 4, depth: 4, height: 3 }, floors: [{ height: 0.25, outline: square }, { height: 3, outline: square }] },
   },
 };
 

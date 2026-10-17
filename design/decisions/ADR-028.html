@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-028: True line of sight, any part to any part — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T01:30Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-028">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-028: True line of sight, any part to any part</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter asked on 2026-10-17 for line-of-sight handling to be built, so that rules automation can use it. This takes "Line-of-sight checks" off the intent's list of what is not in the first version. Accepted by Porter on 2026-10-17, with everything else waiting on him in the design ("I approve the defaults for everything waiting on me").</dd>
+    <dt>Context</dt><dd>In OnePageRules, shooting, spells, a caster's helpers within 18″ and cover ("behind sight blockers") all depend on what a model can see. Model bodies and terrain are already true 3D shapes (<a href="ADR-019.html">ADR-019</a>), so the table can answer this exactly, where on a real table players crouch and argue. A rules package should not work out sight lines through meshes itself: that is geometry, which <a href="../boundaries/measure.html">Measure</a> hides.</dd>
+    <dt>Decision</dt><dd><ul>
+      <li>A new concept, <a href="../concepts/sight.html">line of sight</a>, answered by a new Measure operation and a new gesture on the <a href="../surfaces/screen.html">screen</a>.</li>
+      <li>A model sees a target if any part of its body can see any part of the target's body (true line of sight). The answer also gives how much of the target is seen and which pieces hide the rest, so a package or the players can judge cover from it.</li>
+      <li>Everything is in the way by default: every terrain piece and every other model. Whoever asks names the pieces that don't count. That is how a package makes only sight-blocking terrain count, using the marks on terrain proposed in <a href="ADR-025.html">ADR-025</a>.</li>
+      <li>Bases are left out: they don't see, aren't seen and don't block.</li>
+      <li>Every browser must have every mesh on the table before it answers, so that everyone gets the same answer.</li>
+    </ul></dd>
+    <dt>Because</dt><dd>Any part to any part is the most common true line of sight convention, needs nothing the table doesn't already have, and is symmetric, so "A sees B" and "B sees A" never disagree. Returning what is in the way, rather than a yes or no under fixed rules, keeps Measure free of any one game's rules: each package decides what blocks and what counts as cover.</dd>
+    <dt>Rejected</dt><dd><ul>
+      <li>Sight from the model's eyes, or from a fixed height above its base: meshes don't say where the eyes are, and players would have to place them.</li>
+      <li>Only terrain blocks: many games, OnePageRules included, let models hide behind other models. A package that disagrees can ignore models.</li>
+      <li>A yes or no only: cover needs to know how much is hidden and by what.</li>
+      <li>Sight worked out by the screen from what it draws: the drawing is not the same in every browser and is not something a package can call.</li>
+      <li>Checking only from the base's centre, or along the table top in 2D: wrong for tall terrain, floors and big models, which the table models in 3D on purpose.</li>
+    </ul></dd>
+    <dt>Affects</dt><dd><a href="../intent.html#not-in-v0">Intent</a>, <a href="../concepts/sight.html">Line of sight</a>, <a href="../concepts/model.html">Model</a>, <a href="../boundaries/measure.html">Measure</a>, <a href="../surfaces/measure.html">Measure surface</a>, <a href="../surfaces/screen.html">Screen surface</a></dd>
+  </dl>
+</article>
+</body>
+</html>
