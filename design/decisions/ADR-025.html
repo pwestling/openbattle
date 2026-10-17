@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADR-025: Neutral markers, marks on terrain, and reserves — Decision</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T00:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="decisions/ADR-025">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Decision</nav>
+    <h1>ADR-025: Neutral markers, marks on terrain, and reserves</h1>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Porter chose "add all three" on 2026-10-17, after reviewing the Grimdark Future game flow. The wording awaits his review.</dd>
+    <dt>Context</dt><dd>Walking a full Grimdark Future game through the design showed three things a hand-played game needs that the engine can't hold. Objective markers and deployment zones belong to no player, but every <a href="../concepts/model.html">model</a> is in a unit in an army. Cover, difficult and dangerous are per <a href="../concepts/terrain.html">terrain</a> piece, but <a href="../concepts/mark.html">marks</a> only go on models, units, groups and players. Scout and Ambush units wait off the table and units ride in transports, but a model is only on the table or removed as a casualty.</dd>
+    <dt>Decision</dt><dd>A new concept, <a href="../concepts/marker.html">marker</a>: a flat disc or rectangle owned by nobody. Marks and <a href="../concepts/counter.html">counters</a> may go on terrain pieces and markers. A model may be set aside in reserve, kept apart from removed models, and placed on the table later. <a href="../concepts/measurement.html">Measuring</a> reaches a marker's edge and shows the distance across the table as well as the height. None of these carry rules meaning in the first version.</dd>
+    <dt>Because</dt><dd>Each is something players track by hand in every Grimdark Future game, so they help the first version reach its yardstick, and each later gives a <a href="../concepts/rules-package.html">rules package</a> something to read. Melee reach is "2 inches across and 4 up", so the distance across the table is needed beside the height.</dd>
+    <dt>Rejected</dt><dd>Objectives as models in a pretend "neutral" army: it breaks the meaning of army and clutters the army panel. Separate concepts for an objective and a zone: both are flat shapes owned by nobody. A "carried by" link from a unit to its transport: a reserve plus a mark covers it until a package needs it. Line of sight: needed too, but it has its own design thread.</dd>
+    <dt>Affects</dt><dd><a href="../intent.html#behaviour">What a player can do</a>, <a href="../concepts/marker.html">Marker</a>, <a href="../concepts/mark.html">Mark</a>, <a href="../concepts/counter.html">Counter</a>, <a href="../concepts/model.html">Model</a>, <a href="../concepts/terrain.html">Terrain</a>, <a href="../concepts/measurement.html">Measurement</a>, <a href="../boundaries/record.html">Record</a>, <a href="../boundaries/measure.html">Measure</a>, <a href="../boundaries/screen.html">Screen</a></dd>
+  </dl>
+</article>
+</body>
+</html>

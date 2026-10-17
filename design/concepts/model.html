@@ -22,13 +22,14 @@
   <dl>
     <dt>Purpose</dt><dd>One miniature on the table.</dd>
     <dt>Meaning</dt><dd>A miniature on its base (round, oval or rectangular, sized in millimetres), at a position on the <a href="../concepts/table.html">table</a> in inches, facing a direction. Its body is a 3D mesh loaded from a file, or, without one, a simple stand-in of a given height.</dd>
-    <dt>Invariants</dt><dd><ul><li>A model is either on the table or set aside as removed; it is never deleted.</li><li>A model's base size does not change during a game.</li><li>A model stands on the table or on a floor of a terrain piece, whichever the player chose. It never balances, tips or falls.</li><li>The body is the model's true shape, not decoration: its height, and later what it can see and be seen by, come from it.</li><li>A mesh body is the same in every browser: everyone has the same file, checked by its fingerprint.</li></ul></dd>
+    <dt>Invariants</dt><dd><ul><li>A model is either on the table<ins>, set aside in reserve (not yet on the table or off it for now, such as a unit waiting to arrive or riding in a transport),</ins> or set aside as removed; it is never deleted.<ins> A model in reserve can be placed on the table at any time (<a href="../decisions/ADR-025.html">ADR-025</a>).</ins></li><li>A model's base size does not change during a game.</li><li>A model stands on the table or on a floor of a terrain piece, whichever the player chose. It never balances, tips or falls.</li><li>The body is the model's true shape, not decoration: its height, and later what it can see and be seen by, come from it.</li><li>A mesh body is the same in every browser: everyone has the same file, checked by its fingerprint.</li></ul></dd>
     <dt>Not</dt><dd>Its rules profile.</dd>
   </dl>
   <footer class="decisions">
     Decisions:
     <a rel="decision" href="../decisions/ADR-002.html">ADR-002</a>
     <a rel="decision" href="../decisions/ADR-019.html">ADR-019</a>
+    <a rel="decision" href="../decisions/ADR-025.html">ADR-025</a>
   </footer>
 </article>
 </body>

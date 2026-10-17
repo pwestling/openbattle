@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Priority — Concept</title>
+<meta name="pdd-level" content="1">
+<meta name="pdd-derived" content="2026-10-17T00:40Z">
+<link rel="stylesheet" href="../design.css">
+</head>
+<body>
+<article data-level="1" id="concepts/priority">
+  <header>
+    <nav><a rel="up" href="../index.html">OpenBattle design</a> · Level 1 · Concept</nav>
+    <h1>Priority</h1>
+    <nav class="realizes">
+      Realizes:
+      <a rel="realizes" href="../intent.html#behaviour">What a player can do</a>
+      <a rel="realizes" href="../intent.html#rules">Players apply the rules</a>
+    </nav>
+  </header>
+  <dl>
+    <dt>Status</dt><dd><mark>Proposed</mark> Asked for by Porter on 2026-10-17: "we also need a concept of Priority, i.e. who is expected to act next". This wording awaits his review.</dd>
+    <dt>Purpose</dt><dd>Everyone knows who the game is waiting on.</dd>
+    <dt>Meaning</dt><dd>The <a href="../concepts/player.html">player</a> or players expected to act next, with an optional short note of what for, such as "roll blocks for 4 hits". It moves back and forth inside one turn: the active player has it, the opponent gets it to block or strike back, and it comes back.</dd>
+    <dt>Invariants</dt><dd><ul><li>Changing priority is an <a href="../concepts/action.html">action</a>.</li><li>Priority never stops anyone acting: the app still refuses no move, and a player without priority can act.</li><li>Everyone sees who has priority, and the players who have it are told it is their move.</li><li>In the first version players hand priority over by hand; a <a href="../concepts/rules-package.html">rules package</a> may later hand it over for them.</li></ul></dd>
+    <dt>Not</dt><dd>Whose turn it is, which is part of the <a href="../concepts/phase.html">phase</a> and changes only between turns. Not a lock on the table.</dd>
+  </dl>
+  <footer class="decisions">
+    Decisions:
+    <a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>
+  </footer>
+</article>
+</body>
+</html>
