@@ -47,7 +47,7 @@
         <tr><td>remove item</td><td>Removes an item and the items it holds.</td></tr>
         <tr><td>place marker</td><td>Adds a <a href="../concepts/marker.html">marker</a>, a disc or rectangle in inches with a name, a colour, a position and a facing, or replaces one with the same id, keeping its counters and marks. Any player may place or move any marker (<a rel="decision" href="../decisions/ADR-025.html">ADR-025</a>).</td></tr>
         <tr><td>remove marker</td><td>Removes a marker.</td></tr>
-        <tr><td>priority</td><td>Sets which players have <a href="../concepts/priority.html">priority</a>, possibly none, and its optional note. Any player may take it (<a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>).</td></tr>
+        <tr><td>priority</td><td>Sets which players have <a href="../concepts/priority.html">priority</a>, possibly none, and its optional note, which is the action's own note. Any player may take it (<a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>).</td></tr>
         <tr><td>rules</td><td>Sets the game's <a href="../concepts/rules-package.html">rules package</a> by name, or none. Any player may take it; the record keeps only the name (<a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>).</td></tr>
         <tr><td>roll</td><td>Records a <a href="../concepts/roll.html">roll</a>: the dice, <ins>the link of the game it was signed in,</ins> both random values, and who sent the other value, and their signature over it. The record works out the result from the two values, the same in every browser. <ins>A roll may name what it is about, as typed targets, kept on the table's roll (<a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>).</ins> <ins>When nobody else is connected, the host may roll alone (<a rel="decision" href="../decisions/ADR-023.html">ADR-023</a>): nobody sent the other value, the host made both, there is no signature, and the table's roll is marked as rolled alone.</ins></td></tr>
         <tr><td>add deck</td><td>Adds a <a href="../concepts/deck.html">deck</a> of <a href="../concepts/card.html">cards</a>, belonging to a player or the game, either ordered (with its order) or shuffled. Each card may name a picture by its file's fingerprint.</td></tr>
@@ -150,6 +150,8 @@
     <a rel="decision" href="../decisions/ADR-026.html">ADR-026</a>
     <a rel="decision" href="../decisions/ADR-027.html">ADR-027</a>
     <a rel="decision" href="../decisions/ADR-029.html">ADR-029</a>
+    <a rel="decision" href="../decisions/ADR-032.html">ADR-032</a>
+    <a rel="decision" href="../decisions/ADR-033.html">ADR-033</a>
     <a rel="decision" href="../decisions/ADR-034.html">ADR-034</a>
   </footer>
 </article>

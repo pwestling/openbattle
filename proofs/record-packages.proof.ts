@@ -106,10 +106,18 @@ test("items can hold items, move between carriers and be removed with what they 
 });
 
 test("a player can't arm another player's models when bringing an army", async ({ page }) => {
-  const problem = await inBrowser(page, (r, start) =>
-    r.check(start(r), { kind: "add to army", units: [], models: [], groups: [], items: [{ id: "w9", name: "Bomb", carrier: "m1" }] }, bo),
-  );
-  expect(problem?.problem).toMatch(/another player's army/);
+  const seen = await inBrowser(page, (r, start) => {
+    const log = start(r);
+    const army = (items: { id: string; name: string; carrier: string }[]) => r.check(log, { kind: "add to army", units: [], models: [], groups: [], items }, bo);
+    return {
+      onModel: army([{ id: "w9", name: "Bomb", carrier: "m1" }]),
+      inTheirItem: army([{ id: "w9", name: "Scope", carrier: "w1" }]),
+      throughNewItem: army([{ id: "w9", name: "Pack", carrier: "w1" }, { id: "w10", name: "Bomb", carrier: "w9" }]),
+    };
+  });
+  expect(seen.onModel?.problem).toMatch(/another player's army/);
+  expect(seen.inTheirItem?.problem).toMatch(/another player's army/);
+  expect(seen.throughNewItem?.problem).toMatch(/another player's army/);
 });
 
 test("markers belong to nobody: anyone places, moves and removes them, and they carry counters and marks", async ({ page }) => {
@@ -250,9 +258,15 @@ test("a roll can name what it is about, kept on the table's roll, and only thing
     const kept = r.tableAt(log).rolls.at(-1)?.about;
     const unknown = r.check(log, { ...roll, seal: "s2", about: [{ unit: "ghosts" }] }, ann);
     const notList = r.check(log, { ...roll, seal: "s3", about: { unit: "u1" } as unknown as [] }, ann);
-    return { kept, unknown, notList };
+    // What it is about is signed: changing it changes the statement the other player signs.
+    const signed = { ...roll, guestBy: bo, guestSignature: "", about: [{ unit: "u1" }] };
+    const sameAbout = r.guestStatement(signed, ann) === r.guestStatement({ ...signed, about: [{ unit: "u1" }] }, ann);
+    const otherAbout = r.guestStatement(signed, ann) === r.guestStatement({ ...signed, about: [{ model: "m2" }] }, ann);
+    const noAbout = r.guestStatement(signed, ann) === r.guestStatement({ ...roll, guestBy: bo, guestSignature: "" }, ann);
+    return { kept, unknown, notList, sameAbout, otherAbout, noAbout };
   });
   expect(seen.kept).toEqual([{ unit: "u1" }, { model: "m2" }]);
   expect(seen.unknown?.problem).toBe('There is no unit "ghosts".');
   expect(seen.notList?.problem).toMatch(/must be a list/);
+  expect(seen).toMatchObject({ sameAbout: true, otherAbout: false, noAbout: false });
 });

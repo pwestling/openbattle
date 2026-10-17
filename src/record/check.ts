@@ -352,6 +352,17 @@ function takeable(log: Log, table: Table, action: Action, by: PlayerId) {
         if (!newModels.has(item.carrier)) carrier(table, item.id, item.carrier, newItems);
         stats(item, `Item "${item.id}"`);
       }
+      // Nor through an item: whatever holds a new item leads to a model of this player's army.
+      for (const item of items) {
+        const seen = new Set<string>();
+        let at: string | undefined = item.carrier;
+        while (at !== undefined && !newModels.has(at) && !table.models[at] && !seen.has(at)) {
+          seen.add(at);
+          at = newItems.get(at) ?? table.items[at]?.carrier;
+        }
+        const model = at === undefined ? undefined : table.models[at];
+        if (model && !newModels.has(at!) && table.units[model.unit]!.owner !== by) refuse(`Item "${item.carrier}" is carried by another player's army.`);
+      }
       const extra = new Map<string, string[] | null>([...newUnits].map((id) => [id, null]));
       for (const group of groups) {
         fresh(table, group.id, "group");

@@ -349,3 +349,37 @@ declare global {
     archive: typeof import("../src/archive/index.ts");
   }
 }
+
+test("a game kept before targets said what they name still opens, with each target typed", async ({ page }) => {
+  await openArchive(page);
+  const base = { shape: "round" as const, width: 25, depth: 25 };
+  const old = {
+    ...log,
+    link: "game-old",
+    entries: [
+      ...log.entries,
+      {
+        n: 4,
+        by: "ann",
+        action: {
+          kind: "add to army",
+          units: [{ id: "u1", name: "Scouts" }],
+          models: [{ id: "m1", unit: "u1", name: "Scout", base, height: 1.2, position: { x: 1, y: 1 }, facing: 0, floor: null }],
+          groups: [],
+        },
+      },
+      { n: 5, by: "ann", action: { kind: "counter", target: "m1", name: "Wounds", value: 1 } },
+      { n: 6, by: "ann", action: { kind: "mark", target: "u1", name: "Shaken", on: true } },
+      { n: 7, by: "bob", action: { kind: "counter", target: "game", name: "Round", value: 1 } },
+      { n: 8, by: "bob", action: { kind: "mark", target: "bob", name: "First", on: true } },
+    ],
+  };
+  await page.evaluate((old) => window.archive.save("game-old", { log: old as never, me: "ann" }), old);
+  const loaded = await page.evaluate(() => window.archive.load("game-old"));
+  expect(loaded!.log.entries.slice(4).map((e) => e.action)).toEqual([
+    { kind: "counter", targets: [{ model: "m1" }], name: "Wounds", value: 1 },
+    { kind: "mark", targets: [{ unit: "u1" }], name: "Shaken", on: true },
+    { kind: "counter", targets: [{ game: true }], name: "Round", value: 1 },
+    { kind: "mark", targets: [{ player: "bob" }], name: "First", on: true },
+  ]);
+});
