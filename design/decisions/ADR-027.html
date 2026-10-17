@@ -15,12 +15,12 @@
     <h1>ADR-027: Stats are counters and marks on things, and items give them structure</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Porter chose "add item" on 2026-10-17 after asking whether counters need structure. The wording awaits his review.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter chose "add item" on 2026-10-17 after asking whether counters need structure. Accepted by Porter on 2026-10-17.</dd>
     <dt>Context</dt><dd>A <a href="../concepts/rules-package.html">rules package</a> needs each unit's stats. Some fit a <a href="../concepts/counter.html">counter</a> or a <a href="../concepts/mark.html">mark</a> on the <a href="../concepts/unit.html">unit</a> (Quality 4, Defense 3, Tough 6, Stealth). Weapons don't: each has several values (range, attacks, AP, rules such as Blast(3)), and models in one unit carry different ones.</dd>
-    <dt>Decision</dt><dd>A new concept, <a href="../concepts/item.html">item</a>: a named thing a model carries, holding counters and marks, and able to hold other items. All rules data is counters and marks on things: army, unit, model and item. Counters stay single named numbers. Players can give units, models and items their counters, marks and items when bringing an army.</dd>
+    <dt>Decision</dt><dd>A new concept, <a href="../concepts/item.html">item</a>: a named thing a model carries, holding counters and marks, and able to hold other items. All rules data is counters and marks on things: army, unit, model and item. Counters stay single named numbers. When bringing an army, players can give units, models and items their counters and marks, and give models their items.</dd>
     <dt>Because</dt><dd>One small idea, counters and marks on things, covers every stat; the screen and the log only ever show and change named numbers and on-off labels. It matches how army books list gear per model, and nesting covers games with deeper gear.</dd>
     <dt>Rejected</dt><dd>Counters that hold records and lists: the screen and the log would have to understand any shape, the road the first attempt's package runtime took. Flattening weapons into unit counters like "Pulse Rifle attacks": breaks when models in a unit carry different gear. A rules profile kept only by the package: the game wouldn't replay or read without the package.</dd>
-    <dt>Affects</dt><dd><a href="../intent.html#behaviour">What a player can do</a>, <a href="../concepts/item.html">Item</a>, <a href="../concepts/counter.html">Counter</a>, <a href="../concepts/mark.html">Mark</a>, <a href="../concepts/model.html">Model</a>, <a href="../boundaries/record.html">Record</a>, <a href="../boundaries/screen.html">Screen</a></dd>
+    <dt>Affects</dt><dd><a href="ADR-001.html">ADR-001</a> (items join its shared rules ideas), <a href="../intent.html#behaviour">What a player can do</a>, <a href="../concepts/item.html">Item</a>, <a href="../concepts/counter.html">Counter</a>, <a href="../concepts/mark.html">Mark</a>, <a href="../concepts/model.html">Model</a>, <a href="../boundaries/record.html">Record</a>, <a href="../boundaries/screen.html">Screen</a></dd>
   </dl>
 </article>
 </body>

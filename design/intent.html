@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpenBattle — Intent</title>
 <meta name="pdd-level" content="0">
-<meta name="pdd-derived" content="2026-10-17T01:30Z">
+<meta name="pdd-derived" content="2026-10-15T06:30Z">
 <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -37,14 +37,15 @@
       <li>Join from the link, with a name, and see the same table. Others can join to watch.</li>
       <li>Look around the table from any angle.</li>
       <li>Place terrain: simple shapes, or 3D meshes loaded from a file, such as scenery exported from Tabletop Simulator.</li>
-      <li><ins>Place markers that belong to nobody, such as objectives and deployment zones.</ins></li>
-      <li>Bring an army by typing or pasting a list of units, model counts, base sizes and mesh files<ins>, with counters, marks and items such as weapons for their stats</ins>, and add more units or models at any point in the game.</li>
-      <li><ins>Set units aside in reserve and bring them onto the table later.</ins> Pick up and move a model or a whole unit, and see the distance in inches while moving, including along a path with corners, such as around terrain.</li>
-      <li>Measure between any two points or models.</li>
-      <li><ins>See whether one model can see another, through the true shapes of models and terrain, and what is in the way (<a href="decisions/ADR-028.html">ADR-028</a>).</ins></li>
+      <li>Place markers that belong to nobody, such as objectives and deployment zones.</li>
+      <li>Bring an army by typing or pasting a list of units, model counts, base sizes and mesh files, with counters, marks and items such as weapons for their stats, and add more units or models at any point in the game.</li>
+      <li>Set units aside in reserve and bring them onto the table later.</li>
+      <li>Pick up and move a model or a whole unit, and see the distance in inches while moving, including along a path with corners, such as around terrain.</li>
+      <li>Measure between any two points or models, or a model and a marker.</li>
+      <li>See whether one model can see another, through the true shapes of models and terrain, and what is in the way (<a href="decisions/ADR-028.html">ADR-028</a>).</li>
       <li>Throw dice that everyone sees land on the same result.</li>
       <li>Draw cards from a deck, face up or into your hand, and play or discard them.</li>
-      <li>Keep track of the round, the phase, counters such as wounds and victory points, and marks such as "has moved"<ins>, including on terrain, such as "cover"</ins>.<ins> See who the game is waiting on next.</ins></li>
+      <li>Keep track of the round, the phase, counters such as wounds and victory points, and marks such as "has moved", including on terrain, such as "cover". See who the game is waiting on next.</li>
       <li>Read every action in a shared log, look back through it, and undo the latest action.</li>
       <li>Close the tab, come back later from the same link, and carry on. Save the game to a file.</li>
     </ol>
@@ -55,7 +56,7 @@
   </section>
   <section id="rules">
     <h2>Players apply the rules; packages can help later</h2>
-    <p>In the first version the players apply their game's rules and the app never refuses a move. The engine is built so that rules packages can later automate parts of a game. They use the same physical actions a player has, plus the few rules ideas nearly every wargame shares: groups of models and units, phases, counters and marks. A player can always override a package.</p>
+    <p>In the first version the players apply their game's rules and the app never refuses a move. The engine is built so that rules packages can later automate parts of a game. They use the same physical actions a player has, plus the few rules ideas nearly every wargame shares: groups of models and units, phases, priority, counters and marks, and items that carry them. A player can always override a package.</p>
   </section>
   <section id="shared-truth">
     <h2>One table, seen the same way</h2>
@@ -81,7 +82,6 @@
     <h2>Not in the first version</h2>
     <ul>
       <li>Rules packages. The engine is shaped for them, but none ship.</li>
-      <li><del>Line-of-sight checks</del></li>
       <li>More than two players, or computer opponents</li>
       <li>Hands that stay secret from someone reading their own browser's data. Hands are hidden on screen only.</li>
       <li>Accounts, or games stored on a server</li>
