@@ -47,7 +47,7 @@
     <dl>
       <dt>Pre</dt><dd>Both models are on the table. Every mesh on the table is in <code>bodies</code>.</dd>
       <dt>Post</dt><dd><code>seen</code> is how much of the target's body some part of the looker's body can see, from 0 (not seen) to 1, judged from points spread evenly over both bodies and rounded to a hundredth; a point is either seen (1) or not (0). <code>hiddenBy</code> lists the pieces that hide some part of the target that would otherwise be seen. <code>line</code> is one clear sight line, two points, when anything is seen, for the screen to draw. Bases are not part of any body. A model on a floor is raised to that floor. Swapping the looker and a model target gives the same <code>seen</code> and <code>hiddenBy</code>. The same in every browser.</dd>
-      <dt>Fails</dt><dd>Throws if a named model is set aside or does not exist, or a mesh on the table is missing from <code>bodies</code>.</dd>
+      <dt>Fails</dt><dd>Throws if a named model is not on the table or does not exist, or a mesh on the table is missing from <code>bodies</code>.</dd>
     </dl></ins>
   </section>
   <footer class="decisions">
