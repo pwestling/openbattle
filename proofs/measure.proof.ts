@@ -18,13 +18,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 type Base = { shape: "round" | "oval" | "rect"; width: number; depth: number };
+type Place = nodeMeasure.TableShape["models"][string]["place"];
 const model = (unit: string, x: number, y: number, base: Base, facing = 0, floor: { terrain: string; floor: number } | null = null) => ({
   unit,
   base,
-  position: { x, y },
-  facing,
-  floor,
-  aside: false,
+  place: { in: "table", position: { x, y }, facing, floor } as Place,
   height: 1.2,
 });
 const round32 = { shape: "round" as const, width: 32, depth: 32 };
@@ -47,7 +45,7 @@ const table = {
     u2: model("pair", 34, 0, round32),
     high: model("uh", 50, 30, round25, 0, { terrain: "ruin", floor: 1 }),
     low: model("ul", 50, 25, round25),
-    gone: { ...model("ug", 1, 1, round25), aside: true },
+    gone: { ...model("ug", 1, 1, round25), place: { in: "removed" } as Place },
   },
   terrain: {
     ruin: { position: { x: 50, y: 30 }, facing: 0, shape: { kind: "box" as const, width: 4, depth: 4, height: 3 }, floors: [{ height: 0.25, outline: square }, { height: 3, outline: square }] },

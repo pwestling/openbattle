@@ -35,7 +35,10 @@ function turnOrigins(play: Play): Map<string, Origin> {
     for (const m of e.action.moves) {
       const was = origins.get(m.model);
       const first = m.path[0];
-      if (!was && first) origins.set(m.model, { position: first, floor: (atStart ??= tableAt(play.now.log, began)).models[m.model]?.floor ?? null, via: [] });
+      if (!was && first) {
+        const place = (atStart ??= tableAt(play.now.log, began)).models[m.model]?.place;
+        origins.set(m.model, { position: first, floor: place?.in === "table" ? place.floor : null, via: [] });
+      }
       const origin = origins.get(m.model);
       if (!origin || !first) continue;
       // A move recorded from the turn's start carries its pinned waypoints on; an older one starts afresh.

@@ -1,6 +1,6 @@
 // Distances base edge to base edge. Every base is a convex outline grown by a radius: a round base
 // is its centre grown by its radius, a point is itself, and other bases are their corners.
-import type { Point, Spot, TableShape } from "./index.ts";
+import type { Point, Spot, Standing, TableShape } from "./index.ts";
 
 const mmPerInch = 25.4;
 /** Sides of the outline an oval base is measured as: closer than a thousandth of an inch to the true oval. */
@@ -12,7 +12,10 @@ interface Body {
   height: number;
 }
 
-type Model = TableShape["models"][string];
+/** A model on the table. */
+type Model = TableShape["models"][string] & { place: Standing };
+
+const onTable = (model: TableShape["models"][string]): model is Model => model.place.in === "table";
 
 /** A table's own entry for an id; never something every object inherits, such as "toString". */
 const own = <T>(record: Record<string, T>, id: string): T | undefined => (Object.hasOwn(record, id) ? record[id] : undefined);
@@ -51,12 +54,13 @@ export function turnOf(degrees: number): { cos: number; sin: number } {
 }
 
 function heightOf(table: TableShape, model: Model): number {
-  const floor = model.floor;
+  const floor = model.place.floor;
   return floor ? (own(table.terrain, floor.terrain)?.floors[floor.floor]?.height ?? 0) : 0;
 }
 
 function bodyOf(table: TableShape, model: Model): Body {
-  const { position: c, facing, base } = model;
+  const { position: c, facing } = model.place;
+  const base = model.base;
   const { cos, sin } = turnOf(facing);
   // Facing turns clockwise from +y: a model's right is +x when it faces +y.
   const place = (across: number, ahead: number): Point => ({
@@ -78,7 +82,7 @@ function bodyOf(table: TableShape, model: Model): Body {
 function modelOf(table: TableShape, id: string): Model {
   const model = own(table.models, id);
   if (!model) throw new Error(`There is no model "${id}".`);
-  if (model.aside) throw new Error(`Model "${id}" is set aside.`);
+  if (!onTable(model)) throw new Error(`Model "${id}" is set aside.`);
   return model;
 }
 
@@ -89,10 +93,21 @@ function bodiesOf(table: TableShape, spot: Spot): Body[] {
     const ids = Object.keys(table.models)
       .filter((id) => table.models[id]!.unit === spot.unit)
       .sort();
-    const on = ids.filter((id) => !table.models[id]!.aside);
+    const on = ids.map((id) => table.models[id]!).filter(onTable);
     if (ids.length === 0) throw new Error(`There is no unit "${spot.unit}" with models.`);
     if (on.length === 0) throw new Error(`Every model of unit "${spot.unit}" is set aside.`);
-    return on.map((id) => bodyOf(table, table.models[id]!));
+    return on.map((model) => bodyOf(table, model));
+  }
+  if ("marker" in spot) {
+    const marker = own(table.markers ?? {}, spot.marker);
+    if (!marker) throw new Error(`There is no marker "${spot.marker}".`);
+    const { position: c, width, depth } = marker;
+    if (marker.shape === "disc") return [{ outline: [{ x: c.x, y: c.y }], radius: width / 2, height: 0 }];
+    const { cos, sin } = turnOf(marker.facing);
+    const place = (across: number, ahead: number): Point => ({ x: c.x + across * cos + ahead * sin, y: c.y - across * sin + ahead * cos });
+    const w = width / 2;
+    const d = depth / 2;
+    return [{ outline: [place(-w, -d), place(w, -d), place(w, d), place(-w, d)], radius: 0, height: 0 }];
   }
   return [{ outline: [{ x: spot.x, y: spot.y }], radius: 0, height: 0 }];
 }

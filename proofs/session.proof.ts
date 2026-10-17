@@ -52,11 +52,11 @@ test("proof 1: two browsers, one model moved, both see it", async ({ browser }) 
   await ben.evaluate((link) => (window as any).proof.enter(link, { name: "Ben", colour: "#2f6fd6" }), link);
   await expect.poll(async () => (await now(ben)).connection).toBe("playing");
   await expect.poll(async () => Object.values((await now(ana)).table.players).map((p) => p.name).sort()).toEqual(["Ana", "Ben"]);
-  expect((await now(ben)).table.models["scout-1"]!.position).toEqual({ x: 10, y: 5 });
+  expect((await now(ben)).table.models["scout-1"]!.place).toEqual({ in: "table", position: { x: 10, y: 5 }, facing: 0, floor: null });
 
   // Ana moves her scout around a corner; Ben sees where it went and the path it took.
   await act(ana, { kind: "move", moves: [{ model: "scout-1", position: { x: 16, y: 9 }, facing: 90, floor: null, path: [{ x: 10, y: 9 }] }] });
-  await expect.poll(async () => (await now(ben)).table.models["scout-1"]!.position).toEqual({ x: 16, y: 9 });
+  await expect.poll(async () => (await now(ben)).table.models["scout-1"]!.place).toEqual({ in: "table", position: { x: 16, y: 9 }, facing: 90, floor: null });
   expect((await now(ben)).table.models["scout-1"]!.path).toEqual([{ x: 10, y: 9 }]);
   expect((await now(ben)).disagreement).toBe(false);
 });
