@@ -227,6 +227,8 @@ function Controls() {
         <dd>Step between floors while carrying (or Shift with the wheel).</dd>
         <dt>Hold Tab</dt>
         <dd>Ruler: drag between two spots or from a model. Only you see it.</dd>
+        <dt>Hold V</dt>
+        <dd>Line of sight from the selected models to the model or spot under the pointer. Shift leaves models out of the way; click a piece in the way to leave it out. Only you see it.</dd>
         <dt>Right-drag or arrows</dt>
         <dd>Turn the camera.</dd>
         <dt>Middle-drag or W A S D</dt>

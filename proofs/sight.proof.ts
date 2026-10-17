@@ -208,3 +208,34 @@ test("mesh bodies are their true shape: a model's mesh, scaled to its height, an
   expect(seen.nobody).toBe('There is no model "nobody".');
   expect(seen.aside).toBe('Model "b" is not on the table.');
 });
+
+test("a terrain mesh of 100,000 triangles, the most a mesh is simplified to, is looked through quickly", async ({ page }) => {
+  const seen = await inBrowser(
+    page,
+    (m, arg) => {
+      // A bumpy hill of 100,352 triangles, 2″ high, between the two models.
+      const n = 224;
+      const corners: number[] = [];
+      const h = (x: number, z: number) => 5 + (3 * ((x * z) % 7)) / 7;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          const [a, b, c, d] = [(i / n) * 100, ((i + 1) / n) * 100, (j / n) * 100, ((j + 1) / n) * 100];
+          corners.push(a, h(a, c), c, a, h(a, d), d, b, h(b, d), d, a, h(a, c), c, b, h(b, d), d, b, h(b, c), c);
+        }
+      }
+      const bodies = { hill: { positions: new Float32Array(corners) } };
+      const table = { models: { a: arg.a, b: arg.b }, terrain: { hill: { position: { x: 5, y: 0 }, facing: 0, floors: [], shape: { kind: "mesh" as const, width: 4, depth: 8, height: 2 } } } };
+      let start = performance.now();
+      const first = m.sight(table, bodies, { model: "a" }, { model: "b" });
+      const firstTime = performance.now() - start;
+      start = performance.now();
+      for (let i = 0; i < 5; i++) m.sight(table, bodies, { model: "a" }, { model: "b" });
+      return { first, firstTime, laterTime: (performance.now() - start) / 5 };
+    },
+    { a: model(0, 0), b: model(10, 0) },
+  );
+  expect(seen.first).toEqual({ seen: 0, hiddenBy: ["hill"], line: null });
+  // The first look reads the mesh once; later looks, as the pointer moves, reuse what it read.
+  expect(seen.firstTime).toBeLessThan(5000);
+  expect(seen.laterTime).toBeLessThan(500);
+});

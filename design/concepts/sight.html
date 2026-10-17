@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Line of sight — Concept</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-17T00:35Z">
+<meta name="pdd-derived" content="2026-10-17T01:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -21,7 +21,7 @@
     </nav>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Drafted 2026-10-17 from Porter's ask for line-of-sight handling, so that rules packages (OnePageRules first) can use it (<a href="../decisions/ADR-028.html">ADR-028</a>).</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Drafted 2026-10-17 from Porter's ask for line-of-sight handling, so that rules packages (OnePageRules first) can use it (<a href="../decisions/ADR-028.html">ADR-028</a>). Accepted by Porter on 2026-10-17, with everything else waiting on him in the design ("I approve the defaults for everything waiting on me"). Built 2026-10-17.</dd>
     <dt>Purpose</dt><dd>Answer "can this model see that one?" the way a player would by crouching down to the table, but exactly.</dd>
     <dt>Meaning</dt><dd>Whether a straight line can be drawn from some part of one <a href="../concepts/model.html">model</a>'s body to some part of another model's body, or to a point, without passing through anything in the way; how much of the target can be seen; and which pieces are in the way of the rest. What can be in the way is the body of any <a href="../concepts/terrain.html">terrain</a> piece or other model, at its true shape: a mesh, a simple solid, or a stand-in body. Bases are not part of it: they neither see, nor are seen, nor block. Nor are <a href="../concepts/marker.html">markers</a>, which lie flat on the table.</dd>
     <dt>Invariants</dt><dd><ul><li>The same question gets the same answer in every browser.</li><li>If one model sees another, the other sees it, when the same pieces count as in the way.</li><li>Looking changes nothing and is not an <a href="../concepts/action.html">action</a>.</li><li>Whoever asks may say which pieces don't count as in the way, such as a wood that is cover but not a sight blocker, or the looker's own unit.</li></ul></dd>

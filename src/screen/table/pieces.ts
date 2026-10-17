@@ -1,6 +1,7 @@
 // What sits on the table, drawn from the record's table: terrain and models (decks and cards join later).
 import {
   BoxGeometry,
+  BoxHelper,
   BufferGeometry,
   CylinderGeometry,
   ExtrudeGeometry,
@@ -116,6 +117,7 @@ export class Pieces {
   /** The piece whose label is showing: the one hovered for a moment. */
   private labelled: string | null = null;
   private labelTimer: ReturnType<typeof setTimeout> | undefined;
+  private outlines = new Map<string, BoxHelper>();
   private offTick: () => void;
 
   constructor(view: TableView) {
@@ -154,6 +156,25 @@ export class Pieces {
   }
 
   /** The piece the pointer is over, if any. */
+  /** Outlines these pieces in red and shows their labels: what hides part of a sight line's target. */
+  outline(ids: ReadonlySet<string>) {
+    for (const [id, helper] of this.outlines) {
+      if (ids.has(id) && this.drawn.has(id)) continue;
+      drop(this.view.scene, helper);
+      this.outlines.delete(id);
+      this.drawn.get(id)?.label.element.classList.remove("hiding");
+    }
+    for (const id of ids) {
+      const d = this.drawn.get(id);
+      if (!d || this.outlines.has(id)) continue;
+      const helper = new BoxHelper(d.object, "#e0533d");
+      this.view.scene.add(helper);
+      this.outlines.set(id, helper);
+      d.label.element.classList.add("hiding");
+    }
+    this.view.invalidate();
+  }
+
   get pointedAt(): string | null {
     return this.hovered;
   }
@@ -298,6 +319,7 @@ export class Pieces {
   dispose() {
     clearTimeout(this.labelTimer);
     this.offTick();
+    this.outline(new Set());
     for (const d of this.drawn.values()) drop(this.view.root, d.object);
     this.drawn.clear();
   }

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ADR-028: True line of sight, any part to any part — Decision</title>
 <meta name="pdd-level" content="1">
-<meta name="pdd-derived" content="2026-10-17T00:35Z">
+<meta name="pdd-derived" content="2026-10-17T01:30Z">
 <link rel="stylesheet" href="../design.css">
 </head>
 <body>
@@ -15,7 +15,7 @@
     <h1>ADR-028: True line of sight, any part to any part</h1>
   </header>
   <dl>
-    <dt>Status</dt><dd><mark>Proposed</mark> Porter asked on 2026-10-17 for line-of-sight handling to be built, so that rules automation can use it. This takes "Line-of-sight checks" off the intent's list of what is not in the first version.</dd>
+    <dt>Status</dt><dd><mark>Accepted</mark> Porter asked on 2026-10-17 for line-of-sight handling to be built, so that rules automation can use it. This takes "Line-of-sight checks" off the intent's list of what is not in the first version. Accepted by Porter on 2026-10-17, with everything else waiting on him in the design ("I approve the defaults for everything waiting on me").</dd>
     <dt>Context</dt><dd>In OnePageRules, shooting, spells, a caster's helpers within 18″ and cover ("behind sight blockers") all depend on what a model can see. Model bodies and terrain are already true 3D shapes (<a href="ADR-019.html">ADR-019</a>), so the table can answer this exactly, where on a real table players crouch and argue. A rules package should not work out sight lines through meshes itself: that is geometry, which <a href="../boundaries/measure.html">Measure</a> hides.</dd>
     <dt>Decision</dt><dd><ul>
       <li>A new concept, <a href="../concepts/sight.html">line of sight</a>, answered by a new Measure operation and a new gesture on the <a href="../surfaces/screen.html">screen</a>.</li>

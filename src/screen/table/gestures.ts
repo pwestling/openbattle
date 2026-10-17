@@ -5,7 +5,9 @@
 //   right-drag or the arrow keys turn the camera; middle-drag or WASD slide it; the wheel zooms;
 //   Z or a middle-click zooms to the pointer and back; P looks straight down and back; Space goes
 //   back to your edge; F or a middle-click on a card flips it.
-// Where it has none, the screen picks: hold Tab for the ruler; Space or right-click pins a
+// Where it has none, the screen picks: hold Tab for the ruler; hold V for line of sight from the
+// selected models to what the pointer is on, with Shift leaving models out of the way and a click
+// on a piece in the way leaving it out until V is let go; Space or right-click pins a
 // waypoint; Page Up and Page Down (or Shift with the wheel) step between floors while carrying;
 // Escape puts a carried selection back.
 // Cards: click a deck to draw into your hand, Shift-click to draw face up; drag a card on the
@@ -13,9 +15,10 @@
 // card under the pointer, as in Tabletop Simulator. T and H are kept as other keys for P and Space.
 import { Plane, Raycaster, Vector2, Vector3, type Object3D } from "three";
 import type { Action, FloorRef, Point, Table } from "../../record/index.ts";
-import { distance, type Spot } from "../../measure/index.ts";
+import { distance, sight, type Mesh, type SightTarget, type Spot } from "../../measure/index.ts";
 import { Guides, type Guide } from "./guides.ts";
 import type { Cards } from "./cards.ts";
+import { meshNow, meshOf } from "./meshes.ts";
 import { floorHeight, Pieces, type Place, type Thing } from "./pieces.ts";
 import type { TableView } from "./view.ts";
 
@@ -115,6 +118,11 @@ export class Gestures {
   private carry: Carry | null = null;
   private ruler: Ruler | null = null;
   private rulerKey = false;
+  /** Line of sight: while V is held, with Shift, and the pieces clicked to leave out of the way. */
+  private sightKey = false;
+  private sightShift = false;
+  private sightIgnored = new Set<string>();
+  private hiding = new Set<string>();
   private press: { x: number; y: number; thing: Thing | null; detail: number; shift: boolean } | null = null;
   private cards: Cards;
   private cardCarry: { id: string; offset: Point } | null = null;
@@ -153,6 +161,7 @@ export class Gestures {
       this.view.camera.releaseKeys();
       this.rulerKey = false;
       this.ruler = null;
+      this.endSight();
       this.redraw();
     });
   }
@@ -189,6 +198,9 @@ export class Gestures {
     const guides: Guide[] = [];
     if (this.carry?.moved) guides.push(...this.carryGuides());
     if (this.ruler) guides.push(this.rulerGuide());
+    this.hiding = new Set();
+    if (this.sightKey) guides.push(...this.sightGuides());
+    this.pieces.outline(this.hiding);
     this.guides.show(guides);
     // Piece labels stay out of the way of the measurements.
     this.view.host.classList.toggle("measuring", guides.length > 0);
@@ -271,6 +283,12 @@ export class Gestures {
     if (e.button !== 0 || !this.table) return;
     const thing = this.thingAt(e);
     const model = thing?.kind === "model" ? thing.id : null;
+    if (this.sightKey) {
+      // A click on a piece in the way leaves it out until V is let go.
+      if (thing && this.hiding.has(thing.id)) this.sightIgnored.add(thing.id);
+      this.redraw();
+      return;
+    }
     if (this.rulerKey) {
       const at = this.spotAt(e, model);
       if (!at) return;
@@ -303,6 +321,10 @@ export class Gestures {
       if (this.orbit.button === 2) this.view.camera.turn(dx, dy);
       else this.view.camera.slide(dx, dy);
       return;
+    }
+    if (this.sightKey && !this.orbit) {
+      this.sightShift = e.shiftKey;
+      this.redraw();
     }
     if (this.ruler && e.buttons & 1) {
       const at = this.spotAt(e, this.modelAt(e));
@@ -664,6 +686,79 @@ export class Gestures {
     };
   }
 
+  // Line of sight.
+
+  private endSight() {
+    this.sightKey = false;
+    this.sightIgnored.clear();
+  }
+
+  /** The bodies of every piece with a mesh this browser has read, and the names of those it hasn't yet. */
+  private bodies(table: Table): { bodies: Record<string, Mesh>; missing: string[] } {
+    const bodies: Record<string, Mesh> = {};
+    const missing: string[] = [];
+    const pieces = [
+      ...Object.values(table.models).filter((m) => !m.aside).map((m) => ({ id: m.id, name: m.name, mesh: m.mesh })),
+      ...Object.values(table.terrain).map((t) => ({ id: t.id, name: t.name, mesh: t.shape.kind === "mesh" ? t.shape.mesh : undefined })),
+    ];
+    for (const p of pieces) {
+      if (!p.mesh) continue;
+      const mesh = meshNow(p.mesh);
+      if (mesh) bodies[p.id] = mesh;
+      else {
+        missing.push(p.name);
+        // Read it if the file is here; the next look finds it.
+        void meshOf(p.mesh).then((m) => m && this.sightKey && this.redraw());
+      }
+    }
+    return { bodies, missing: [...new Set(missing)].sort() };
+  }
+
+  /** Sight lines from each selected model to the model or spot under the pointer. */
+  private sightGuides(): Guide[] {
+    const table = this.table!;
+    if (!this.hover || this.overPanel()) return [];
+    const thing = this.thingAt(this.hover);
+    let to: SightTarget;
+    let end: Spot3;
+    const aimed = thing?.kind === "model" ? table.models[thing.id] : undefined;
+    if (aimed) {
+      to = { model: aimed.id };
+      end = { ...aimed.position, h: floorHeight(table, aimed.floor) + 0.12 + aimed.height / 2 };
+    } else {
+      const s = this.surfaceAt(this.hover);
+      if (!s) return [];
+      to = { x: s.point.x, y: s.point.y, z: s.h };
+      end = { ...s.point, h: s.h };
+    }
+    const lookers = [...this.selected].filter((id) => table.models[id] && !table.models[id].aside && id !== aimed?.id);
+    if (lookers.length === 0) return [];
+    const { bodies, missing } = this.bodies(table);
+    if (missing.length) return [{ points: [end], text: `Waiting for ${missing.join(", ")}` }];
+    const ignore = [...this.sightIgnored, ...(this.sightShift ? Object.keys(table.models) : [])];
+    const guides: Guide[] = [];
+    let seeing = 0;
+    let share = 0;
+    for (const id of lookers.sort()) {
+      const m = table.models[id]!;
+      let r;
+      try {
+        r = sight(table, bodies, { model: id }, to, ignore);
+      } catch {
+        continue;
+      }
+      for (const h of r.hiddenBy) this.hiding.add(h);
+      if (r.line) {
+        seeing++;
+        share = r.seen;
+        guides.push({ points: r.line.map((p) => ({ x: p.x, y: p.y, h: p.z })) });
+      } else guides.push({ points: [{ ...m.position, h: floorHeight(table, m.floor) + 0.12 + m.height / 2 }, end], blocked: true });
+    }
+    const text = lookers.length === 1 ? (seeing ? `Sees ${Math.round(share * 100)}%` : "Can't see") : `${seeing} of ${lookers.length} see`;
+    guides.push({ points: [end], text });
+    return guides;
+  }
+
   // Keys.
 
   private typing(e: KeyboardEvent) {
@@ -681,6 +776,18 @@ export class Gestures {
       e.preventDefault();
       this.rulerKey = true;
       return;
+    }
+    if ((key === "v" || key === "V") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      if (!e.repeat) {
+        this.sightKey = true;
+        this.sightShift = e.shiftKey;
+        this.redraw();
+      }
+      return;
+    }
+    if (key === "Shift" && this.sightKey) {
+      this.sightShift = true;
+      return this.redraw();
     }
     if (key === " " && (this.carry || this.ruler)) {
       e.preventDefault();
@@ -711,6 +818,14 @@ export class Gestures {
   }
 
   private keyUp(e: KeyboardEvent) {
+    if ((e.key === "v" || e.key === "V") && this.sightKey) {
+      this.endSight();
+      this.redraw();
+    }
+    if (e.key === "Shift" && this.sightKey) {
+      this.sightShift = false;
+      this.redraw();
+    }
     if (e.key === "Tab") {
       this.rulerKey = false;
       this.ruler = null;

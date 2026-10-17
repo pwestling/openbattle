@@ -75,6 +75,12 @@ async function read(file: Blob): Promise<ReadMesh> {
 }
 
 const cache = new Map<Fingerprint, Promise<ReadMesh | null>>();
+const already = new Map<Fingerprint, ReadMesh>();
+
+/** The mesh a fingerprint names, if this browser has already read it; meshOf reads it. */
+export function meshNow(fingerprint: Fingerprint): ReadMesh | undefined {
+  return already.get(fingerprint);
+}
 
 /** The mesh a fingerprint names, once this browser has its file; null if it hasn't, or can't read it. */
 export function meshOf(fingerprint: Fingerprint): Promise<ReadMesh | null> {
@@ -87,7 +93,9 @@ export function meshOf(fingerprint: Fingerprint): Promise<ReadMesh | null> {
           cache.delete(fingerprint); // Not here yet: ask again next time.
           return null;
         }
-        return readMesh(f).catch(() => null);
+        const mesh = await readMesh(f).catch(() => null);
+        if (mesh) already.set(fingerprint, mesh);
+        return mesh;
       });
     cache.set(fingerprint, found);
   }

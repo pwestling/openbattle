@@ -1,4 +1,4 @@
-// Lines drawn over the table: paths while carrying, and the ruler.
+// Lines drawn over the table: paths while carrying, the ruler, and sight lines.
 import { Group } from "three";
 import { Line2 } from "three/examples/jsm/lines/Line2.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
@@ -14,6 +14,8 @@ export interface Guide {
   text?: string;
   /** A second line under the text: the total when this is one leg of several. */
   total?: string;
+  /** Drawn red: a sight line that is blocked. */
+  blocked?: boolean;
 }
 
 export class Guides {
@@ -29,11 +31,12 @@ export class Guides {
     this.view.invalidate();
     for (const child of [...this.group.children]) drop(this.group, child);
     for (const g of guides) {
-      if (g.points.length < 2) continue;
+      if (g.points.length === 0 || (g.points.length < 2 && !g.text)) continue;
       // A pale line over a dark one, so it stands out on the felt, on terrain and against the sky alike.
       const flat = g.points.flatMap((p) => [p.x, p.h + 0.08, -p.y]);
       const { clientWidth, clientHeight } = this.view.host;
-      for (const [colour, width, order] of [["#1a1a1a", 6, 10], ["#fff2b0", 3, 11]] as const) {
+      const pale = g.blocked ? "#e0533d" : "#fff2b0";
+      for (const [colour, width, order] of g.points.length < 2 ? [] : ([["#1a1a1a", 6, 10], [pale, 3, 11]] as const)) {
         const geometry = new LineGeometry();
         geometry.setPositions(flat);
         const material = new LineMaterial({ color: colour, linewidth: width, depthTest: false, transparent: true });
